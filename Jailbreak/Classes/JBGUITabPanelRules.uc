@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelRules.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBGUITabPanelRules.uc,v 1.4 2004/03/06 13:10:12 mychaeel Exp $
 //
 // User interface panel for Jailbreak game rules.
 // ============================================================================
@@ -85,7 +85,9 @@ function InitPanel()
   Super.InitPanel();
 
   AddPanelAddons();
+  
   HookChangeGameType();
+  HookMenuClose();
 
   SongPrev = PlaySong(SongJailbreak, 2.0, 0.0);
   if (SongPrev ~= SongJailbreak)
@@ -174,7 +176,7 @@ function HookChangeGameType()
     Tab_InstantActionMain(GUITabPanelMain).OnChangeGameType = ChangeGameType;
   }
 
-  else if (Tab_MultiplayerHostMain(GUITabPanelMain) != None) {
+  if (Tab_MultiplayerHostMain(GUITabPanelMain) != None) {
     OnChangeGameType = Tab_MultiplayerHostMain(GUITabPanelMain).OnChangeGameType;
     Tab_MultiplayerHostMain(GUITabPanelMain).OnChangeGameType = ChangeGameType;
   }
@@ -196,7 +198,7 @@ function UnhookChangeGameType()
 
   if (Tab_InstantActionMain(GUITabPanelMain) != None)
     Tab_InstantActionMain(GUITabPanelMain).OnChangeGameType = OnChangeGameType;
-  else if (Tab_MultiplayerHostMain(GUITabPanelMain) != None)
+  if (Tab_MultiplayerHostMain(GUITabPanelMain) != None)
     Tab_MultiplayerHostMain(GUITabPanelMain).OnChangeGameType = OnChangeGameType;
 
   OnChangeGameType();
@@ -222,9 +224,80 @@ delegate OnChangeGameType();
 
 function ChangeGameType()
 {
-  PlaySong(SongPrev, 2.0, 2.0);
+  PlaySong(SongPrev, 1.0, 2.0);
   RemovePanelAddons();
   UnhookChangeGameType();
+}
+
+
+// ============================================================================
+// HookMenuClose
+//
+// Hooks the MenuClose function into the user interface system to get notified
+// when the user closes the menu containing this control.
+// ============================================================================
+
+function HookMenuClose()
+{
+  local GUIPage GUIPageMenu;
+  
+  GUIPageMenu = GUIPage(MenuOwner.MenuOwner);
+
+  if (UT2InstantActionPage(GUIPageMenu) != None) {
+    OnMenuClose = UT2InstantActionPage(GUIPageMenu).OnClose;
+    UT2InstantActionPage(GUIPageMenu).OnClose = MenuClose;
+  }
+
+  if (UT2MultiplayerHostPage(GUIPageMenu) != None) {
+    OnMenuClose = UT2MultiplayerHostPage(GUIPageMenu).OnClose;
+    UT2MultiplayerHostPage(GUIPageMenu).OnClose = MenuClose;
+  }
+}
+
+
+// ============================================================================
+// UnhookMenuClose
+//
+// Restores the previous function receiving the MenuClose notification and
+// calls it.
+// ============================================================================
+
+function UnhookMenuClose(optional bool bCancelled)
+{
+  local GUIPage GUIPageMenu;
+  
+  GUIPageMenu = GUIPage(MenuOwner.MenuOwner);
+
+  if (UT2InstantActionPage(GUIPageMenu) != None)
+    UT2InstantActionPage(GUIPageMenu).OnClose = OnMenuClose;
+  if (UT2MultiplayerHostPage(GUIPageMenu) != None)
+    UT2MultiplayerHostPage(GUIPageMenu).OnClose = OnMenuClose;
+  
+  OnMenuClose(bCancelled);
+}
+
+
+// ============================================================================
+// delegate OnMenuClose
+//
+// Called when the menu containing this control is closed. Used to reference
+// the function previously set up for OnClose of the menu control.
+// ============================================================================
+
+delegate OnMenuClose(optional bool bCancelled);
+
+
+// ============================================================================
+// MenuClose
+//
+// Called when the menu containing this control is closed. Reverts the theme
+// song to the previously played song.
+// ============================================================================
+
+function MenuClose(optional bool bCancelled)
+{
+  PlaySong(SongPrev, 1.0, 2.0);
+  UnhookMenuClose(bCancelled);
 }
 
 
