@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGameRules.uc,v 1.1 2003/01/30 20:04:33 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -18,7 +18,7 @@ class JBGameRules extends Info
 // Variables
 // ============================================================================
 
-var JBGameRules nextJBGameRules;  // next JBGameRules actor in chain
+var JBGameRules nextJBGameRules;  // next game rules object in chain
 
 
 // ============================================================================

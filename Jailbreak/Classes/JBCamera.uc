@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.13 2003/01/26 11:26:26 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.14 2003/01/27 08:06:28 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -61,23 +61,22 @@ struct TInfoViewer {
 // Properties
 // ============================================================================
 
-var() bool bWidescreen;       // draw widescreen bars
+var() bool bWidescreen;      // display camera widescreen bars
 
-var() TInfoCaption Caption;   // caption text
-var() TInfoOverlay Overlay;   // overlay material
+var() TInfoCaption Caption;  // camera caption text
+var() TInfoOverlay Overlay;  // camera material overlay
 
-var() byte MotionBlur;        // amount of motion blur
+var() byte MotionBlur;       // amount of camera motion blur
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var private bool bIsActiveLocal;   // camera is active for the local player
-var private array<TInfoViewer> ListInfoViewer;
+var private bool bIsActiveLocal;                // local player using camera
+var private array<TInfoViewer> ListInfoViewer;  // all players using camera
 
-var Font FontCaption;              // font object used for caption
-var private MotionBlur CameraEffectMotionBlur;  // motion blur object
+var private MotionBlur CameraEffectMotionBlur;  // shared motion blur object
 
 
 // ============================================================================

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameObjective.uc,v 1.2 2002/12/23 01:11:24 mychaeel Exp $
+// $Id: JBGameObjective.uc,v 1.3 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Dummy game objective automatically spawned by the game to mark release
 // switches that are simple triggers.
@@ -27,9 +27,9 @@ replication {
 // Variables
 // ============================================================================
 
-var Trigger TriggerRelease;
+var Trigger TriggerRelease;            // trigger associated to this objective
 
-var private int RepDefenderTeamIndex;  // replicated value
+var private int RepDefenderTeamIndex;  // replicated value for compass
 
 
 // ============================================================================

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.13 2003/01/26 13:44:21 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.14 2003/01/27 08:59:58 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -15,28 +15,30 @@ class JBBotTeam extends TeamAI
 // Variables
 // ============================================================================
 
-var class<JBBotSquadArena> ClassSquadArena;
-var class<JBBotSquadJail>  ClassSquadJail;
+var class<JBBotSquadArena> ClassSquadArena;  // bot squad for arena
+var class<JBBotSquadJail>  ClassSquadJail;   // bot squad for jail
 
-var private bool bTacticsAuto;     // team tactics selected automatically
-var private float TimeTacticsSet;  // time of last tactics selection
+var private int nObjectives;                 // cached number of objectives
 
-var private int nObjectives;       // counted once by CountObjectives
+var private bool bTacticsAuto;               // tactics selected automatically
+var private float TimeTacticsSelected;       // time of last tactics selection
 
 var private transient float TimeDeployment;  // time of last deployment order
 
-var private transient float TimeCacheCalcDistance;
-var private transient float CacheCalcDistance;
-var private transient Controller CacheCalcDistanceController;
-var private transient Actor CacheCalcDistanceActorTarget;
 
-var private transient float TimeCacheCountEnemiesAccounted;
-var private transient float TimeCacheCountEnemiesUnaccounted;
-var private transient float TimeCacheRatePlayers;
+// ============================================================================
+// Caches
+// ============================================================================
 
-var private transient int CacheCountEnemiesAccounted;
-var private transient int CacheCountEnemiesUnaccounted;
-var private transient float CacheRatePlayers;
+struct TCacheCalcDistance            { var float Time; var float Result; var Object Controller, ActorTarget; };
+struct TCacheCountEnemiesAccounted   { var float Time; var int   Result; };
+struct TCacheCountEnemiesUnaccounted { var float Time; var int   Result; };
+struct TCacheRatePlayers             { var float Time; var float Result; };
+
+var private transient TCacheCalcDistance            CacheCalcDistance;
+var private transient TCacheCountEnemiesAccounted   CacheCountEnemiesAccounted;
+var private transient TCacheCountEnemiesUnaccounted CacheCountEnemiesUnaccounted;
+var private transient TCacheRatePlayers             CacheRatePlayers;
 
 
 // ============================================================================
@@ -60,7 +62,7 @@ var private transient float CacheRatePlayers;
 
 function name SetTactics(name Tactics) {
 
-  if (TimeTacticsSet == Level.TimeSeconds)
+  if (TimeTacticsSelected == Level.TimeSeconds)
     return GetTactics();  // set tactics only once per tick
 
   bTacticsAuto = False;
@@ -99,7 +101,7 @@ function name SetTactics(name Tactics) {
       Log("Warning: Invalid tactics" @ Tactics @ "selected for team" @ Team.TeamIndex);
     }
 
-  TimeTacticsSet = Level.TimeSeconds;
+  TimeTacticsSelected = Level.TimeSeconds;
 
   return GetTactics();
   }
@@ -462,27 +464,27 @@ function int CountPlayersReleasable(GameObjective GameObjective) {
 
 static function float CalcDistance(Controller Controller, Actor ActorTarget) {
 
-  if (Default.TimeCacheCalcDistance == Controller.Level.TimeSeconds &&
-      Default.CacheCalcDistanceController == Controller &&
-      Default.CacheCalcDistanceActorTarget == ActorTarget)
-    return Default.CacheCalcDistance;
+  if (Default.CacheCalcDistance.Time == Controller.Level.TimeSeconds &&
+      Default.CacheCalcDistance.Controller  == Controller &&
+      Default.CacheCalcDistance.ActorTarget == ActorTarget)
+    return Default.CacheCalcDistance.Result;
 
   if (Controller.Pawn == None)
     return 0.0;  // no pathfinding without pawn
 
-  Default.TimeCacheCalcDistance = Controller.Level.TimeSeconds;
-  Default.CacheCalcDistanceController = Controller;
-  Default.CacheCalcDistanceActorTarget = ActorTarget;
+  Default.CacheCalcDistance.Time = Controller.Level.TimeSeconds;
+  Default.CacheCalcDistance.Controller  = Controller;
+  Default.CacheCalcDistance.ActorTarget = ActorTarget;
   
   if (JBGameObjective(ActorTarget) != None)
     ActorTarget = JBGameObjective(ActorTarget).TriggerRelease;
   
   if (Controller.FindPathToward(ActorTarget) != None)
-    Default.CacheCalcDistance = Controller.RouteDist;
+    Default.CacheCalcDistance.Result = Controller.RouteDist;
   else
-    Default.CacheCalcDistance = VSize(ActorTarget.Location - Controller.Pawn.Location);
+    Default.CacheCalcDistance.Result = VSize(ActorTarget.Location - Controller.Pawn.Location);
   
-  return Default.CacheCalcDistance;
+  return Default.CacheCalcDistance.Result;
   }
 
 
@@ -517,8 +519,8 @@ function float RatePlayers() {
   local JBTagPlayer thisTagPlayer;
   local PlayerReplicationInfo PlayerReplicationInfo;
 
-  if (TimeCacheRatePlayers == Level.TimeSeconds)
-    return CacheRatePlayers;
+  if (CacheRatePlayers.Time == Level.TimeSeconds)
+    return CacheRatePlayers.Result;
   
   firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -528,11 +530,12 @@ function float RatePlayers() {
       nDeathsByTeam[PlayerReplicationInfo.Team.TeamIndex] += PlayerReplicationInfo.Deaths;
       }
 
-  CacheRatePlayers = CalcEfficiency(nKillsByTeam[     Team.TeamIndex], nDeathsByTeam[     Team.TeamIndex]) /
-                     CalcEfficiency(nKillsByTeam[EnemyTeam.TeamIndex], nDeathsByTeam[EnemyTeam.TeamIndex]);
+  CacheRatePlayers.Result =
+    CalcEfficiency(nKillsByTeam[     Team.TeamIndex], nDeathsByTeam[     Team.TeamIndex]) /
+    CalcEfficiency(nKillsByTeam[EnemyTeam.TeamIndex], nDeathsByTeam[EnemyTeam.TeamIndex]);
   
-  TimeCacheRatePlayers = Level.TimeSeconds;
-  return CacheRatePlayers;
+  CacheRatePlayers.Time = Level.TimeSeconds;
+  return CacheRatePlayers.Result;
   }
 
 
@@ -602,18 +605,18 @@ function int CountEnemiesAccounted() {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
-  if (TimeCacheCountEnemiesAccounted == Level.TimeSeconds)
-    return CacheCountEnemiesAccounted;
+  if (CacheCountEnemiesAccounted.Time == Level.TimeSeconds)
+    return CacheCountEnemiesAccounted.Result;
 
-  CacheCountEnemiesAccounted = 0;
+  CacheCountEnemiesAccounted.Result = 0;
 
   firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree() && IsEnemyAcquired(thisTagPlayer.GetController()))
-      CacheCountEnemiesAccounted++;
+      CacheCountEnemiesAccounted.Result += 1;
   
-  TimeCacheCountEnemiesAccounted = Level.TimeSeconds;
-  return CacheCountEnemiesAccounted;
+  CacheCountEnemiesAccounted.Time = Level.TimeSeconds;
+  return CacheCountEnemiesAccounted.Result;
   }
 
 
@@ -626,13 +629,13 @@ function int CountEnemiesAccounted() {
 
 function int CountEnemiesUnaccounted() {
 
-  if (TimeCacheCountEnemiesUnaccounted == Level.TimeSeconds)
-    return CacheCountEnemiesUnaccounted;
+  if (CacheCountEnemiesUnaccounted.Time == Level.TimeSeconds)
+    return CacheCountEnemiesUnaccounted.Result;
   
-  CacheCountEnemiesUnaccounted = CountEnemiesFree() - CountEnemiesAccounted();
+  CacheCountEnemiesUnaccounted.Result = CountEnemiesFree() - CountEnemiesAccounted();
   
-  TimeCacheCountEnemiesUnaccounted = Level.TimeSeconds;
-  return CacheCountEnemiesUnaccounted;
+  CacheCountEnemiesUnaccounted.Time = Level.TimeSeconds;
+  return CacheCountEnemiesUnaccounted.Result;
   }
 
 

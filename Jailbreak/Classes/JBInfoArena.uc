@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.8 2003/01/20 00:07:04 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.9 2003/01/30 20:04:33 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -54,15 +54,15 @@ var() name TagAttachPickups;
 // Variables
 // ============================================================================
 
-var JBInfoArena nextArena;  // next arena in linked list
+var JBInfoArena nextArena;                   // next arena in chain
 
-var private JBProbeEvent ProbeEventRequest;
-var private JBProbeEvent ProbeEventExclude;
+var private JBProbeEvent ProbeEventRequest;  // event probe for match requests
+var private JBProbeEvent ProbeEventExclude;  // event probe for exclusions
 
-var private array<Controller> ListControllerExclude;
+var private array<Controller> ListControllerExclude;  // excluded players
 
-var private float TimeCountdownStart;  // time until the match starts
-var private float TimeCountdownTie;    // time until a tie is announced
+var private float TimeCountdownStart;        // countdown until match starts
+var private float TimeCountdownTie;          // countdown until match is tied
 
 var private PlayerReplicationInfo PlayerReplicationInfoRed;   // for messages
 var private PlayerReplicationInfo PlayerReplicationInfoBlue;  // for messages
@@ -180,7 +180,7 @@ function bool CanFight(Controller ControllerCandidate) {
 
 function bool CanStart() {
 
-  local byte bFoundByTeam[2];
+  local byte bFoundCandidate[2];
   local int nCandidates;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
@@ -190,9 +190,9 @@ function bool CanStart() {
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArenaPending() == Self && CanFight(thisTagPlayer.GetController())) {
       TeamPlayer = thisTagPlayer.GetTeam();
-      if (bFoundByTeam[TeamPlayer.TeamIndex] != 0)
+      if (bFoundCandidate[TeamPlayer.TeamIndex] != 0)
         return False;
-      bFoundByTeam[TeamPlayer.TeamIndex] = 1;
+      bFoundCandidate[TeamPlayer.TeamIndex] = 1;
       nCandidates++;
       }
 
@@ -653,7 +653,7 @@ state Waiting {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBTagPlayer TagPlayerCandidate;
-    local JBTagPlayer ListTagPlayerCandidateByTeam[2];
+    local JBTagPlayer TagPlayerCandidateByTeam[2];
     local array<JBTagPlayer> ListTagPlayerCandidate;
     local TeamInfo TeamCandidate;
 
@@ -666,17 +666,17 @@ state Waiting {
       TagPlayerCandidate = ListTagPlayerCandidate[Rand(ListTagPlayerCandidate.Length)];
 
       TeamCandidate = TagPlayerCandidate.GetTeam();
-      ListTagPlayerCandidateByTeam[TeamCandidate.TeamIndex] = TagPlayerCandidate;
+      TagPlayerCandidateByTeam[TeamCandidate.TeamIndex] = TagPlayerCandidate;
       
       for (iTagPlayer = ListTagPlayerCandidate.Length - 1; iTagPlayer >= 0; iTagPlayer--)
         if (ListTagPlayerCandidate[iTagPlayer].GetTeam() == TeamCandidate)
           ListTagPlayerCandidate.Remove(iTagPlayer, 1);
       }
 
-    if (ListTagPlayerCandidateByTeam[0] != None &&
-        ListTagPlayerCandidateByTeam[1] != None)
-      return MatchInit(ListTagPlayerCandidateByTeam[0].GetController(),
-                       ListTagPlayerCandidateByTeam[1].GetController());
+    if (TagPlayerCandidateByTeam[0] != None &&
+        TagPlayerCandidateByTeam[1] != None)
+      return MatchInit(TagPlayerCandidateByTeam[0].GetController(),
+                       TagPlayerCandidateByTeam[1].GetController());
 
     return False;
     }
@@ -694,7 +694,7 @@ state Waiting {
   
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
-    local JBTagPlayer ListTagPlayerCandidateByTeam[2];
+    local JBTagPlayer TagPlayerCandidateByTeam[2];
     local TeamInfo TeamPlayer;
     
     firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
@@ -702,15 +702,15 @@ state Waiting {
       TeamPlayer = thisTagPlayer.GetTeam();
 
       if (thisTagPlayer.GetArenaRequest() == Self && CanFight(thisTagPlayer.GetController()))
-        if (ListTagPlayerCandidateByTeam[TeamPlayer.TeamIndex] == None ||
-            ListTagPlayerCandidateByTeam[TeamPlayer.TeamIndex].GetArenaRequestTime() > thisTagPlayer.GetArenaRequestTime())
-          ListTagPlayerCandidateByTeam[TeamPlayer.TeamIndex] = thisTagPlayer;
+        if (TagPlayerCandidateByTeam[TeamPlayer.TeamIndex] == None ||
+            TagPlayerCandidateByTeam[TeamPlayer.TeamIndex].GetArenaRequestTime() > thisTagPlayer.GetArenaRequestTime())
+          TagPlayerCandidateByTeam[TeamPlayer.TeamIndex] = thisTagPlayer;
       }
 
-    if (ListTagPlayerCandidateByTeam[0] != None &&
-        ListTagPlayerCandidateByTeam[1] != None)
-      return MatchInit(ListTagPlayerCandidateByTeam[0].GetController(),
-                       ListTagPlayerCandidateByTeam[1].GetController());
+    if (TagPlayerCandidateByTeam[0] != None &&
+        TagPlayerCandidateByTeam[1] != None)
+      return MatchInit(TagPlayerCandidateByTeam[0].GetController(),
+                       TagPlayerCandidateByTeam[1].GetController());
 
     return False;
     }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.5 2003/01/19 19:11:19 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.6 2003/01/25 23:46:48 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -17,10 +17,17 @@ class JBBotSquad extends SquadAI
 
 struct TInfoEnemy {
 
-  var float TimeUpdate;         // time of last info update
-  var bool bIsApproaching;      // enemy is approaching the objective
+  var float TimeUpdate;         // time of last update
+  var bool bIsApproaching;      // enemy was approaching objective when visible
   var bool bIsVisible;          // enemy was visible at last update
   var float DistanceObjective;  // distance of enemy to defended objective
+  };
+
+
+struct TInfoHunt {
+
+  var Controller Controller;            // hunted player
+  var NavigationPoint NavigationPoint;  // last known location
   };
 
 
@@ -28,15 +35,19 @@ struct TInfoEnemy {
 // Variables
 // ============================================================================
 
-var private float TimeInitialized;  // time of squad initialization
+var private float TimeInitialized;        // time of squad initialization
 
-var private TInfoEnemy ListInfoEnemy[8];  // indexed corresponding to Enemies
+var private TInfoEnemy ListInfoEnemy[8];  // indexed like Enemies array
+var private TInfoHunt InfoHunt;           // information about player hunt
 
-var private Controller ControllerHunted;            // hunted player
-var private NavigationPoint NavigationPointHunted;  // last known location
 
-var private transient float TimeCacheCountEnemies;
-var private transient int CacheCountEnemies;
+// ============================================================================
+// Caches
+// ============================================================================
+
+struct TCacheCountEnemies { var float Time; var int Result; };
+
+var private transient TCacheCountEnemies CacheCountEnemies;
 
 
 // ============================================================================
@@ -115,16 +126,16 @@ function int CountEnemies() {
 
   local int iEnemy;
   
-  if (TimeCacheCountEnemies == Level.TimeSeconds)
-    return CacheCountEnemies;
+  if (CacheCountEnemies.Time == Level.TimeSeconds)
+    return CacheCountEnemies.Result;
   
-  CacheCountEnemies = 0;
+  CacheCountEnemies.Result = 0;
   for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
     if (Enemies[iEnemy] != None)
-      CacheCountEnemies++;
+      CacheCountEnemies.Result += 1;
   
-  TimeCacheCountEnemies = Level.TimeSeconds;
-  return CacheCountEnemies;
+  CacheCountEnemies.Time = Level.TimeSeconds;
+  return CacheCountEnemies.Result;
   }
 
 
@@ -242,7 +253,7 @@ function bool AddEnemy(Pawn PawnEnemy) {
       ListInfoEnemy[iEnemy].DistanceObjective = DistanceObjective;
       }
 
-    if (PawnEnemy.Controller == ControllerHunted)
+    if (PawnEnemy.Controller == InfoHunt.Controller)
       ClearHunt();  // found him, no more hunting needed
     }
 
@@ -336,11 +347,11 @@ function bool CheckSquadObjectives(Bot Bot) {
   if (Super.CheckSquadObjectives(Bot))
     return True;
   
-  if (NavigationPointHunted != None && Bot == SquadLeader)
-    if (Bot.Pawn.ReachedDestination(NavigationPointHunted))
+  if (InfoHunt.NavigationPoint != None && Bot == SquadLeader)
+    if (Bot.Pawn.ReachedDestination(InfoHunt.NavigationPoint))
       ClearHunt();
     else
-      return FindPathToObjective(Bot, NavigationPointHunted);
+      return FindPathToObjective(Bot, InfoHunt.NavigationPoint);
   
   return False;
   }
@@ -359,8 +370,8 @@ function bool Hunt(Controller Controller, NavigationPoint NavigationPoint) {
   if (Bot(SquadLeader) == None)
     return False;
 
-  ControllerHunted = Controller;
-  NavigationPointHunted = NavigationPoint;
+  InfoHunt.Controller      = Controller;
+  InfoHunt.NavigationPoint = NavigationPoint;
   
   return CheckSquadObjectives(Bot(SquadLeader));
   }
@@ -394,10 +405,10 @@ function bool CanHuntBetterThan(JBBotSquad Squad, Controller Controller) {
   if (Squad == None)
     return True;
 
-  return (Squad.ControllerHunted != None &&
-          Squad.ControllerHunted != Controller &&
-          (ControllerHunted == None ||
-           ControllerHunted == Controller));
+  return (Squad.InfoHunt.Controller != None &&
+          Squad.InfoHunt.Controller != Controller &&
+          (InfoHunt.Controller == None ||
+           InfoHunt.Controller == Controller));
   }
 
 
@@ -411,9 +422,9 @@ function bool CanHuntBetterThan(JBBotSquad Squad, Controller Controller) {
 function bool IsHunting(optional Controller Controller) {
 
   if (Controller == None)
-    return (ControllerHunted != None);
+    return (InfoHunt.Controller != None);
   else
-    return (ControllerHunted == Controller);
+    return (InfoHunt.Controller == Controller);
   }
 
 
@@ -425,8 +436,8 @@ function bool IsHunting(optional Controller Controller) {
 
 function ClearHunt() {
 
-  ControllerHunted = None;
-  NavigationPointHunted = None;
+  InfoHunt.Controller      = None;
+  InfoHunt.NavigationPoint = None;
   
   if (Bot(SquadLeader) != None && SquadLeader.Pawn != None)
     CheckSquadObjectives(Bot(SquadLeader));
@@ -441,7 +452,7 @@ function ClearHunt() {
 
 function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim) {
 
-  if (ControllerVictim == ControllerHunted)
+  if (ControllerVictim == InfoHunt.Controller)
     ClearHunt();
 
   Super.NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);

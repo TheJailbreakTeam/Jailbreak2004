@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoGame
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoGame.uc,v 1.7 2003/01/06 11:14:44 mychaeel Exp $
+// $Id: JBReplicationInfoGame.uc,v 1.8 2003/01/25 23:46:48 mychaeel Exp $
 //
 // Replicated information for the entire game.
 // ============================================================================
@@ -28,8 +28,8 @@ replication {
 
 struct TOrderName {
 
-  var name OrderName;  // actual name of the given order
-  var int iOrderName;  // index into the OrderName array in Bot
+  var name OrderName;  // name of order passed to SetOrders
+  var int iOrderName;  // index into OrderName array in class Bot
   };
 
 
@@ -37,12 +37,12 @@ struct TOrderName {
 // Variables
 // ============================================================================
 
-var JBInfoArena    firstArena;
-var JBInfoJail     firstJail;
-var JBTagObjective firstTagObjective;
-var JBTagPlayer    firstTagPlayer;
+var JBInfoArena    firstArena;         // first arena in chain
+var JBInfoJail     firstJail;          // first jail in chain
+var JBTagObjective firstTagObjective;  // first objective tag in chain
+var JBTagPlayer    firstTagPlayer;     // first player tag in chain
 
-var TOrderName OrderNameTactics[6];
+var TOrderName OrderNameTactics[6];    // registered tactics order names
 
 
 // ============================================================================

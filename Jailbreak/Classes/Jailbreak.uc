@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.26 2003/01/27 08:06:28 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.27 2003/01/30 20:04:33 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -23,18 +23,18 @@ var config bool bEnableSpectatorDeathCam;
 // Variables
 // ============================================================================
 
-var JBGameRules firstJBGameRules;        // start of JBGameRules chain
+var JBGameRules firstJBGameRules;        // start of game rules chain
 
 var private JBCamera CameraExecution;    // camera for execution sequence
 
-var private float TimeExecution;         // time when execution starts
-var private float TimeRestart;           // time when next round starts
+var private float TimeExecution;         // time for pending execution
+var private float TimeRestart;           // time for pending round restart
 
-var private array<name> ListEventFired;  // events fired in this tick
-var private float TimeEventFired;        // update time of event list
+var private float TimeEventFired;        // time of last fired singular event
+var private array<name> ListEventFired;  // singular events fired this tick
 
-var private transient name Restart;      // used by FindPlayerStart
-var private transient JBInfoArena ArenaRestart;
+var private transient name Restart;      // area to start player in
+var private transient JBInfoArena ArenaRestart;  // arena to start player in
 
 
 // ============================================================================

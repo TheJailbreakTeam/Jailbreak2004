@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.8 2003/01/11 22:17:46 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.9 2003/01/19 19:11:19 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -26,8 +26,8 @@ replication {
 // Variables
 // ============================================================================
 
-var private name Tactics;       // currently selected team tactics
-var private bool bTacticsAuto;  // team tactics are currently auto-selected
+var private name Tactics;            // currently selected team tactics
+var private bool bTacticsAuto;       // tactics selected automatically
 
 var private float TimeCountPlayers;  // time of last CountPlayers call
 var private int nPlayers;            // replicated total number of players
