@@ -19,20 +19,7 @@ class JBScout extends Pawn;
 
 function Died(Controller ControllerKiller, class<DamageType> ClassDamageType, vector LocationHit)
 {
-  Log(Level.TimeSeconds @ "JBScout.Died");
   Health = Default.Health;
-}
-
-
-// ============================================================================
-// Destroyed
-//
-// Logs a warning to help debugging.
-// ============================================================================
-
-event Destroyed()
-{
-  Log(Level.TimeSeconds @ "JBScout.Destroyed");
 }
 
 
@@ -42,11 +29,15 @@ event Destroyed()
 
 defaultproperties
 {
-  bProjTarget     = False;
-  bCollideActors  = False;
-  bCollideWorld   = False;
-  CollisionRadius = 25.0;
-  CollisionHeight = 44.0;
-  CrouchHeight    = 29.0;
-  CrouchRadius    = 25.0;
+  bGameRelevant        = True;
+  bBlockActors         = False;
+  bCanBeDamaged        = False;
+  bProjTarget          = False;
+  bCollideActors       = False;
+  bCollideWorld        = False;
+  bShouldBaseAtStartup = False;
+  CollisionRadius      = 25.0;
+  CollisionHeight      = 44.0;
+  CrouchHeight         = 29.0;
+  CrouchRadius         = 25.0;
 }
