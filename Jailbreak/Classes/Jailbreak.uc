@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.75 2004/04/24 14:55:37 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.76 2004/04/25 17:30:33 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -646,6 +646,29 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
       return 0;
 
   return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
+}
+
+
+// ============================================================================
+// PreventDeath
+//
+// Removes the killed player's weapon if the player was killed in jail or in
+// an arena fight. Prevents that the weapon is auto-tossed around.
+// ============================================================================
+
+function bool PreventDeath(Pawn PawnVictim, Controller ControllerKiller, Class<DamageType> ClassDamageType, vector LocationHit)
+{
+  local JBTagPlayer TagPlayerVictim;
+
+  if (Super.PreventDeath(PawnVictim, ControllerKiller, ClassDamageType, LocationHit))
+    return True;
+
+  TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(PawnVictim.PlayerReplicationInfo);
+  if (TagPlayerVictim != None &&
+     !TagPlayerVictim.IsFree())
+    PawnVictim.Weapon = None;
+  
+  return False;
 }
 
 
