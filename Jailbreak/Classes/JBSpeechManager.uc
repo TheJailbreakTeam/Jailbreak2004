@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBSpeechManager.uc,v 1.1 2004/02/29 21:01:29 mychaeel Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -113,7 +113,7 @@ simulated function TSegment GetSegment(string Identifier)
       return ListCacheSegment[iSegment].Segment;
   
   CacheSegment.Identifier = Identifier;
-  CacheSegment.Segment.Sound = Sound(DynamicLoadObject(Identifier, Class'Sound'));
+  CacheSegment.Segment.Sound = Sound(DynamicLoadObject(Identifier, Class'Sound', True));
   
   if (CacheSegment.Segment.Sound != None)
     CacheSegment.Segment.Duration = GetSoundDuration(CacheSegment.Segment.Sound);
