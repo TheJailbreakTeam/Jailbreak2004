@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.7 2004/04/07 11:20:36 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.8 2004/04/14 10:29:14 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -1789,7 +1789,7 @@ defaultproperties
   SpriteWidgetDot      = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.04);
   SpriteWidgetPlayer   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09);
   SpriteWidgetDamage   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09,OffsetX=-32,OffsetY=-32);
-  SpriteWidgetGradient = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=128,Y1=351,X2=129,Y2=353),Color=(R=0,G=0,B=0,A=128));
+  SpriteWidgetGradient = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=144,Y1=399,X2=145,Y2=401),Color=(R=0,G=0,B=0,A=128));
 
   SpriteWidgetClockAnchor      = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=210,Y2=255),TextureScale=1.40,PosX=1.0,PosY=0,OffsetX=-042,OffsetY=012,Color=(R=000,G=000,B=000,A=150));
   SpriteWidgetClockCircle      = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=016,Y1=016,X2=272,Y2=272),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-256,OffsetY=000,Color=(R=255,G=255,B=255,A=255));
