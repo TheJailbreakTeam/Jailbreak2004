@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBInfoProtection.uc,v 1.8 2004/05/23 13:23:16 tarquin Exp $
+// $Id: JBInfoProtection.uc,v 1.9 2004/05/28 15:44:33 mychaeel Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -84,10 +84,8 @@ simulated event PostNetBeginPlay()
 
 function Tick(float DeltaTime)
 {
-    if(EndProtectionTime == 0)
-        return;
-
-    ProtectionCharge = (EndProtectionTime - Level.TimeSeconds);
+    if(EndProtectionTime > 0)
+        ProtectionCharge = (EndProtectionTime - Level.TimeSeconds);
 
     if((ProtectionCharge < 0)
     || (ProtectedPawn == None)
