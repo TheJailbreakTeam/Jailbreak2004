@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.46 2004/05/31 14:50:13 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.47 2004/06/03 00:27:39 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -254,6 +254,7 @@ function bool ContainsActor(Actor Actor)
 function bool CanFight(Controller ControllerCandidate)
 {
   local byte bForceSendToArena;
+  local JBInfoJail Jail;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer TagPlayer;
 
@@ -267,7 +268,13 @@ function bool CanFight(Controller ControllerCandidate)
     return False;
 
   if ( TagPlayer.IsInArena() ||
-     (!TagPlayer.IsInJail() && !bool(bForceSendToArena)))
+     !(TagPlayer.IsInJail() || bool(bForceSendToArena)))
+    return False;
+
+  Jail = TagPlayer.GetJail();
+  if (Jail != None &&
+       (Jail.IsReleaseOpening(TagPlayer.GetTeam()) ||
+        Jail.IsReleaseOpen   (TagPlayer.GetTeam())))
     return False;
 
   if (TagPlayer.GetArenaPending() != None &&
