@@ -1,7 +1,7 @@
 //=============================================================================
 // JBTauntingMeshActor
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBTauntingMeshActor.uc,v 1.2 2004/03/05 19:18:24 wormbo Exp $
+// $Id: JBTauntingMeshActor.uc,v 1.3 2004/04/24 22:10:46 wormbo Exp $
 //
 // Plays taunting animations for the celebration screen.
 //=============================================================================
@@ -173,6 +173,11 @@ defaultproperties
   TauntAnims(4)=gesture_cheer
   TauntAnims(5)=Gesture_Taunt01
   TauntAnims(6)=Gesture_Taunt02
+  TauntAnims(7)=Gesture_Taunt03
+  TauntAnims(8)=gesture_beckon
+  TauntAnims(9)=Idle_Character01
+  TauntAnims(10)=Idle_Character02
+  TauntAnims(11)=Idle_Character03
   IdleAnims(0)=Idle_Rest
   IdleAnims(1)=Idle_Biggun
   DeathAnims(0)=DeathB

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.10 2004/05/24 10:50:13 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.11 2004/05/29 09:45:29 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -177,9 +177,36 @@ function Taunt(string AnimName)
     return;
   
   SetPropertyText("TauntAnim", AnimName); // hacky string to name "typecasting"
-  if ( PlayerInfo.Player != None && PlayerInfo.Player.GetController() == ViewportOwner.Actor
-      && PlayerMesh.HasAnim(TauntAnim) )
-    CelebrationGameRules.ServerSetTauntAnim(AnimName);
+  if ( PlayerInfo.Player != None && PlayerInfo.Player.GetController() == ViewportOwner.Actor ) {
+    if ( PlayerMesh.HasAnim(TauntAnim) )
+      CelebrationGameRules.ServerSetTauntAnim(AnimName);
+    else {
+      TauntAnim = FixAnimName(AnimName);
+      if ( PlayerMesh.HasAnim(TauntAnim) )
+        CelebrationGameRules.ServerSetTauntAnim(AnimName);
+    }
+  }
+}
+
+
+//=============================================================================
+// FixAnimName
+//
+// Fix animation name for skaarj model.
+//=============================================================================
+
+function name FixAnimName(string AnimName)
+{
+  switch (Locs(AnimName)) {
+    case "pthrust":
+      return 'Gesture_Taunt02';
+    case "asssmack":
+      return 'Gesture_Taunt03';
+    case "throatcut":
+      return 'Idle_Character03';
+    default:
+      return 'Gesture_Taunt01';
+  }
 }
 
 
