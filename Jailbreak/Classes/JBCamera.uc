@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.8 2002/12/23 01:16:32 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.9 2003/01/05 21:08:31 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -55,8 +55,8 @@ var() byte MotionBlur;             // amount of motion blur
 var private bool bIsActiveLocal;   // camera is active for the local player
 var private array<PlayerController> ListControllerViewer;
 
-var Font FontCaption;                   // font object used for caption
-var MotionBlur CameraEffectMotionBlur;  // motion blur object
+var Font FontCaption;              // font object used for caption
+var private MotionBlur CameraEffectMotionBlur;  // motion blur object
 
 
 // ============================================================================
