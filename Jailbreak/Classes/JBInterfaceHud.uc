@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.53 2004/05/25 12:55:28 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.54 2004/05/30 16:34:59 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -345,6 +345,9 @@ simulated function CheckLastMan()
 
       bIsLastMan = True;
       TimeUpdateLastMan = Level.TimeSeconds;
+    }
+    else {
+      bIsLastMan = False;
     }
   }
 }
