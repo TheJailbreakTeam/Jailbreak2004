@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.45 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.46 2003/06/02 16:57:59 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -161,8 +161,7 @@ function InitPlacedBot(Controller Controller, RosterEntry RosterEntry) {
 // Logout
 //
 // Destroys the JBTagPlayer and JBTagClient actors for the given player or bot
-// if one exists. If any team has become a bot-only team, sets team tactics to
-// auto-selection.
+// if one exists. Reassesses the leaving player's team.
 // ============================================================================
 
 function Logout(Controller ControllerExiting) {
@@ -192,6 +191,9 @@ function Logout(Controller ControllerExiting) {
 
 // ============================================================================
 // ChangeTeam
+//
+// Changes the given player's team. Reassesses both teams involved in the
+// change if it is successful.
 // ============================================================================
 
 function bool ChangeTeam(Controller ControllerPlayer, int iTeam, bool bNewTeam) {
