@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.3 2003/07/29 14:50:53 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.4 2003/07/29 19:06:54 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -191,14 +191,16 @@ protected function KilledByLlama(Controller Killer)
 //=============================================================================
 // ScoreLlamaKill
 //
-// Awards adrenaline and (if the pawn is alive) health to the llama killer.
+// Awards adrenaline, health and shield points to the llama killer.
 //=============================================================================
 
 protected function ScoreLlamaKill(Controller Killer, Controller Killed)
 {
   Killer.AwardAdrenaline(class'JBAddonLlama'.default.RewardAdrenaline);
-  if ( Killer.Pawn != None )
+  if ( Killer.Pawn != None ) {
     Killer.Pawn.GiveHealth(class'JBAddonLlama'.default.RewardHealth, Min(199, Killer.Pawn.HealthMax * 2.0));
+    Killer.Pawn.AddShieldStrength(class'JBAddonLlama'.default.RewardShield);
+  }
   
   BroadcastLocalizedMessage(class'JBLlamaMessage', 2, Killed.PlayerReplicationInfo, Killer.PlayerReplicationInfo);
 }

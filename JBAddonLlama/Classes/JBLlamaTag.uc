@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.4 2003/07/29 19:06:56 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.5 2003/08/11 20:34:25 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -40,6 +40,7 @@ var array<Sound>               LlamaSounds;
 var bool                       bNotYetRegistered;
 var bool                       bShiftedView;
 var rotator                    ViewRotationOffset;
+
 
 //=============================================================================
 // PostBeginPlay

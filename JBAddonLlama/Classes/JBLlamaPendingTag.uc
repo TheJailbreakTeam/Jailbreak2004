@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaPendingTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBLlamaPendingTag.uc,v 1.1 2003/07/26 20:20:35 wormbo Exp $
 //
 // Spawned for Controllers without a Pawn to make the next xPawn possessed by
 // that Controller a Llama.
@@ -25,8 +25,6 @@ var JBGameRulesLlamaHunt LlamaHuntRules; // JBGameRules class for Jailbreak noti
 // Finds a JBGameRulesLlamaHunt actor which is responsible for preventing
 // llamas from releasing team mates and from sending players killed by them to
 // jail.
-// If the Owner is a Controller, the next xPawn possessed by that controller
-// will be made a Llama.
 //=============================================================================
 
 simulated event PostBeginPlay()
@@ -44,7 +42,7 @@ simulated event PostBeginPlay()
 //=============================================================================
 // Tick
 //
-// Checks, whether the Controller has a Pawn and activates the Llama effect
+// Checks, whether the Controller has an xPawn and activates the Llama effect
 // if that's the case.
 //=============================================================================
 

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.3 2003/07/29 14:50:52 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.4 2003/08/11 20:34:23 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -11,11 +11,22 @@ class JBAddonLlama extends JBAddon config;
 
 
 //=============================================================================
+// Constants
+//=============================================================================
+
+const DEFAULT_REWARD_ADRENALINE  = 100;
+const DEFAULT_REWARD_HEALTH      = 25;
+const DEFAULT_REWARD_SHIELD      = 0;
+const DEFAULT_MAX_LLAMA_DURATION = 60;
+
+
+//=============================================================================
 // Configuration
 //=============================================================================
 
-var config int RewardHealth;
 var config int RewardAdrenaline;
+var config int RewardHealth;
+var config int RewardShield;
 var config int MaximumLlamaDuration;
 
 
@@ -23,8 +34,9 @@ var config int MaximumLlamaDuration;
 // Localization
 //=============================================================================
 
-var localized string RewardHealthText;
 var localized string RewardAdrenalineText;
+var localized string RewardHealthText;
+var localized string RewardShieldText;
 var localized string MaximumLlamaDurationText;
 
 
@@ -34,6 +46,7 @@ var localized string MaximumLlamaDurationText;
 
 var JBGameRulesLlamaHunt LlamaHuntRules;     // JBGameRules class for Jailbreak notifications
 var() const editconst string Build;
+
 
 //=============================================================================
 // PostBeginPlay
@@ -79,6 +92,7 @@ function Mutate(string MutateString, PlayerController Sender)
 {
   local array<string> SplittedString;
   local Controller theLlama;
+  local int i;
   
   Super.Mutate(MutateString, Sender);
   
@@ -88,28 +102,64 @@ function Mutate(string MutateString, PlayerController Sender)
   // store the words in the MutateString in a string array word by word
   Split(MutateString, " ", SplittedString);
   
-  // possibly handle multiple space chars?
-  
+  // handle multiple space chars
+  while (i < SplittedString.Length) {
+    if ( SplittedString[i] == "" )
+      SplittedString.Remove(i, 1);
+    else
+      i++;
+  }
   
   // only do something if the first word after "mutate" was "llama" or "unllama"
   if ( SplittedString.Length > 0 && (SplittedString[0] ~= "llama" || SplittedString[0] ~= "unllama") ) {
     if ( SplittedString.Length == 1 ) {
       // no arguments - display "help"
-      Sender.ClientMessage("Syntax: mutate llama <playername>");   // TODO: needs localization
-      Sender.ClientMessage("or:     mutate unllama <playername>"); // TODO: needs localization
+      Sender.ReceiveLocalizedMessage(class'JBLlamaHelpMessage', 0);
+      Sender.ReceiveLocalizedMessage(class'JBLlamaHelpMessage', 1);
+      Sender.ReceiveLocalizedMessage(class'JBLlamaHelpMessage', 2);
     }
-    /*else if ( ... ) {
-      // handle config parameters here 
-    }*/
+    else if ( SplittedString.Length >= 2 && SplittedString[1] ~= "config" ) {
+      // handle config parameters
+      while (SplittedString.Length > 2) {
+        switch (Caps(SplittedString[1])) {
+        Case "HEALTH":
+          if ( IsInt(SplittedString[2]) ) {
+            RewardHealth = Clamp(int(SplittedString[2]), 0, 199);
+            SaveConfig();
+          }
+          break;
+        Case "SHIELD":
+          if ( IsInt(SplittedString[2]) ) {
+            RewardShield = Clamp(int(SplittedString[2]), 0, 150);
+            SaveConfig();
+          }
+          break;
+        Case "ADRENALINE":
+          if ( IsInt(SplittedString[2]) ) {
+            RewardAdrenaline = Clamp(int(SplittedString[2]), 0, 100);
+            SaveConfig();
+          }
+          break;
+        Case "DURATION":
+          if ( IsInt(SplittedString[2]) ) {
+            MaximumLlamaDuration = Clamp(int(SplittedString[2]), 0, 120);
+            SaveConfig();
+          }
+          break;
+        }
+        SplittedString.Remove(1, 2);
+      }
+      Sender.ClientMessage("Health ="@RewardHealth@"  Shield ="@RewardShield@"  Adrenaline ="@RewardAdrenaline@"  Duration ="@MaximumLlamaDuration);
+    }
     else {
-      if ( SplittedString[1] ~= "player" ) {
+      if ( SplittedString.Length >= 2 && SplittedString[1] ~= "player" ) {
         // the "player" parameter can be left out if the playername isn't equal to a config parameter
         SplittedString.Remove(1, 1);
         //log("Removed 'player' keyword.", Name);
       }
       if ( SplittedString.Length > 1 ) {
         //log("Searching for player '"$SplittedString[1]$"'", Name);
-        theLlama = FindPlayerByName(SplittedString[1]);
+        theLlama = FindPlayerByName(SplittedString[1], SplittedString[0] ~= "unllama");
         if ( theLlama != None ) {
           //log("Found"@theLlama, Name);
           if ( SplittedString[0] ~= "llama" )
@@ -124,12 +174,33 @@ function Mutate(string MutateString, PlayerController Sender)
 
 
 //=============================================================================
+// IsInt
+//
+// Checks if a string is an int value.
+// Modified from wUtils.wMath.IsNumeric()
+// http://wiki.beyondunreal.com/WUtils
+//=============================================================================
+
+function bool IsInt(coerce string Param)
+{
+  local int p;
+  
+  p = 0;
+  while (Mid(Param, p, 1) == " ") p++;
+  while (Mid(Param, p, 1) >= "0" && Mid(Param, p, 1) <= "9") p++;
+  while (Mid(Param, p, 1) == " ") p++;
+  if (Mid(Param, p) != "") return false;
+  return true;
+}
+
+
+//=============================================================================
 // FindPlayerByName
 //
 // Returns the Controller of the player with the specified name.
 //=============================================================================
 
-function Controller FindPlayerByName(string PlayerName, optional bool bExactName)
+function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
 {
   local int i;
   
@@ -147,12 +218,10 @@ function Controller FindPlayerByName(string PlayerName, optional bool bExactName
     */
     if ( JBGameReplicationInfo.PRIArray[i] != None
         && JBGameReplicationInfo.PRIArray[i].PlayerName ~= PlayerName
-        && Controller(JBGameReplicationInfo.PRIArray[i].Owner) != None )
+        && Controller(JBGameReplicationInfo.PRIArray[i].Owner) != None
+        && (bOnlyLlamas == IsLlama(Controller(JBGameReplicationInfo.PRIArray[i].Owner))) )
       return Controller(JBGameReplicationInfo.PRIArray[i].Owner);
   }
-  
-  if ( bExactName )
-    return None; // no exact match
   
   // search for the first name containing the string
   for (i = 0; i < JBGameReplicationInfo.PRIArray.Length; i++) {
@@ -163,11 +232,35 @@ function Controller FindPlayerByName(string PlayerName, optional bool bExactName
     */
     if ( JBGameReplicationInfo.PRIArray[i] != None
         && InStr(Caps(JBGameReplicationInfo.PRIArray[i].PlayerName), Caps(PlayerName)) != -1
-        && Controller(JBGameReplicationInfo.PRIArray[i].Owner) != None )
+        && Controller(JBGameReplicationInfo.PRIArray[i].Owner) != None 
+        && (bOnlyLlamas == IsLlama(Controller(JBGameReplicationInfo.PRIArray[i].Owner))) )
       return Controller(JBGameReplicationInfo.PRIArray[i].Owner);
   }
   
   return None; // no player found
+}
+
+
+//=============================================================================
+// IsLlama
+//
+// Checks whether a is a llama or is about to become a llama.
+//=============================================================================
+
+function bool IsLlama(Controller C)
+{
+  local JBLlamaPendingTag thisLlamaPendingTag;
+  
+  if ( C == None )
+    return False;
+  else if ( C.Pawn != None )
+    return C.Pawn.FindInventoryType(class'JBLlamaTag') != None;
+  else {
+    foreach C.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
+      return true;
+  }
+  
+  return false;
 }
 
 
@@ -193,36 +286,55 @@ function Llamaize(Controller ControllerPlayer)
 function UnLlamaize(Controller ControllerPlayer)
 {
   local Inventory LlamaTag;
+  local JBLlamaPendingTag thisLlamaPendingTag;
   
   if ( ControllerPlayer.Pawn != None ) {
     LlamaTag = ControllerPlayer.Pawn.FindInventoryType(class'JBLlamaTag');
     if ( LlamaTag != None )
       LlamaTag.Destroy();
   }
+  else if ( ControllerPlayer != None ) {
+    foreach ControllerPlayer.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
+      thisLlamaPendingTag.Destroy();
+  }
 }
 
 
 //=============================================================================
-// MutatorFillPlayInfo
+// FillPlayInfo
 //
 // Adds configurable Llama Hunt properties to the web admin interface.
 //=============================================================================
 
-function MutatorFillPlayInfo(PlayInfo PlayInfo)
+static function FillPlayInfo(PlayInfo PlayInfo)
 {
   // add current class to stack
-  PlayInfo.AddClass(Class);
+  PlayInfo.AddClass(default.Class);
   
   // now register any mutator settings
-  PlayInfo.AddSetting("Add-Ons", "MaximumLlamaDuration", MaximumLlamaDurationText, 0, 0, "Text", "3;0:199");
-  PlayInfo.AddSetting("Add-Ons", "RewardAdrenaline",     RewardAdrenalineText,     0, 0, "Text", "3;0:100");
-  PlayInfo.AddSetting("Add-Ons", "RewardHealth",         RewardHealthText,         0, 0, "Text", "3;0:199");
+  PlayInfo.AddSetting(default.FriendlyName, "MaximumLlamaDuration", default.MaximumLlamaDurationText, 0, 0, "Text", "3;0:120");
+  PlayInfo.AddSetting(default.FriendlyName, "RewardAdrenaline",     default.RewardAdrenalineText,     0, 0, "Text", "3;0:100");
+  PlayInfo.AddSetting(default.FriendlyName, "RewardHealth",         default.RewardHealthText,         0, 0, "Text", "3;0:199");
+  PlayInfo.AddSetting(default.FriendlyName, "RewardShield",         default.RewardShieldText,         0, 0, "Text", "3;0:150");
   
   // remove mutator class from class stack
   PlayInfo.PopClass();
-  
-  // call default implementation
-  Super.MutatorFillPlayInfo(PlayInfo);
+}
+
+
+//=============================================================================
+// ResetConfiguration
+//
+// Resets the Llama Hunt configuration.
+//=============================================================================
+
+static function ResetConfiguration()
+{
+  default.RewardAdrenaline     = DEFAULT_REWARD_ADRENALINE;
+  default.RewardHealth         = DEFAULT_REWARD_HEALTH;
+  default.RewardShield         = DEFAULT_REWARD_SHIELD;
+  default.MaximumLlamaDuration = DEFAULT_MAX_LLAMA_DURATION;
+  StaticSaveConfig();
 }
 
 
@@ -243,5 +355,6 @@ defaultproperties
   MaximumLlamaDuration=60
   RewardAdrenalineText="Adrenaline gained for killing a Llama"
   RewardHealthText="Health gained for killing a Llama"
+  RewardShieldText="Shield gained for killing a Llama"
   MaximumLlamaDurationText="Maximum duration of the llama hunt"
 }

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.3 2003/07/29 19:06:54 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.4 2003/08/11 20:34:23 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -9,7 +9,7 @@
 //=============================================================================
 
 
-class JBInterfaceLlamaHUDOverlay extends Info;
+class JBInterfaceLlamaHUDOverlay extends Info notplaceable;
 
 
 //=============================================================================
