@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.9 2003/02/26 20:01:30 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.10 2003/03/23 09:50:14 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -43,7 +43,22 @@ function AddBot(Bot Bot) {
 function RemoveBot(Bot Bot) {
 
   Super.RemoveBot(Bot);
-  Bot.Enemy = None;
+  StopFighting(Bot);
+  }
+
+
+// ============================================================================
+// NotifyKilled
+//
+// If the killed bot is on this squad, makes it stop jail-fighting.
+// ============================================================================
+
+function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim) {
+
+  if (IsOnSquad(ControllerVictim))
+    StopFighting(Bot(ControllerVictim));
+
+  Super.NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
   }
 
 
@@ -80,7 +95,7 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
       return Super.SetEnemy(Bot, PawnEnemy);
 
     if (CanPlayerFight(Bot) && CountPlayersFighting(TagPlayerBot.GetJail()) < 2) {
-      PrepareForFight(Bot);
+      StartFighting(Bot);
       return Super.SetEnemy(Bot, PawnEnemy);
       }
     }
@@ -184,41 +199,69 @@ static function bool CanPlayerFight(Controller Controller) {
 
 static function bool IsPlayerFighting(Controller Controller) {
 
+  local Weapon WeaponPrimary;
+
   if (Controller      == None ||
       Controller.Pawn == None)
     return False;
 
-  return (CountWeaponsFor(Controller.Pawn) > 1 &&
-          GetPrimaryWeaponFor(Controller.Pawn) == Controller.Pawn.Weapon);
+  if (CountWeaponsFor(Controller.Pawn) <= 1)
+    return False;
+
+  WeaponPrimary = GetPrimaryWeaponFor(Controller.Pawn);
+
+  return (WeaponPrimary == Controller.Pawn.Weapon ||
+          WeaponPrimary == Controller.Pawn.PendingWeapon);
   }
 
 
 // ============================================================================
-// PrepareForFight
+// StartFighting
 //
-// Prepares the given bot for a fight by making it activate its primary
-// weapon.
+// Makes the given bot start jail-fighting with its primary weapon.
 // ============================================================================
 
-static function PrepareForFight(Bot Bot) {
+static function StartFighting(Bot Bot) {
+
+  local JBInventoryJail InventoryJail;
 
   if (Bot      == None ||
       Bot.Pawn == None)
     return;
 
-  Bot.Pawn.PendingWeapon = GetPrimaryWeaponFor(Bot.Pawn);
+  InventoryJail = JBInventoryJail(Bot.Pawn.FindInventoryType(Class'JBInventoryJail'));
 
-  if (Bot.Pawn.PendingWeapon == Bot.Pawn.Weapon)
-    Bot.Pawn.PendingWeapon = None;
-  if (Bot.Pawn.PendingWeapon == None)
+  if (InventoryJail == None) {
+    InventoryJail = Bot.Pawn.Spawn(Class'JBInventoryJail');
+    InventoryJail.GiveTo(Bot.Pawn);
+    }
+
+  InventoryJail.WeaponRecommended = GetPrimaryWeaponFor(Bot.Pawn);
+
+  Bot.Aggressiveness = 10.0;
+  Bot.SwitchToBestWeapon();
+  }
+
+
+// ============================================================================
+// StopFighting
+//
+// Makes the given bot stop jail-fighting.
+// ============================================================================
+
+static function StopFighting(Bot Bot) {
+
+  local JBInventoryJail InventoryJail;
+
+  Bot.LoseEnemy();
+  Bot.Aggressiveness = Bot.BaseAggressiveness;
+
+  if (Bot.Pawn == None)
     return;
 
-  Bot.StopFiring();
-
-  if (Bot.Pawn.Weapon == None)
-    Bot.Pawn.ChangedWeapon();
-  else if (Bot.Pawn.Weapon != Bot.Pawn.PendingWeapon)
-    Bot.Pawn.Weapon.PutDown();
+  InventoryJail = JBInventoryJail(Bot.Pawn.FindInventoryType(Class'JBInventoryJail'));
+  if (InventoryJail != None)
+    Bot.Pawn.DeleteInventory(InventoryJail);
   }
 
 
@@ -233,7 +276,7 @@ function bool AssignSquadResponsibility(Bot Bot) {
   if (Bot.Enemy != None) {
     if (IsPlayerFighting(Bot.Enemy.Controller))
       return Super.AssignSquadResponsibility(Bot);
-    Bot.Enemy = None;
+    StopFighting(Bot);
     }
 
   Bot.WanderOrCamp(False);

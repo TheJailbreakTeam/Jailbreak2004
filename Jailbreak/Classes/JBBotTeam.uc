@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.22 2003/06/14 18:46:59 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.23 2003/06/14 19:31:02 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -312,6 +312,9 @@ function PutOnSquadArena(Bot Bot) {
 
   SquadArena = Spawn(ClassSquadArena);
   SquadArena.AddBot(Bot);
+
+  SquadArena.NextSquad = Squads;
+  Squads = SquadArena;
   }
 
 
@@ -327,6 +330,9 @@ function PutOnSquadJail(Bot Bot) {
 
   SquadJail = Spawn(ClassSquadJail);
   SquadJail.AddBot(Bot);
+
+  SquadJail.NextSquad = Squads;
+  Squads = SquadJail;
   }
 
 
@@ -788,10 +794,6 @@ function ReAssessStrategy() {
       else if (ScoreLead < 0) Tactics = 'TacticsAggressive';
       break;
     }
-
-  if (Tactics == 'TacticsDefensive' &&
-      TagTeamEnemy.CountPlayersFree() > TagTeamSelf.CountPlayersFree())
-    Tactics = 'TacticsNormal';  // defensive tactics not working out
 
   GotoState(Tactics);
   }
