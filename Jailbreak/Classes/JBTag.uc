@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTag.uc,v 1.6.2.1 2004/05/03 16:21:19 mychaeel Exp $
+// $Id: JBTag.uc,v 1.6.2.2 2004/05/24 15:06:40 mychaeel Exp $
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -395,8 +395,8 @@ simulated event Destroyed()
 simulated state Registering {
 
   Begin:
-    while (GetGameReplicationInfo() == None)
-      Sleep(0.0001);  // sleep for a tick
+    while (Keeper == None || GetGameReplicationInfo() == None)
+      Sleep(0.0);  // sleep for a tick
 
     RegisterInList();
     RegisterInInventory();
