@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.20 2003/01/11 22:17:46 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.21 2003/01/19 19:11:19 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -268,6 +268,61 @@ function ScorePlayer(Controller Controller, name Event) {
     case 'Defense':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
     case 'Release':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
     case 'Capture':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    }
+  }
+
+
+// ============================================================================
+// BroadcastDeathMessage
+//
+// Broadcasts death messages concerning suicides or kills in jail only to all
+// jailed players of that team.
+// ============================================================================
+
+function BroadcastDeathMessage(Controller ControllerKiller, Controller ControllerVictim, Class<DamageType> DamageType) {
+
+  local int SwitchMessage;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  local JBTagPlayer TagPlayerKiller;
+  local JBTagPlayer TagPlayerVictim;
+  local PlayerReplicationInfo PlayerReplicationInfoKiller;
+  local PlayerReplicationInfo PlayerReplicationInfoVictim;
+
+  if (ControllerKiller != None)
+    TagPlayerKiller = Class'JBTagPlayer'.Static.FindFor(ControllerKiller.PlayerReplicationInfo);
+  TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
+
+  if (TagPlayerVictim.IsInJail() &&
+      (TagPlayerKiller == None ||
+       TagPlayerKiller.IsInJail())) {
+
+    if (ControllerKiller != None)
+      PlayerReplicationInfoKiller = ControllerKiller.PlayerReplicationInfo;
+    PlayerReplicationInfoVictim = ControllerVictim.PlayerReplicationInfo;
+
+    if (ControllerKiller == None ||
+        ControllerKiller == ControllerVictim)
+      SwitchMessage = 1;  // suicide
+    else
+      SwitchMessage = 0;  // homicide
+
+    firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetJail() == TagPlayerVictim.GetJail() &&
+          PlayerController(thisTagPlayer.GetController()) != None)
+        BroadcastHandler.BroadcastLocalized(
+          Self,
+          PlayerController(thisTagPlayer.GetController()),
+          DeathMessageClass,
+          SwitchMessage,
+          PlayerReplicationInfoKiller,
+          PlayerReplicationInfoVictim,
+          DamageType);
+    }
+  
+  else {
+    Super.BroadcastDeathMessage(ControllerKiller, ControllerVictim, DamageType);
     }
   }
 
@@ -681,6 +736,9 @@ state MatchInProgress {
 // ============================================================================
 
 state Executing {
+
+  ignores BroadcastDeathMessage;  // no death messages during execution
+
 
   // ================================================================
   // Timer
