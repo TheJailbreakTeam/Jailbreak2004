@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.36 2003/02/26 20:01:31 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.37 2003/03/15 18:47:14 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -621,7 +621,7 @@ function bool IsCaptured(TeamInfo Team) {
 // The higher the returned value, the better.
 // ============================================================================
 
-function int RateCameraExecution(JBCamera CameraExecution) {
+function int RateCameraExecution(JBCamera CameraExecution, TeamInfo TeamExecuted) {
 
   local int nPlayersJailed;
   local JBInfoJail firstJail;
@@ -630,7 +630,7 @@ function int RateCameraExecution(JBCamera CameraExecution) {
   firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
     if (thisJail.Event == CameraExecution.Tag)
-      nPlayersJailed += thisJail.CountPlayersTotal();
+      nPlayersJailed += thisJail.CountPlayers(TeamExecuted);
   
   return nPlayersJailed;
   }
@@ -642,7 +642,7 @@ function int RateCameraExecution(JBCamera CameraExecution) {
 // Finds the execution camera with the best view on the execution sequence.
 // ============================================================================
 
-function JBCamera FindCameraExecution() {
+function JBCamera FindCameraExecution(TeamInfo TeamExecuted) {
 
   local int RatingCamera;
   local int RatingCameraSelected;
@@ -651,7 +651,7 @@ function JBCamera FindCameraExecution() {
   local JBCamera thisCamera;
 
   foreach DynamicActors(Class'JBCamera', thisCamera) {
-    RatingCamera = RateCameraExecution(thisCamera);
+    RatingCamera = RateCameraExecution(thisCamera, TeamExecuted);
     RatingCameraTotal += RatingCamera;
     ListRatingCamera[ListRatingCamera.Length] = RatingCamera;
     }
@@ -799,7 +799,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
           thisController.PlayerReplicationInfo.Team != TeamExecuted)
         ScorePlayer(thisController, 'Capture');
 
-    CameraExecution = FindCameraExecution();
+    CameraExecution = FindCameraExecution(TeamExecuted);
     if (CameraExecution == None)
       Log("Warning: No execution camera found");
   
