@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.1 2004/04/14 12:06:53 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.2 2004/04/14 20:25:56 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -25,13 +25,43 @@ struct TBinding
 };
 
 
+struct TDialog
+{
+  var Material MaterialFrame;                // dialog box frame and background
+  var vector Margins;                        // margins within dialog box frame
+  
+  var string FontTitle;                      // font for dialog box title
+  var string FontText;                       // font for text in dialog box
+  var string FontKey;                        // font for key names
+  var string FontClose;                      // font for closing hint
+  
+  var Color ColorTextTitle;                  // color for dialog box title
+  var Color ColorTextKey;                    // color for key names
+  var Color ColorText;                       // color for text in dialog box
+  var Color ColorTextClose;                  // color for closing hint
+
+  var vector OffsetTextTitle;                // offset dialog title from top
+  var vector OffsetTextClose;                // offset closing hint from bottom
+
+  var private GUIFont GUIFontTitle;          // loaded font for title
+  var private GUIFont GUIFontKey;            // loaded font for key names
+  var private GUIFont GUIFontText;           // loaded font for text
+  var private GUIFont GUIFontClose;          // loaded font for closing hint
+};
+
+
 // ============================================================================
 // Localization
 // ============================================================================
 
-var localized string TextBindingsTop;        // first line of hint box
-var localized string TextBindingsBottom;     // last  line of hint box
-var localized array<string> TextBindings;    // descriptions of key bindings
+var localized string TextDialogTitle;        // title at top of dialog box
+var localized string TextDialogTopS;         // first line in dialog box (sing)
+var localized string TextDialogTopP;         // first line in dialog box (plur)
+var localized string TextDialogBottomS;      // last  line in dialog box (sing)
+var localized string TextDialogBottomP;      // last  line in dialog box (plur)
+var localized string TextDialogClose;        // hint at bottom of dialog box
+
+var localized array<string> TextDescription; // key binding descriptions
 
 
 // ============================================================================
@@ -41,13 +71,11 @@ var localized array<string> TextBindings;    // descriptions of key bindings
 var array<TBinding> Bindings;                // temporary key bindings
 var private int iBindingByKey[256];          // index of auto-binding, by key
 
-var Color ColorBindingsText;                 // color for text
-var Color ColorBindingsKey;                  // color for key names
+var TDialog Dialog;                          // dialog box layout
+var private float TimeFadeoutDialog;         // fadeout start time for dialog
 
 var private byte bIsBoundToPrevWeapon[256];  // key is bound to PrevWeapon
 var private byte bIsBoundToNextWeapon[256];  // key is bound to NextWeapon
-
-var private float TimeFadeout;               // fadeout time for hint box
 
 
 // ============================================================================
@@ -174,33 +202,52 @@ event PostRender(Canvas Canvas)
   local int nBindings;
   local float Alpha;
   local float TimeCurrent;
-  local vector LocationBox;
+  local vector LocationDialog;
   local vector LocationText;
-  local vector SizeBox;
+  local vector SizeDialog;
   local vector SizeText;
   local vector SizeTextMax;
   local vector SizeTextKey;
   local vector SizeTextKeyMax;
   local vector Spacing;
+  local string TextDialogTop;
+  local string TextDialogBottom;
   local array<string> Key;
+  local Font FontTitle;
+  local Font FontText;
+  local Font FontKey;
+  local Font FontClose;
+  local GUIController GUIController;
   local PlayerController PlayerController;
 
   PlayerController = ViewportOwner.Actor;
+  GUIController = GUIController(ViewportOwner.GUIController);
 
   TimeCurrent = PlayerController.Level.TimeSeconds;
-  if (bool(PlayerController.bFire) && TimeFadeout == 0.0)
-    TimeFadeout = TimeCurrent + 1.0;
+  if (bool(PlayerController.bFire) && TimeFadeoutDialog == 0.0)
+    TimeFadeoutDialog = TimeCurrent;
 
-  Alpha = 1.0;
-  if (TimeFadeout > 0.0)
-    Alpha -= FClamp(TimeCurrent - TimeFadeout, 0.0, 1.0);
+  if (PlayerController.myHUD.bShowScoreBoard)
+    return;
 
+  if (TimeFadeoutDialog == 0.0)
+         Alpha =           1.0;
+    else Alpha = FMax(0.0, 1.0 - (TimeCurrent - TimeFadeoutDialog) * 2.0);
+    
   if (Alpha == 0.0) {
     bVisible = False;
     return;
   }
 
-  Canvas.Font = PlayerController.myHUD.GetConsoleFont(Canvas);
+  if (Dialog.GUIFontTitle == None) Dialog.GUIFontTitle = GUIController.GetMenuFont(Dialog.FontTitle);
+  if (Dialog.GUIFontText  == None) Dialog.GUIFontText  = GUIController.GetMenuFont(Dialog.FontText);
+  if (Dialog.GUIFontKey   == None) Dialog.GUIFontKey   = GUIController.GetMenuFont(Dialog.FontKey);
+  if (Dialog.GUIFontClose == None) Dialog.GUIFontClose = GUIController.GetMenuFont(Dialog.FontClose);
+
+  FontTitle = Dialog.GUIFontTitle.GetFont(Canvas.ClipX);
+  FontText  = Dialog.GUIFontText .GetFont(Canvas.ClipX);
+  FontKey   = Dialog.GUIFontKey  .GetFont(Canvas.ClipX);
+  FontClose = Dialog.GUIFontClose.GetFont(Canvas.ClipX);
 
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++) {
     if (!Bindings[iBinding].bIsBoundAuto)
@@ -208,8 +255,8 @@ event PostRender(Canvas Canvas)
   
     Key[iBinding] = PlayerController.ConsoleCommand("LocalizedKeyName" @ Bindings[iBinding].iKeyAuto); 
   
-    Canvas.TextSize(TextBindings[iBinding], SizeText   .X, SizeText   .Y);
-    Canvas.TextSize(Key         [iBinding], SizeTextKey.X, SizeTextKey.Y);
+    Canvas.Font = FontText;  Canvas.TextSize(TextDescription[iBinding], SizeText   .X, SizeText   .Y);
+    Canvas.Font = FontKey;   Canvas.TextSize(Key            [iBinding], SizeTextKey.X, SizeTextKey.Y);
 
     if (SizeText   .X > SizeTextMax   .X) SizeTextMax   .X = SizeText   .X;
     if (SizeTextKey.X > SizeTextKeyMax.X) SizeTextKeyMax.X = SizeTextKey.X;
@@ -217,34 +264,63 @@ event PostRender(Canvas Canvas)
     nBindings += 1;
   }
 
-  Spacing.X = SizeText.Y;        // font height as horizontal spacing
-  Spacing.Y = SizeText.Y * 3/4;  // spacing between paragraphs
+  Spacing.X = SizeText.Y * 1.5;
+  Spacing.Y = SizeText.Y;
 
-  SizeBox.X = Spacing.X + SizeTextKeyMax.X + Spacing.X + SizeTextMax.X;
-  SizeBox.Y = SizeText.Y + Spacing.Y + SizeText.Y * nBindings + Spacing.Y + SizeText.Y;
+  SizeDialog.X = Spacing.X + SizeTextKeyMax.X + Spacing.X + SizeTextMax.X;
+  SizeDialog.Y = SizeText.Y + Spacing.Y + SizeText.Y * nBindings + Spacing.Y + SizeText.Y;
 
-  Canvas.TextSize(TextBindingsTop,    SizeText.X, SizeText.Y);  if (SizeText.X > SizeBox.X) SizeBox.X = SizeText.X;
-  Canvas.TextSize(TextBindingsBottom, SizeText.X, SizeText.Y);  if (SizeText.X > SizeBox.X) SizeBox.X = SizeText.X;
+  if (nBindings == 1)
+         { TextDialogTop = TextDialogTopS;  TextDialogBottom = TextDialogBottomS; }
+    else { TextDialogTop = TextDialogTopP;  TextDialogBottom = TextDialogBottomP; }
 
-  SizeBox += Spacing * 2;        // outer box margin
+  Canvas.Font = FontText;
+  Canvas.TextSize(TextDialogTop,    SizeText.X, SizeText.Y);  if (SizeText.X > SizeDialog.X) SizeDialog.X = SizeText.X;
+  Canvas.TextSize(TextDialogBottom, SizeText.X, SizeText.Y);  if (SizeText.X > SizeDialog.X) SizeDialog.X = SizeText.X;
 
-  LocationBox.X = int((Canvas.ClipX - SizeBox.X) / 2);
-  LocationBox.Y = int((Canvas.ClipY - SizeBox.Y) / 2);
+  SizeDialog += Dialog.Margins * 2;
+  SizeDialog.Y *= Alpha;
+
+  LocationDialog.X = int((Canvas.ClipX - SizeDialog.X) / 2);
+  LocationDialog.Y = int((Canvas.ClipY - SizeDialog.Y) / 2);
 
   Canvas.Style = 5;  // ERenderStyle.STY_Alpha;
 
-  Canvas.DrawColor.A = FClamp(150 * Alpha, 0, 255);
-  Canvas.SetPos(LocationBox.X, LocationBox.Y);
-  Canvas.DrawRect(Texture'BlackTexture', SizeBox.X, SizeBox.Y);
+  Canvas.DrawColor = Canvas.MakeColor(255, 255, 255);
+  Canvas.DrawColor.A = 255 * Alpha;
+  Canvas.SetPos(
+    LocationDialog.X,
+    LocationDialog.Y);
+  Canvas.DrawTileStretched(
+    Dialog.MaterialFrame,
+    SizeDialog.X,
+    SizeDialog.Y);
   
-  LocationText = LocationBox + Spacing;
+  LocationText = LocationDialog + Dialog.Margins;
   
-  ColorBindingsText.A = FClamp(255 * Alpha, 0, 255);
-  ColorBindingsKey .A = FClamp(255 * Alpha, 0, 255);
+  Dialog.ColorText     .A = Canvas.DrawColor.A;
+  Dialog.ColorTextTitle.A = Canvas.DrawColor.A;
+  Dialog.ColorTextKey  .A = Canvas.DrawColor.A;
+  Dialog.ColorTextClose.A = Canvas.DrawColor.A;
   
-  Canvas.DrawColor = ColorBindingsText;
-  Canvas.SetPos(LocationText.X, LocationText.Y);
-  Canvas.DrawText(TextBindingsTop);
+  Canvas.SetClip(
+    LocationDialog.X + SizeDialog.X - Dialog.Margins.X,
+    LocationDialog.Y + SizeDialog.Y - Dialog.Margins.Y);
+
+  Canvas.Font = FontTitle;
+  Canvas.DrawColor = Dialog.ColorTextTitle;
+  Canvas.DrawScreenText(
+    TextDialogTitle,
+    (LocationDialog.X + SizeDialog.X / 2.0 + Dialog.OffsetTextTitle.X) / Canvas.SizeX,
+    (LocationDialog.Y                      + Dialog.OffsetTextTitle.Y) / Canvas.SizeY,
+    DP_MiddleMiddle);
+  
+  Canvas.Font = FontText;
+  Canvas.DrawColor = Dialog.ColorText;
+  Canvas.SetPos(
+    LocationText.X,
+    LocationText.Y);
+  Canvas.DrawTextClipped(TextDialogTop);
   
   LocationText.Y += SizeText.Y + Spacing.Y;
   
@@ -252,19 +328,39 @@ event PostRender(Canvas Canvas)
     if (!Bindings[iBinding].bIsBoundAuto)
       continue;
   
-    Canvas.DrawColor = ColorBindingsKey;
-    Canvas.SetPos(LocationText.X + Spacing.X, LocationText.Y);
-    Canvas.DrawText(Key[iBinding]);
+    Canvas.Font = FontKey;
+    Canvas.DrawColor = Dialog.ColorTextKey;
+    Canvas.SetPos(
+      LocationText.X + Spacing.X,
+      LocationText.Y);
+    Canvas.DrawTextClipped(Key[iBinding]);
     
-    Canvas.DrawColor = ColorBindingsText;
-    Canvas.SetPos(LocationText.X + Spacing.X + SizeTextKeyMax.X + Spacing.X, LocationText.Y);
-    Canvas.DrawText(TextBindings[iBinding]);
+    Canvas.Font = FontText;
+    Canvas.DrawColor = Dialog.ColorText;
+    Canvas.SetPos(
+      LocationText.X + Spacing.X + SizeTextKeyMax.X + Spacing.X,
+      LocationText.Y);
+    Canvas.DrawTextClipped(TextDescription[iBinding]);
   
     LocationText.Y += SizeText.Y;
   }
 
-  Canvas.SetPos(LocationText.X, LocationText.Y + Spacing.Y);
-  Canvas.DrawText(TextBindingsBottom);
+  Canvas.SetPos(
+    LocationText.X,
+    LocationText.Y + Spacing.Y);
+  Canvas.DrawTextClipped(TextDialogBottom);
+
+  Canvas.SetClip(
+    Canvas.SizeX,
+    Canvas.SizeY);
+
+  Canvas.Font = FontClose;
+  Canvas.DrawColor = Dialog.ColorTextClose;
+  Canvas.DrawScreenText(
+    TextDialogClose,
+    (LocationDialog.X + SizeDialog.X / 2.0 + Dialog.OffsetTextClose.X) / Canvas.SizeX,
+    (LocationDialog.Y + SizeDialog.Y       + Dialog.OffsetTextClose.Y) / Canvas.SizeY,
+    DP_MiddleMiddle);
 }
 
 
@@ -348,14 +444,17 @@ defaultproperties
   Bindings[2] = (Alias="TeamTactics Auto",iKeyPreferred=111);  // GreySlash
   Bindings[3] = (Alias="ArenaCam",iKeyPreferred=106);          // GreyStar
 
-  ColorBindingsText = (R=255,G=255,B=255);
-  ColorBindingsKey  = (R=128,G=128,B=000);
+  Dialog = (MaterialFrame=Texture'2K4Menus.Display99',Margins=(X=30,Y=44),FontTitle="UT2DefaultFont",FontText="UT2SmallFont",FontKey="UT2SmallFont",FontClose="UT2SmallFont",ColorTextTitle=(R=255,G=210,B=0),ColorText=(R=255,G=255,B=255),ColorTextKey=(R=255,G=210,B=0),ColorTextClose=(R=255,G=210,B=0),OffsetTextTitle=(Y=16),OffsetTextClose=(Y=-16));
 
-  TextBindingsTop    = "Jailbreak has temporarily bound the following keys for you:";
-  TextBindingsBottom = "Use the key binder to permanently bind keys to these functions.";
+  TextDialogTitle   = "Temporary Key Bindings";
+  TextDialogTopS    = "Jailbreak has temporarily bound the following key for you:";
+  TextDialogTopP    = "Jailbreak has temporarily bound the following keys for you:";
+  TextDialogBottomS = "Use the key binder to permanently bind a key to this function.";
+  TextDialogBottomP = "Use the key binder to permanently bind keys to these functions.";
+  TextDialogClose   = "Press FIRE to close";
   
-  TextBindings[0] = "Sets team tactics to a more aggressive stance.";
-  TextBindings[1] = "Sets team tactics to a more defensive stance.";
-  TextBindings[2] = "Returns to auto-selection of team tactics.";
-  TextBindings[3] = "Activates the Arena Live Feed.";
+  TextDescription[0] = "Sets team tactics to a more aggressive stance.";
+  TextDescription[1] = "Sets team tactics to a more defensive stance.";
+  TextDescription[2] = "Returns to auto-selection of team tactics.";
+  TextDescription[3] = "Activates the Arena Live Feed.";
 }
