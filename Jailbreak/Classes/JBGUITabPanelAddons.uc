@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.5 2004/03/10 12:51:43 mychaeel Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.6 2004/03/11 17:31:04 tarquin Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -45,6 +45,7 @@ var JBGUIComponentTabs GUIComponentTabsAddons;  // main tab control
 var GUIScrollTextBox GUIScrollTextBoxAddon;     // text box for description
 var GUIPanel GUIPanelConfigTemplate;            // template for config panels
 var GUILabel GUILabelConfigNone;                // shown if no config
+
 
 // ============================================================================
 // InitComponent
