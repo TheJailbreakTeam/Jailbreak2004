@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.9 2003/01/11 22:17:46 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.10 2003/01/19 19:11:19 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -23,6 +23,11 @@ var private bool bTacticsAuto;  // team tactics selected automatically
 var private int nObjectives;  // counted once by CountObjectives
 
 var private transient float TimeDeployment;  // time of last deployment order
+
+var private transient float TimeCacheCalcDistance;
+var private transient float CacheCalcDistance;
+var private transient Controller CacheCalcDistanceController;
+var private transient Actor CacheCalcDistanceActorTarget;
 
 var private transient float TimeCacheCountEnemiesAccounted;
 var private transient float TimeCacheCountEnemiesUnaccounted;
@@ -444,16 +449,27 @@ function int CountPlayersReleasable(GameObjective GameObjective) {
 
 static function float CalcDistance(Controller Controller, Actor ActorTarget) {
 
+  if (Default.TimeCacheCalcDistance == Controller.Level.TimeSeconds &&
+      Default.CacheCalcDistanceController == Controller &&
+      Default.CacheCalcDistanceActorTarget == ActorTarget)
+    return Default.CacheCalcDistance;
+
   if (Controller.Pawn == None)
     return 0.0;  // no pathfinding without pawn
 
+  Default.TimeCacheCalcDistance = Controller.Level.TimeSeconds;
+  Default.CacheCalcDistanceController = Controller;
+  Default.CacheCalcDistanceActorTarget = ActorTarget;
+  
   if (JBGameObjective(ActorTarget) != None)
     ActorTarget = JBGameObjective(ActorTarget).TriggerRelease;
   
   if (Controller.FindPathToward(ActorTarget) != None)
-    return Controller.RouteDist;
+    Default.CacheCalcDistance = Controller.RouteDist;
+  else
+    Default.CacheCalcDistance = VSize(ActorTarget.Location - Controller.Pawn.Location);
   
-  return VSize(ActorTarget.Location - Controller.Pawn.Location);
+  return Default.CacheCalcDistance;
   }
 
 
