@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.79 2004/04/29 10:34:47 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.80 2004/05/03 16:20:25 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1403,6 +1403,7 @@ state MatchInProgress {
   {
     local bool bSynchronizeTime;
     local int iTeam;
+    local JBGameReplicationInfo InfoGame;
 
     bSynchronizeTime = ElapsedTime % 30 == 0 ||
                        ElapsedTime != GameReplicationInfo.ElapsedTime ||
@@ -1421,8 +1422,12 @@ state MatchInProgress {
       ExecutionInit();
     }
 
+    // switched to another state while executing Timer
+    bSynchronizeTime = bSynchronizeTime || !IsInState('MatchInProgress');
+
     if (bSynchronizeTime) {
-      JBGameReplicationInfo(GameReplicationInfo).SynchronizeMatchTimer(ElapsedTime);
+      InfoGame = JBGameReplicationInfo(GameReplicationInfo);
+      InfoGame.SynchronizeMatchTimer(ElapsedTime);
       DilationTimePrev = Level.TimeDilation;
     }
   }
@@ -1466,7 +1471,6 @@ state MatchInProgress {
 
     InfoGame = JBGameReplicationInfo(GameReplicationInfo);
     InfoGame.StopMatchTimer();
-    InfoGame.SynchronizeMatchTimer(ElapsedTime);
   }
 
 } // state MatchInProgress
