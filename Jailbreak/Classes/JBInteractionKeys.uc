@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.7 2004/05/24 15:32:22 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.8 2004/05/30 16:00:29 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -171,17 +171,17 @@ event Initialized()
 function string GetAutoBoundKeys()
 {
   local int iBinding;
-  local string AutoBoundKeys;
+  local string Result;
 
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++)
     if (Bindings[iBinding].bIsBoundAuto)
-           AutoBoundKeys = AutoBoundKeys $ GetEnum(Enum'EInputKey', Bindings[iBinding].iKeyAuto) $ ",";
-      else AutoBoundKeys = AutoBoundKeys $ "None,";
+           Result = Result $ GetEnum(Enum'EInputKey', Bindings[iBinding].iKeyAuto) $ ",";
+      else Result = Result $ "None,";
 
-  if (Len(AutoBoundKeys) > 0)
-    AutoBoundKeys = Left(AutoBoundKeys, Len(AutoBoundKeys) - 1);
+  if (Len(Result) > 0)
+    Result = Left(Result, Len(Result) - 1);
 
-  return AutoBoundKeys;
+  return Result;
 }
 
 

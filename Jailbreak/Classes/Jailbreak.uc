@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.103 2004/05/30 18:21:07 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.104 2004/05/30 21:24:47 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1471,7 +1471,6 @@ function ExecutionCommit(TeamInfo TeamExecuted)
 function ExecutionEnd()
 {
   local Controller thisController;
-  local JBCamera Camera;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
   local JBGameRules firstJBGameRules;
