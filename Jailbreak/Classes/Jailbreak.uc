@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.105 2004/05/30 21:44:26 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.106 2004/05/30 22:04:24 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1855,6 +1855,36 @@ state Executing {
   }
 
 } // state Executing
+
+
+// ============================================================================
+// state MatchOver
+//
+// Match has ended, and players are viewing the winning player.
+// ============================================================================
+
+state MatchOver
+{
+  // ================================================================
+  // Timer
+  //
+  // Puts all players on behind view.
+  // ================================================================
+
+  event Timer()
+  {
+    local Controller thisController;
+  
+    Super.Timer();
+    
+    if (EndGameFocus != None)
+      for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+        if (PlayerController(thisController) != None)
+          PlayerController(thisController).ClientSetBehindView(True);
+  }
+
+} // state MatchOver
+
 
 
 // ============================================================================
