@@ -10,7 +10,6 @@ cd ..\System
 ucc pkg import sound ..\Sounds\JBAudio ..\JBAudio\Sounds
 
 echo Done.
-pause > nul
 
 
 :: ============================================================================

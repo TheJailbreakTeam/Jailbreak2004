@@ -34,7 +34,6 @@ rmdir ..\JBStaticMeshes\TempSourceFiles
 
 
 echo Done.
-pause > nul
 
 goto :end
 
