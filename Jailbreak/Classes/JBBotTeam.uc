@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.29 2004/04/19 17:18:59 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.30 2004/04/21 19:51:24 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -850,18 +850,23 @@ function int SuggestStrengthDefense(GameObjective GameObjective)
 
 function ReAssessStrategy()
 {
-  local int nRounds;
-  local int nRoundsLeft;
+  local int nPlayersFree;
+  local int nPlayersKilledEstimated;
   local int ScoreLead;
   local int ScoreTeamEnemy;
   local int ScoreTeamSelf;
+  local float KillsPerSecond;
   local name Strategy;
   local name Tactics;
+  local PlayerReplicationInfo PlayerReplicationInfo;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  local JBTagTeam TagTeamWinning;
+  local JBTagTeam TagTeamLosing;
 
-  ScoreTeamEnemy = TeamGame(Level.Game).OtherTeam(Team).Score;
-  ScoreTeamSelf  = Team.Score;
+  ScoreTeamEnemy = EnemyTeam.Score;
+  ScoreTeamSelf  =      Team.Score;
 
-  nRounds   = ScoreTeamSelf + ScoreTeamEnemy;
   ScoreLead = ScoreTeamSelf - ScoreTeamEnemy;
 
   Explain("reassessing strategy:");
@@ -871,13 +876,28 @@ function ReAssessStrategy()
   Strategy = 'Scorelimit';
   Tactics  = 'TacticsNormal';
 
-  if (nRounds > 0 && DeathMatch(Level.Game).RemainingTime > 0) {
-    nRoundsLeft = DeathMatch(Level.Game).RemainingTime / (DeathMatch(Level.Game).ElapsedTime / nRounds);
-    if (nRoundsLeft < Abs(ScoreLead))
+  if (ScoreLead != 0 && DeathMatch(Level.Game).RemainingTime > 0) {
+    if (ScoreLead > 0) { TagTeamWinning = TagTeamSelf;   TagTeamLosing = TagTeamEnemy; }
+                  else { TagTeamWinning = TagTeamEnemy;  TagTeamLosing = TagTeamSelf;  }
+  
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.IsFree() &&
+          thisTagPlayer.GetTeam() != TagTeamLosing.GetTeam()) {
+
+        PlayerReplicationInfo = thisTagPlayer.GetPlayerReplicationInfo();
+        if (PlayerReplicationInfo.Kills > 0)
+          KillsPerSecond += PlayerReplicationInfo.Kills / (DeathMatch(Level.Game).ElapsedTime - PlayerReplicationInfo.StartTime);
+      }
+
+    nPlayersFree = TagTeamWinning.CountPlayersFree();
+    nPlayersKilledEstimated = KillsPerSecond * DeathMatch(Level.Game).RemainingTime;
+
+    if (nPlayersFree > nPlayersKilledEstimated)
       Strategy = 'Timelimit';
 
-    Explain("played"     @ nRounds     @ "rounds in"      @ DeathMatch(Level.Game).ElapsedTime   @ "seconds");
-    Explain("estimating" @ nRoundsLeft @ "rounds left in" @ DeathMatch(Level.Game).RemainingTime @ "remaining seconds");
+    Explain("free players from losing team have been killing" @ KillsPerSecond * 60 @ "players per minute up to now");
+    Explain("estimating that" @ nPlayersKilledEstimated @ "of" @ nPlayersFree @ "free players will be killed in remaining time");
   }
 
   Explain("following strategy" @ Strategy);
