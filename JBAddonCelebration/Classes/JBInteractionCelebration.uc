@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.4 2004/03/06 12:41:40 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.5 2004/03/17 11:58:39 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -111,6 +111,22 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
         }
         else if ( Trim(Binds[i]) ~= "RandomTaunt" ) {
           RandomTaunt();
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "MoveForward" ) {
+          Taunt("PThrust");
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "MoveBackward" ) {
+          Taunt("AssSmack");
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "StrafeLeft" ) {
+          Taunt("ThroatCut");
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "StrafeRight" ) {
+          Taunt("Specific_1");
           break;
         }
       }
