@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.25 2003/06/03 06:27:04 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.26 2003/06/15 21:31:32 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -219,7 +219,7 @@ simulated function LinkActors() {
 
   Super.LinkActors();
 
-  if (TagPlayerOwner == None && PawnOwner != None)
+  if (PawnOwner != None)
     TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PawnOwner.PlayerReplicationInfo);
 
   if (TagClientOwner == None && PlayerOwner != None)
