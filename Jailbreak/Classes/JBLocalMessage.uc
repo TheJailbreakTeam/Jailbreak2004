@@ -1,9 +1,28 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.8 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.9 2004/03/05 00:53:28 mychaeel Exp $
 //
-// Localized messages for generic Jailbreak announcements.
+// Abstract base class for localized Jailbreak messages. Contains all
+// functionality common to console and on-screen messages.
+//
+// The following message codes are defined:
+//
+//   Switch    Meaning             Info 1           Info 2           Object
+//   =======   =================   ==============   ==============   ========
+//   100 (b)   Team captured                                         TeamInfo
+//   200 (b)   Team released       Releaser                          TeamInfo
+//   300 (b)   Team stalemate
+//   403       Arena countdown 3                                     Arena
+//   402       Arena countdown 2                                     Arena
+//   401       Arena countdown 1                                     Arena
+//   400 (b)   Arena start         Red Combatant    Blue Combatant   Arena
+//   410 (b)   Arena cancelled     Red Combatant    Blue Combatant   Arena
+//   420 (b)   Arena tie           Red Combatant    Blue Combatant   Arena
+//   430 (b)   Arena victory       Winner           Loser            Arena
+//
+// Switches marked with (b) are broadcasted to all players, all other messages
+// are directly sent to the players in question.
 // ============================================================================
 
 
@@ -55,37 +74,65 @@ var localized string SpeechArenaEndWinner;
 var localized string SpeechArenaEndLoser;
 
 
-var Color ColorArena;
+// ============================================================================
+// Variables
+// ============================================================================
+
+var Class<JBLocalMessage> ClassLocalMessageScreen;   // on-screen messages
+var Class<JBLocalMessage> ClassLocalMessageConsole;  // console messages
+
+
+// ============================================================================
+// PlaySpeech
+//
+// Plays the given segmented speech sequence definition for the given player
+// and returns whether playback was successfully started.
+// ============================================================================
+
+static function bool PlaySpeech(PlayerController Player, string Definition)
+{
+  local string Tags;
+
+       if (Player.PlayerReplicationInfo.bOnlySpectator)      Tags = "spectator";
+  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 0) Tags = "red";
+  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 1) Tags = "blue";
+
+  return Class'JBSpeechManager'.Static.PlayFor(Player.Level, Definition, Tags);
+}
 
 
 // ============================================================================
 // ClientReceive
 //
-// Receives an event on a client's computer and performs appropriate actions.
-// The parameters assume the following values:
-//
-//   Switch    Meaning             Info 1           Info 2           Object
-//   =======   =================   ==============   ==============   ========
-//   100 (b)   Team captured                                         TeamInfo
-//   200 (b)   Team released       Releaser                          TeamInfo
-//   300 (b)   Team stalemate
-//   403       Arena countdown 3                                     Arena
-//   402       Arena countdown 2                                     Arena
-//   401       Arena countdown 1                                     Arena
-//   400 (b)   Arena start         Red Combatant    Blue Combatant   Arena
-//   410 (b)   Arena cancelled     Red Combatant    Blue Combatant   Arena
-//   420 (b)   Arena tie           Red Combatant    Blue Combatant   Arena
-//   430 (b)   Arena victory       Winner           Loser            Arena
-//
-// Switches marked with (b) are broadcasted to all players, all other messages
-// are directly sent to the players in question.
+// Receives an event on a client. If called for the generic message class,
+// replaces it by the more specific on-screen or console message, respectively.
+// Otherwise plays sound and continues processing.
 // ============================================================================
 
 static function ClientReceive(PlayerController Player,
                               optional int Switch,
                               optional PlayerReplicationInfo PlayerReplicationInfo1,
                               optional PlayerReplicationInfo PlayerReplicationInfo2,
-                              optional Object ObjectOptional) {
+                              optional Object ObjectOptional)
+{
+  local Class<JBLocalMessage> ClassLocalMessageReplacement;
+
+  if (Default.Class == Class'JBLocalMessage') {
+    ClassLocalMessageReplacement = Default.ClassLocalMessageScreen;
+    
+    if (Switch >= 400 && Switch < 500 &&
+       !IsLocalPlayer(PlayerReplicationInfo1) &&
+       !IsLocalPlayer(PlayerReplicationInfo2))
+      ClassLocalMessageReplacement = Default.ClassLocalMessageConsole;
+
+    Player.ReceiveLocalizedMessage(
+      ClassLocalMessageReplacement,
+      Switch,
+      PlayerReplicationInfo1,
+      PlayerReplicationInfo2,
+      ObjectOptional);
+    return;
+  }
 
   switch (Switch) {
     case 100:  PlaySpeech(Player, Default.SpeechTeamCaptured[TeamInfo(ObjectOptional).TeamIndex]);  break;
@@ -107,25 +154,6 @@ static function ClientReceive(PlayerController Player,
   }
 
   Super.ClientReceive(Player, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
-}
-
-
-// ============================================================================
-// PlaySpeech
-//
-// Plays the given segmented speech sequence definition for the given player
-// and returns whether playback was successfully started.
-// ============================================================================
-
-static function bool PlaySpeech(PlayerController Player, string Definition)
-{
-  local string Tags;
-
-       if (Player.PlayerReplicationInfo.bOnlySpectator)      Tags = "spectator";
-  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 0) Tags = "red";
-  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 1) Tags = "blue";
-
-  return Class'JBSpeechManager'.Static.PlayFor(Player.Level, Definition, Tags);
 }
 
 
@@ -182,7 +210,8 @@ static function string ReplaceTextPlayer(string TextTemplate, PlayerReplicationI
 
 static function string ReplaceTextArena(string TextTemplate,
                                         PlayerReplicationInfo PlayerReplicationInfo1,
-                                        PlayerReplicationInfo PlayerReplicationInfo2) {
+                                        PlayerReplicationInfo PlayerReplicationInfo2)
+{
   local PlayerController PlayerLocal;
   local PlayerReplicationInfo PlayerReplicationInfoTeammate;
   local PlayerReplicationInfo PlayerReplicationInfoEnemy;
@@ -232,8 +261,8 @@ static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo)
 static function string GetString(optional int Switch,
                                  optional PlayerReplicationInfo PlayerReplicationInfo1,
                                  optional PlayerReplicationInfo PlayerReplicationInfo2,
-                                 optional Object ObjectOptional) {
-
+                                 optional Object ObjectOptional)
+{
   switch (Switch) {
     case 100:  return Default.TextTeamCaptured[TeamInfo(ObjectOptional).TeamIndex];
     case 300:  return Default.TextTeamStalemate;
@@ -276,28 +305,14 @@ static function string GetString(optional int Switch,
 
 
 // ============================================================================
-// GetColor
-//
-// Returns the color to use for the given message.
-// ============================================================================
-
-static function Color GetColor(optional int Switch,
-                               optional PlayerReplicationInfo PlayerReplicationInfo1,
-                               optional PlayerReplicationInfo PlayerReplicationInfo2) {
-
-  if (Switch >= 400 && Switch <= 499)
-    return Default.ColorArena;
-
-  return Super.GetColor(Switch, PlayerReplicationInfo1, PlayerReplicationInfo2);
-}
-
-
-// ============================================================================
 // Defaults
 // ============================================================================
 
 defaultproperties
 {
+  bIsConsoleMessage = False;
+  bIsSpecial = False;
+
   TextTeamCaptured[0]      = "The red team has been captured.";
   TextTeamCaptured[1]      = "The blue team has been captured.";
   TextTeamReleased[0]      = "The red team has been released.";
@@ -331,10 +346,6 @@ defaultproperties
   SpeechArenaEndWinner     = "YouHaveWonTheArenaMatch";
   SpeechArenaEndLoser      = "YouHaveLostTheArenaMatch";
 
-  ColorArena = (R=0,G=0,B=255,A=255);
-
-  PosY = 0.75;
-  bFadeMessage = True;
-  bIsUnique    = True;
-  bIsSpecial   = True;
+  ClassLocalMessageScreen  = Class'JBLocalMessageScreen';
+  ClassLocalMessageConsole = Class'JBLocalMessageConsole';
 }
