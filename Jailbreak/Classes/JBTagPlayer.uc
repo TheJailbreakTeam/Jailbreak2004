@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.30 2003/03/22 18:03:27 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.31 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -1073,11 +1073,16 @@ function GameObjective GuessObjective() {
        thisObjective = thisObjective.NextObjective) {
 
     Distance = Class'JBBotTeam'.Static.CalcDistance(GetController(), thisObjective);
-    
+
     if (ObjectiveClosest == None || Distance < DistanceClosest) {
       ObjectiveClosest = thisObjective;
       DistanceClosestPrev = DistanceClosest;
       DistanceClosest = Distance;
+      }
+    
+    else if (DistanceClosestPrev == 0.0 ||
+             DistanceClosestPrev > Distance) {
+      DistanceClosestPrev = Distance;
       }
     
     // assumes that number and order of objectives never change
