@@ -114,8 +114,10 @@ static function SetVoicePack(string VoicePackNew)
 {
   local JBSpeechManager thisSpeechManager;
 
-  foreach Default.Class.AllObjects(Class'JBSpeechManager', thisSpeechManager)
+  foreach Default.Class.AllObjects(Class'JBSpeechManager', thisSpeechManager) {
+    thisSpeechManager.VoicePack =   VoicePackNew;
     thisSpeechManager.LoadVoicePack(VoicePackNew);
+  }
 
   Default.VoicePack = VoicePackNew;
   StaticSaveConfig();
