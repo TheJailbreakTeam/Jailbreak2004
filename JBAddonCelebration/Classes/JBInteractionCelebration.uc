@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.3 2004/03/05 21:17:03 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.4 2004/03/06 12:41:40 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -15,15 +15,19 @@ class JBInteractionCelebration extends Interaction
 // Variables
 //=============================================================================
 
-var JBTauntingMeshActor PlayerMesh;
-var string CaptureMessage;
 var JBGameRulesCelebration CelebrationGameRules;
-var name TauntAnim;
-var Material MeshShadowMaterial;
 
-var() vector MeshLoc, ShadowLoc;
-var() JBGameRulesCelebration.TPlayerInfo PlayerInfo;
-var() color MessageColor;
+var string CaptureMessage;              // the capture message displayed during the execution
+var color MessageColor;                 // color to display the CaptureMessage in
+
+var string SavedCameraMessage;          // the message the execution camera would display
+var JBCamera ExecutionCamera;           // the camera the execution is viewed through
+
+var vector MeshLoc, ShadowLoc;
+var Material MeshShadowMaterial;        // the material used to display the player shadow
+var JBTauntingMeshActor PlayerMesh;     // the displayed player mesh
+var JBGameRulesCelebration.TPlayerInfo PlayerInfo;
+var name TauntAnim;                     // used to convert a string to a name to the taunt animation
 
 
 //=============================================================================
@@ -37,8 +41,16 @@ function PostRender(Canvas C)
   local int MessageSize;
   local float XL, YL;
   
-  if ( !ViewportOwner.Actor.ViewTarget.IsA('JBCamera') )
+  if ( !ViewportOwner.Actor.ViewTarget.IsA('JBCamera') || ViewportOwner.Actor.MyHud != None
+      && ViewportOwner.Actor.MyHud.bShowScoreBoard )
     return;
+  
+  if ( ExecutionCamera == None )
+    ExecutionCamera = JBCamera(ViewportOwner.Actor.ViewTarget);
+  if ( ExecutionCamera.Caption.Text != "" ) {
+    SavedCameraMessage = ExecutionCamera.Caption.Text;
+    ExecutionCamera.Caption.Text = "";
+  }
   
   if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None )
     JBInterfaceHud(ViewportOwner.Actor.myHUD).bWidescreen = True;
@@ -69,7 +81,7 @@ function PostRender(Canvas C)
       C.TextSize(CaptureMessage, XL, YL);
     } until (XL < 0.7 * C.SizeX);
     C.DrawColor = MessageColor;
-    C.DrawScreenText(CaptureMessage, 0.65, 0.95, DP_LowerMiddle);
+    C.DrawScreenText(CaptureMessage, 1 - 0.5 * YL / C.ClipY, 1 - 0.5 * YL / C.ClipY, DP_LowerRight);
   }
 }
 
@@ -220,11 +232,18 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
 //=============================================================================
 // Remove
 //
-// Removes the interaction.
+// Restores the execution camera's caption text, cleans up actor references and
+// removes the interaction.
 //=============================================================================
 
 function Remove()
 {
+  if ( ExecutionCamera != None && SavedCameraMessage != "" )
+    ExecutionCamera.Caption.Text = SavedCameraMessage;
+  
+  ExecutionCamera = None;
+  SavedCameraMessage = "";
+  
   if ( PlayerMesh != None )
     PlayerMesh.Destroy();
   
@@ -243,8 +262,8 @@ defaultproperties
 {
   bVisible=True
   bActive=True
-  MeshLoc=(X=450,Y=-70,Z=-35)
-  ShadowLoc=(X=450,Y=-73,Z=-37)
+  MeshLoc=(X=450,Y=-75,Z=-41)
+  ShadowLoc=(X=450,Y=-78,Z=-43)
   MessageColor=(R=255,G=255,B=255,A=255)
   
   Begin Object Class=ConstantColor Name=MeshShadowColor
