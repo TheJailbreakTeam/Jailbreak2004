@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.10 2003/01/06 11:18:36 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.11 2003/01/06 16:03:38 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -53,12 +53,12 @@ struct TInfoOverlay {
 // Properties
 // ============================================================================
 
-var() bool bWidescreen;            // draw widescreen bars
+var() bool bWidescreen;       // draw widescreen bars
 
-var() TInfoCaption Caption;
-var() TInfoOverlay Overlay;
+var() TInfoCaption Caption;   // caption text
+var() TInfoOverlay Overlay;   // overlay material
 
-var() byte MotionBlur;             // amount of motion blur
+var() byte MotionBlur;        // amount of motion blur
 
 
 // ============================================================================
@@ -150,7 +150,7 @@ function ActivateFor(Controller Controller) {
   local PlayerController ControllerPlayer;
 
   ControllerPlayer = PlayerController(Controller);
-  if (ControllerPlayer == None)
+  if (IsViewer(Controller) || ControllerPlayer == None)
     return;
 
   if (JBCamera(ControllerPlayer.ViewTarget) != None)
@@ -163,6 +163,9 @@ function ActivateFor(Controller Controller) {
 
   if (!IsViewer(Controller))
     ListControllerViewer[ListControllerViewer.Length] = ControllerPlayer;
+
+  if (ControllerPlayer == Level.GetLocalPlayerController() && !bIsActiveLocal)
+    ActivateForLocal();
 
   Enable('Tick');
   }
