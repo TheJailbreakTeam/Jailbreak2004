@@ -1,7 +1,7 @@
 // ============================================================================
 // JBEmitterBasket
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBEmitterBasket.uc,v 1.2 2004/05/10 14:53:05 mychaeel Exp $
+// $Id$
 //
 // Emitter effect resembling a basket for the standard release switch.
 // ============================================================================
@@ -86,8 +86,26 @@ state Enabled
     ParticleEmitter.RespawnDeadParticles     = True;
     ParticleEmitter.AutomaticInitialSpawning = True;
     ParticleEmitter.RelativeWarmupTime       = 0.0;
+    ParticleEmitter.SecondsBeforeInactive    = 0.0;  // calculate out of view
 
     ParticleEmitter.Trigger();
+    SetTimer(ParticleEmitter.LifetimeRange.Max, False);
+  }
+
+
+  // ================================================================
+  // Timer
+  //
+  // Resets the emitter to calculate particle movements only when in
+  // view after all particles have been fully respawned again.
+  // ================================================================
+
+  event Timer()
+  {
+    local ParticleEmitter ParticleEmitter;
+
+    ParticleEmitter = Emitters[0];
+    ParticleEmitter.SecondsBeforeInactive = ParticleEmitter.Default.SecondsBeforeInactive;
   }
 
 } // state Enabled
@@ -141,7 +159,7 @@ defaultproperties
     DrawStyle                 = PTDS_AlphaBlend;
 
     MaxParticles              = 400;
-    RelativeWarmupTime        =  1.0;
+    RelativeWarmupTime        =  4.0;
     WarmupTicksPerSecond      = 20.0;
 
     Acceleration              = (Z=16.0);
