@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.2 2002/11/17 11:11:18 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -45,40 +45,6 @@ struct TInfoRelease {
 // ============================================================================
 
 var private TInfoRelease ListInfoReleaseByTeam[2];
-
-
-// ============================================================================
-// PostNetBeginPlay
-//
-// Registers this actor with the game.
-// ============================================================================
-
-simulated event PostNetBeginPlay() {
-
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  InfoGame.ListInfoJail[InfoGame.ListInfoJail.Length] = Self;
-  }
-
-
-// ============================================================================
-// Destroyed
-//
-// Unregisters this actor.
-// ============================================================================
-
-simulated event Destroyed() {
-
-  local int iInfoJail;
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoJail = InfoGame.ListInfoJail.Length - 1; iInfoJail >= 0; iInfoJail--)
-    if (InfoGame.ListInfoJail[iInfoJail] == Self)
-      InfoGame.ListInfoJail.Remove(iInfoJail, 1);
-  }
 
 
 // ============================================================================

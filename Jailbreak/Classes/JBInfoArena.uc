@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInfoArena.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
 //
 // Holds information about an arena.
 // ============================================================================
@@ -77,42 +77,15 @@ event PostBeginPlay() {
 
 
 // ============================================================================
-// PostNetBeginPlay
-//
-// Registers this actor with the game.
-// ============================================================================
-
-simulated event PostNetBeginPlay() {
-
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  InfoGame.ListInfoArena[InfoGame.ListInfoArena.Length] = Self;
-  }
-
-
-// ============================================================================
 // Destroyed
 //
-// Unregisters this actor. Server-side, also destroys the event probes if
-// they're present.
+// Destroys the event probes if they're present.
 // ============================================================================
 
-simulated event Destroyed() {
+event Destroyed() {
 
-  local int iInfoArena;
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoArena = InfoGame.ListInfoArena.Length - 1; iInfoArena >= 0; iInfoArena--)
-    if (InfoGame.ListInfoArena[iInfoArena] == Self)
-      InfoGame.ListInfoArena.Remove(iInfoArena, 1);
-
-  if (Role == ROLE_Authority) {
-    if (ProbeEventRequest != None) ProbeEventRequest.Destroy();
-    if (ProbeEventExclude != None) ProbeEventExclude.Destroy();
-    }
+  if (ProbeEventRequest != None) ProbeEventRequest.Destroy();
+  if (ProbeEventExclude != None) ProbeEventExclude.Destroy();
   }
 
 
