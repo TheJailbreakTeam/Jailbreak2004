@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.23 2003/12/28 20:25:00 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.24 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -672,15 +672,19 @@ function Controller FindWinner()
 
 
 // ============================================================================
-// RenderOverlaysFor
+// RenderOverlays
 //
 // Draws an arena time countdown on the screen.
 // ============================================================================
 
-simulated function RenderOverlaysFor(Canvas Canvas, HudBase HudBase, JBTagPlayer TagPlayer)
+simulated function RenderOverlays(Canvas Canvas)
 {
+  local HudBase HudBase;
+
   DisplayPlayerLeft .PlayerReplicationInfo = PlayerReplicationInfoRed;
   DisplayPlayerRight.PlayerReplicationInfo = PlayerReplicationInfoBlue;
+
+  HudBase = HudBase(Level.GetLocalPlayerController().myHUD);
 
   ShowPlayer(Canvas, HudBase, DisplayPlayerLeft);
   ShowPlayer(Canvas, HudBase, DisplayPlayerRight);

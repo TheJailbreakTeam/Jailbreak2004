@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.31 2004/03/08 01:43:09 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.32 2004/03/08 02:01:29 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -778,7 +778,7 @@ simulated function ShowTeamScorePassA(Canvas Canvas)
       TagPlayerOwner.IsInArena()) {
 
     SetDisplayAdrenaline(False);
-    TagPlayerOwner.GetArena().RenderOverlaysFor(Canvas, Self, TagPlayerOwner);
+    TagPlayerOwner.GetArena().RenderOverlays(Canvas);
   }
 
   else {
