@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.35.2.12 2004/05/20 17:22:45 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.35.2.13 2004/05/24 14:50:31 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -917,7 +917,7 @@ simulated function ShowTeamScorePassA(Canvas Canvas)
     ShowDisposition(Canvas);
   }
 
-  ShowBuild(Canvas);
+  // ShowBuild(Canvas);
 }
 
 
