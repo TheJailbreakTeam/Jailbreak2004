@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBReplicationInfoPlayer.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBReplicationInfoPlayer extends ReplicationInfo
 replication {
 
   reliable if (Role == ROLE_Authority)
-    Arena, ArenaPending, Jail;
+    PlayerReplicationInfo, Arena, ArenaPending, Jail;
   }
 
 
@@ -40,16 +40,16 @@ enum ERestart {
 
 var private PlayerReplicationInfo PlayerReplicationInfo;
 
-var private ERestart Restart;          // Restart location for this player
+var private ERestart Restart;          // restart location for this player
 
-var private JBInfoArena Arena;         // Arena the player is currently in
-var private JBInfoArena ArenaRestart;  // Arena the player will be restarted in
-var private JBInfoArena ArenaPending;  // Arena the player is scheduled for
-var private JBInfoArena ArenaRequest;  // Arena the player has requested
-var private float TimeArenaRequest;    // Time of the arena request
+var private JBInfoArena Arena;         // arena the player is currently in
+var private JBInfoArena ArenaRestart;  // arena the player will be restarted in
+var private JBInfoArena ArenaPending;  // arena the player is scheduled for
+var private JBInfoArena ArenaRequest;  // arena the player has requested
+var private float TimeArenaRequest;    // time of the arena request
 
-var private JBInfoJail Jail;           // Jail the player is currently in
-var private float TimeRelease;         // Time of last release from jail
+var private JBInfoJail Jail;           // jail the player is currently in
+var private float TimeRelease;         // time of last release from jail
 
 
 // ============================================================================
@@ -60,6 +60,9 @@ var private float TimeRelease;         // Time of last release from jail
 
 event PostBeginPlay() {
 
+  if (Controller(Owner) != None)
+    PlayerReplicationInfo = Controller(Owner).PlayerReplicationInfo;
+  
   SetTimer(0.2, True);
   }
 
@@ -124,6 +127,9 @@ event Timer() {
         break;
         }
     
+    if (Jail == None)
+      Restart = Restart_Jail;
+
          if (JailPrev == None && Jail != None) JailEntered();
     else if (JailPrev != None && Jail == None) JailLeft(JailPrev);
     }
@@ -232,6 +238,8 @@ function RestartFreedom() {
   ArenaRequest = None;
   
   Level.Game.RestartPlayer(Controller(Owner));
+
+  Restart = Restart_Jail;
   }
 
 
@@ -243,7 +251,7 @@ function RestartFreedom() {
 
 function RestartJail() {
 
-  Restart = Restart_Freedom;
+  Restart = Restart_Jail;
   
   ArenaRestart = None;
   ArenaPending = None;
@@ -356,4 +364,14 @@ function JBInfoArena GetArenaRequest() {
 
 function float GetArenaRequestTime() {
   return TimeArenaRequest;
+  }
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
+defaultproperties {
+
+  Restart = Restart_Jail;
   }
