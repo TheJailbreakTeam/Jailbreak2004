@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.9 2004/04/21 19:14:52 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.10 2004/05/17 22:55:41 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -918,6 +918,7 @@ simulated function bool UpdateEntry(out TEntry Entry)
 simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
 {
   local int iTeamPlayer;
+  local string CallSign;
   local GameObjective GameObjective;
   local TeamPlayerReplicationInfo TeamPlayerReplicationInfo;
 
@@ -937,17 +938,22 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
   if (iEntryOwner >= 0 && ListEntry[iEntryOwner].iTeam != iTeamPlayer)
     return TextOrdersUndisclosed;
 
+  if (TeamPlayerReplicationInfo.bBot) {
+    CallSign = TeamPlayerReplicationInfo.GetCallSign();
+    if (CallSign != "")
+      CallSign = "[" $ CallSign $ "] ";
+  }
+
   if (TeamPlayerReplicationInfo.Squad != None)
-    return TeamPlayerReplicationInfo.Squad.GetOrderStringFor(TeamPlayerReplicationInfo);
+    return CallSign $ TeamPlayerReplicationInfo.Squad.GetOrderStringFor(TeamPlayerReplicationInfo);
 
   GameObjective = TagPlayer.GetObjectiveGuessed();
   if (GameObjective == None)
-    return TextOrdersFreelance;
+    return CallSign $ TextOrdersFreelance;
 
   if (GameObjective.DefenderTeamIndex == iTeamPlayer)
-    return TextOrdersDefense @ GameObjective.ObjectiveName;
-  else
-    return TextOrdersAttack  @ GameObjective.ObjectiveName;
+         return CallSign $ TextOrdersDefense @ GameObjective.ObjectiveName;
+    else return CallSign $ TextOrdersAttack  @ GameObjective.ObjectiveName;
 }
 
 
