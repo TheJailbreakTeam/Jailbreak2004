@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.7 2004/04/07 11:20:36 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -573,8 +573,8 @@ simulated function DrawClock(Canvas Canvas)
 
   HudCTeamDeathMatch = HudCTeamDeathMatch(PlayerController(Owner).myHUD);
 
-  ColorMarkerCaptured[0] = HudCTeamDeathMatch.TeamSymbols[0].Tints[HudCTeamDeathMatch.TeamIndex];
-  ColorMarkerCaptured[1] = HudCTeamDeathMatch.TeamSymbols[1].Tints[HudCTeamDeathMatch.TeamIndex];
+  ColorMarkerCaptured[0] = HudCTeamDeathMatch.TeamSymbols[1].Tints[HudCTeamDeathMatch.TeamIndex];
+  ColorMarkerCaptured[1] = HudCTeamDeathMatch.TeamSymbols[0].Tints[HudCTeamDeathMatch.TeamIndex];
 
   Canvas.SetDrawColor(255, 255, 255);
   Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
