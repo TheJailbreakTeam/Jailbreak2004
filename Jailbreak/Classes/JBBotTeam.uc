@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBBotTeam.uc,v 1.27.2.1 2004/04/10 16:22:35 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -408,6 +408,59 @@ function bool SendSquadTo(NavigationPoint NavigationPoint, optional Controller C
     return SquadSelected.Hunt(ControllerHunted, NavigationPoint);
 
   return False;
+}
+
+
+// ============================================================================
+// FindBotForArena
+//
+// Returns a reference to the jailed bot who is currently best suited for an
+// arena match against the given opponent in the given arena. Returns None if
+// no suitable bot is found. Tactics states can override this function.
+// ============================================================================
+
+function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, optional float FactorEfficiencyOpponent)
+{
+  local float EfficiencyBot;
+  local float EfficiencyBotBest;
+  local float EfficiencyOpponent;
+  local Bot Bot;
+  local Bot BotBest;
+  local PlayerReplicationInfo PlayerReplicationInfoBot;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+
+  if (ControllerOpponent.PlayerReplicationInfo == None)
+    return None;
+
+  EfficiencyOpponent = CalcEfficiency(ControllerOpponent.PlayerReplicationInfo.Kills,
+                                      ControllerOpponent.PlayerReplicationInfo.Deaths);
+
+  if (FactorEfficiencyOpponent == 0.0)
+    FactorEfficiencyOpponent = 1.0;
+
+  EfficiencyBotBest = -1.0;
+
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
+    Bot = Bot(thisTagPlayer.GetController());
+    if (Bot != None &&
+        thisTagPlayer.GetTeam() == Team &&
+        thisTagPlayer.IsInJail()) {
+      
+      PlayerReplicationInfoBot = thisTagPlayer.GetPlayerReplicationInfo();
+      EfficiencyBot = CalcEfficiency(PlayerReplicationInfoBot.Kills,
+                                     PlayerReplicationInfoBot.Deaths);
+
+      if (EfficiencyBot >= EfficiencyOpponent * FactorEfficiencyOpponent &&
+          EfficiencyBot >  EfficiencyBotBest) {
+        BotBest = Bot;
+        EfficiencyBotBest = EfficiencyBot;
+      }
+    }
+  }
+
+  return BotBest;
 }
 
 
@@ -1497,6 +1550,18 @@ state TacticsEvasive {
 
 
   // ================================================================
+  // FindBotForArena
+  //
+  // Never let a bot volunteer for an arena fight.
+  // ================================================================
+
+  function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, optional float Ignored)
+  {
+    return None;
+  }
+  
+
+  // ================================================================
   // EndState
   //
   // Resets all freelance squads to normal operation.
@@ -1573,6 +1638,19 @@ state TacticsDefensive {
     DeployExecute();
   }
 
+
+  // ================================================================
+  // FindBotForArena
+  //
+  // Only let a bot volunteer for an arena fight if we are really
+  // really sure he has good chances to win.
+  // ================================================================
+
+  function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, optional float Ignored)
+  {
+    return Global.FindBotForArena(Arena, ControllerOpponent, 2.0);
+  }
+  
 } // state TacticsDefensive
 
 
@@ -1680,6 +1758,19 @@ auto state TacticsNormal {
     }
   }
 
+
+  // ================================================================
+  // FindBotForArena
+  //
+  // Select a bot volunteer for an arena fight who is at least as
+  // efficient as the selected opponent.
+  // ================================================================
+
+  function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, optional float Ignored)
+  {
+    return Global.FindBotForArena(Arena, ControllerOpponent, 1.0);
+  }
+  
 } // state TacticsNormal
 
 
@@ -1782,6 +1873,19 @@ state TacticsAggressive {
     }
   }
 
+
+  // ================================================================
+  // FindBotForArena
+  //
+  // Select a bot volunteer for an arena fight even if the opponent
+  // is much more efficient.
+  // ================================================================
+
+  function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, optional float Ignored)
+  {
+    return Global.FindBotForArena(Arena, ControllerOpponent, 0.5);
+  }
+  
 } // state TacticsAggressive
 
 
@@ -1824,6 +1928,18 @@ state TacticsSuicidal {
       DeployToObjective(ObjectiveAttack, nPlayersFree);
       DeployExecute();
     }
+  }
+
+
+  // ================================================================
+  // FindBotForArena
+  //
+  // Find a bot volunteer at all costs. Hey, we're suicidal.
+  // ================================================================
+
+  function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, optional float Ignored)
+  {
+    return Global.FindBotForArena(Arena, ControllerOpponent, 0.001);
   }
 
 } // state TacticsSuicidal
