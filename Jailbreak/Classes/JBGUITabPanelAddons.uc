@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.3 2004/03/06 17:57:37 mychaeel Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.4 2004/03/10 12:18:53 tarquin Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -118,8 +118,7 @@ function ReadListInfoAddon()
       ListInfoAddon[iInfoAddon].ClassGUIPanelConfig =
         Class<GUIPanel>(DynamicLoadObject(ClassAddon.Default.ConfigMenuClassName, Class'Class', True));
     else
-      ListInfoAddon[iInfoAddon].ClassGUIPanelConfig = class'JBGUIAddonDefaultConfigPanel';
-    // else load default panel (tarq)
+      ListInfoAddon[iInfoAddon].ClassGUIPanelConfig = Class'JBGUIPanelConfigAddonDefault';
   }
 }
 
