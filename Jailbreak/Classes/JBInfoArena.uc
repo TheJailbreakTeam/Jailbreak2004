@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.36 2004/05/04 15:15:38 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.37 2004/05/13 18:50:35 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -818,10 +818,12 @@ simulated function RenderOverlays(Canvas Canvas)
 {
   local HudBase HudBase;
 
+  HudBase = HudBase(Level.GetLocalPlayerController().myHUD);
+  if (HudBase.bShowScoreBoard)
+    return;
+
   DisplayPlayerLeft .PlayerReplicationInfo = PlayerReplicationInfoRed;
   DisplayPlayerRight.PlayerReplicationInfo = PlayerReplicationInfoBlue;
-
-  HudBase = HudBase(Level.GetLocalPlayerController().myHUD);
 
   ShowPlayer(Canvas, HudBase, DisplayPlayerLeft);
   ShowPlayer(Canvas, HudBase, DisplayPlayerRight);
