@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.15 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.16 2003/02/23 21:16:06 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -17,6 +17,10 @@ class JBBotTeam extends TeamAI
 
 var class<JBBotSquadArena> ClassSquadArena;  // bot squad for arena
 var class<JBBotSquadJail>  ClassSquadJail;   // bot squad for jail
+
+var private JBTagTeam TagTeamSelf;           // team tag of own team
+var private JBTagTeam TagTeamEnemy;          // team tag of enemy team
+var private JBTagTeam TagTeam[2];            // team tags by team index
 
 var private int nObjectives;                 // cached number of objectives
 
@@ -39,6 +43,22 @@ var private transient TCacheCalcDistance            CacheCalcDistance;
 var private transient TCacheCountEnemiesAccounted   CacheCountEnemiesAccounted;
 var private transient TCacheCountEnemiesUnaccounted CacheCountEnemiesUnaccounted;
 var private transient TCacheRatePlayers             CacheRatePlayers;
+
+
+// ============================================================================
+// MatchStarting
+//
+// Initializes the JBTagPlayer references.
+// ============================================================================
+
+function MatchStarting() {
+
+  TagTeamSelf  = Class'JBTagTeam'.Static.FindFor(     Team);
+  TagTeamEnemy = Class'JBTagTeam'.Static.FindFor(EnemyTeam);
+
+  TagTeam[     Team.TeamIndex] = TagTeamSelf;
+  TagTeam[EnemyTeam.TeamIndex] = TagTeamEnemy;
+  }
 
 
 // ============================================================================
@@ -621,7 +641,7 @@ function int CountEnemiesUnaccounted() {
     return CacheCountEnemiesUnaccounted.Result;
   
   CacheCountEnemiesUnaccounted.Result =
-    JBReplicationInfoTeam(EnemyTeam).CountPlayersFree() - CountEnemiesAccounted();
+    TagTeamEnemy.CountPlayersFree() - CountEnemiesAccounted();
   
   CacheCountEnemiesUnaccounted.Time = Level.TimeSeconds;
   return CacheCountEnemiesUnaccounted.Result;
@@ -771,8 +791,7 @@ function ReAssessStrategy() {
     }
 
   if (Tactics == 'TacticsDefensive' &&
-      JBReplicationInfoTeam(EnemyTeam).CountPlayersFree() >
-      JBReplicationInfoTeam(     Team).CountPlayersFree())
+      TagTeamEnemy.CountPlayersFree() > TagTeamSelf.CountPlayersFree())
     Tactics = 'TacticsNormal';  // defensive tactics not working out
 
   GotoState(Tactics);
@@ -1281,7 +1300,7 @@ function NotifySpawn(Controller ControllerSpawned) {
       }
 
     else {
-      NavigationPointGuessed = TagPlayer.GuessLocation(JBReplicationInfoTeam(TagPlayer.GetTeam()).FindPlayerStarts());
+      NavigationPointGuessed = TagPlayer.GuessLocation(TagTeam[TagPlayer.GetTeam().TeamIndex].FindPlayerStarts());
       if (NavigationPointGuessed != None)
         SendSquadTo(NavigationPointGuessed, ControllerSpawned);
       }
@@ -1398,8 +1417,8 @@ state TacticsDefensive {
     local GameObjective thisObjective;
     local GameObjective ObjectiveAttack;
     
-    nPlayersFree   = JBReplicationInfoTeam(Team).CountPlayersFree();
-    nPlayersJailed = JBReplicationInfoTeam(Team).CountPlayersJailed();
+    nPlayersFree   = TagTeamSelf.CountPlayersFree();
+    nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective))
@@ -1456,8 +1475,8 @@ auto state TacticsNormal {
     local GameObjective ObjectiveAttack;
     local GameObjective ObjectiveDefense;
 
-    nPlayersFree   = JBReplicationInfoTeam(Team).CountPlayersFree();
-    nPlayersJailed = JBReplicationInfoTeam(Team).CountPlayersJailed();
+    nPlayersFree   = TagTeamSelf.CountPlayersFree();
+    nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
@@ -1544,8 +1563,8 @@ state TacticsAggressive {
     local GameObjective ObjectiveAttack;
     local GameObjective ObjectiveDefense;
 
-    nPlayersFree   = JBReplicationInfoTeam(Team).CountPlayersFree();
-    nPlayersJailed = JBReplicationInfoTeam(Team).CountPlayersJailed();
+    nPlayersFree   = TagTeamSelf.CountPlayersFree();
+    nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {

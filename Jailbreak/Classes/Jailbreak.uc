@@ -1,13 +1,13 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.33 2003/02/17 07:26:57 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.34 2003/02/17 22:55:18 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
 
 
-class Jailbreak extends TeamGame
+class Jailbreak extends xTeamGame
   notplaceable;
 
 
@@ -51,6 +51,21 @@ event InitGame(string Options, out string Error) {
   
   bForceRespawn = True;
   MaxLives = 0;
+  }
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Spawns JBTagTeam actors for both teams.
+// ============================================================================
+
+event PostBeginPlay() {
+
+  Super.PostBeginPlay();
+  
+  Class'JBTagTeam'.Static.SpawnFor(Teams[0]);
+  Class'JBTagTeam'.Static.SpawnFor(Teams[1]);
   }
 
 
@@ -561,24 +576,24 @@ function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena) {
 // ============================================================================
 // CountPlayersJailed
 //
-// Forwarded to CountPlayersJailed in JBReplicationInfoTeam.
+// Forwarded to CountPlayersJailed in JBTagTeam.
 // ============================================================================
 
 function int CountPlayersJailed(TeamInfo Team) {
 
-  return JBReplicationInfoTeam(Team).CountPlayersJailed();
+  return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersJailed();
   }
 
 
 // ============================================================================
 // CountPlayersTotal
 //
-// Forwarded to CountPlayersTotal in JBReplicationInfoTeam.
+// Forwarded to CountPlayersTotal in JBTagTeam.
 // ============================================================================
 
 function int CountPlayersTotal(TeamInfo Team) {
 
-  return JBReplicationInfoTeam(Team).CountPlayersTotal();
+  return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersTotal();
   }
 
 
@@ -1011,23 +1026,19 @@ state Executing {
 
 defaultproperties {
 
-  bEnableJailFights = True;
+  bEnableJailFights        = True;
   bEnableSpectatorDeathCam = True;
 
-  MapPrefix  = "JB";
-  BeaconName = "JB";
-  GameName   = "Jailbreak";
- 
+  MapPrefix                = "JB";
+  BeaconName               = "JB";
+  GameName                 = "Jailbreak";
   HUDType                  = "Jailbreak.JBInterfaceHud";
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
-  DefaultEnemyRosterClass  = "Jailbreak.JBReplicationInfoTeam";
   
   MessageClass             = Class'JBLocalMessage';
   GameReplicationInfoClass = Class'JBReplicationInfoGame';
-  DeathMessageClass        = Class'xDeathMessage';
-
-  TeamAIType[0] = Class'JBBotTeam';
-  TeamAIType[1] = Class'JBBotTeam';
+  TeamAIType[0]            = Class'JBBotTeam';
+  TeamAIType[1]            = Class'JBBotTeam';
   
   bSpawnInTeamArea = True;
   bScoreTeamKills = False;

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTag.uc,v 1.2 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBTag.uc,v 1.3 2003/02/08 22:44:22 mychaeel Exp $
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -88,7 +88,7 @@ replication {
 // Variables
 // ============================================================================
 
-var private Actor Keeper;                // replicated keeper actor
+var protected Actor Keeper;              // replicated keeper actor
 
 var private bool bIsRegisteredOnServer;  // registered on the server
 var private bool bIsRegisteredOnClient;  // registered on this client

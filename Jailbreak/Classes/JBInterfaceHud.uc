@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.8 2003/01/19 23:09:41 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.9 2003/01/25 23:46:48 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -484,6 +484,7 @@ private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
 
   local int iOrderNameTactics;
   local JBReplicationInfoGame InfoGame;
+  local JBTagTeam TagTeam;
 
   Console.SMState = SMS_Other;
   Console.SMStateName[Console.SMState] = TextMenuTitleTactics;
@@ -496,10 +497,12 @@ private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
     Console.SMIndexArray[iOrderNameTactics] = InfoGame.OrderNameTactics[iOrderNameTactics].iOrderName;
     }
 
-  if (JBReplicationInfoTeam(PlayerOwner.PlayerReplicationInfo.Team).GetTacticsAuto())
+  TagTeam = Class'JBTagTeam'.Static.FindFor(PlayerOwner.PlayerReplicationInfo.Team);
+
+  if (TagTeam.GetTacticsAuto())
     Console.HighlightRow = 0;
   else {
-    switch (JBReplicationInfoTeam(PlayerOwner.PlayerReplicationInfo.Team).GetTactics()) {
+    switch (TagTeam.GetTactics()) {
       case 'Suicidal':    Console.HighlightRow = 1;  break;
       case 'Aggressive':  Console.HighlightRow = 2;  break;
       case 'Normal':      Console.HighlightRow = 3;  break;
