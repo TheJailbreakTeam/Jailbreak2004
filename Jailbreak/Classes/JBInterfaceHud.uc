@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.34 2004/03/28 22:45:38 mychaeel Exp $
+// $Id$
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1043,6 +1043,60 @@ exec function SetupPanorama()
 {
   if (Level.NetMode == NM_Standalone)
     PlayerOwner.Player.InteractionMaster.AddInteraction("Jailbreak.JBInteractionPanorama", PlayerOwner.Player);
+}
+
+
+// ============================================================================
+// exec BotThoughts
+//
+// Allows users to dump verbose explanations of why bots are deployed where to
+// the log or to the screen.
+//
+//   BotThoughts                     Toggles both log and screen explanations.
+//   BotThoughts log|screen          Toggles either log or screen explanations.
+//   BotThoughts            on|off   Sets both log and screen on or off.
+//   BotThoughts log|screen on|off   Sets either log or screen on or off.
+//
+// ============================================================================
+
+exec function BotThoughts(optional string Param1, optional string Param2)
+{
+  local bool bExplainToLog;
+  local bool bExplainToScreen;
+  local bool bFlag;
+  local string Flag;
+  local string Place;
+  local JBBotTeam JBBotTeam[2];
+
+  if (Level.NetMode != NM_Standalone)
+    return;
+
+  JBBotTeam[0] = JBBotTeam(TeamGame(Level.Game).Teams[0].AI);
+  JBBotTeam[1] = JBBotTeam(TeamGame(Level.Game).Teams[1].AI);
+
+  bExplainToLog    = JBBotTeam[0].bExplainToLog    || JBBotTeam[1].bExplainToLog;
+  bExplainToScreen = JBBotTeam[0].bExplainToScreen || JBBotTeam[1].bExplainToScreen;
+
+  if (Param2 != "" || Param1 ~= "log" || Param1 ~= "screen")
+         { Flag = Param2; Place = Param1; }
+    else { Flag = Param1; Place = "both"; } 
+
+       if (Flag == "1" || Flag ~= "true"  || Flag ~= "on"  || Flag ~= "yes") bFlag = True;
+  else if (Flag == "0" || Flag ~= "false" || Flag ~= "off" || Flag ~= "no")  bFlag = False;
+  else if (Flag != "") return;
+
+  if (!(Place ~= "log"    ||
+        Place ~= "screen" ||
+        Place ~= "both"))
+    return;
+
+  if (Place ~= "log"    || Place ~= "both") { if (Flag == "") bExplainToLog    = !bExplainToLog;    else bExplainToLog    = bFlag; }
+  if (Place ~= "screen" || Place ~= "both") { if (Flag == "") bExplainToScreen = !bExplainToScreen; else bExplainToScreen = bFlag; }
+  
+  JBBotTeam[0].bExplainToLog = bExplainToLog;  JBBotTeam[0].bExplainToScreen = bExplainToScreen;
+  JBBotTeam[1].bExplainToLog = bExplainToLog;  JBBotTeam[1].bExplainToScreen = bExplainToScreen;
+
+  PlayerOwner.ClientMessage("BotThoughts written to log:" @ bExplainToLog $ ", to screen:" @ bExplainToScreen);
 }
 
 
