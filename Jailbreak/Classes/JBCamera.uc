@@ -726,6 +726,9 @@ simulated function RenderOverlayMaterial(Canvas Canvas)
   if (Overlay.Material == None)
     return;
 
+  if (Texture(Overlay.Material) != None)
+    Texture(Overlay.Material).LODSet = LODSET_Interface;
+
   Canvas.DrawColor = Overlay.Color;
 
   switch (Overlay.Style) {
