@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.5 2003/07/19 22:02:25 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -169,13 +169,13 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
 // opening, but haven't fully opened yet.
 // ============================================================================
 
-function NotifyJailOpening(JBInfoJail Jail)
+function NotifyJailOpening(JBInfoJail Jail, TeamInfo Team)
 {
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
-    nextJBGameRules.NotifyJailOpening(Jail);
+    nextJBGameRules.NotifyJailOpening(Jail, Team);
 }
 
 
@@ -186,13 +186,13 @@ function NotifyJailOpening(JBInfoJail Jail)
 // completed opening and are fully open now.
 // ============================================================================
 
-function NotifyJailOpened(JBInfoJail Jail)
+function NotifyJailOpened(JBInfoJail Jail, TeamInfo Team)
 {
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
-    nextJBGameRules.NotifyJailOpened(Jail);
+    nextJBGameRules.NotifyJailOpened(Jail, Team);
 }
 
 
@@ -203,13 +203,13 @@ function NotifyJailOpened(JBInfoJail Jail)
 // and before the objectives are activated again.
 // ============================================================================
 
-function NotifyJailClosed(JBInfoJail Jail)
+function NotifyJailClosed(JBInfoJail Jail, TeamInfo Team)
 {
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
-    nextJBGameRules.NotifyJailClosed(Jail);
+    nextJBGameRules.NotifyJailClosed(Jail, Team);
 }
 
 
