@@ -1,7 +1,7 @@
 // ============================================================================
 // JBScreen
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBScreen.uc,v 1.1.1.1 2003/06/30 22:05:18 mychaeel Exp $
+// $Id: JBScreen.uc,v 1.2 2003/06/30 22:08:29 mychaeel Exp $
 //
 // Abstract base class for ScriptedTexture clients.
 // ============================================================================
@@ -44,6 +44,8 @@ var() float RefreshRate;                      // frequency of texture updates
 // Variables
 // ============================================================================
 
+var protected bool bEnabled;                  // screens are enabled
+
 var protected vector SizeScriptedTexture;     // size of ScriptedTexture
 var protected vector SizeMaterialBackground;  // size of background material
 
@@ -79,9 +81,29 @@ simulated event PostNetBeginPlay() {
     return;
 
   ScriptedTexture.Client = Self;
-  SetTimer(1.0 / RefreshRate, True);
+  
+  bEnabled = Class'Jailbreak'.Default.bEnableScreens;
+  if (bEnabled)
+         SetTimer(1.0 / RefreshRate, True);   // periodically update
+    else SetTimer(1.0 / RefreshRate, False);  // initial update only
 
   PrepareMaterial();
+  }
+
+
+// ============================================================================
+// Reset
+//
+// Called when the bEnableScreens config setting is changed. Sets the update
+// timer accordingly.
+// ============================================================================
+
+simulated function Reset() {
+
+  bEnabled = Class'Jailbreak'.Default.bEnableScreens;
+  if (bEnabled)
+         SetTimer(1.0 / RefreshRate, True);   // periodically update
+    else SetTimer(1.0 / RefreshRate, False);  // update once more and freeze
   }
 
 

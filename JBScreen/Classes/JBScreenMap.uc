@@ -1,7 +1,7 @@
 // ============================================================================
 // JBScreenMap
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBScreenMap.uc,v 1.1.1.1 2003/06/30 22:05:18 mychaeel Exp $
 //
 // Base class for client actors for a ScriptedTexture drawing player locations
 // on a minimap. 
@@ -115,10 +115,12 @@ simulated event RenderTexture(ScriptedTexture ScriptedTexture) {
   if (bInitializationSuccessful) {
     Super.RenderTexture(ScriptedTexture);
     
-    firstTagPlayer = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo).firstTagPlayer;
-    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (IsIconDisplayed(thisTagPlayer))
-        DrawIcon(ScriptedTexture, thisTagPlayer, CalcLocation(thisTagPlayer.GetLocationPawn()));
+    if (bEnabled) {
+      firstTagPlayer = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo).firstTagPlayer;
+      for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+        if (IsIconDisplayed(thisTagPlayer))
+          DrawIcon(ScriptedTexture, thisTagPlayer, CalcLocation(thisTagPlayer.GetLocationPawn()));
+      }
     }
   
   else {
