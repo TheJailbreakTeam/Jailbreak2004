@@ -1,14 +1,14 @@
 // ============================================================================
 // JBGUIComponentTabs
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIComponentTabs.uc,v 1.2 2003/08/10 11:30:27 mychaeel Exp $
+// $Id: JBGUIComponentTabs.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
 //
 // User interface component: Has a column of tabs on the left side, each
 // containing an instance of a specified component class such as a checkbox.
 // ============================================================================
 
 
-class JBGUIComponentTabs extends GUIPanel;
+class JBGUIComponentTabs extends JBGUIComponent;
 
 
 // ============================================================================
@@ -64,8 +64,8 @@ delegate OnTabClosed(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptio
 // to perform additional initialization of that component.
 // ============================================================================
 
-delegate OnTabInit(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab) {
-
+delegate OnTabInit(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab)
+{
   GUIMenuOptionTab.bSquare = True;
   GUIMenuOptionTab.CaptionWidth = 0.9;
 }
@@ -530,6 +530,8 @@ function int           GetCurrentTabIndex()     { return                 iTabOpe
 
 defaultproperties
 {
+  bIsMultiComponent = True;
+
   iTabOpen     = -1;
   iTabOpenPrev = -1;
 
