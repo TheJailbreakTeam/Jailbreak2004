@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.25 2003/02/26 20:01:30 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.26 2003/03/15 17:30:41 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -538,6 +538,9 @@ function RestartArena(JBInfoArena NewArenaRestart) {
   ArenaRestart = NewArenaRestart;
   ArenaPending = None;
   ArenaRequest = None;
+  
+  if (GetController().Pawn != None)
+    GetController().Pawn.PlayTeleportEffect(True, True);
   
   RestartPlayer(Restart_Arena);
   
