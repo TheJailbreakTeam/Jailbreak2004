@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.2 2002/11/17 11:11:18 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.3 2002/11/20 18:55:12 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -245,14 +245,14 @@ function ExecutionInit() {
 // ============================================================================
 // ExecutionEnd
 //
-// ExecutionDone
+// Finishes up an ongoing execution by gibbing all players remaining in jail
 // and going back to state Waiting. Can be called only in states
 // ExecutionRunning and ExecutionFallback.
 // ============================================================================
 
 function ExecutionEnd() {
 
-function ExecutionDone() {
+  local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local int iInfoPlayer;
   local JBReplicationInfoGame InfoGame;
@@ -270,7 +270,7 @@ function ExecutionDone() {
   else {
     Log("Warning: Called ExecutionEnd for" @ Self @ "in state" @ GetStateName());
     }
-    Log("Warning: Called ExecutionDone for" @ Self @ "in state" @ GetStateName());
+  }
 
 
 // ============================================================================
@@ -373,7 +373,7 @@ state ExecutionStarting {
 // Remains in this state until either fallback gibbing kicks in or explicitely
 // reset by calling ExecutionEnd. The Jailbreak game class takes care of that.
 // ============================================================================
-// reset by calling ExecutionDone. The Jailbreak game class takes care of that.
+
 state ExecutionRunning {
 
   Begin:
@@ -415,13 +415,17 @@ state ExecutionFallback {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local int iInfoPlayer;
+    local Pawn PawnPlayer;
     local JBReplicationInfoGame InfoGame;
   
     InfoGame = JBReplicationInfoGame(Level.GRI);
   
     for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].IsInJail())
-        Controller(InfoGame.ListInfoPlayer[iInfoPlayer].Owner).Pawn.GibbedBy(None);
+      if (InfoGame.ListInfoPlayer[iInfoPlayer].IsInJail()) {
+        PawnPlayer = Controller(InfoGame.ListInfoPlayer[iInfoPlayer].Owner).Pawn;
+        if (PawnPlayer != None)
+          PawnPlayer.GibbedBy(None);
+        }
 
   // ================================================================
   // EndState
