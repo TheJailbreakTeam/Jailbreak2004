@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.27 2003/12/19 13:36:54 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.28 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -578,12 +578,8 @@ function ResetObjectives(TeamInfo Team)
 
 function ExecutePlayer(Controller Controller)
 {
-  if (Controller.Pawn == None)
-    return;
-
-  Class'LavaDeath'.Default.bHighDetail = False;
-  Controller.Pawn.Died(None, Class'FellLava', vect(0,0,0));
-  Class'LavaDeath'.Default.bHighDetail = True;
+  if (Controller.Pawn != None)
+    Controller.Pawn.Died(None, Class'Suicided', Controller.Pawn.Location);
 }
 
 
