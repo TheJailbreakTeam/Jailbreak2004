@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.20 2003/02/09 12:10:32 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.21 2003/02/16 22:58:17 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -526,7 +526,9 @@ function ExecutePlayer(Controller Controller) {
 
   Class'LavaDeath'.Default.bHighDetail = False;
   Controller.Pawn.Died(None, Class'FellLava', vect(0,0,0));
+  Class'LavaDeath'.Default.bHighDetail = True;
   }
+
 
 // ============================================================================
 // ExecutionInit
