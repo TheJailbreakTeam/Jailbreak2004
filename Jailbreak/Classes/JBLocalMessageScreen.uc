@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageScreen
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBLocalMessageScreen.uc,v 1.2.2.5 2004/05/17 21:29:50 mychaeel Exp $
 //
 // Displays on-screen messages.
 // ============================================================================
@@ -164,7 +164,7 @@ defaultproperties
   PosYArena          = 0.70;
   PosYKeyboardArena  = 0.13;
   PosYKeyboardCamera = 0.04;
-  PosYLastMan        = 0.13;
+  PosYLastMan        = 0.16;
 
   LifetimeTeam       = 3;
   LifetimeArena      = 3;
