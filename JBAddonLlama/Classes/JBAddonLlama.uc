@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.11 2004/05/31 19:46:51 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.12 2004/05/31 21:02:50 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -55,22 +55,10 @@ simulated event PostBeginPlay()
     // spawn the JBGameRules subclass for Jailbreak event notifications
     LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
     if ( LlamaHuntRules != None )
-      LlamaHuntRules.OnLlamaReconnect = LlamaReconnected;
+      LlamaHuntRules.MyLlamaAddon = Self;
     else
       log("No LlamaHuntRules spawned.", Name);
   }
-}
-
-
-//=============================================================================
-// LlamaReconnected
-//
-// Called when a llama reconnected.
-//=============================================================================
-
-function LlamaReconnected(PlayerController ControllerPlayer)
-{
-  Llamaize(ControllerPlayer);
 }
 
 
