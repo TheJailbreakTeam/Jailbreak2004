@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.1 2003/07/26 20:20:32 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.2 2003/07/26 23:24:48 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -16,6 +16,7 @@ class JBAddonLlama extends JBAddon config;
 
 var config int RewardHealth;
 var config int RewardAdrenaline;
+var config int MaximumLlamaDuration;
 
 
 //=============================================================================
@@ -24,6 +25,7 @@ var config int RewardAdrenaline;
 
 var localized string RewardHealthText;
 var localized string RewardAdrenalineText;
+var localized string MaximumLlamaDurationText;
 
 
 //=============================================================================
@@ -211,8 +213,9 @@ function MutatorFillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddClass(Class);
   
   // now register any mutator settings
-  PlayInfo.AddSetting("Add-Ons", "RewardAdrenaline", RewardAdrenalineText, 0, 0, "Text", "3;0:100");
-  PlayInfo.AddSetting("Add-Ons", "RewardHealth",     RewardHealthText,     0, 0, "Text", "3;0:199");
+  PlayInfo.AddSetting("Add-Ons", "MaximumLlamaDuration", MaximumLlamaDurationText, 0, 0, "Text", "3;0:199");
+  PlayInfo.AddSetting("Add-Ons", "RewardAdrenaline",     RewardAdrenalineText,     0, 0, "Text", "3;0:100");
+  PlayInfo.AddSetting("Add-Ons", "RewardHealth",         RewardHealthText,         0, 0, "Text", "3;0:199");
   
   // remove mutator class from class stack
   PlayInfo.PopClass();
@@ -236,6 +239,8 @@ defaultproperties
   Build="%%%%-%%-%% %%:%%"
   RewardAdrenaline=100
   RewardHealth=25
+  MaximumLlamaDuration=60
   RewardAdrenalineText="Adrenaline gained for killing a Llama"
   RewardHealthText="Health gained for killing a Llama"
+  MaximumLlamaDurationText="Maximum duration of the llama hunt"
 }

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.1 2003/07/26 20:20:35 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.2 2003/07/27 18:27:40 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -20,6 +20,8 @@ var JBInterfaceLlamaHUDOverlay HUDOverlay;      // HUD overlay for drawing llama
 var JBLlamaTrailer             Trail;           // 3rd person xEmitter effect for the llama
 var JBLlamaArrow               LlamaArrow;      // client-side spinning arrow over the llama's head
 var JBTagPlayer                TagPlayer;       // the llama's JBTagPlayer
+var float                      LlamaStartTime;  // Level.TimeSeconds when this player was llamaized
+
 
 //=============================================================================
 // PostBeginPlay
@@ -33,6 +35,7 @@ simulated event PostBeginPlay()
 {
   Super.PostBeginPlay();
   
+  LlamaStartTime = Level.TimeSeconds;
   LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
   HUDOverlay = class'JBInterfaceLlamaHUDOverlay'.static.FindLlamaHUDOverlay(Self);
   LlamaArrow = Spawn(class'JBLlamaArrow', Self);
@@ -58,6 +61,7 @@ simulated event PostNetBeginPlay()
 // GiveTo
 //
 // Registers the JBLlamaTag as an overlay offline and on listen servers.
+// Notifies other players of a new llama hunt.
 //=============================================================================
 
 function GiveTo(Pawn Other, optional Pickup Pickup)
@@ -70,6 +74,8 @@ function GiveTo(Pawn Other, optional Pickup Pickup)
   
   if ( Level.NetMode != NM_DedicatedServer )
     InitLlamaTag();
+  
+  BroadcastLocalizedMessage(class'JBLlamaMessage', 1, Other.PlayerReplicationInfo);
 }
 
 
@@ -169,7 +175,8 @@ simulated event Destroyed()
 //=============================================================================
 // Tick
 //
-// Update third person llama effects.
+// Update third person llama effects and checks whether the maximum llama hunt
+// duration was exceeded.
 //=============================================================================
 
 simulated function Tick(float DeltaTime)
@@ -180,6 +187,11 @@ simulated function Tick(float DeltaTime)
   if ( Pawn(Owner).Controller != None && Pawn(Owner).Controller.Pawn != None
       && Trail != None && Trail.Owner != Pawn(Owner).Controller.Pawn )
     Trail.SetOwner(Pawn(Owner).Controller.Pawn);
+  
+  if ( Role == ROLE_Authority
+      && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration ) {
+    Pawn(Owner).Died(None, class'JBDamageTypeLlamaDied', Owner.Location);
+  }
 }
 
 //=============================================================================
