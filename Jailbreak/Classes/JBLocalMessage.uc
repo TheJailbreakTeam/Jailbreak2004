@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.4 2002/11/24 20:29:18 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.5 2002/12/20 20:55:14 mychaeel Exp $
 //
 // Localized messages for generic Jailbreak announcements.
 // ============================================================================
@@ -248,6 +248,7 @@ defaultproperties {
   TextArenaEndLoser        = "You have lost the arena match.";
   TextArenaEndOther        = "%winner% has defeated %loser% in the arena.";
 
+  PosY = 0.75;
   bFadeMessage = True;
   bIsUnique    = True;
   bIsSpecial   = True;
