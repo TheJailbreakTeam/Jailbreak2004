@@ -1,10 +1,11 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.4.2.6 2004/05/20 12:24:41 mychaeel Exp $
+// $Id$
 //
 // Attached to every PlayerController and used for exec function replication.
-// Only accessible via a given PlayerController object; not chained.
+// Only accessible via a given PlayerController object; not chained and not
+// replicated to anyone else than the owning player.
 // ============================================================================
 
 
@@ -311,4 +312,5 @@ function PlayerReplicationInfo GetPlayerReplicationInfo() {
 defaultproperties
 {
   RemoteRole = ROLE_SimulatedProxy;
+  bOnlyRelevantToOwner = True;
 }
