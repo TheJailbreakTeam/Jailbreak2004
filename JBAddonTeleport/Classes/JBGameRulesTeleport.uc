@@ -46,7 +46,9 @@ function bool CanRelease(TeamInfo Team, Pawn Releaser, GameObjective Objective)
         if(TeleportSpot != None)
         {
             Releaser.PlayTeleportEffect(TRUE, TRUE);
-            Releaser.Controller.ClientSetLocation(TeleportSpot.Location, TeleportSpot.Rotation);
+            Releaser.SetLocation(TeleportSpot.Location);
+            Releaser.SetRotation(TeleportSpot.Rotation);
+            Releaser.ClientSetLocation(TeleportSpot.Location, TeleportSpot.Rotation);
             Releaser.PlayTeleportEffect(TRUE, TRUE);
         }
     }
