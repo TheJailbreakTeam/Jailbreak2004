@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.18 2003/03/23 08:45:08 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.19 2003/06/04 20:57:58 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -394,7 +394,7 @@ function int CountPlayers() {
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArena() == Self &&
-        thisTagPlayer.GetController().Pawn != None)
+        thisTagPlayer.GetPawn() != None)
       nPlayers += 1;
 
   return nPlayers;
@@ -613,7 +613,7 @@ function MatchFinish() {
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self &&
-          thisTagPlayer.GetController().Pawn != None)
+          thisTagPlayer.GetPawn() != None)
         thisTagPlayer.RestartInJail();
 
     if (Jailbreak(Level.Game).firstJBGameRules != None)
@@ -648,7 +648,7 @@ function Controller FindWinner() {
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self &&
-          thisTagPlayer.GetController().Pawn != None)
+          thisTagPlayer.GetPawn() != None)
         if (ControllerWinner == None)
           ControllerWinner = thisTagPlayer.GetController();
         else

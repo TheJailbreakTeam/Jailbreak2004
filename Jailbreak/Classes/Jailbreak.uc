@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.50 2003/06/06 07:57:20 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.51 2003/06/11 17:00:45 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1130,7 +1130,7 @@ state Executing {
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.TimeRestart <= Level.TimeSeconds &&
           thisTagPlayer.IsInJail() &&
-          thisTagPlayer.GetController().Pawn == None)
+          thisTagPlayer.GetPawn() == None)
         thisTagPlayer.RestartInFreedom();
     }
 

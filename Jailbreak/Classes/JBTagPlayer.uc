@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.32 2003/06/01 11:28:26 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.33 2003/06/06 07:57:20 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -21,6 +21,7 @@ replication {
     Arena,
     ArenaPending,
     Jail,
+    Pawn,
     Controller,
     Health,
     ScorePartialAttack,
@@ -99,6 +100,7 @@ var private bool bAdrenalineEnabledPrev;  // adrenaline state before arena
 var private JBInfoJail Jail;              // jail the player is currently in
 var private float TimeRelease;            // time of last release from jail
 
+var private Pawn Pawn;                    // pawn used by this player
 var private Controller Controller;        // controller used by this player
 var private int Health;                   // current health and armor
 
@@ -194,10 +196,10 @@ function Register() {
   PlayerReplicationInfo(Keeper).StartTime = TimeElapsedConnect;
 
   if (Jailbreak(Level.Game).firstJBGameRules != None && TimeElapsedDisconnect > 0)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReconnect(PlayerController(GetController()), bIsLlama);
+    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReconnect(PlayerController(Controller), bIsLlama);
 
-  if (PlayerController(GetController()) != None)
-    HashIdPlayer = PlayerController(GetController()).GetPlayerIDHash();
+  if (PlayerController(Controller) != None)
+    HashIdPlayer = PlayerController(Controller).GetPlayerIDHash();
 
   Enable('Tick');
   SetTimer(RandRange(0.18, 0.22), True);
@@ -257,14 +259,13 @@ event Timer() {
 // ============================================================================
 // Tick
 //
-// Updates the LocationPawnLast variables.
+// Updates the Pawn and LocationPawnLast variables.
 // ============================================================================
 
 event Tick(float TimeDelta) {
 
-  local Pawn Pawn;
+  Pawn = Controller.Pawn;
 
-  Pawn = GetController().Pawn;
   if (Pawn != None)
     LocationPawnLast = Pawn.Location;
   }
@@ -282,8 +283,8 @@ private function UpdateJail() {
   local JBInfoJail JailPrev;
   
   if (Arena == None &&
-      GetController().Pawn != None &&
-      GetController().Pawn.IsPlayerPawn()) {
+      Controller.Pawn != None &&
+      Controller.Pawn.IsPlayerPawn()) {
 
     JailPrev = Jail;
     Jail = FindJail();
@@ -312,14 +313,11 @@ private function UpdateLocation() {
   local vector LocationPawnActual;
   local vector LocationPawnExtrapolated;
   local vector VelocityPawnActual;
-  local Pawn Pawn;
 
   if (Level.NetMode == NM_Standalone)
     return;
 
-  Pawn = GetController().Pawn;
-
-  if (Pawn == None) {
+  if (Controller.Pawn == None) {
     VelocityPawn = 0.0;
     LocationPawn[0] = LocationPawnLast;
     LocationPawn[1] = LocationPawnLast;
@@ -330,15 +328,15 @@ private function UpdateLocation() {
     if (CalcOrientation(DirectionPawnPrev) * VelocityPawn < 0)
       iLocationPawn = 1;
 
-    VelocityPawnActual = Pawn.Velocity;
-    if (Pawn.Base != None)
-      VelocityPawnActual += Pawn.Base.Velocity;
+    VelocityPawnActual = Controller.Pawn.Velocity;
+    if (Controller.Pawn.Base != None)
+      VelocityPawnActual += Controller.Pawn.Base.Velocity;
 
     // quantize and round velocity to minimize replication
     VelocityPawn = int(VSize(VelocityPawnActual) * 32.0 + 0.5) / 32.0;
     VelocityPawnBase = VelocityPawn;  // used for server-side extrapolation
 
-    LocationPawnActual = Pawn.Location;
+    LocationPawnActual = Controller.Pawn.Location;
 
     if (VelocityPawn == 0.0) {
       LocationPawn[0] = LocationPawnActual;
@@ -448,7 +446,7 @@ function JBInfoJail FindJail() {
   
   firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
-    if (thisJail.ContainsActor(GetController().Pawn))
+    if (thisJail.ContainsActor(Controller.Pawn))
       return thisJail;
   
   return None;
@@ -547,11 +545,11 @@ function NotifyRestarted() {
 
 function NotifyArenaEntered() {
 
-  if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadArena(Bot(GetController()));
+  if (Bot(Controller) != None)
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadArena(Bot(Controller));
 
-  bAdrenalineEnabledPrev = GetController().bAdrenalineEnabled;
-  GetController().bAdrenalineEnabled = False;
+  bAdrenalineEnabledPrev = Controller.bAdrenalineEnabled;
+  Controller.bAdrenalineEnabled = False;
   }
 
 
@@ -563,13 +561,13 @@ function NotifyArenaEntered() {
 
 function NotifyArenaLeft(JBInfoArena ArenaPrev) {
 
-  GetController().bAdrenalineEnabled = bAdrenalineEnabledPrev;
+  Controller.bAdrenalineEnabled = bAdrenalineEnabledPrev;
 
   if (IsInJail())
     return;
 
-  JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifySpawn(GetController());
-  JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifySpawn(GetController());
+  JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifySpawn(Controller);
+  JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifySpawn(Controller);
   }
 
 
@@ -586,17 +584,17 @@ function NotifyJailEntered() {
   local Inventory thisInventory;
   local Inventory nextInventory;
 
-  if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(GetController()));
+  if (Bot(Controller) != None)
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(Controller));
 
-  for (thisInventory = GetController().Pawn.Inventory; thisInventory != None; thisInventory = nextInventory) {
+  for (thisInventory = Controller.Pawn.Inventory; thisInventory != None; thisInventory = nextInventory) {
     nextInventory = thisInventory.Inventory;
     if (TransLauncher(thisInventory) != None)
-      GetController().Pawn.DeleteInventory(thisInventory);
+      Controller.Pawn.DeleteInventory(thisInventory);
     }
 
-  if  (GetController().Pawn.Weapon == None)
-    GetController().ClientSwitchToBestWeapon();
+  if  (Controller.Pawn.Weapon == None)
+    Controller.ClientSwitchToBestWeapon();
 
   Jail.NotifyJailEntered(Self);
   }
@@ -628,7 +626,7 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 
   firstArena = JBGameReplicationInfo(GetGameReplicationInfo()).firstArena;
   for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
-    thisArena.ExcludeRemove(GetController());
+    thisArena.ExcludeRemove(Controller);
 
   if (JailPrev.GetReleaseTime(GetTeam()) != TimeRelease) {
     ControllerInstigator = JailPrev.GetReleaseInstigator(GetTeam());
@@ -640,11 +638,11 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 
   JailPrev.NotifyJailLeft(Self);
 
-  if (DeathMatch(Level.Game).bAllowTrans)
-    GetController().Pawn.CreateInventory("XWeapons.TransLauncher");
+  if (DeathMatch(Level.Game).bAllowTrans && Controller.Pawn != None)
+    Controller.Pawn.CreateInventory("XWeapons.TransLauncher");
 
-  JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleasePlayer(JailPrev.Tag, GetController());
-  JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleasePlayer(JailPrev.Tag, GetController());
+  JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
+  JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
   }
 
 
@@ -657,8 +655,8 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 
 function NotifyJailOpening() {
 
-  if (GetController().Pawn != None)
-    GetController().Pawn.Health = GetController().Pawn.Default.Health;
+  if (Controller.Pawn != None)
+    Controller.Pawn.Health = Pawn.Default.Health;
   }
 
 
@@ -671,8 +669,8 @@ function NotifyJailOpening() {
 
 function NotifyJailOpened() {
 
-  if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).ResumeBotOrders(Bot(GetController()));
+  if (Bot(Controller) != None)
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).ResumeBotOrders(Bot(Controller));
   }
 
 
@@ -685,8 +683,8 @@ function NotifyJailOpened() {
 
 function NotifyJailClosed() {
 
-  if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(GetController()));
+  if (Bot(Controller) != None)
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(Controller));
   }
 
 
@@ -699,34 +697,30 @@ function NotifyJailClosed() {
 
 private function RestartPlayer(ERestart RestartCurrent) {
 
-  local Pawn PawnPlayer;
-  local xPawn xPawnPlayer;
+  local xPawn xPawn;
 
-  while (True) {
-    PawnPlayer = GetController().Pawn;
-    if (PawnPlayer == None)
-      break;
-
-    xPawnPlayer = xPawn(PawnPlayer);
-    if (xPawnPlayer != None) {
-      if (xPawnPlayer.CurrentCombo != None) {
-        xPawnPlayer.CurrentCombo.Destroy();
-        xPawnPlayer.Controller.Adrenaline = 0;
+  while (Controller.Pawn != None) {
+    xPawn = xPawn(Controller.Pawn);
+    
+    if (xPawn != None) {
+      if (xPawn.CurrentCombo != None) {
+        xPawn.CurrentCombo.Destroy();
+        xPawn.Controller.Adrenaline = 0;
         }
   
-      if (xPawnPlayer.UDamageTimer != None) {
-        xPawnPlayer.UDamageTimer.Destroy();
-        xPawnPlayer.DisableUDamage();
+      if (xPawn.UDamageTimer != None) {
+        xPawn.UDamageTimer.Destroy();
+        xPawn.DisableUDamage();
         }
       }
     
-    PawnPlayer.Destroy();
+    Controller.Pawn.Destroy();
     }
   
   Restart = RestartCurrent;
 
   TimeRestart = Level.TimeSeconds;
-  Level.Game.RestartPlayer(GetController());
+  Level.Game.RestartPlayer(Controller);
 
   Restart = Restart_Jail;
   }
@@ -752,8 +746,8 @@ function RestartInJail()    { RestartPlayer(Restart_Jail);    }
 
 function RestartInArena(JBInfoArena Arena) {
 
-  if (GetController().Pawn != None)
-    GetController().Pawn.PlayTeleportEffect(True, True);
+  if (Controller.Pawn != None)
+    Controller.Pawn.PlayTeleportEffect(True, True);
 
   ArenaRestart = Arena;
   RestartPlayer(Restart_Arena);
@@ -787,7 +781,7 @@ private function ERestart GetRestart() {
   CacheGetRestart.Result = Restart;
   CacheGetRestart.Time = Level.TimeSeconds;
 
-  if (GetController().PreviousPawnClass == None && !bIsLlama)
+  if (Controller.PreviousPawnClass == None && !bIsLlama)
     CacheGetRestart.Result = Restart_Freedom;  // initial world spawn
 
   if (Restart == Restart_Jail &&
@@ -847,7 +841,7 @@ function bool IsValidStart(NavigationPoint NavigationPoint) {
 function SetArenaPending(JBInfoArena NewArenaPending) {
 
   if (NewArenaPending == None ||
-      NewArenaPending.CanFight(GetController()))
+      NewArenaPending.CanFight(Controller))
     ArenaPending = NewArenaPending;
   }
 
@@ -864,7 +858,7 @@ function SetArenaRequest(JBInfoArena NewArenaRequest) {
   if (NewArenaRequest != None) {
     if (ArenaPending != None)
       return;
-    if (!NewArenaRequest.CanFight(GetController()))
+    if (!NewArenaRequest.CanFight(Controller))
       return;
     }
 
@@ -882,7 +876,6 @@ function SetArenaRequest(JBInfoArena NewArenaRequest) {
 
 simulated function int GetHealth(optional bool bCached) {
 
-  local Pawn PawnPlayer;
   local Inventory thisInventory;
 
   if (bCached || Role < ROLE_Authority)
@@ -890,16 +883,15 @@ simulated function int GetHealth(optional bool bCached) {
 
   Health = 0;
 
-  PawnPlayer = GetController().Pawn;
-  if (PawnPlayer != None) {
-    Health = PawnPlayer.Health;
+  if (Controller.Pawn != None) {
+    Health = Controller.Pawn.Health;
 
-    for (thisInventory = PawnPlayer.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
+    for (thisInventory = Controller.Pawn.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
       if (Armor(thisInventory) != None)
         Health += (Armor(thisInventory).Charge * Armor(thisInventory).ArmorAbsorption) / 100;
   
-    if (xPawn(PawnPlayer) != None)
-      Health += xPawn(PawnPlayer).ShieldStrength;
+    if (xPawn(Controller.Pawn) != None)
+      Health += xPawn(Controller.Pawn).ShieldStrength;
     }
 
   return Health;
@@ -1001,11 +993,11 @@ function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoin
   local float ProbabilityTotal;
   local array<TInfoLocation> ListInfoLocationTarget;
 
-  if (GetController().Pawn == None)
+  if (Controller.Pawn == None)
     return None;
   
   if (TimeInfoLocation != Level.TimeSeconds) {
-    DistanceMax = GetController().Pawn.GroundSpeed * (Level.TimeSeconds - TimeInfoLocation) * 1.1;
+    DistanceMax = Controller.Pawn.GroundSpeed * (Level.TimeSeconds - TimeInfoLocation) * 1.1;
     
     for (iNavigationPointTarget = 0; iNavigationPointTarget < ListNavigationPoint.Length; iNavigationPointTarget++) {
       ListInfoLocationTarget.Insert(iNavigationPointTarget, 1);
@@ -1074,22 +1066,21 @@ function GameObjective GuessObjective() {
   local GameObjective ObjectiveApproachedMax;
   local GameObjective ObjectiveClosest;
 
-  if (GetController().Pawn == None)
+  if (Controller.Pawn == None)
     return None;
 
-  if (TimeObjectiveGuessed + 3.0 > Level.TimeSeconds &&
-      GetController().Pawn == PawnObjectiveGuessed)
+  if (TimeObjectiveGuessed + 3.0 > Level.TimeSeconds && Controller.Pawn == PawnObjectiveGuessed)
     return ObjectiveGuessed;
   
-  if (GetController().Pawn != PawnObjectiveGuessed)
+  if (Controller.Pawn != PawnObjectiveGuessed)
     ListDistanceObjective.Length = 0;  // clear list after respawn
-  PawnObjectiveGuessed = GetController().Pawn;
+  PawnObjectiveGuessed = Controller.Pawn;
 
   for (thisObjective = UnrealTeamInfo(GetTeam()).AI.Objectives;
        thisObjective != None;
        thisObjective = thisObjective.NextObjective) {
 
-    Distance = Class'JBBotTeam'.Static.CalcDistance(GetController(), thisObjective);
+    Distance = Class'JBBotTeam'.Static.CalcDistance(Controller, thisObjective);
 
     if (ObjectiveClosest == None || Distance < DistanceClosest) {
       ObjectiveClosest = thisObjective;
@@ -1116,7 +1107,7 @@ function GameObjective GuessObjective() {
     iObjective++;
     }
   
-  DistanceTravelledMax = GetController().Pawn.GroundSpeed * (Level.TimeSeconds - TimeObjectiveGuessed);
+  DistanceTravelledMax = Controller.Pawn.GroundSpeed * (Level.TimeSeconds - TimeObjectiveGuessed);
   
   if (DistanceApproachedMax > DistanceTravelledMax * 0.8)
     ObjectiveGuessed = ObjectiveApproachedMax;  // moving towards objective
@@ -1138,6 +1129,8 @@ function GameObjective GuessObjective() {
 
 simulated function PlayerReplicationInfo GetPlayerReplicationInfo() {
   return PlayerReplicationInfo(Keeper); }
+simulated function Pawn GetPawn() {
+  return Pawn; }
 simulated function Controller GetController() {
   return Controller; }
 simulated function TeamInfo GetTeam() {
