@@ -93,7 +93,7 @@ event Initialized()
     
     iKeyAuto = Bindings[iBinding].iKeyPreferred;
     if (bool(bIsKeyBound[iKeyAuto]))
-      for (iKeyAuto = 1; iKeyAuto < EInputKey.EnumCount; iKeyAuto++)
+      for (iKeyAuto = EInputKey.IK_0; iKeyAuto <= EInputKey.IK_F12; iKeyAuto++)
         if (!bool(bIsKeyBound  [iKeyAuto]) &&
             !bool(bIsKeyUnknown[iKeyAuto]))
           break;
