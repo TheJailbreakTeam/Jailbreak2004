@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.17 2003/03/16 17:38:14 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.18 2003/03/22 18:39:41 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -429,14 +429,14 @@ simulated function ShowCompass(Canvas Canvas) {
     switch (Objective.DefenderTeamIndex) {
       case 0:
         SpriteWidgetCompassDot.Tints[TeamIndex] = RedColor;
-        SpriteWidgetCompassDot.PosX = -0.034;
-        SpriteWidgetCompassDot.PosY =  0.048;
+        SpriteWidgetCompassDot.OffsetX = -73;
+        SpriteWidgetCompassDot.OffsetY =  76;
         break;
 
       case 1:
         SpriteWidgetCompassDot.Tints[TeamIndex] = BlueColor;
-        SpriteWidgetCompassDot.PosX =  0.034;
-        SpriteWidgetCompassDot.PosY =  0.048;
+        SpriteWidgetCompassDot.OffsetX = 73;
+        SpriteWidgetCompassDot.OffsetY = 76;
         break;
       }
 
@@ -455,8 +455,8 @@ simulated function ShowCompass(Canvas Canvas) {
       }
 
     AngleDot = ((rotator(Objective.Location - LocationOwner).Yaw - PlayerOwner.Rotation.Yaw) & 65535) * Pi / 32768;
-    SpriteWidgetCompassDot.PosX +=  0.0305 * Sin(AngleDot) + 0.5;
-    SpriteWidgetCompassDot.PosY += -0.0405 * Cos(AngleDot);
+    SpriteWidgetCompassDot.OffsetX += 65 * Sin(AngleDot);
+    SpriteWidgetCompassDot.OffsetY += 65 * Cos(AngleDot);
     
     SpriteWidgetCompassDot.Tints[TeamIndex] = SpriteWidgetCompassDot.Tints[TeamIndex] * (1.0 / thisTagObjective.ScaleDot);
     SpriteWidgetCompassDot.Tints[TeamIndex].A = 255 * AlphaCompass;
@@ -809,7 +809,7 @@ defaultproperties {
 
   SpriteWidgetCompass[0]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-2,OffsetY=6,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
   SpriteWidgetCompass[1]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=2,OffsetY=6,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
-  SpriteWidgetCompassDot     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=304,Y1=352,X2=336,Y2=384),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,RenderStyle=STY_Alpha);
+  SpriteWidgetCompassDot     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=304,Y1=352,X2=336,Y2=384),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0.0,RenderStyle=STY_Alpha);
   SpriteWidgetHandcuffs[0]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=064,Y1=400,X2=160,Y2=507),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-29,OffsetY=23,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=51),Tints[1]=(R=255,G=255,B=255,A=51));
   SpriteWidgetHandcuffs[1]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=064,Y1=400,X1=160,Y2=507),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=29,OffsetY=23,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=51),Tints[1]=(R=255,G=255,B=255,A=51));
 
