@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.2 2004/03/05 19:18:23 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -19,8 +19,9 @@ var JBTauntingMeshActor PlayerMesh;
 var string CaptureMessage;
 var JBGameRulesCelebration CelebrationGameRules;
 var name TauntAnim;
+var Material MeshShadowMaterial;
 
-var() vector MeshLoc;
+var() vector MeshLoc, ShadowLoc;
 var() JBGameRulesCelebration.TPlayerInfo PlayerInfo;
 
 
@@ -51,6 +52,11 @@ function PostRender(Canvas C)
       PlayerMesh.GotoState('Taunting', 'BeginTaunting');
     }
     
+    PlayerMesh.OverlayMaterial = MeshShadowMaterial;
+    PlayerMesh.SetLocation(ShadowLoc);
+    C.DrawScreenActor(PlayerMesh, 30, False, True);
+    
+    PlayerMesh.OverlayMaterial = None;
     PlayerMesh.SetLocation(MeshLoc);
     C.DrawScreenActor(PlayerMesh, 30, False, True);
   }
@@ -177,6 +183,7 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
   if ( PlayerMesh.Owner != None ) {
     PlayerMesh.LinkMesh(PlayerMesh.Owner.Mesh);
     PlayerMesh.Skins = PlayerMesh.Owner.Skins;
+    PlayerMesh.bAnimByOwner = True;
   }
   else {
     PlayerMesh.bAnimByOwner = False;
@@ -235,4 +242,15 @@ defaultproperties
   bVisible=True
   bActive=True
   MeshLoc=(X=450,Y=-70,Z=-35)
+  ShadowLoc=(X=450,Y=-73,Z=-37)
+  
+  Begin Object Class=ConstantColor Name=MeshShadowColor
+    Color=(R=0,G=0,B=0,A=64)
+  End Object
+  
+  Begin Object Class=FinalBlend Name=MeshShadowFinal
+    Material=MeshShadowColor
+    FrameBufferBlending=FB_AlphaBlend
+  End Object
+  MeshShadowMaterial=MeshShadowFinal
 }
