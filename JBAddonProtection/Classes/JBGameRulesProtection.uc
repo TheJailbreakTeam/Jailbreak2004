@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.2.2.2 2004/04/06 18:38:17 tarquin Exp $
+// $Id: JBGameRulesProtection.uc,v 1.2.2.3 2004/04/15 21:43:54 tarquin Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -28,12 +28,21 @@ var private sound ProtectionHitSound;
 
 function NotifyPlayerJailed(JBTagPlayer NewJailedPlayer)
 {
+    local JBInfoJail Jail;
+    local TeamInfo Team;
+
     if(NewJailedPlayer.GetPlayerReplicationInfo() == MyAddon.LastRestartedPRI)
     {
         MyAddon.LastRestartedPRI = None;
 
-        if(NewJailedPlayer.GetJail().IsReleaseActive(NewJailedPlayer.GetTeam()))
-            GiveProtectionTo(NewJailedPlayer, TRUE);
+        Jail = NewJailedPlayer.GetJail();
+        Team = NewJailedPlayer.GetTeam();
+
+        if(
+             (Jail.IsReleaseOpening(Team))
+          || (Jail.IsReleaseOpen   (Team))
+          )
+            GiveProtectionTo(NewJailedPlayer);
     }
 
     Super.NotifyPlayerJailed(NewJailedPlayer);
@@ -53,8 +62,7 @@ function NotifyJailOpening(JBInfoJail Jail, TeamInfo Team)
     for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
         if(
-          (JailedPlayer != None) // might find no jailed players at all
-          && (JailedPlayer.GetJail() == Jail) // must be in this jail
+             (JailedPlayer.GetJail() == Jail) // must be in this jail
           && (JailedPlayer.GetTeam() == Team) // must be of team being released
           )
             GiveProtectionTo(JailedPlayer);
@@ -84,7 +92,7 @@ function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
 // ============================================================================
 // NotifyJailClosed
 //
-// Called when the jail door was re-closed, remove evantual protection.
+// Called when the jail door was re-closed, remove possible protection.
 // ============================================================================
 
 function NotifyJailClosed(JBInfoJail Jail, TeamInfo Team)
@@ -94,8 +102,7 @@ function NotifyJailClosed(JBInfoJail Jail, TeamInfo Team)
 
     for(ReJailedPlayer=GetFirstTagPlayer(); ReJailedPlayer!=None; ReJailedPlayer=ReJailedPlayer.NextTag)
     {
-        if((ReJailedPlayer != None) // is not obligate to found re-jailed player
-        && (ReJailedPlayer.GetJail() == Jail))
+        if((ReJailedPlayer.GetJail() == Jail))
         {
             MyProtection = GetMyProtection(ReJailedPlayer.GetPlayerReplicationInfo());
             if(MyProtection != None) MyProtection.Destroy();
@@ -166,7 +173,7 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 // ============================================================================
 // GiveProtectionTo
 //
-// Protect a player from his JBTagPlayer.
+// Protect a player, given his JBTagPlayer.
 // ============================================================================
 
 function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
@@ -322,7 +329,7 @@ final function JBInfoProtection GetMyProtection(PlayerReplicationInfo PRI)
     local JBInfoProtection MyProtection;
 
     foreach DynamicActors(class'JBInfoProtection', MyProtection)
-        if((MyProtection != None) && (MyProtection.RelatedPRI == PRI))
+        if(MyProtection.RelatedPRI == PRI)
             return MyProtection;
 
     return None;
