@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.41 2004/04/14 15:18:33 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.42 2004/04/14 17:54:01 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -658,16 +658,16 @@ simulated function ShowArenaNotifier(Canvas Canvas)
 {
   local bool bShowArenaNotifier;
   local float TimeDelta;
-  local JBTagPlayer firstTagPlayer;
-  local JBTagPlayer thisTagPlayer;
+  local JBInfoArena firstArena;
+  local JBInfoArena thisArena;
 
   if (TimeUpdateArenaNotifier > 0.0)
     TimeDelta = Level.TimeSeconds - TimeUpdateArenaNotifier;
   TimeUpdateArenaNotifier = Level.TimeSeconds;
 
-  firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
-  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-    if (thisTagPlayer.IsInArena())
+  firstArena = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstArena;
+  for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+    if (thisArena.CountPlayers() == 2)
       bShowArenaNotifier = True;
 
   if (bShowArenaNotifier && AlphaArenaNotifier == 0.0)
