@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.11 2003/06/15 14:32:14 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.12 2003/06/15 17:26:42 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -49,8 +49,8 @@ function AddBot(Bot Bot) {
 
 function RemoveBot(Bot Bot) {
 
-  Super.RemoveBot(Bot);
   StopFighting(Bot, True);
+  Super.RemoveBot(Bot);
   }
 
 
