@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagTeam.uc,v 1.11 2003/02/26 17:46:15 mychaeel Exp $
+// $Id: JBTagTeam.uc,v 1.12 2003/02/26 20:01:31 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -107,7 +107,6 @@ private function CountPlayers() {
   TimeCountPlayers = Level.TimeSeconds;
   }
   
-
 
 // ============================================================================
 // CountPlayersFree
