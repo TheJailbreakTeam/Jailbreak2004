@@ -1,13 +1,14 @@
 //=============================================================================
 // JBAddonCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonCelebration.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
+// $Id: JBAddonCelebration.uc,v 1.2 2004/03/05 19:18:23 wormbo Exp $
 //
 // The Celebration Screen add-on for Jailbreak.
 //=============================================================================
 
 
-class JBAddonCelebration extends JBAddon;
+class JBAddonCelebration extends JBAddon
+    cacheexempt;
 
 
 //=============================================================================
@@ -23,16 +24,17 @@ var() localized string TeamString[2];
 
 
 //=============================================================================
-// PostBeginPlay
+// InitAddon
 //
 // Spawns the JBGameRulesCelebration.
 //=============================================================================
 
-event PostBeginPlay()
+simulated function InitAddon()
 {
-  Super.PostBeginPlay();
+  Super.InitAddon();
   
-  Spawn(class'JBGameRulesCelebration');
+  if ( Level.Game != None )
+    Spawn(class'JBGameRulesCelebration');
 }
 
 
@@ -57,6 +59,10 @@ static function string GetRandomCapturedMessage(PlayerReplicationInfo PRI, TeamI
   TeamName = default.TeamString[Team.TeamIndex];
   StaticReplaceText(CapturedMessage, "%t", TeamName);
   StaticReplaceText(CapturedMessage, "%T", Caps(Left(TeamName, 1)) $ Mid(TeamName, 1));
+  
+  TeamName = default.TeamString[(Team.TeamIndex + 1) % 2];
+  StaticReplaceText(CapturedMessage, "%o", TeamName);
+  StaticReplaceText(CapturedMessage, "%O", Caps(Left(TeamName, 1)) $ Mid(TeamName, 1));
   
   return CapturedMessage;
 }
@@ -95,6 +101,7 @@ defaultproperties
   GroupName="Celebration"
   Description="Enables the widescreen celebration screen during executions."
   Build="%%%%-%%-%% %%:%%"
+  bAddToServerPackages=True
   
   CapturedOtherMessage(0)="%p captured the last loser on the %t team."
   CapturedOtherMessage(1)="%p just threw the switch on the %t team."
@@ -109,16 +116,23 @@ defaultproperties
   CapturedOtherMessage(10)="%p sent the %t team up the creek without a paddle."
   CapturedOtherMessage(11)="%p just revoked the %t team's parole!"
   CapturedOtherMessage(12)="%p gave the %t team a free trip to the BIG house!"
-  CapturedOtherMessage(13)="%p locked the door on %c and threw away the key."
+  CapturedOtherMessage(13)="%p locked the door on the %t team and threw away the key."
   CapturedOtherMessage(14)="%p says No Bail! for the %t team."
   CapturedOtherMessage(15)="%p lays the lockdown on the %t team!"
   CapturedOtherMessage(16)="%p slammed the door in the %t team's face!"
   CapturedOtherMessage(17)="%p sentences the %t team to death!"
   CapturedOtherMessage(18)="%p locks up the %t team and throws away the key!"
   CapturedOtherMessage(19)="%p says don't do the crime if ya can't do the time..."
+  CapturedOtherMessage(20)="%p caught the %t team red-handed."
+  CapturedOtherMessage(21)="%p successfully tightened security in the house."
+  CapturedOtherMessage(22)="%T is %p's favorite color for decorating jails."
+  CapturedOtherMessage(23)="%p scored for %o. The %t team won't enjoy it, though."
   CapturedSelfMessage(0)="%p couldn't stand to be alone out of jail anymore."
   CapturedSelfMessage(1)="A dyed-in-the-wool killer would have asked about that button, %p."
   CapturedSelfMessage(2)="%p blew it for the %t team."
+  CapturedSelfMessage(3)="%p didn't read the 'aim away from face' label."
+  CapturedSelfMessage(4)="Hey %p, you're on the %t team in case you didn't notice."
+  CapturedSelfMessage(5)="Erm %p, you're supposed to shoot the %o guys, not the %t ones..."
   TeamString(0)="red"
   TeamString(1)="blue"
 }

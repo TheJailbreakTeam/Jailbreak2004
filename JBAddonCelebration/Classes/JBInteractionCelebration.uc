@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.5 2004/03/17 11:58:39 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.6 2004/04/26 16:06:54 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -72,6 +72,11 @@ function PostRender(Canvas C)
     PlayerMesh.OverlayMaterial = None;
     PlayerMesh.SetLocation(MeshLoc);
     C.DrawScreenActor(PlayerMesh, 30, False, True);
+    
+    // redraw the console messages since otherwise they would be hidden behind the player mesh
+    ViewportOwner.Actor.myHUD.DisplayMessages(C);
+    if ( Console(Master.Console).bTyping )
+      ViewportOwner.Actor.myHUD.DrawTypingPrompt(C, Console(Master.Console).TypedStr);
   }
   if ( CaptureMessage != "" ) {
     MessageSize = 3;
