@@ -128,14 +128,11 @@ var private MotionBlur CameraEffectMotionBlur;   // MotionBlur object in use
 // ============================================================================
 // PostBeginPlay
 //
-// Initializes the camera array, if any. On clients, loads the caption font. 
+// Initializes the camera array, if any.
 // ============================================================================
 
 simulated event PostBeginPlay()
 {
-  if (Level.NetMode != NM_DedicatedServer)
-    Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
-
   if (CamController == None)
     CamController = new ClassCamController;
 
@@ -772,9 +769,14 @@ simulated function RenderOverlayCaption(Canvas Canvas)
   local vector SizeCaption;
   local vector LocationCaption;
 
-  if (Caption.Text == "" ||
-      Caption.FontObject == None)
+  if (Caption.Text == "")
     return;
+
+  if (Caption.FontObject == None) {
+    Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
+    if (Caption.FontObject == None)
+      Caption.FontObject = Font'DefaultFont';
+  }
 
   Canvas.Font = Caption.FontObject;
   Canvas.TextSize(Caption.Text, SizeCaption.X, SizeCaption.Y);
