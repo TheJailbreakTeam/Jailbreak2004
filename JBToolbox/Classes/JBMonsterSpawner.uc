@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.4 2003/03/16 13:29:52 will Exp $
+// $Id: JBMonsterSpawner.uc,v 1.5 2003/03/16 14:09:35 will Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -10,7 +10,7 @@ Class JBMonsterSpawner Extends Actor
 	Placeable;
 
 // ============================================================================
-// User Alterable Variables
+// Properties
 // ============================================================================
 Var() ENum EMonsterType
 {
@@ -34,7 +34,7 @@ Var() Material MonsterSkin[8];
 var() Bool bMonsterControllable;
 
 // ============================================================================
-// Other Variables
+// Variables
 // ============================================================================
 Var Vector StartSpot;
 Var xPawn MyMonster;
@@ -45,7 +45,7 @@ Var Class<xPawn> MonsterClass;
 // PostBeginPlay
 //
 // Checks for the existance of the bonuspack, and also sets a few variables for
-// use in other functions. Also spawns the JBMonsterManager actor.
+// use in other functions.
 // ============================================================================
 Function PostBeginPlay()
 {
@@ -142,7 +142,6 @@ Function Tick(Float TimeDelta)
 				{
 				If ((MonsterController.Enemy != None) && (MonsterController.Enemy.IsA('Monster')))
 					MonsterController.Enemy = None;
-
 				EraseWeapons();
 				}			
 	
@@ -182,6 +181,7 @@ State MonsterWait
 			MonsterController.Velocity = Vect(0, 0, 0);
 			MonsterController.bIsPlayer = False;
 			MyMonster.bIgnoreForces = True;
+			MyMonster.Default.bStasis = True;
 			MyMonster.SetLocation(StartSpot);
 			SetTimer(0, False);
 			}
@@ -229,7 +229,7 @@ State MonsterAttack
 			{
 			MonsterClass.Default.bStasis = False;
 			MonsterController.bStasis = False;
-			MonsterController.bIsPlayer = True;
+			MonsterController.Default.bStasis = False;
 			MyMonster.bStasis = False;
 			MyMonster.bIgnoreForces = False;
 			}
