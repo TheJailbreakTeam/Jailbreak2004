@@ -186,12 +186,14 @@ function ExecViewTeam(optional name Whom)
 // ============================================================================
 // ExecViewSelf
 //
-// Resets the player's view point to normal first-person view.
+// Resets the player's view point to normal first-person view. Disabled when
+// viewing an execution sequence.
 // ============================================================================
 
 function ExecViewSelf()
 {
-  Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
+  if (Level.Game.IsInState('MatchInProgress') || JBCamera(PlayerController(Keeper).ViewTarget) == None)
+    Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
 }
 
 
