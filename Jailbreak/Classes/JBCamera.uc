@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.12 2003/01/08 20:47:48 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.13 2003/01/26 11:26:26 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -49,6 +49,14 @@ struct TInfoOverlay {
   };
 
 
+struct TInfoViewer {
+
+  var PlayerController Controller;  // player viewing this camera
+  var bool bBehindViewPrev;         // previous behind-view setting
+  var Actor ViewTargetPrev;         // previous view target
+  };
+
+
 // ============================================================================
 // Properties
 // ============================================================================
@@ -66,7 +74,7 @@ var() byte MotionBlur;        // amount of motion blur
 // ============================================================================
 
 var private bool bIsActiveLocal;   // camera is active for the local player
-var private array<PlayerController> ListControllerViewer;
+var private array<TInfoViewer> ListInfoViewer;
 
 var Font FontCaption;              // font object used for caption
 var private MotionBlur CameraEffectMotionBlur;  // motion blur object
@@ -123,13 +131,13 @@ event UnTrigger(Actor ActorOther, Pawn PawnInstigator) {
 
 function bool IsViewer(Controller Controller) {
 
-  local int iController;
+  local int iInfoViewer;
 
   if (PlayerController(Controller) == None)
     return False;
   
-  for (iController = 0; iController < ListControllerViewer.Length; iController++)
-    if (ListControllerViewer[iController] == Controller)
+  for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++)
+    if (ListInfoViewer[iInfoViewer].Controller == Controller)
       return True;
   
   return False;
@@ -147,6 +155,8 @@ function bool IsViewer(Controller Controller) {
 
 function ActivateFor(Controller Controller) {
 
+  local int iInfoViewer;
+  local Actor ViewTargetPrev;
   local PlayerController ControllerPlayer;
 
   ControllerPlayer = PlayerController(Controller);
@@ -156,13 +166,23 @@ function ActivateFor(Controller Controller) {
   if (JBCamera(ControllerPlayer.ViewTarget) != None)
     JBCamera(ControllerPlayer.ViewTarget).DeactivateFor(Controller);
 
-  if (ControllerPlayer.ViewTarget != Self) {
-    ControllerPlayer.SetViewTarget(Self);
-    ControllerPlayer.ClientSetViewTarget(Self);
+  if (!IsViewer(Controller)) {
+    ViewTargetPrev = PlayerController(Controller).ViewTarget;
+    if (Pawn(ViewTargetPrev)            != None &&
+        Pawn(ViewTargetPrev).Controller != None)
+      ViewTargetPrev = Pawn(ViewTargetPrev).Controller;
+
+    iInfoViewer = ListInfoViewer.Length;
+    ListInfoViewer.Insert(iInfoViewer, 1);
+    ListInfoViewer[iInfoViewer].Controller      = ControllerPlayer;
+    ListInfoViewer[iInfoViewer].bBehindViewPrev = ControllerPlayer.bBehindView;
+    ListInfoViewer[iInfoViewer].ViewTargetPrev  = ViewTargetPrev;
     }
 
-  if (!IsViewer(Controller))
-    ListControllerViewer[ListControllerViewer.Length] = ControllerPlayer;
+  if (ControllerPlayer.ViewTarget != Self) {
+    ControllerPlayer.SetViewTarget      (Self);
+    ControllerPlayer.ClientSetViewTarget(Self);
+    }
 
   if (ControllerPlayer == Level.GetLocalPlayerController() && !bIsActiveLocal)
     ActivateForLocal();
@@ -181,23 +201,39 @@ function ActivateFor(Controller Controller) {
 
 function DeactivateFor(Controller Controller) {
 
-  local int iController;
+  local int iInfoViewer;
+  local Actor ViewTargetPrev;
   local PlayerController ControllerPlayer;
 
   ControllerPlayer = PlayerController(Controller);
   if (ControllerPlayer == None)
     return;
 
+  for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++)
+    if (ListInfoViewer[iInfoViewer].Controller == Controller)
+      break;
+
+  if (iInfoViewer >= ListInfoViewer.Length)
+    return;
+
   if (ControllerPlayer.ViewTarget == Self) {
-    ControllerPlayer.SetViewTarget(Controller.Pawn);
-    ControllerPlayer.ClientSetViewTarget(Controller.Pawn);
+    ViewTargetPrev = Controller;
+    if (JBCamera(ListInfoViewer[iInfoViewer].ViewTargetPrev) == None &&
+                 ListInfoViewer[iInfoViewer].ViewTargetPrev  != None)
+      ViewTargetPrev = ListInfoViewer[iInfoViewer].ViewTargetPrev;
+
+    if (Controller(ViewTargetPrev) != None)
+      ViewTargetPrev = Controller(ViewTargetPrev).Pawn;
+
+    ControllerPlayer.SetViewTarget      (ViewTargetPrev);
+    ControllerPlayer.ClientSetViewTarget(ViewTargetPrev);
+    ControllerPlayer.bBehindView =       ListInfoViewer[iInfoViewer].bBehindViewPrev;
+    ControllerPlayer.ClientSetBehindView(ListInfoViewer[iInfoViewer].bBehindViewPrev);
     }
   
-  for (iController = ListControllerViewer.Length - 1; iController >= 0; iController--)
-    if (ListControllerViewer[iController] == Controller)
-      ListControllerViewer.Remove(iController, 1);
+  ListInfoViewer.Remove(iInfoViewer, 1);
   
-  if (ListControllerViewer.Length == 0) {
+  if (ListInfoViewer.Length == 0) {
     if (bIsActiveLocal)
       DeactivateForLocal();
     Disable('Tick');
@@ -291,14 +327,14 @@ protected simulated function UpdateLocal() {
 simulated event Tick(float TimeDelta) {
 
   local bool bIsActiveLocalNew;
-  local int iController;
+  local int iInfoViewer;
   
   if (Role == ROLE_Authority)
-    for (iController = ListControllerViewer.Length - 1; iController >= 0; iController--)
-      if (ListControllerViewer[iController] == None)
-        ListControllerViewer.Remove(iController, 1);
-      else if (ListControllerViewer[iController].ViewTarget != Self)
-        DeactivateFor(ListControllerViewer[iController]);
+    for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--)
+      if (ListInfoViewer[iInfoViewer].Controller == None)
+        ListInfoViewer.Remove(iInfoViewer, 1);
+      else if (ListInfoViewer[iInfoViewer].Controller.ViewTarget != Self)
+        DeactivateFor(ListInfoViewer[iInfoViewer].Controller);
 
   if (Level.NetMode == NM_DedicatedServer)
     return;

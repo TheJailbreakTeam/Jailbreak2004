@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.24 2003/01/23 19:30:11 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.25 2003/01/25 23:46:48 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -16,6 +16,7 @@ class Jailbreak extends TeamGame
 // ============================================================================
 
 var config bool bEnableJailFights;
+var config bool bEnableSpectatorDeathCam;
 
 
 // ============================================================================
@@ -633,19 +634,25 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
     GotoState('Executing');
     BroadcastLocalizedMessage(MessageClass, 100, , , TeamExecuted);
     
-    TeamCapturer = OtherTeam(TeamExecuted);
-    TeamCapturer.Score += 1;
-    RestartTeam(TeamCapturer);
-  
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-      if (thisController.PlayerReplicationInfo      != None &&
+      if (thisController.PlayerReplicationInfo != None &&
           thisController.PlayerReplicationInfo.Team != TeamExecuted)
         ScorePlayer(thisController, 'Capture');
-  
+
     CameraExecution = FindCameraExecution();
     if (CameraExecution == None)
       Log("Warning: No execution camera found");
   
+    if (bEnableSpectatorDeathCam && CameraExecution != None)
+      for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+        if (thisController.PlayerReplicationInfo != None &&
+            thisController.PlayerReplicationInfo.bOnlySpectator)
+          CameraExecution.ActivateFor(thisController);
+  
+    TeamCapturer = OtherTeam(TeamExecuted);
+    TeamCapturer.Score += 1;
+    RestartTeam(TeamCapturer);
+    
     firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionInit();
@@ -666,6 +673,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
 
 function ExecutionEnd() {
 
+  local Controller thisController;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
 
@@ -676,6 +684,12 @@ function ExecutionEnd() {
   
     GotoState('MatchInProgress');
     RestartAll();
+
+    if (bEnableSpectatorDeathCam && CameraExecution != None)
+      for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+        if (thisController.PlayerReplicationInfo != None &&
+            thisController.PlayerReplicationInfo.bOnlySpectator)
+          CameraExecution.DeactivateFor(thisController);
     }
   
   else {
@@ -822,6 +836,7 @@ state Executing {
 defaultproperties {
 
   bEnableJailFights = True;
+  bEnableSpectatorDeathCam = True;
 
   MapPrefix  = "JB";
   BeaconName = "JB";
