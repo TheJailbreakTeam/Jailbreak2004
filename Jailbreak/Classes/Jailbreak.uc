@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.13 2002/11/24 21:49:22 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.14 2002/12/20 20:54:30 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -740,6 +740,7 @@ defaultproperties {
   bEnableJailFights = True;
 
   ClassLocalMessage = Class'JBLocalMessage';
+  DeathMessageClass = Class'xDeathMessage';
 
   MapPrefix  = "JB";
   BeaconName = "JB";
