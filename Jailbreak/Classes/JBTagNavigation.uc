@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagNavigation
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagNavigation.uc,v 1.4 2003/02/09 17:34:53 mychaeel Exp $
+// $Id: JBTagNavigation.uc,v 1.5 2003/06/29 10:14:00 mychaeel Exp $
 //
 // Caches information about an actor used for navigational purposes.
 // ============================================================================
@@ -54,6 +54,7 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
   local float Distance;
   local Actor ActorFrom;
   local Actor ActorTo;
+  local Controller Controller;
   local JBTagNavigation TagNavigationFrom;
 
   if (NavigationPointFrom == NavigationPointTo)
@@ -69,22 +70,22 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
     if (TagNavigationFrom.ListInfoDistance[iDistance].NavigationPointTo == NavigationPointTo)
       return TagNavigationFrom.ListInfoDistance[iDistance].Distance;
 
-  SpawnController(NavigationPointFrom.Level);  // initialize Default.Controller
+  Controller = TagNavigationFrom.GetController();
 
   ActorFrom = NavigationPointFrom;
   ActorTo   = NavigationPointTo;
   if (JBGameObjective(ActorFrom) != None) ActorFrom = JBGameObjective(ActorFrom).TriggerRelease;
   if (JBGameObjective(ActorTo)   != None) ActorTo   = JBGameObjective(ActorTo  ).TriggerRelease;
 
-  Default.Controller.Pawn.SetLocation(ActorFrom.Location);
-  Default.Controller.Pawn.SetRotation(ActorFrom.Rotation);
+  Controller.Pawn.SetLocation(ActorFrom.Location);
+  Controller.Pawn.SetRotation(ActorFrom.Rotation);
 
-  if (Default.Controller.FindPathToward(ActorTo) != None)
-    Distance = Default.Controller.RouteDist;
+  if (Controller.FindPathToward(ActorTo) != None)
+    Distance = Controller.RouteDist;
   else
     Distance = VSize(ActorFrom.Location - ActorTo.Location);
 
-  Default.Controller.Pawn.SetPhysics(PHYS_None);  // may be set to falling
+  Controller.Pawn.SetPhysics(PHYS_None);  // may be set to falling
 
   iDistance = TagNavigationFrom.ListInfoDistance.Length;
   TagNavigationFrom.ListInfoDistance.Insert(iDistance, 1);
@@ -96,30 +97,27 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
 
 
 // ============================================================================
-// SpawnController
+// GetController
 //
-// Makes sure a controller and a scout pawn are spawned and stores a reference
-// to the controller in the default property of the Controller variable.
+// Returns a reference to a controller with a scout pawn. Tries to find an
+// existing controller and pawn first before spawning a new one.
 // ============================================================================
 
-private static function SpawnController(LevelInfo Level) {
+private function Controller GetController() {
 
-  local Controller thisController;
+  local JBTagNavigation thisTagNavigation;
 
-  if (Default.Controller != None &&
-      Default.Controller.Level != Level)
-    Default.Controller = None;
+  if (Controller != None)
+    return Controller;
 
-  if (Default.Controller == None)
-    for (thisController = Level.ControllerList;
-         thisController != None && Default.Controller == None;
-         thisController = thisController.NextController)
-      if (JBScout(thisController.Pawn) != None)
-        Default.Controller = thisController;
+  foreach DynamicActors(Class'JBTagNavigation', thisTagNavigation)
+    if (thisTagNavigation.Controller != None) {
+      Controller = thisTagNavigation.Controller;
+      return Controller;
+      }
+  
+  Controller = Spawn(Class'ScriptedTriggerController');
+  Controller.Possess(Spawn(Class'JBScout'));
 
-  if (Default.Controller == None)
-    Default.Controller = Level.Spawn(Class'ScriptedTriggerController');
-
-  if (Default.Controller.Pawn == None)
-    Default.Controller.Possess(Level.Spawn(Class'JBScout'));
+  return Controller;
   }
