@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.116 2004/08/19 08:27:02 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.117 2004/08/21 17:50:55 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1999,17 +1999,21 @@ defaultproperties
 
   LoadingScreens[ 0] = "JBTexLoading.Addien-Dwy";
   LoadingScreens[ 1] = "JBTexLoading.Arlon";
-  LoadingScreens[ 2] = "JBTexLoading.BabylonTemple";
-  LoadingScreens[ 3] = "JBTexLoading.CastleBreak";
-  LoadingScreens[ 4] = "JBTexLoading.Cavern";
-  LoadingScreens[ 5] = "JBTexLoading.Conduit";
-  LoadingScreens[ 6] = "JBTexLoading.Heights";
-  LoadingScreens[ 7] = "JBTexLoading.IndusRage2";
-  LoadingScreens[ 8] = "JBTexLoading.MoonCraters";
-  LoadingScreens[ 9] = "JBTexLoading.NoSense";
-  LoadingScreens[10] = "JBTexLoading.Poseidon";
-  LoadingScreens[11] = "JBTexLoading.SavoIsland";
-  LoadingScreens[12] = "JBTexLoading.Solamander";
+  LoadingScreens[ 2] = "JBTexLoading.Aswan";
+  LoadingScreens[ 3] = "JBTexLoading.BabylonTemple";
+  LoadingScreens[ 4] = "JBTexLoading.CastleBreak";
+  LoadingScreens[ 5] = "JBTexLoading.Cavern";
+  LoadingScreens[ 6] = "JBTexLoading.Conduit";
+  LoadingScreens[ 7] = "JBTexLoading.Cosmos";
+  LoadingScreens[ 8] = "JBTexLoading.Heights";
+  LoadingScreens[ 9] = "JBTexLoading.IndusRage2";
+  LoadingScreens[10] = "JBTexLoading.MoonCraters";
+  LoadingScreens[11] = "JBTexLoading.NoSense";
+  LoadingScreens[12] = "JBTexLoading.Oasis";
+  LoadingScreens[13] = "JBTexLoading.Poseidon";
+  LoadingScreens[14] = "JBTexLoading.SavoIsland";
+  LoadingScreens[15] = "JBTexLoading.Solamander";
+  LoadingScreens[16] = "JBTexLoading.SubZero";
 
   TextHintJailbreak[ 0] = "Watch the compass dots: The faster they pulse, the more players can be released by the corresponding switch."
   TextHintJailbreak[ 1] = "Use %PREVWEAPON% and %NEXTWEAPON% to switch view points when watching through a surveillance camera."
