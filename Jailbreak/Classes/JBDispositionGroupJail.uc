@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupJail.uc,v 1.3 2003/01/19 22:01:28 mychaeel Exp $
+// $Id: JBDispositionGroupJail.uc,v 1.4 2003/01/19 22:17:05 mychaeel Exp $
 //
 // Manages the icons of jailed players on a team, arranging them in the circle
 // displayed next to the team status widget.
@@ -132,34 +132,43 @@ function Move(float TimeDelta) {
 // Draws the number of players next to the icon if required.
 // ============================================================================
 
-function Draw(Canvas Canvas, float ScaleGlobal) {
+function Draw(Canvas Canvas) {
 
+  local float ScaleCanvas;
+  local float ScaleWidget;
   local vector LocationScreenCounter;
 
   if (ListDispositionPlayer.Length >= ArrayCount(Formation))
     TextCounter = string(ListDispositionPlayer.Length);
 
   if (FadeCounter > 0.0) {
+    ScaleCanvas = Canvas.Viewport.Actor.myHUD.HudCanvasScale;
+    ScaleWidget = Canvas.Viewport.Actor.myHUD.HudScale;
+
     Canvas.DrawColor = ColorCounter[DispositionTeam.Team.TeamIndex];
     Canvas.DrawColor.A = FadeCounter * Canvas.DrawColor.A;
     Canvas.Font = FontObjectCounter;
-    Canvas.FontScaleX = ScaleGlobal * ScaleCounter * Canvas.ClipX / 1600.0;
-    Canvas.FontScaleY = ScaleGlobal * ScaleCounter * Canvas.ClipX / 1600.0;
+    Canvas.FontScaleX = ScaleCounter * ScaleWidget * ScaleCanvas * Canvas.ClipX / 1600.0;
+    Canvas.FontScaleY = ScaleCounter * ScaleWidget * ScaleCanvas * Canvas.ClipX / 1600.0;
 
-    LocationScreenCounter.X = (LocationCenterX + LocationCounter.X) * ScaleGlobal;
-    LocationScreenCounter.Y = (LocationCenterY + LocationCounter.Y) * ScaleGlobal;
+    LocationScreenCounter.X = (LocationCenterX + LocationCounter.X) * ScaleWidget;
+    LocationScreenCounter.Y = (LocationCenterY + LocationCounter.Y) * ScaleWidget;
 
     if (DispositionTeam.Team.TeamIndex != 0)
       LocationScreenCounter.X = -LocationScreenCounter.X;
+    LocationScreenCounter.X += 0.5;
     
-    Canvas.DrawScreenText(TextCounter,
-      LocationScreenCounter.X + 0.5,
-      LocationScreenCounter.Y, DP_MiddleMiddle);
+    Canvas.DrawScreenText(
+      TextCounter,
+      ScaleCanvas * (LocationScreenCounter.X - 0.5) + 0.5,
+      ScaleCanvas * (LocationScreenCounter.Y - 0.5) + 0.5,
+      DP_MiddleMiddle);
+
     Canvas.FontScaleX = Canvas.Default.FontScaleX;
     Canvas.FontScaleY = Canvas.Default.FontScaleY;
     }
 
-  Super.Draw(Canvas, ScaleGlobal);
+  Super.Draw(Canvas);
   }
 
 

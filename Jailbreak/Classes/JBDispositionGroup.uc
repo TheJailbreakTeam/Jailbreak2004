@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroup
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroup.uc,v 1.2 2003/01/06 11:46:09 mychaeel Exp $
+// $Id: JBDispositionGroup.uc,v 1.3 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Manages the disposition of a group of players on a team. Takes care of
 // their visual arrangement of the icons on the screen and of drawing them.
@@ -124,12 +124,12 @@ function Move(float TimeDelta) {
 // Draws all icons in this group on the given canvas.
 // ============================================================================
 
-function Draw(Canvas Canvas, float ScaleGlobal) {
+function Draw(Canvas Canvas) {
 
   local int iDisposition;
   
   for (iDisposition = 0; iDisposition < ListDispositionPlayer.Length; iDisposition++)
-    ListDispositionPlayer[iDisposition].Draw(Canvas, ScaleGlobal);
+    ListDispositionPlayer[iDisposition].Draw(Canvas);
   }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBDispositionTeam.uc,v 1.1 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Manages the icon groups of one team.
 // ============================================================================
@@ -79,15 +79,15 @@ function Update(float TimeDelta) {
 // Draws all icons for this team on the given canvas.
 // ============================================================================
 
-function Draw(Canvas Canvas, float ScaleGlobal) {
+function Draw(Canvas Canvas) {
 
   local int iDisposition;
 
   for (iDisposition = 0; iDisposition < ListDispositionPlayerFadeout.Length; iDisposition++)
-    ListDispositionPlayerFadeout[iDisposition].Draw(Canvas, ScaleGlobal);
+    ListDispositionPlayerFadeout[iDisposition].Draw(Canvas);
 
-  DispositionGroupFree.Draw(Canvas, ScaleGlobal);
-  DispositionGroupJail.Draw(Canvas, ScaleGlobal);
+  DispositionGroupFree.Draw(Canvas);
+  DispositionGroupJail.Draw(Canvas);
   }
 
 

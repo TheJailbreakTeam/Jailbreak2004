@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.24 2003/06/02 17:36:12 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.25 2003/06/03 06:27:04 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -159,8 +159,8 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
       break;
     }
 
-  OffsetPixelX += Canvas.ClipX * X * HUDScale;
-  OffsetPixelY += Canvas.ClipY * Y * HUDScale;
+  OffsetPixelX += Canvas.ClipX * X * HudScale;
+  OffsetPixelY += Canvas.ClipY * Y * HudScale;
   
   Canvas.SetPos(OffsetPixelX, OffsetPixelY);
   }
@@ -440,17 +440,23 @@ simulated function ShowTactics(Canvas Canvas) {
 
 simulated function ShowTacticsIcon(Canvas Canvas, int iTactics, float Alpha) {
 
+  local vector LocationTextTacticsScreen;
+
   SpriteWidgetTacticsIcon[iTactics].Tints[TeamIndex].A = 255 - 255 * Abs(Alpha);
   SpriteWidgetTacticsIcon[iTactics].PosY = SizeIconTactics.Y * Alpha;
   DrawSpriteWidget(Canvas, SpriteWidgetTacticsIcon[iTactics]);
   
+  LocationTextTacticsScreen.X = HudScale *  LocationTextTactics.X;
+  LocationTextTacticsScreen.Y = HudScale * (LocationTextTactics.Y + SizeIconTactics.Y * Alpha / 2.0);
+  
   Canvas.Font = FontObjectTactics;
-  Canvas.FontScaleX = SizeTextTactics.X * HUDScale * Canvas.ClipX / 1600;
-  Canvas.FontScaleY = SizeTextTactics.Y * HUDScale * Canvas.ClipY / 1200;
+  Canvas.FontScaleX = SizeTextTactics.X * HudScale * HudCanvasScale * Canvas.ClipX / 640;
+  Canvas.FontScaleY = SizeTextTactics.Y * HudScale * HudCanvasScale * Canvas.ClipY / 480;
+
   Canvas.DrawScreenText(
     TextTactics[iTactics],
-    HUDScale *  LocationTextTactics.X,
-    HUDScale * (LocationTextTactics.Y + SizeIconTactics.Y * Alpha / 2.0),
+    HudCanvasScale * (LocationTextTacticsScreen.X - 0.5) + 0.5,
+    HudCanvasScale * (LocationTextTacticsScreen.Y - 0.5) + 0.5,
     DP_MiddleRight);
 
   Canvas.FontScaleX = Canvas.Default.FontScaleX;
@@ -489,8 +495,8 @@ simulated function ShowDisposition(Canvas Canvas) {
   DispositionTeamRed .Update(TimeDelta);
   DispositionTeamBlue.Update(TimeDelta);
   
-  DispositionTeamRed .Draw(Canvas, HUDScale);
-  DispositionTeamBlue.Draw(Canvas, HUDScale);
+  DispositionTeamRed .Draw(Canvas);
+  DispositionTeamBlue.Draw(Canvas);
   }
 
 
@@ -568,8 +574,8 @@ simulated function ShowCompass(Canvas Canvas) {
       }
 
     AngleDot = ((rotator(Objective.Location - LocationOwner).Yaw - PlayerOwner.Rotation.Yaw) & 65535) * Pi / 32768;
-    SpriteWidgetCompassDot.PosX = (SpriteWidgetCompassDot.PosX + 0.0305 * Sin(AngleDot)) * HUDScale + 0.5;
-    SpriteWidgetCompassDot.PosY = (SpriteWidgetCompassDot.PosY - 0.0405 * Cos(AngleDot)) * HUDScale;
+    SpriteWidgetCompassDot.PosX = (SpriteWidgetCompassDot.PosX + 0.0305 * Sin(AngleDot)) * HudScale + 0.5;
+    SpriteWidgetCompassDot.PosY = (SpriteWidgetCompassDot.PosY - 0.0405 * Cos(AngleDot)) * HudScale;
     
     SpriteWidgetCompassDot.Tints[TeamIndex] = SpriteWidgetCompassDot.Tints[TeamIndex] * (1.0 / thisTagObjective.ScaleDot);
     SpriteWidgetCompassDot.Tints[TeamIndex].A = 255 * AlphaCompass;
@@ -595,7 +601,7 @@ simulated function ShowBuild(Canvas Canvas) {
   
   Canvas.DrawScreenText(
     PlayerOwner.PlayerReplicationInfo.PlayerName $ ", Jailbreak 2003, build" @ Class'Jailbreak'.Default.Build,
-    0.5, 0.94, DP_LowerMiddle);
+    0.5, HudCanvasScale * 0.44 + 0.5, DP_LowerMiddle);
   }
 
 
@@ -696,7 +702,7 @@ simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas)
 
   Super.LayoutMessage(Message, Canvas);
   
-  Message.PosY = FMax(Message.PosY, 0.16 * HUDScale);
+  Message.PosY = FMax(Message.PosY, 0.16 * HudScale);
   }
 
 
@@ -922,7 +928,7 @@ defaultproperties {
 
   LocationTextTactics = (X=0.155,Y=0.028);
   SizeIconTactics     = (X=0.042,Y=0.054);
-  SizeTextTactics     = (X=1.200,Y=1.200);
+  SizeTextTactics     = (X=0.480,Y=0.480);
 
   FontTactics     = "UT2003Fonts.jFontMedium";
   TextTactics[0]  = "evasive";

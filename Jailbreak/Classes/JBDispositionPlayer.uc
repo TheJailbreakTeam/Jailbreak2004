@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionPlayer.uc,v 1.5 2003/02/23 12:33:05 mychaeel Exp $
+// $Id: JBDispositionPlayer.uc,v 1.6 2003/03/15 18:32:17 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -131,35 +131,42 @@ function bool Fadeout(float TimeDelta) {
 // Renders the icon at its current location and scale on the given canvas.
 // ============================================================================
 
-function Draw(Canvas Canvas, float ScaleGlobal) {
+function Draw(Canvas Canvas) {
 
-  local int WidthIconTexture;
-  local int HeightIconTexture;
-  local float WidthIcon;
-  local float HeightIcon;
+  local float ScaleCanvas;
+  local float ScaleWidget;
   local float ScaleIconTexture;
+  local vector LocationIcon;
+  local vector SizeIcon;
+  local vector SizeIconTexture;
 
-  WidthIconTexture  = SpriteWidgetPlayer.TextureCoords.X2 - SpriteWidgetPlayer.TextureCoords.X1;
-  HeightIconTexture = SpriteWidgetPlayer.TextureCoords.Y2 - SpriteWidgetPlayer.TextureCoords.Y1;
+  ScaleCanvas = Canvas.Viewport.Actor.myHUD.HudCanvasScale;
+  ScaleWidget = Canvas.Viewport.Actor.myHUD.HudScale;
+  
+  SizeIconTexture.X = SpriteWidgetPlayer.TextureCoords.X2 - SpriteWidgetPlayer.TextureCoords.X1;
+  SizeIconTexture.Y = SpriteWidgetPlayer.TextureCoords.Y2 - SpriteWidgetPlayer.TextureCoords.Y1;
 
-  ScaleIconTexture = SpriteWidgetPlayer.TextureScale * Scale * ScaleGlobal;
+  ScaleIconTexture = SpriteWidgetPlayer.TextureScale * Scale * ScaleWidget;
 
-  WidthIcon  = Abs(WidthIconTexture)  * Canvas.ClipX / 512.0 * ScaleIconTexture;
-  HeightIcon = Abs(HeightIconTexture) * Canvas.ClipY / 384.0 * ScaleIconTexture;
+  SizeIcon.X = Abs(SizeIconTexture.X) * Canvas.ClipX / 640.0 * ScaleIconTexture;
+  SizeIcon.Y = Abs(SizeIconTexture.Y) * Canvas.ClipY / 480.0 * ScaleIconTexture;
 
-  Canvas.SetPos(Canvas.ClipX * (Location.X * ScaleGlobal + 0.5) - WidthIcon  / 2.0,
-                Canvas.ClipY *  Location.Y * ScaleGlobal        - HeightIcon / 2.0);
+  LocationIcon.X = Canvas.ClipX * (Location.X * ScaleWidget + 0.5) - SizeIcon.X / 2.0;
+  LocationIcon.Y = Canvas.ClipY *  Location.Y * ScaleWidget        - SizeIcon.Y / 2.0;
 
   Canvas.Style = 5;  // ERenderStyle.STY_Alpha
   Canvas.DrawColor = SpriteWidgetPlayer.Tints[DispositionTeam.Team.TeamIndex];
 
+  Canvas.SetPos(
+    Canvas.ClipX * (ScaleCanvas * (LocationIcon.X - 0.5) + 0.5),
+    Canvas.ClipY * (ScaleCanvas * (LocationIcon.Y - 0.5) + 0.5));
   Canvas.DrawTile(SpriteWidgetPlayer.WidgetTexture,
-    WidthIcon,
-    HeightIcon,
+    SizeIcon.X * ScaleCanvas,
+    SizeIcon.Y * ScaleCanvas,
     SpriteWidgetPlayer.TextureCoords.X1,
     SpriteWidgetPlayer.TextureCoords.Y1,
-    WidthIconTexture,
-    HeightIconTexture);
+    SizeIconTexture.X,
+    SizeIconTexture.Y);
   }
 
 
@@ -169,6 +176,6 @@ function Draw(Canvas Canvas, float ScaleGlobal) {
 
 defaultproperties {
 
-  SpriteWidgetPlayer = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=16,Y1=352,X2=50,Y2=418),TextureScale=0.17,Tints[0]=(R=255,G=0,B=0,A=255),Tints[1]=(R=0,G=0,B=255,A=255));
+  SpriteWidgetPlayer = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=16,Y1=352,X2=50,Y2=418),TextureScale=0.21,Tints[0]=(R=255,G=0,B=0,A=255),Tints[1]=(R=0,G=0,B=255,A=255));
   bInitial = True;
   }
