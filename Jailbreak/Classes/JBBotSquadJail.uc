@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.6 2003/02/16 22:34:41 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.7 2003/02/17 19:41:32 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -30,6 +30,20 @@ function AddBot(Bot Bot) {
 
   Bot.FreeScript();
   TeamPlayerReplicationInfo(Bot.PlayerReplicationInfo).bHolding = False;
+  }
+
+
+// ============================================================================
+// RemoveBot
+//
+// If the bot currently has an enemy, clears it. Prevents bots from starting
+// to teamkill after a release during a jail fight.
+// ============================================================================
+
+function RemoveBot(Bot Bot) {
+
+  Super.RemoveBot(Bot);
+  Bot.Enemy = None;
   }
 
 
