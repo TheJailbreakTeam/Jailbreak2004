@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.35 2004/05/31 18:48:44 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.36 2004/08/19 11:01:05 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -1420,6 +1420,19 @@ function GameObjective GetPriorityAttackObjective()
       }
 
   return ObjectiveSelected;
+}
+
+
+// ============================================================================
+// GetPriorityAttackObjectiveFor
+//
+// Forwarded to GetPriorityAttackObjective. We only attack one objective at a
+// time in Jailbreak.
+// ============================================================================
+
+function GameObjective GetPriorityAttackObjectiveFor(SquadAI Squad)
+{
+  return GetPriorityAttackObjective();
 }
 
 
