@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.31 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.32 2003/06/01 11:28:26 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -577,13 +577,26 @@ function NotifyArenaLeft(JBInfoArena ArenaPrev) {
 // NotifyJailEntered
 //
 // Called when the player entered the jail from an arena or from freedom.
-// Notifies the jail of that. Puts bots on the jail squad.
+// Notifies the jail of that. Puts bots on the jail squad. Removes the
+// player's translocator.
 // ============================================================================
 
 function NotifyJailEntered() {
 
+  local Inventory thisInventory;
+  local Inventory nextInventory;
+
   if (Bot(GetController()) != None)
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(GetController()));
+
+  for (thisInventory = GetController().Pawn.Inventory; thisInventory != None; thisInventory = nextInventory) {
+    nextInventory = thisInventory.Inventory;
+    if (TransLauncher(thisInventory) != None)
+      GetController().Pawn.DeleteInventory(thisInventory);
+    }
+
+  if  (GetController().Pawn.Weapon == None)
+    GetController().ClientSwitchToBestWeapon();
 
   Jail.NotifyJailEntered(Self);
   }
@@ -593,7 +606,8 @@ function NotifyJailEntered() {
 // NotifyJailLeft
 //
 // Called when the player left the jail for an arena or for freedom. Resets
-// all arena-related information and scores points for the releaser.
+// all arena-related information and scores points for the releaser. Gives
+// back a translocator to the player if it is enabled in the game.
 // ============================================================================
 
 function NotifyJailLeft(JBInfoJail JailPrev) {
@@ -625,6 +639,9 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
     }
 
   JailPrev.NotifyJailLeft(Self);
+
+  if (DeathMatch(Level.Game).bAllowTrans)
+    GetController().Pawn.CreateInventory("XWeapons.TransLauncher");
 
   JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleasePlayer(JailPrev.Tag, GetController());
   JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleasePlayer(JailPrev.Tag, GetController());

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.48 2003/06/02 17:18:59 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.49 2003/06/03 06:20:29 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -289,6 +289,30 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
     return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
   else
     return -20000000;
+  }
+
+
+// ============================================================================
+// AddGameSpecificInventory
+//
+// Adds game-specific inventory. Skips the translocator if the player has
+// restarted in jail.
+// ============================================================================
+
+function AddGameSpecificInventory(Pawn PawnPlayer) {
+
+  local bool bAllowTransPrev;
+  local JBTagPlayer TagPlayer;
+
+  bAllowTransPrev = bAllowTrans;
+
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
+  if (TagPlayer != None && TagPlayer.IsInJail())
+    bAllowTrans = False;
+
+  Super.AddGameSpecificInventory(PawnPlayer);
+  
+  bAllowTrans = bAllowTransPrev;
   }
 
 
