@@ -150,12 +150,14 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 // ============================================================================
 // GetServerDetails
 //
-// Adds the Jailbreak build number to server details.
+// Adds the Jailbreak build number and web scoreboard URL to server details.
 // ============================================================================
 
 function GetServerDetails(out ServerResponseLine ServerState)
 {
   local int iServerInfo;
+  local string WebScoreboardAddress;
+  local WebApplication WebApplicationScoreboard;
 
   Super.GetServerDetails(ServerState);
 
@@ -163,6 +165,22 @@ function GetServerDetails(out ServerResponseLine ServerState)
   ServerState.ServerInfo.Insert(iServerInfo, 1);
   ServerState.ServerInfo[iServerInfo].Key = "Build";
   ServerState.ServerInfo[iServerInfo].Value = Build;
+
+  foreach AllObjects(Class'WebApplication', WebApplicationScoreboard)
+    if (string(WebApplicationScoreboard.Class) ~= WebScoreboardClass)
+      break;
+
+  if (WebApplicationScoreboard != None) {
+    WebScoreboardAddress = Mid(WebApplicationScoreboard.WebServer.ServerURL, 7);
+    if (Right(WebScoreboardAddress, 3) == ":80")
+      WebScoreboardAddress = Left(WebScoreboardAddress, Len(WebScoreboardAddress) - 3);
+    WebScoreboardAddress = WebScoreboardAddress $ WebScoreboardPath;
+  
+    iServerInfo = ServerState.ServerInfo.Length;
+    ServerState.ServerInfo.Insert(iServerInfo, 1);
+    ServerState.ServerInfo[iServerInfo].Key = "WebScoreboard";
+    ServerState.ServerInfo[iServerInfo].Value = WebScoreboardAddress;
+  }
 }
 
 
