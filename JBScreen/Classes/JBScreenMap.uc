@@ -115,10 +115,12 @@ simulated event RenderTexture(ScriptedTexture ScriptedTexture) {
   if (bInitializationSuccessful) {
     Super.RenderTexture(ScriptedTexture);
     
-    firstTagPlayer = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo).firstTagPlayer;
-    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (IsIconDisplayed(thisTagPlayer))
-        DrawIcon(ScriptedTexture, thisTagPlayer, CalcLocation(thisTagPlayer.GetLocationPawn()));
+    if (bEnabled) {
+      firstTagPlayer = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo).firstTagPlayer;
+      for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+        if (IsIconDisplayed(thisTagPlayer))
+          DrawIcon(ScriptedTexture, thisTagPlayer, CalcLocation(thisTagPlayer.GetLocationPawn()));
+      }
     }
   
   else {
