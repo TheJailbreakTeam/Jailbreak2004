@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.6 2004/04/26 16:06:54 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.7 2004/05/11 08:47:59 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -42,9 +42,10 @@ function PostRender(Canvas C)
   local float XL, YL;
   
   if ( !ViewportOwner.Actor.ViewTarget.IsA('JBCamera') || ViewportOwner.Actor.MyHud != None
-      && ViewportOwner.Actor.MyHud.bShowScoreBoard )
+      && ViewportOwner.Actor.MyHud.bShowScoreBoard ) {
+    JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = False;
     return;
-  
+  }
   if ( ExecutionCamera == None )
     ExecutionCamera = JBCamera(ViewportOwner.Actor.ViewTarget);
   if ( ExecutionCamera.Caption.Text != "" ) {
@@ -52,8 +53,10 @@ function PostRender(Canvas C)
     ExecutionCamera.Caption.Text = "";
   }
   
-  if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None )
+  if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None ) {
     JBInterfaceHud(ViewportOwner.Actor.myHUD).bWidescreen = True;
+    JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = True;
+  }
   
   if ( PlayerMesh == None ) {
     if ( PlayerInfo.Player != None )
@@ -72,11 +75,6 @@ function PostRender(Canvas C)
     PlayerMesh.OverlayMaterial = None;
     PlayerMesh.SetLocation(MeshLoc);
     C.DrawScreenActor(PlayerMesh, 30, False, True);
-    
-    // redraw the console messages since otherwise they would be hidden behind the player mesh
-    ViewportOwner.Actor.myHUD.DisplayMessages(C);
-    if ( Console(Master.Console).bTyping )
-      ViewportOwner.Actor.myHUD.DrawTypingPrompt(C, Console(Master.Console).TypedStr);
   }
   if ( CaptureMessage != "" ) {
     MessageSize = 3;
@@ -271,6 +269,8 @@ function Remove()
   PlayerMesh = None;
   CelebrationGameRules = None;
   
+  if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None )
+    JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = False;
   Master.RemoveInteraction(Self);
 }
 
