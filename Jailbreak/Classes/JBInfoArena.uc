@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.33 2004/04/19 17:19:05 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.34 2004/04/22 09:51:11 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -986,6 +986,9 @@ auto state Waiting {
   event Trigger(Actor ActorOther, Pawn PawnInstigator)
   {
     local bool bStarted;
+
+    if (!Level.Game.IsInState('MatchInProgress'))
+      return;
 
     if (Tag == TagRequest) TriggerRequest(ActorOther, PawnInstigator);
     if (Tag == TagExclude) TriggerExclude(ActorOther, PawnInstigator);
