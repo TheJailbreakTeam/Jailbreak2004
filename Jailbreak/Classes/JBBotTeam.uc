@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.20 2003/06/14 18:05:55 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.21 2003/06/14 18:14:30 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -1390,6 +1390,54 @@ function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased) {
 
 
 // ============================================================================
+// state TacticsEvasive
+//
+// Evasive team tactics. Bots try not to get caught and flee at the sight of
+// enemies if they can. Useful when a team is leading by a small margin
+// shortly before the time limit is hit.
+// ============================================================================
+
+state TacticsEvasive {
+
+  // ================================================================
+  // ReAssessOrders
+  //
+  // Puts all bots that aren't bound in fixed orders to freelance
+  // squads and then sets those squads to evasive tactics.
+  // ================================================================
+  
+  function ReAssessOrders() {
+
+    local SquadAI thisSquad;
+    
+    DeployRestart();
+    DeployExecute();  // set all unbound bots on freelance
+
+    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
+      if (JBBotSquad(thisSquad) != None)
+        JBBotSquad(thisSquad).StartEvasive();
+    }
+
+
+  // ================================================================
+  // EndState
+  //
+  // Resets all freelance squads to normal operation.
+  // ================================================================
+
+  event EndState() {
+  
+    local SquadAI thisSquad;
+    
+    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
+      if (JBBotSquad(thisSquad) != None)
+        JBBotSquad(thisSquad).StopEvasive();
+    }
+
+  } // state TacticsEvasive
+
+
+// ============================================================================
 // state TacticsDefensive
 //
 // Defensive team tactics. Bots try to defend their bases as well as they can,
@@ -1610,54 +1658,6 @@ state TacticsAggressive {
     }
 
   } // state TacticsAggressive
-
-
-// ============================================================================
-// state TacticsEvasive
-//
-// Evasive team tactics. Bots try not to get caught and flee at the sight of
-// enemies if they can. Useful when a team is leading by a small margin
-// shortly before the time limit is hit.
-// ============================================================================
-
-state TacticsEvasive {
-
-  // ================================================================
-  // ReAssessOrders
-  //
-  // Puts all bots that aren't bound in fixed orders to freelance
-  // squads and then sets those squads to evasive tactics.
-  // ================================================================
-  
-  function ReAssessOrders() {
-
-    local SquadAI thisSquad;
-    
-    DeployRestart();
-    DeployExecute();  // set all unbound bots on freelance
-
-    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
-      if (JBBotSquad(thisSquad) != None)
-        JBBotSquad(thisSquad).StartEvasive();
-    }
-
-
-  // ================================================================
-  // EndState
-  //
-  // Resets all freelance squads to normal operation.
-  // ================================================================
-
-  event EndState() {
-  
-    local SquadAI thisSquad;
-    
-    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
-      if (JBBotSquad(thisSquad) != None)
-        JBBotSquad(thisSquad).StopEvasive();
-    }
-
-  } // state TacticsEvasive
 
 
 // ============================================================================
