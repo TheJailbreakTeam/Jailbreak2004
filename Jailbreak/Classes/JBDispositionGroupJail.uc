@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupJail.uc,v 1.5 2003/06/15 21:31:33 mychaeel Exp $
+// $Id: JBDispositionGroupJail.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Manages the icons of jailed players on a team, arranging them in the circle
 // displayed next to the team status widget.
@@ -23,17 +23,10 @@ struct TFormation
 
 
 // ============================================================================
-// Constants
-// ============================================================================
-
-const LocationCenterX = 0.034;
-const LocationCenterY = 0.047;
-
-
-// ============================================================================
 // Variables
 // ============================================================================
 
+var vector LocationFormation;        // center of formations
 var TFormation Formation[6];         // icon formations
 
 var string FontCounter;              // font for counter for six or more icons
@@ -92,15 +85,13 @@ function Setup()
   iFormation = Min(ArrayCount(Formation), ListDispositionPlayer.Length) - 1;
 
   for (iDisposition = 0; iDisposition < ListDispositionPlayer.Length; iDisposition++) {
-    ScaleTarget    = Formation[iFormation].Scale;
-    LocationTarget = Formation[iFormation].Location[Min(iDisposition, ArrayCount(Formation[0].Location) - 1)];
+    ScaleTarget    = Scale * Formation[iFormation].Scale;
+    LocationTarget = Scale * Formation[iFormation].Location[Min(iDisposition, ArrayCount(Formation[0].Location) - 1)];
 
     if (LocationTarget.Z == 0)
       ScaleTarget = 0.0;
 
-    LocationTarget.X += LocationCenterX;
-    LocationTarget.Y += LocationCenterY;
-
+    LocationTarget += LocationFormation;
     if (DispositionTeam.Team.TeamIndex != 0)
       LocationTarget.X = -LocationTarget.X;
 
@@ -112,15 +103,14 @@ function Setup()
 // ============================================================================
 // Move
 //
-// Moves icons and fades the counter in our out.
+// Moves icons and fades the counter in or out.
 // ============================================================================
 
 function Move(float TimeDelta)
 {
   if (ListDispositionPlayer.Length >= ArrayCount(Formation))
-    FadeCounter = FMin(1.0, FadeCounter + TimeDelta * 2.0);
-  else
-    FadeCounter = FMax(0.0, FadeCounter - TimeDelta * 2.0);
+         FadeCounter = FMin(1.0, FadeCounter + TimeDelta * 2.0);
+    else FadeCounter = FMax(0.0, FadeCounter - TimeDelta * 2.0);
 
   Super.Move(TimeDelta);
 }
@@ -148,11 +138,11 @@ function Draw(Canvas Canvas)
     Canvas.DrawColor = ColorCounter[DispositionTeam.Team.TeamIndex];
     Canvas.DrawColor.A = FadeCounter * Canvas.DrawColor.A;
     Canvas.Font = FontObjectCounter;
-    Canvas.FontScaleX = ScaleCounter * ScaleWidget * ScaleCanvas * Canvas.ClipX / 1600.0;
-    Canvas.FontScaleY = ScaleCounter * ScaleWidget * ScaleCanvas * Canvas.ClipX / 1600.0;
+    Canvas.FontScaleX = Scale * ScaleCounter * ScaleWidget * ScaleCanvas * Canvas.ClipX / 1600.0;
+    Canvas.FontScaleY = Scale * ScaleCounter * ScaleWidget * ScaleCanvas * Canvas.ClipX / 1600.0;
 
-    LocationScreenCounter.X = (LocationCenterX + LocationCounter.X) * ScaleWidget;
-    LocationScreenCounter.Y = (LocationCenterY + LocationCounter.Y) * ScaleWidget;
+    LocationScreenCounter.X = (LocationFormation.X + Scale * LocationCounter.X) * ScaleWidget;
+    LocationScreenCounter.Y = (LocationFormation.Y + Scale * LocationCounter.Y) * ScaleWidget;
 
     if (DispositionTeam.Team.TeamIndex != 0)
       LocationScreenCounter.X = -LocationScreenCounter.X;
@@ -180,10 +170,11 @@ defaultproperties
 {
   FontCounter = "UT2003Fonts.FontEurostile37";
   ScaleCounter = 0.7;
-  LocationCounter = (X=0.007,Y=0.014);
+  LocationCounter = (X=0.006,Y=0.011);
   ColorCounter[0] = (R=255,G=0,B=0,A=255);
   ColorCounter[1] = (R=0,G=0,B=255,A=255);
 
+  LocationFormation = (X=0.0515,Y=0.036);
   Formation[0] = (Scale=1.0,Location[0]=(X=+0.000,Y=+0.000,Z=1));
   Formation[1] = (Scale=1.0,Location[0]=(X=+0.008,Y=+0.000,Z=1),Location[1]=(X=-0.008,Y=+0.000,Z=1));
   Formation[2] = (Scale=0.9,Location[0]=(X=+0.010,Y=+0.008,Z=1),Location[1]=(X=-0.010,Y=+0.008,Z=1),Location[2]=(X=+0.000,Y=-0.012,Z=1));

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupFree
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupFree.uc,v 1.1 2003/01/01 22:11:16 mychaeel Exp $
+// $Id: JBDispositionGroupFree.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Manages the icons of free players on a team, arranging them in a horizontal
 // row below the team status widget.
@@ -9,6 +9,14 @@
 
 
 class JBDispositionGroupFree extends JBDispositionGroup;
+
+
+// ============================================================================
+// Variables
+// ============================================================================
+
+var vector LocationPlayers;  // upper-inner corner of row of player icons
+var float WidthPlayer;       // width of a single player icon
 
 
 // ============================================================================
@@ -38,13 +46,13 @@ function Setup()
   local vector LocationTarget;
 
   for (iDisposition = 0; iDisposition < ListDispositionPlayer.Length; iDisposition++) {
-    LocationTarget.X = 0.110 + 0.014 * iDisposition;
-    LocationTarget.Y = 0.110;
+    LocationTarget.X = LocationPlayers.X + Scale * WidthPlayer * iDisposition;
+    LocationTarget.Y = LocationPlayers.Y;
 
     if (DispositionTeam.Team.TeamIndex == 0)
       LocationTarget.X = -LocationTarget.X;
 
-    ListDispositionPlayer[iDisposition].SetTarget(LocationTarget, 1.0);
+    ListDispositionPlayer[iDisposition].SetTarget(LocationTarget, Scale);
   }
 }
 
@@ -55,6 +63,9 @@ function Setup()
 
 defaultproperties
 {
+  LocationPlayers = (X=0.078,Y=0.078);
+  WidthPlayer = 0.014;
+
   AddIconForFadein     = AddIconToEnd;
   AddIconForChange     = AddIconToStart;
   RemoveIconForChange  = RemoveIconFromStart;
