@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionBurning
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionBurning.uc,v 1.5 2003/06/30 06:54:23 crokx Exp $
+// $Id: JBExecutionBurning.uc,v 1.6 2004/03/19 19:18:53 tarquin Exp $
 //
 // An burning execution.
 // ============================================================================
@@ -58,6 +58,7 @@ function ExecuteJailedPlayer(Pawn Victim)
     Flame[i] = Spawn(class'HitFlameBig',,, Victim.Location);
     if(Flame[i] != None) {
       Flame[i].LifeSpan = 0;
+      Flame[i].RemoteRole = ROLE_SimulatedProxy;
       if(Victim.AttachToBone(Flame[i], AttachFlamePart[i]) == FALSE)
           Flame[i].Destroy();
     }
