@@ -1,23 +1,13 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.5 2003/11/11 17:48:46 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.6 2004/03/18 12:31:39 mychaeel Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
 
 
 class JBAddonLlama extends JBAddon config;
-
-
-//=============================================================================
-// Constants
-//=============================================================================
-
-const DEFAULT_REWARD_ADRENALINE  = 100;
-const DEFAULT_REWARD_HEALTH      = 25;
-const DEFAULT_REWARD_SHIELD      = 0;
-const DEFAULT_MAX_LLAMA_DURATION = 60;
 
 
 //=============================================================================
@@ -34,10 +24,10 @@ var config int MaximumLlamaDuration;
 // Localization
 //=============================================================================
 
-var localized string RewardAdrenalineText;
-var localized string RewardHealthText;
-var localized string RewardShieldText;
-var localized string MaximumLlamaDurationText;
+var localized string RewardAdrenalineText,     RewardAdrenalineDesc;
+var localized string RewardHealthText,         RewardHealthDesc;
+var localized string RewardShieldText,         RewardShieldDesc;
+var localized string MaximumLlamaDurationText, MaximumLlamaDurationDesc;
 
 
 //=============================================================================
@@ -312,10 +302,10 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddClass(default.Class);
   
   // now register any mutator settings
-  PlayInfo.AddSetting(default.FriendlyName, "MaximumLlamaDuration", default.MaximumLlamaDurationText, 0, 0, "Text", "3;0:120");
-  PlayInfo.AddSetting(default.FriendlyName, "RewardAdrenaline",     default.RewardAdrenalineText,     0, 0, "Text", "3;0:100");
-  PlayInfo.AddSetting(default.FriendlyName, "RewardHealth",         default.RewardHealthText,         0, 0, "Text", "3;0:199");
-  PlayInfo.AddSetting(default.FriendlyName, "RewardShield",         default.RewardShieldText,         0, 0, "Text", "3;0:150");
+  PlayInfo.AddSetting(default.FriendlyName, "MaximumLlamaDuration", default.MaximumLlamaDurationText, 0, 1, "Text", "3;0:120");
+  PlayInfo.AddSetting(default.FriendlyName, "RewardAdrenaline",     default.RewardAdrenalineText,     0, 2, "Text", "3;0:100");
+  PlayInfo.AddSetting(default.FriendlyName, "RewardHealth",         default.RewardHealthText,         0, 3, "Text", "3;0:199");
+  PlayInfo.AddSetting(default.FriendlyName, "RewardShield",         default.RewardShieldText,         0, 4, "Text", "3;0:150");
   
   // remove mutator class from class stack
   PlayInfo.PopClass();
@@ -323,18 +313,19 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 
 
 //=============================================================================
-// ResetConfiguration
+// GetDescriptionText
 //
-// Resets the Llama Hunt configuration.
+// Returns a description text for the specified property.
 //=============================================================================
 
-static function ResetConfiguration()
+static event string GetDescriptionText(string PropName)
 {
-  default.RewardAdrenaline     = DEFAULT_REWARD_ADRENALINE;
-  default.RewardHealth         = DEFAULT_REWARD_HEALTH;
-  default.RewardShield         = DEFAULT_REWARD_SHIELD;
-  default.MaximumLlamaDuration = DEFAULT_MAX_LLAMA_DURATION;
-  StaticSaveConfig();
+  Switch (PropName) {
+    Case "MaximumLlamaDuration": return default.MaximumLlamaDurationDesc;
+    Case "RewardAdrenaline":     return default.RewardAdrenalineDesc;
+    Case "RewardHealth":         return default.RewardHealthDesc;
+    Case "RewardShield":         return default.RewardShieldDesc;
+  }
 }
 
 
@@ -353,8 +344,13 @@ defaultproperties
   RewardAdrenaline=100
   RewardHealth=25
   MaximumLlamaDuration=60
-  RewardAdrenalineText="Adrenaline gained for killing a Llama"
-  RewardHealthText="Health gained for killing a Llama"
-  RewardShieldText="Shield gained for killing a Llama"
-  MaximumLlamaDurationText="Maximum duration of the llama hunt"
+  RewardAdrenalineText     = "Adrenaline gained for killing a Llama"
+  RewardHealthText         = "Health gained for killing a Llama"
+  RewardShieldText         = "Shield gained for killing a Llama"
+  MaximumLlamaDurationText = "Maximum duration of the llama hunt"
+  
+  RewardAdrenalineDesc     = "Players who kill a llama are awarded this ammount of adrenaline."
+  RewardHealthDesc         = "Players who kill a llama are awarded this ammount of health."
+  RewardShieldDesc         = "Players who kill a llama are awarded this ammount of shield."
+  MaximumLlamaDurationDesc = "Maximum time a llama will last. The llama is killed if it has not been fragged by the end of the llama hunt."
 }

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.9 2004/04/04 00:55:14 mychaeel Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.10 2004/04/04 11:52:52 mychaeel Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -85,7 +85,7 @@ function SaveINISettings(GUIComponent Sender)
 
 function ResetConfiguration()
 {
-  class'JBAddonLlama'.static.ResetConfiguration();
+  class'JBAddonLlama'.static.ResetConfig();
   LoadINISettings();
 }
 
