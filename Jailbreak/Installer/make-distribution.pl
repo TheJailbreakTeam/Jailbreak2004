@@ -5,7 +5,7 @@
 #  make-distribution.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id$
+#  $Id: make-distribution.pl,v 1.1.2.7 2004/06/01 11:26:37 mychaeel Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -342,12 +342,14 @@ die "Unable to find game base directory.\n"
 #  Parameters
 #
 
-my $skipRebuild = FALSE;
+my $skipRebuild  = FALSE;
+my $skipKeypress = FALSE;
 my $fileReference;
 
 GetOptions(
   'version=s'           => \$versionSuffix,
   'skip-rebuild'        => \$skipRebuild,
+  'skip-keypress'       => \$skipKeypress,
   'reference-file=s'    => \$fileReference,
   'reference-version=i' => \$versionReference,
 );
@@ -965,6 +967,8 @@ END
     rename "$dirGame/System/Manifest-original.ini", "$dirGame/System/Manifest.ini";
   }
 
-  print "Press [Enter] to continue\n";
-  <STDIN>;
+  if (not $skipKeypress) {
+    print "Press [Enter] to continue\n";
+    <STDIN>;
+  }
 }
