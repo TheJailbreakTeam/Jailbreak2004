@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.4.2.5 2004/05/17 20:07:19 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.4.2.6 2004/05/20 12:24:41 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained.
@@ -213,7 +213,7 @@ function ExecViewSelf()
 // ============================================================================
 
 function ServerSwitchToPrevCamera(JBCamera Camera, optional bool bManual) { Camera.SwitchToPrev(PlayerController(Keeper), bManual); }
-function ServerSwitchToNextCamera(JBCamera Camera, optional bool bManual) { Camera.SwitchToPrev(PlayerController(Keeper), bManual); }
+function ServerSwitchToNextCamera(JBCamera Camera, optional bool bManual) { Camera.SwitchToNext(PlayerController(Keeper), bManual); }
 
 
 // ============================================================================
