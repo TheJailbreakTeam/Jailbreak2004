@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIOptionGroup
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id$
+// $Id: JBGUIOptionGroup.uc,v 1.1 2004/03/26 20:42:17 tarquin Exp $
 //
 // A group of radio button options
 //=============================================================================
@@ -147,6 +147,8 @@ function SetIndex(int newIndex)
   OptionButton[Index].SetChecked( False );
   Index = newIndex;
   OptionButton[Index].SetChecked( True );
+  
+  OnChange(self);
 }
 
 //=============================================================================
