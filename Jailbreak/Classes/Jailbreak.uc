@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.96 2004/05/28 20:58:30 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.97 2004/05/29 13:06:44 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -161,6 +161,9 @@ static function string GetLoadingHint(PlayerController PlayerController, string 
   
     MaterialLoadingScreen = Material(DynamicLoadObject(Default.LoadingScreens[iLoadingScreen], Class'Material', False));
   }
+
+  if (Texture(MaterialLoadingScreen) != None)
+    Texture(MaterialLoadingScreen).LODSet = LODSET_Interface;
 
   foreach PlayerController.AllObjects(Class'UT2K4ServerLoading', UT2K4ServerLoading)
     DrawOpImage(UT2K4ServerLoading.Operations[0]).Image = MaterialLoadingScreen;
