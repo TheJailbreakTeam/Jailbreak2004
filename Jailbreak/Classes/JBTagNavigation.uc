@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagNavigation
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTagNavigation.uc,v 1.1 2003/01/19 19:11:19 mychaeel Exp $
 //
 // Caches information about an actor used for navigational purposes.
 // ============================================================================
@@ -87,6 +87,7 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
 
   iDistance = TagNavigationFrom.ListDistance.Length;
   TagNavigationFrom.ListDistance.Insert(iDistance, 1);
+  TagNavigationFrom.ListDistance[iDistance].NavigationPointTo = NavigationPointTo;
   TagNavigationFrom.ListDistance[iDistance].Distance = Distance;
   
   return Distance;
@@ -104,14 +105,16 @@ private static function SpawnController(LevelInfo Level) {
 
   local Controller thisController;
 
-  if (Default.Controller != None)
-    return;
+  if (Default.Controller != None &&
+      Default.Controller.Level != Level)
+    Default.Controller = None;
 
-  for (thisController = Level.ControllerList;
-       thisController != None && Default.Controller == None;
-       thisController = thisController.NextController)
-    if (JBScout(thisController.Pawn) != None)
-      Default.Controller = thisController;
+  if (Default.Controller == None)
+    for (thisController = Level.ControllerList;
+         thisController != None && Default.Controller == None;
+         thisController = thisController.NextController)
+      if (JBScout(thisController.Pawn) != None)
+        Default.Controller = thisController;
 
   if (Default.Controller == None)
     Default.Controller = Level.Spawn(Class'AIController');
