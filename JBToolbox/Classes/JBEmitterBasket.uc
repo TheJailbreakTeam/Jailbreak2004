@@ -1,7 +1,7 @@
 // ============================================================================
 // JBEmitterBasket
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBEmitterBasket.uc,v 1.2 2004/05/10 14:53:05 mychaeel Exp $
 //
 // Emitter effect resembling a basket for the standard release switch.
 // ============================================================================
@@ -141,8 +141,8 @@ defaultproperties
     DrawStyle                 = PTDS_AlphaBlend;
 
     MaxParticles              = 400;
-    RelativeWarmupTime        = 1.0;
-    WarmupTicksPerSecond      = 1.0;
+    RelativeWarmupTime        =  1.0;
+    WarmupTicksPerSecond      = 20.0;
 
     Acceleration              = (Z=16.0);
     GetVelocityDirectionFrom  = PTVD_AddRadial;
