@@ -205,12 +205,25 @@ event Trigger(Actor ActorOther, Pawn PawnInstigator)
 // TriggerForController
 //
 // Like Trigger, but takes a controller reference as the instigator. Can be
-// used to trigger the camera when players have no pawns.
+// used to trigger the camera when players have no pawns. Ignores any attempt
+// to be triggered by a Trigger when the match is not running or if the
+// instigator is currently jail-fighting.
 // ============================================================================
 
 function TriggerForController(Actor ActorOther, Controller ControllerInstigator)
 {
   local JBCamera CameraActivate;
+  local JBTagPlayer TagPlayerInstigator;
+
+  if (Trigger(ActorOther) != None) {
+    if (!Level.Game.IsInState('MatchInProgress'))
+      return;
+
+    TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(ControllerInstigator.PlayerReplicationInfo);
+    if (TagPlayerInstigator == None ||
+       (TagPlayerInstigator.IsInJail() && Class'JBBotSquadJail'.Static.IsPlayerFighting(ControllerInstigator)))
+     return;
+  }
 
   if (CamManager == None) {
     CameraActivate = Self;
