@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.109 2004/06/01 11:59:38 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.110 2004/06/01 16:58:14 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -970,7 +970,7 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
   ScoreKillTaunt (ControllerKiller, ControllerVictim);
 
   TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
-  if (TagPlayerVictim != None &&
+  if (TagPlayerVictim == None ||
       TagPlayerVictim.IsInJail())
     return;
 
