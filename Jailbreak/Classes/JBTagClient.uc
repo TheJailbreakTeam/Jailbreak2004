@@ -106,6 +106,12 @@ function ExecArenaCam()
   local JBInfoArena ArenaCurrent;
   local JBInfoArena firstArena;
   local JBInfoArena thisArena;
+  local JBTagPlayer TagPlayerOwner;
+
+  TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PlayerController(Owner).PlayerReplicationInfo);
+  if (TagPlayerOwner == None ||
+      TagPlayerOwner.GetArena() != None)
+    return;
 
   firstArena = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstArena;
 
