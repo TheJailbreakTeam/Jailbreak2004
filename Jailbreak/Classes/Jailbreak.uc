@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.110 2004/06/01 16:58:14 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.111 2004/06/02 00:31:35 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -158,18 +158,22 @@ static function string GetLoadingHint(PlayerController PlayerController, string 
   local Material MaterialLoadingScreen;
   local UT2K4ServerLoading UT2K4ServerLoading;
 
-  MaterialLoadingScreen = Material(DynamicLoadObject(MapName $ ".LoadingScreen", Class'Material', True));
-
-  if (MaterialLoadingScreen == None) {
-    for (iLoadingScreen = 0; iLoadingScreen < Default.LoadingScreens.Length; iLoadingScreen++) {
-      NameLoadingScreen = GetItemName(Default.LoadingScreens[iLoadingScreen]);
-      if (NameLoadingScreen ~= Mid(MapName, 3, Len(NameLoadingScreen)))
-        break;
+  // look for full map name match
+  for (iLoadingScreen = 0; iLoadingScreen < Default.LoadingScreens.Length; iLoadingScreen++) {
+    NameLoadingScreen = GetItemName(Default.LoadingScreens[iLoadingScreen]);
+    if (NameLoadingScreen ~= Mid(MapName, 3)) {
+      MaterialLoadingScreen = Material(DynamicLoadObject(Default.LoadingScreens[iLoadingScreen], Class'Material', False));
+      break;
     }
-  
-    if (iLoadingScreen >= Default.LoadingScreens.Length)
-      iLoadingScreen = Rand(Default.LoadingScreens.Length);
-  
+  }
+
+  // otherwise look for embedded loading screen
+  if (MaterialLoadingScreen == None)
+    MaterialLoadingScreen = Material(DynamicLoadObject(MapName $ ".LoadingScreen", Class'Material', True));
+
+  // otherwise load random loading screen
+  if (MaterialLoadingScreen == None) {
+    iLoadingScreen = Rand(Default.LoadingScreens.Length);
     MaterialLoadingScreen = Material(DynamicLoadObject(Default.LoadingScreens[iLoadingScreen], Class'Material', False));
   }
 
@@ -1911,20 +1915,19 @@ defaultproperties
   ScreenShotName = "JBTexPreview.Preview";
   Description = "Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
 
-  LoadingScreens[ 0] = "JBTexLoading.Arlon";
-  LoadingScreens[ 1] = "JBTexLoading.Baruro";
+  LoadingScreens[ 0] = "JBTexLoading.Addien-Dwy";
+  LoadingScreens[ 1] = "JBTexLoading.Arlon";
   LoadingScreens[ 2] = "JBTexLoading.BabylonTemple";
-  LoadingScreens[ 3] = "JBTexLoading.Cavern";
-  LoadingScreens[ 4] = "JBTexLoading.Conduit";
-  LoadingScreens[ 5] = "JBTexLoading.Heights";
-  LoadingScreens[ 6] = "JBTexLoading.IndusRage";
-  LoadingScreens[ 7] = "JBTexLoading.Isolated";
+  LoadingScreens[ 3] = "JBTexLoading.CastleBreak";
+  LoadingScreens[ 4] = "JBTexLoading.Cavern";
+  LoadingScreens[ 5] = "JBTexLoading.Conduit";
+  LoadingScreens[ 6] = "JBTexLoading.Heights";
+  LoadingScreens[ 7] = "JBTexLoading.IndusRage2";
   LoadingScreens[ 8] = "JBTexLoading.MoonCraters";
-  LoadingScreens[ 9] = "JBTexLoading.NoSenseOfReality";
+  LoadingScreens[ 9] = "JBTexLoading.NoSense";
   LoadingScreens[10] = "JBTexLoading.Poseidon";
   LoadingScreens[11] = "JBTexLoading.SavoIsland";
   LoadingScreens[12] = "JBTexLoading.Solamander";
-  LoadingScreens[13] = "JBTexLoading.SpyGlass";
 
   TextHintJailbreak[ 0] = "Watch the compass dots: The faster they pulse, the more players can be released by the corresponding switch."
   TextHintJailbreak[ 1] = "Use %PREVWEAPON% and %NEXTWEAPON% to switch view points when watching through a surveillance camera."
