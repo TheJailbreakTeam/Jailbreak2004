@@ -1,6 +1,6 @@
 ===============================================================================
 Jailbreak 2004
-Copyright 2004 by Team Jailbreak <team@planetjailbreak.com>
+Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
 ===============================================================================
 
 For feedback, suggestions and bug report, visit
