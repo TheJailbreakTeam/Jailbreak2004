@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
+// $Id: JBAddonProtection.uc,v 1.2 2004/01/15 07:25:40 crokx Exp $
 //
 // This mutator protect the released players.
 // ============================================================================
@@ -87,7 +87,7 @@ defaultproperties
     ProtectionType=0
     FriendlyName="Release protection"
     Description="The released players are protected some time."
-    ConfigMenuClassName="JBAddonProtection.JBGUIPanelProtectionConfig"
+    ConfigMenuClassName="JBAddonProtection.JBGUIPanelConfigProtection"
     desc_ProtectionTime="The protection delay."
     desc_ProtectionType="The protection type."
     desc_ProtectArenaWinner="When enabled, the arena winner gain protection."
