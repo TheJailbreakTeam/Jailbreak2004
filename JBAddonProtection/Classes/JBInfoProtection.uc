@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBInfoProtection.uc,v 1.6 2004/05/22 22:00:49 tarquin Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -28,8 +28,8 @@ replication
 var JBxEmitterProtectionRed ProtectionEffect;
 var PlayerReplicationInfo RelatedPRI;
 var private Pawn ProtectedPawn;
-var private float ProtectionTime;
-var private float EndProtectionTime;
+var private int   ProtectionTime;    // protection time read from config
+var private float EndProtectionTime; // level time at which protection ends
 var private float ProtectionCharge;
 var private int   ProtectedPawnAbsorbedDamage; // keeps score of how much 
   // damage protection has absorbed, to decide whether to make attacker llama
