@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.8 2004/05/30 16:00:29 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.9 2004/05/30 21:44:27 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -434,12 +434,18 @@ event PostRender(Canvas Canvas)
 // ============================================================================
 // NotifyLevelChange
 //
-// Removes this Interaction before level change.
+// Removes this Interaction before level change. Calls NotifyLevelChange in
+// all JBAddon actors which are around.
 // ============================================================================
 
 event NotifyLevelChange()
 {
+  local JBAddon thisAddon;
+
   Master.RemoveInteraction(Self);
+  
+  foreach ViewportOwner.Actor.DynamicActors(Class'JBAddon', thisAddon)
+    thisAddon.NotifyLevelChange();
 }
 
 

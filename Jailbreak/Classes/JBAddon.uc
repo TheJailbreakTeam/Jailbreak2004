@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.9 2004/05/18 17:08:57 mychaeel Exp $
+// $Id: JBAddon.uc,v 1.10 2004/05/19 15:44:12 mychaeel Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -85,6 +85,15 @@ simulated event PostNetBeginPlay()
 // ============================================================================
 
 simulated function RenderOverlays(Canvas Canvas);
+
+
+// ============================================================================
+// NotifyLevelChange
+//
+// Called client-side and on listen servers when the level changes.
+// ============================================================================
+
+simulated function NotifyLevelChange();
 
 
 // ============================================================================
