@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.5 2003/11/11 17:48:48 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6 2004/01/04 16:14:00 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -16,9 +16,9 @@ class JBInterfaceLlamaHUDOverlay extends Info notplaceable;
 // Imports
 //=============================================================================
 
-#exec Texture Import File=Textures\Llama.dds Mips=Off Alpha=1 Group=JBInterfaceLlamaHUDOverlay
-#exec Texture Import File=Textures\LlamaIconMask.dds Mips=Off Alpha=1 Group=JBInterfaceLlamaHUDOverlay
-#exec Texture Import File=Textures\LlamaScreenOverlay.dds Mips=Off Alpha=1 Group=JBInterfaceLlamaHUDOverlay
+#exec Texture Import File=Textures\Llama.dds Mips=Off Alpha=1 Group=LlamaCompass
+#exec Texture Import File=Textures\LlamaIconMask.dds Mips=Off Alpha=1 Group=LlamaCompass
+#exec Texture Import File=Textures\LlamaScreenOverlay.dds Mips=Off Alpha=1 Group=LlamaHudOverlay
 #exec Audio Import File=Sounds\Heartbeat.wav
 
 
@@ -478,6 +478,7 @@ defaultproperties
     VOffset=64.000000
     Material=Texture'Llama'
     FallbackMaterial=Texture'Llama'
+    Outer=LlamaCompass
   End Object
   
   Begin Object Class=TexRotator Name=LlamaIconRotator
@@ -488,6 +489,7 @@ defaultproperties
     OscillationAmplitude=(Yaw=8000)
     Material=TexOscillator'LlamaIconOscillator'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
+    Outer=LlamaCompass
   End Object
   
   Begin Object Class=Combiner Name=LlamaIconCombiner
@@ -495,12 +497,14 @@ defaultproperties
     Material1=TexRotator'LlamaIconRotator'
     Material2=Texture'LlamaIconMask'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
+    Outer=LlamaCompass
   End Object
   
   Begin Object Class=FinalBlend Name=LlamaIconFinalBlend
     FrameBufferBlending=FB_AlphaBlend
     Material=Combiner'LlamaIconCombiner'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
+    Outer=LlamaCompass
   End Object
   
   
@@ -517,6 +521,7 @@ defaultproperties
     VOscillationAmplitude=0.5
     Material=Texture'LlamaScreenOverlay'
     FallbackMaterial=Texture'LlamaScreenOverlay'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=TexOscillator Name=OverlayOscillator2
@@ -528,6 +533,7 @@ defaultproperties
     VOscillationAmplitude=0.5
     Material=Texture'LlamaScreenOverlay'
     FallbackMaterial=Texture'LlamaScreenOverlay'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=TexOscillator Name=Overlay1Scaler
@@ -542,6 +548,7 @@ defaultproperties
     VOffset=128.0
     Material=TexOscillator'OverlayOscillator1'
     FallbackMaterial=TexOscillator'OverlayOscillator1'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=TexOscillator Name=Overlay2Scaler
@@ -557,6 +564,7 @@ defaultproperties
     VOffset=128.0
     Material=TexOscillator'OverlayOscillator2'
     FallbackMaterial=TexOscillator'OverlayOscillator2'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=Combiner Name=OverlayCombiner
@@ -564,12 +572,14 @@ defaultproperties
     AlphaOperation=CO_Add
     Material1=TexOscillator'Overlay1Scaler'
     Material2=TexOscillator'Overlay2Scaler'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=FinalBlend Name=LlamaScreenOverlayFinal
     FrameBufferBlending=FB_Translucent
     Material=Combiner'OverlayCombiner'
     FallbackMaterial=TexOscillator'Overlay2Scaler'
+    Outer=LlamaHudOverlay
   End Object
   
   
