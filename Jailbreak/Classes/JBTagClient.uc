@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.6 2004/04/14 12:06:55 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.7 2004/04/28 11:52:22 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained.
@@ -186,12 +186,14 @@ function ExecViewTeam(optional name Whom)
 // ============================================================================
 // ExecViewSelf
 //
-// Resets the player's view point to normal first-person view.
+// Resets the player's view point to normal first-person view. Disabled when
+// viewing an execution sequence.
 // ============================================================================
 
 function ExecViewSelf()
 {
-  Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
+  if (Level.Game.IsInState('MatchInProgress') || JBCamera(PlayerController(Keeper).ViewTarget) == None)
+    Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
 }
 
 
