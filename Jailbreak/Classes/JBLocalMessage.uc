@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.5 2002/12/20 20:55:14 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.6 2003/01/13 21:24:16 mychaeel Exp $
 //
 // Localized messages for generic Jailbreak announcements.
 // ============================================================================
@@ -38,6 +38,8 @@ var localized string TextArenaEndWinner;
 var localized string TextArenaEndLoser;
 var localized string TextArenaEndOther;
 
+var Color ColorArena;
+
 
 // ============================================================================
 // ClientReceive
@@ -67,6 +69,9 @@ static function ClientReceive(PlayerController Player,
                               optional PlayerReplicationInfo PlayerReplicationInfo1, 
                               optional PlayerReplicationInfo PlayerReplicationInfo2,
                               optional Object ObjectOptional) {
+
+  if (Switch >= 401 && Switch <= 403)
+    Player.PlayBeepSound();
 
   Super.ClientReceive(Player, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
   }
@@ -163,8 +168,7 @@ static function string ReplaceTextArena(string TextTemplate,
 
 static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo) {
 
-  return PlayerController(PlayerReplicationInfo.Owner) != None &&
-         Viewport(PlayerController(PlayerReplicationInfo.Owner).Player) != None;
+  return (PlayerReplicationInfo.Level.GetLocalPlayerController().PlayerReplicationInfo == PlayerReplicationInfo);
   }
 
 
@@ -222,6 +226,23 @@ static function string GetString(optional int Switch,
 
 
 // ============================================================================
+// GetColor
+//
+// Returns the color to use for the given message.
+// ============================================================================
+
+static function Color GetColor(optional int Switch,
+                               optional PlayerReplicationInfo PlayerReplicationInfo1, 
+                               optional PlayerReplicationInfo PlayerReplicationInfo2) {
+
+  if (Switch >= 400 && Switch <= 499)
+    return Default.ColorArena;
+
+  return Super.GetColor(Switch, PlayerReplicationInfo1, PlayerReplicationInfo2);
+  }
+
+
+// ============================================================================
 // Defaults
 // ============================================================================
 
@@ -247,6 +268,8 @@ defaultproperties {
   TextArenaEndWinner       = "You have won your freedom!";
   TextArenaEndLoser        = "You have lost the arena match.";
   TextArenaEndOther        = "%winner% has defeated %loser% in the arena.";
+
+  ColorArena = (R=0,G=0,B=255,A=255);
 
   PosY = 0.75;
   bFadeMessage = True;
