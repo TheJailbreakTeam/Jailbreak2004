@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageScreen
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessageScreen.uc,v 1.1 2004/03/05 15:17:12 mychaeel Exp $
+// $Id: JBLocalMessageScreen.uc,v 1.2 2004/03/30 16:17:54 mychaeel Exp $
 //
 // Displays on-screen messages.
 // ============================================================================
@@ -113,6 +113,7 @@ static function float GetLifeTime(int Switch)
 defaultproperties
 {
   bIsConsoleMessage  = False;
+  StackMode          = SM_Down;
 
   FontSizeTeam       =  0;  // normal
   FontSizeArena      =  0;  // normal
