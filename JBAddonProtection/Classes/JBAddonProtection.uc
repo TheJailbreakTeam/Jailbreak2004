@@ -25,10 +25,11 @@ class JBAddonProtection extends JBAddon config;
 // ============================================================================
 
 var() const editconst string Build;
-var() config float ProtectionTime;
-var() config byte ProtectionType;
-var() config bool bProtectArenaWinner;
-var() config bool bLlamaizeCampers;
+var() config float ProtectionTime;      // how long protection lasts for
+var() config byte ProtectionType;       // 0: can't damage while protected
+                                        // 1: protection drops when damage done
+var() config bool bProtectArenaWinner;  // protect the arena winner
+var() config bool bLlamaizeCampers;     // if killing damage to protectee
 
 var PlayerReplicationInfo LastRestartedPRI;
 var localized string caption_ProtectionType;
