@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: Jailbreak.uc,v 1.67.2.8 2004/04/28 11:57:03 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -73,7 +73,8 @@ event InitGame(string Options, out string Error)
   if (HasOption(Options, "Addon"))
     OptionAddon = ParseOption(Options, "Addon");
   else
-    OptionAddon = "JBAddonCelebration.JBAddonCelebration,"
+    OptionAddon = "JBAddonAvenger.JBAddonAvenger,"
+                $ "JBAddonCelebration.JBAddonCelebration,"
                 $ "JBAddonLlama.JBAddonLlama,"
                 $ "JBAddonProtection.JBAddonProtection";
 

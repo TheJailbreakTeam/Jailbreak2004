@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.9.2.1 2004/04/03 16:51:58 tarquin Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.9.2.2 2004/04/03 22:08:14 mychaeel Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -354,7 +354,7 @@ defaultproperties
 {
   TextHintReset = "Reset options for %addon%."
   
-  LastAddons = "JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
+  LastAddons = "JBAddonAvenger.JBAddonAvenger,JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
 
   WinLeft   = 0.000;
   WinWidth  = 1.000;
