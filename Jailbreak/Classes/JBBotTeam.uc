@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.30 2004/04/21 19:51:24 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.31 2004/04/22 15:04:29 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -876,7 +876,10 @@ function ReAssessStrategy()
   Strategy = 'Scorelimit';
   Tactics  = 'TacticsNormal';
 
-  if (ScoreLead != 0 && DeathMatch(Level.Game).RemainingTime > 0) {
+  if (ScoreLead != 0                             &&
+      DeathMatch(Level.Game).RemainingTime >   0 &&
+      DeathMatch(Level.Game).RemainingTime < 120) {
+
     if (ScoreLead > 0) { TagTeamWinning = TagTeamSelf;   TagTeamLosing = TagTeamEnemy; }
                   else { TagTeamWinning = TagTeamEnemy;  TagTeamLosing = TagTeamSelf;  }
   
