@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.7 2003/03/22 19:42:25 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.8 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Localized messages for generic Jailbreak announcements.
 // ============================================================================
@@ -21,11 +21,11 @@ var localized string TextTeamReleasedBy[2];
 var localized string TextTeamStalemate;
 
 
-// Allowed placeholders in all arena messages:
-//   %teammate%  Name of teammate or own name
-//   %enemy%     Name of enemy
-//   %winner%    Name of arena match winner
-//   %loser%     Name or arena match loser
+// Supported placeholders in all arena messages:
+//   %teammate%   Name of teammate or own name
+//   %enemy%      Name of enemy
+//   %winner%     Name of arena match winner
+//   %loser%      Name or arena match loser
 
 var localized string TextArenaCountdown[3];
 var localized string TextArenaStartCombatant;
@@ -37,6 +37,23 @@ var localized string TextArenaTieOther;
 var localized string TextArenaEndWinner;
 var localized string TextArenaEndLoser;
 var localized string TextArenaEndOther;
+
+
+// Supported tags in all speech definitions:
+//   red         Local player is on the red team
+//   blue        Local player is on the blue team
+//   spectator   Local player is a spectator
+
+var localized string SpeechTeamCaptured[2];
+var localized string SpeechTeamReleased[2];
+var localized string SpeechTeamStalemate;
+
+var localized string SpeechArenaStart;
+var localized string SpeechArenaCancel;
+var localized string SpeechArenaTie;
+var localized string SpeechArenaEndWinner;
+var localized string SpeechArenaEndLoser;
+
 
 var Color ColorArena;
 
@@ -70,10 +87,45 @@ static function ClientReceive(PlayerController Player,
                               optional PlayerReplicationInfo PlayerReplicationInfo2,
                               optional Object ObjectOptional) {
 
-  if (Switch >= 401 && Switch <= 403)
-    Player.PlayBeepSound();
+  switch (Switch) {
+    case 100:  PlaySpeech(Player, Default.SpeechTeamCaptured[TeamInfo(ObjectOptional).TeamIndex]);  break;
+    case 200:  PlaySpeech(Player, Default.SpeechTeamReleased[TeamInfo(ObjectOptional).TeamIndex]);  break;
+    case 300:  PlaySpeech(Player, Default.SpeechTeamStalemate);  break;
+    
+    case 403:  Player.PlayBeepSound();  break;
+    case 402:  Player.PlayBeepSound();  break;
+    case 401:  Player.PlayBeepSound();  break;
+   
+    case 400:  PlaySpeech(Player, Default.SpeechArenaStart);   break;
+    case 410:  PlaySpeech(Player, Default.SpeechArenaCancel);  break;
+    case 420:  PlaySpeech(Player, Default.SpeechArenaTie);     break;
+
+    case 430:
+           if (Player.PlayerReplicationInfo == PlayerReplicationInfo1) PlaySpeech(Player, Default.SpeechArenaEndWinner);
+      else if (Player.PlayerReplicationInfo == PlayerReplicationInfo2) PlaySpeech(Player, Default.SpeechArenaEndLoser);
+      break;
+  }
 
   Super.ClientReceive(Player, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
+}
+
+
+// ============================================================================
+// PlaySpeech
+//
+// Plays the given segmented speech sequence definition for the given player
+// and returns whether playback was successfully started.
+// ============================================================================
+
+static function bool PlaySpeech(PlayerController Player, string Definition)
+{
+  local string Tags;
+
+       if (Player.PlayerReplicationInfo.bOnlySpectator)      Tags = "spectator";
+  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 0) Tags = "red";
+  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 1) Tags = "blue";
+
+  return Class'JBSpeechManager'.Static.PlayFor(Player.Level, Definition, Tags);
 }
 
 
@@ -140,9 +192,7 @@ static function string ReplaceTextArena(string TextTemplate,
   if (PlayerLocal.PlayerReplicationInfo.Team == PlayerReplicationInfo1.Team) {
     PlayerReplicationInfoTeammate = PlayerReplicationInfo1;
     PlayerReplicationInfoEnemy    = PlayerReplicationInfo2;
-  }
-
-  else {
+  } else {
     PlayerReplicationInfoTeammate = PlayerReplicationInfo2;
     PlayerReplicationInfoEnemy    = PlayerReplicationInfo1;
   }
@@ -256,6 +306,12 @@ defaultproperties
   TextTeamReleasedBy[1]    = "The blue team has been released by %player%.";
   TextTeamStalemate        = "Both teams captured, no score.";
 
+  SpeechTeamCaptured[0]    = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenCaptured";
+  SpeechTeamCaptured[1]    = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenCaptured";
+  SpeechTeamReleased[0]    = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenReleased";
+  SpeechTeamReleased[1]    = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenReleased";
+  SpeechTeamStalemate      = "BothTeamsCaptured";
+
   TextArenaCountdown[2]    = "Arena match is about to begin...3";
   TextArenaCountdown[1]    = "Arena match is about to begin...2";
   TextArenaCountdown[0]    = "Arena match is about to begin...1";
@@ -268,6 +324,12 @@ defaultproperties
   TextArenaEndWinner       = "You have won your freedom!";
   TextArenaEndLoser        = "You have lost the arena match.";
   TextArenaEndOther        = "%winner% has defeated %loser% in the arena.";
+
+  SpeechArenaStart         = "ArenaMatchHasBegun";
+  SpeechArenaCancel        = "ArenaMatchHasBeenCancelled";
+  SpeechArenaTie           = "ArenaMatchTied";
+  SpeechArenaEndWinner     = "YouHaveWonTheArenaMatch";
+  SpeechArenaEndLoser      = "YouHaveLostTheArenaMatch";
 
   ColorArena = (R=0,G=0,B=255,A=255);
 
