@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.60 2003/07/19 10:12:20 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.61 2003/07/19 22:02:25 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -65,6 +65,7 @@ event InitGame(string Options, out string Error) {
   local int iCharSeparator;
   local string OptionAddon;
   local string OptionJailFights;
+  local string NameAddon;
 
   Super.InitGame(Options, Error);
 
@@ -78,9 +79,12 @@ event InitGame(string Options, out string Error) {
     iCharSeparator = InStr(OptionAddon, ",");
     if (iCharSeparator < 0)
       iCharSeparator = Len(OptionAddon);
-    
-    AddMutator(Left(OptionAddon, iCharSeparator), True);
+
+    NameAddon = Left(OptionAddon, iCharSeparator);
     OptionAddon = Mid(OptionAddon, iCharSeparator + 1);
+    
+    Log("Add Jailbreak add-on" @ NameAddon);
+    AddMutator(NameAddon, True);
     }
   
   OptionJailFights = ParseOption(Options, "JailFights");
@@ -90,6 +94,27 @@ event InitGame(string Options, out string Error) {
   bForceRespawn    = True;
   bTeamScoreRounds = False;
   MaxLives         = 0;
+  }
+
+
+// ============================================================================
+// AddMutator
+//
+// Loads and adds a mutator to the mutator list. Works like its inherited
+// version, but checks whether the given mutator is loaded already first; by
+// doing that it never happens that any of the default add-ons are loaded
+// several times.
+// ============================================================================
+
+function AddMutator(string NameMutator, optional bool bUserAdded) {
+
+  local Mutator thisMutator;
+  
+  for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
+    if (string(thisMutator.Class) ~= NameMutator)
+      return;
+
+  Super.AddMutator(NameMutator, bUserAdded);
   }
 
 
