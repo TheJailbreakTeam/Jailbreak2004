@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUILlamaConfig
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUILlamaConfigPanel.uc,v 1.3 2003/11/11 17:48:47 wormbo Exp $
+// $Id: JBGUILlamaConfigPanel.uc,v 1.4 2004/03/09 15:42:20 wormbo Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -49,10 +49,10 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 function LoadINISettings()
 {
   bInitialized = False;
-  JBGUISliderEdit(Controls[CONTROL_REWARD_ADRENALINE]).SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
-  JBGUISliderEdit(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
-  JBGUISliderEdit(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
-  JBGUISliderEdit(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
+  JBGUIEditSlider(Controls[CONTROL_REWARD_ADRENALINE]).SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
+  JBGUIEditSlider(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
+  JBGUIEditSlider(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
+  JBGUIEditSlider(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
   bInitialized = True;
 }
 
@@ -69,10 +69,10 @@ function SaveINISettings(GUIComponent Sender)
   if ( !bInitialized )
     return;
   
-  class'JBAddonLlama'.default.RewardAdrenaline     = JBGUISliderEdit(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
-  class'JBAddonLlama'.default.RewardHealth         = JBGUISliderEdit(Controls[CONTROL_REWARD_HEALTH]).GetValue();
-  class'JBAddonLlama'.default.RewardShield         = JBGUISliderEdit(Controls[CONTROL_REWARD_SHIELD]).GetValue();
-  class'JBAddonLlama'.default.MaximumLlamaDuration = JBGUISliderEdit(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
+  class'JBAddonLlama'.default.RewardAdrenaline     = JBGUIEditSlider(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
+  class'JBAddonLlama'.default.RewardHealth         = JBGUIEditSlider(Controls[CONTROL_REWARD_HEALTH]).GetValue();
+  class'JBAddonLlama'.default.RewardShield         = JBGUIEditSlider(Controls[CONTROL_REWARD_SHIELD]).GetValue();
+  class'JBAddonLlama'.default.MaximumLlamaDuration = JBGUIEditSlider(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
   class'JBAddonLlama'.static.StaticSaveConfig();
 }
 
@@ -118,7 +118,7 @@ defaultproperties
   End Object
   Controls(1)=GUILabel'LlamaKillRewardLabel'
   
-  Begin Object Class=JBGUISliderEdit Name=RewardAdrenaline
+  Begin Object Class=JBGUIEditSlider Name=RewardAdrenaline
     WinTop=0.3
     WinLeft=0.15
     WinHeight=0.1
@@ -133,9 +133,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(2)=JBGUISliderEdit'RewardAdrenaline'
+  Controls(2)=JBGUIEditSlider'RewardAdrenaline'
   
-  Begin Object Class=JBGUISliderEdit Name=RewardHealth
+  Begin Object Class=JBGUIEditSlider Name=RewardHealth
     WinTop=0.45
     WinLeft=0.15
     WinHeight=0.1
@@ -150,9 +150,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(3)=JBGUISliderEdit'RewardHealth'
+  Controls(3)=JBGUIEditSlider'RewardHealth'
   
-  Begin Object Class=JBGUISliderEdit Name=RewardShield
+  Begin Object Class=JBGUIEditSlider Name=RewardShield
     WinTop=0.6
     WinLeft=0.15
     WinHeight=0.1
@@ -167,9 +167,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(4)=JBGUISliderEdit'RewardShield'
+  Controls(4)=JBGUIEditSlider'RewardShield'
   
-  Begin Object Class=JBGUISliderEdit Name=MaximumLlamaDuration
+  Begin Object Class=JBGUIEditSlider Name=MaximumLlamaDuration
     WinTop=0.0
     WinLeft=0.05
     WinHeight=0.1
@@ -184,7 +184,7 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(5)=JBGUISliderEdit'MaximumLlamaDuration'
+  Controls(5)=JBGUIEditSlider'MaximumLlamaDuration'
   
   WinTop=0.330
   WinLeft=0.360
