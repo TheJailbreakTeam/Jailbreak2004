@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.44 2003/03/23 09:49:43 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.45 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -161,12 +161,16 @@ function InitPlacedBot(Controller Controller, RosterEntry RosterEntry) {
 // Logout
 //
 // Destroys the JBTagPlayer and JBTagClient actors for the given player or bot
-// if one exists.
+// if one exists. If any team has become a bot-only team, sets team tactics to
+// auto-selection.
 // ============================================================================
 
 function Logout(Controller ControllerExiting) {
 
   local JBTagPlayer TagPlayerExiting;
+
+  if (ControllerExiting.PlayerReplicationInfo != None)
+    ReAssessTeam(ControllerExiting.PlayerReplicationInfo.Team);
 
   if (PlayerController(ControllerExiting) != None) {
     Class'JBTagClient'.Static.DestroyFor(PlayerController(ControllerExiting));
@@ -183,6 +187,50 @@ function Logout(Controller ControllerExiting) {
     }
 
   Super.Logout(ControllerExiting);
+  }
+
+
+// ============================================================================
+// ChangeTeam
+// ============================================================================
+
+function bool ChangeTeam(Controller ControllerPlayer, int iTeam, bool bNewTeam) {
+
+  local TeamInfo TeamBefore;
+  
+  if (ControllerPlayer.PlayerReplicationInfo != None)
+    TeamBefore = ControllerPlayer.PlayerReplicationInfo.Team;
+
+  if (Super.ChangeTeam(ControllerPlayer, iTeam, bNewTeam)) {
+    ReAssessTeam(TeamBefore);
+    ReAssessTeam(ControllerPlayer.PlayerReplicationInfo.Team);
+    return True;
+    }
+
+  return False;
+  }
+
+
+// ============================================================================
+// ReAssessTeam
+//
+// If all members of the given team are bots, sets its team tactics to auto.
+// ============================================================================
+
+function ReAssessTeam(TeamInfo Team) {
+
+  local Controller thisController;
+  
+  if (Team == None)
+    return;
+  
+  for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+    if (PlayerController(thisController)     != None &&
+        thisController.PlayerReplicationInfo != None &&
+        thisController.PlayerReplicationInfo.Team == Team)
+      return;
+
+  JBBotTeam(UnrealTeamInfo(Team).AI).SetTactics('Auto');
   }
 
 
