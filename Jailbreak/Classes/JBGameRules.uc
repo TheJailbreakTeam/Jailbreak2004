@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.7 2004/04/06 12:35:09 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -281,6 +281,26 @@ function NotifyExecutionEnd()
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyExecutionEnd();
+}
+
+
+// ============================================================================
+// CanBotAttackEnemy
+//
+// Called when a bot looks for a new enemy. Returning True means that the bot
+// is allowed to attack the given enemy; returning False prevents the bot from
+// attacking the enemy.
+// ============================================================================
+
+function bool CanBotAttackEnemy(Bot Bot, Pawn PawnEnemy)
+{
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
+  if (nextJBGameRules != None)
+    return nextJBGameRules.CanBotAttackEnemy(Bot, PawnEnemy);
+
+  return True;
 }
 
 
