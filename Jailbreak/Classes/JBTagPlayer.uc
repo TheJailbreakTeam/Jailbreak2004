@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.36 2003/06/15 22:11:50 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.37 2003/06/29 12:21:44 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -178,6 +178,8 @@ function bool BelongsTo(Controller Controller) {
 
 function Register() {
 
+  local JBGameRules firstJBGameRules;
+
   Super.Register();
 
   Controller = Controller(PlayerReplicationInfo(Keeper).Owner);
@@ -195,8 +197,9 @@ function Register() {
   TimeElapsedConnect += Level.Game.GameReplicationInfo.ElapsedTime - TimeElapsedDisconnect;
   PlayerReplicationInfo(Keeper).StartTime = TimeElapsedConnect;
 
-  if (TimeElapsedDisconnect > 0 && Jailbreak(Level.Game).firstJBGameRules != None)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReconnect(PlayerController(Controller), bIsLlama);
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (TimeElapsedDisconnect > 0 && firstJBGameRules != None)
+    firstJBGameRules.NotifyPlayerReconnect(PlayerController(Controller), bIsLlama);
 
   if (PlayerController(Controller) != None)
     HashIdPlayer = PlayerController(Controller).GetPlayerIDHash();
@@ -215,12 +218,14 @@ function Register() {
 function Unregister() {
 
   local byte bIsLlamaByte;
+  local JBGameRules firstJBGameRules;
 
   bIsLlama = !IsFree();
   bIsLlamaByte = byte(bIsLlama);  // out parameters cannot be bool
 
-  if (PlayerController(Controller) != None && Jailbreak(Level.Game).firstJBGameRules != None)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerDisconnect(PlayerController(Controller), bIsLlamaByte);
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (PlayerController(Controller) != None && firstJBGameRules != None)
+    firstJBGameRules.NotifyPlayerDisconnect(PlayerController(Controller), bIsLlamaByte);
   
   bIsLlama = bool(bIsLlamaByte);
 
@@ -781,6 +786,8 @@ simulated function ClientSetJail (JBInfoJail  JailNew)  { Jail  = JailNew;  }
 
 private function ERestart GetRestart() {
 
+  local JBGameRules firstJBGameRules;
+
   if (CacheGetRestart.Time == Level.TimeSeconds)
     return CacheGetRestart.Result;
 
@@ -790,9 +797,10 @@ private function ERestart GetRestart() {
   if (Controller.PreviousPawnClass == None && !bIsLlama)
     CacheGetRestart.Result = Restart_Freedom;  // initial world spawn
 
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (Restart == Restart_Jail &&
-      Jailbreak(Level.Game).firstJBGameRules != None &&
-     !Jailbreak(Level.Game).firstJBGameRules.CanSendToJail(Self))
+      firstJBGameRules != None &&
+     !firstJBGameRules.CanSendToJail(Self))
     CacheGetRestart.Result = Restart_Freedom;
   
   return CacheGetRestart.Result;

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.2 2003/02/17 07:26:02 mychaeel Exp $
+// $Id: JBMutatorDebug.uc,v 1.3 2003/03/22 10:21:11 mychaeel Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -41,7 +41,10 @@ event PostBeginPlay() {
   Log("Jailbreak Debugging: Debugging functions are available");
 
   JBGameRulesDebug = Spawn(Class'JBGameRulesDebug');
-  Jailbreak(Level.Game).AddJBGameRules(JBGameRulesDebug);
+
+  if (Level.Game.GameRulesModifiers == None)
+         Level.Game.GameRulesModifiers            = JBGameRulesDebug;
+    else Level.Game.GameRulesModifiers.AddGameRules(JBGameRulesDebug);
   }
 
 

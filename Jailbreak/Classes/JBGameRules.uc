@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.3 2003/02/08 22:44:22 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.4 2003/06/15 22:00:02 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -10,15 +10,8 @@
 // ============================================================================
 
 
-class JBGameRules extends Info
+class JBGameRules extends GameRules
   abstract;
-
-
-// ============================================================================
-// Variables
-// ============================================================================
-
-var JBGameRules nextJBGameRules;  // next game rules object in chain
 
 
 // ============================================================================
@@ -29,6 +22,9 @@ var JBGameRules nextJBGameRules;  // next game rules object in chain
 
 function NotifyRound() {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyRound();
   }
@@ -44,6 +40,9 @@ function NotifyRound() {
 
 function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsLlama) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerDisconnect(ControllerPlayer, bIsLlama);
   }
@@ -60,6 +59,9 @@ function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsL
 
 function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerReconnect(ControllerPlayer, bIsLlama);
   }
@@ -75,6 +77,9 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 
 function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     return nextJBGameRules.CanSendToArena(TagPlayer, Arena);
   
@@ -90,6 +95,9 @@ function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena) {
 
 function NotifyArenaStart(JBInfoArena Arena) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyArenaStart(Arena);
   }
@@ -105,6 +113,9 @@ function NotifyArenaStart(JBInfoArena Arena) {
 
 function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyArenaEnd(Arena, TagPlayerWinner);
   }
@@ -120,6 +131,9 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner) {
 
 function bool CanSendToJail(JBTagPlayer TagPlayer) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     return nextJBGameRules.CanSendToJail(TagPlayer);
   
@@ -138,6 +152,9 @@ function bool CanSendToJail(JBTagPlayer TagPlayer) {
 
 function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objective) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     return nextJBGameRules.CanRelease(Team, PawnInstigator, Objective);
   
@@ -154,6 +171,9 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
 
 function NotifyJailOpening(JBInfoJail Jail) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyJailOpening(Jail);
   }
@@ -168,6 +188,9 @@ function NotifyJailOpening(JBInfoJail Jail) {
 
 function NotifyJailOpened(JBInfoJail Jail) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyJailOpened(Jail);
   }
@@ -182,6 +205,9 @@ function NotifyJailOpened(JBInfoJail Jail) {
 
 function NotifyJailClosed(JBInfoJail Jail) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyJailClosed(Jail);
   }
@@ -197,6 +223,9 @@ function NotifyJailClosed(JBInfoJail Jail) {
 
 function NotifyPlayerJailed(JBTagPlayer TagPlayer) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerJailed(TagPlayer);
   }
@@ -212,6 +241,9 @@ function NotifyPlayerJailed(JBTagPlayer TagPlayer) {
 
 function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerReleased(TagPlayer, Jail);
   }
@@ -227,6 +259,9 @@ function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail) {
 
 function NotifyExecutionCommit(TeamInfo Team) {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyExecutionCommit(Team);
   }
@@ -241,21 +276,27 @@ function NotifyExecutionCommit(TeamInfo Team) {
 
 function NotifyExecutionEnd() {
 
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyExecutionEnd();
   }
 
 
 // ============================================================================
-// AddJBGameRules
+// GetNextJBGameRules
 //
-// Internal. Used to add a JBGameRules actor to the end of the current chain.
+// Internal. Used to find the next JBGameRules actor in the GameRules chain.
 // ============================================================================
 
-function AddJBGameRules(JBGameRules JBGameRules) {
+protected final function JBGameRules GetNextJBGameRules() {
 
-  if (nextJBGameRules == None)
-    nextJBGameRules = JBGameRules;
-  else
-    nextJBGameRules.AddJBGameRules(JBGameRules);
+  local GameRules thisGameRules;
+
+  for (thisGameRules = NextGameRules; thisGameRules != None; thisGameRules = thisGameRules.NextGameRules)
+    if (JBGameRules(thisGameRules) != None)
+      return JBGameRules(thisGameRules);
+
+  return None;
   }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.24 2003/03/16 12:02:56 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.25 2003/06/29 13:57:55 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -406,6 +406,7 @@ function NotifyJailOpening(TeamInfo Team) {
   local GameObjective thisObjective;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   firstObjective = UnrealTeamInfo(Team).AI.Objectives;
   for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
@@ -421,8 +422,9 @@ function NotifyJailOpening(TeamInfo Team) {
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
-  if (Jailbreak(Level.Game).firstJBGameRules != None)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyJailOpening(Self);
+    firstJBGameRules.NotifyJailOpening(Self);
+  }
+
 
 // ============================================================================
 // NotifyJailOpened
@@ -435,6 +437,7 @@ function NotifyJailOpened(TeamInfo Team) {
 
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -444,8 +447,9 @@ function NotifyJailOpened(TeamInfo Team) {
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
-  if (Jailbreak(Level.Game).firstJBGameRules != None)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyJailOpened(Self);
+    firstJBGameRules.NotifyJailOpened(Self);
+  }
+
 
 // ============================================================================
 // NotifyJailEntered
@@ -459,6 +463,7 @@ function NotifyJailEntered(JBTagPlayer TagPlayer) {
   local int iTeam;
   local JBGameRules firstJBGameRules;
   
+  iTeam = TagPlayer.GetTeam().TeamIndex;
   
   if (InfoReleaseByTeam[iTeam].bIsActive &&
       InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
@@ -471,8 +476,9 @@ function NotifyJailEntered(JBTagPlayer TagPlayer) {
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
-  if (Jailbreak(Level.Game).firstJBGameRules != None)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerJailed(TagPlayer);
+    firstJBGameRules.NotifyPlayerJailed(TagPlayer);
+  }
+
 
 // ============================================================================
 // NotifyJailLeft
@@ -484,8 +490,11 @@ function NotifyJailLeft(JBTagPlayer TagPlayer) {
 
   local JBGameRules firstJBGameRules;
 
-  if (Jailbreak(Level.Game).firstJBGameRules != None)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReleased(TagPlayer, Self);
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None)
+    firstJBGameRules.NotifyPlayerReleased(TagPlayer, Self);
+  }
+
 
 // ============================================================================
 // NotifyJailClosed
@@ -497,6 +506,7 @@ function NotifyJailClosed(TeamInfo Team) {
 
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -506,8 +516,9 @@ function NotifyJailClosed(TeamInfo Team) {
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
-  if (Jailbreak(Level.Game).firstJBGameRules != None)
-    Jailbreak(Level.Game).firstJBGameRules.NotifyJailClosed(Self);
+    firstJBGameRules.NotifyJailClosed(Self);
+  }
+
 
 // ============================================================================
 // ResetObjectives
@@ -643,6 +654,7 @@ auto state Waiting {
     local TeamInfo TeamRelease;
     local JBGameRules firstJBGameRules;
 
+    ObjectiveRelease = GameObjective(ActorOther);
 
     if (ObjectiveRelease != None)
       TeamRelease = TeamGame(Level.Game).OtherTeam(TeamGame(Level.Game).Teams[ObjectiveRelease.DefenderTeamIndex]);
@@ -664,9 +676,10 @@ auto state Waiting {
   
       firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
       if (CanReleaseBy(ControllerInstigator, TeamRelease) &&
+          (firstJBGameRules == None ||
            firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease))) {
-          (Jailbreak(Level.Game).firstJBGameRules == None ||
-           Jailbreak(Level.Game).firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease))) {
+        Release(TeamRelease, ControllerInstigator);
+        return;
         }
       }
 

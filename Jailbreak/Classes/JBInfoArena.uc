@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.20 2003/06/14 21:52:32 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.21 2003/06/15 21:31:32 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -189,6 +189,7 @@ function bool ContainsActor(Actor Actor) {
 
 function bool CanFight(Controller ControllerCandidate) {
 
+  local JBGameRules firstJBGameRules;
   local JBTagPlayer TagPlayer;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(ControllerCandidate.PlayerReplicationInfo);
@@ -203,8 +204,9 @@ function bool CanFight(Controller ControllerCandidate) {
       TagPlayer.GetArenaPending() != Self)
     return False;
   
-  if (Jailbreak(Level.Game).firstJBGameRules == None ||
-      Jailbreak(Level.Game).firstJBGameRules.CanSendToArena(TagPlayer, Self))
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules == None ||
+      firstJBGameRules.CanSendToArena(TagPlayer, Self))
     return True;
   
   return False;
@@ -547,6 +549,7 @@ function Prepare() {
 
 function MatchTie() {
 
+  local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
@@ -556,8 +559,9 @@ function MatchTie() {
       if (thisTagPlayer.GetArena() == Self)
         thisTagPlayer.RestartInJail();
 
-    if (Jailbreak(Level.Game).firstJBGameRules != None)
-      Jailbreak(Level.Game).firstJBGameRules.NotifyArenaEnd(Self, None);
+    firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+    if (firstJBGameRules != None)
+      firstJBGameRules.NotifyArenaEnd(Self, None);
 
     TriggerEvent(EventTied, Self, None);
     BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
@@ -581,6 +585,7 @@ function MatchTie() {
 function MatchFinish() {
 
   local Controller ControllerWinner;
+  local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer TagPlayerWinner;
@@ -616,8 +621,9 @@ function MatchFinish() {
           thisTagPlayer.GetPawn() != None)
         thisTagPlayer.RestartInJail();
 
-    if (Jailbreak(Level.Game).firstJBGameRules != None)
-      Jailbreak(Level.Game).firstJBGameRules.NotifyArenaEnd(Self, TagPlayerWinner);
+    firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+    if (firstJBGameRules != None)
+      firstJBGameRules.NotifyArenaEnd(Self, TagPlayerWinner);
 
     GotoState('Waiting');
     }
@@ -1045,8 +1051,11 @@ state MatchRunning {
 
   event BeginState() {
   
-    if (Jailbreak(Level.Game).firstJBGameRules != None)
-      Jailbreak(Level.Game).firstJBGameRules.NotifyArenaStart(Self);
+    local JBGameRules firstJBGameRules;
+
+    firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+    if (firstJBGameRules != None)
+      firstJBGameRules.NotifyArenaStart(Self);
 
     TimeCountdownTie = MaxCombatTime;
     SetTimer(1.0, True);

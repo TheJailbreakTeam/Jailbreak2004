@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.59 2003/07/15 09:59:06 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.60 2003/07/19 10:12:20 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -41,7 +41,6 @@ var localized string TextWebAdminPrefixAddon;
 // Variables
 // ============================================================================
 
-var JBGameRules firstJBGameRules;                // game rules chain
 var private JBTagPlayer firstTagPlayerInactive;  // disconnected player chain
 
 var private float TimeExecution;         // time for pending execution
@@ -411,17 +410,21 @@ function ReAssessTeam(TeamInfo Team) {
 
 
 // ============================================================================
-// AddJBGameRules
+// GetFirstJBGameRules
 //
-// Adds a new JBGameRules actor. Multiple JBGameRules actors can be chained.
+// Finds the first JBGameRules actor in the GameRules chain. Returns None if
+// none is found.
 // ============================================================================
 
-function AddJBGameRules(JBGameRules JBGameRules) {
+function JBGameRules GetFirstJBGameRules() {
 
-  if (firstJBGameRules == None)
-    firstJBGameRules = JBGameRules;
-  else
-    firstJBGameRules.AddJBGameRules(JBGameRules);
+  local GameRules thisGameRules;
+
+  for (thisGameRules = GameRulesModifiers; thisGameRules != None; thisGameRules = thisGameRules.NextGameRules)
+    if (JBGameRules(thisGameRules) != None)
+      return JBGameRules(thisGameRules);
+  
+  return None;
   }
 
 
@@ -1069,6 +1072,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
   local JBCamera thisCamera;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
+  local JBGameRules firstJBGameRules;
   local TeamInfo TeamCapturer;
 
   if (IsInState('MatchInProgress')) {
@@ -1103,6 +1107,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionInit();
 
+    firstJBGameRules = GetFirstJBGameRules();
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyExecutionCommit(TeamExecuted);
     }
@@ -1125,12 +1130,14 @@ function ExecutionEnd() {
   local Controller thisController;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
+  local JBGameRules firstJBGameRules;
 
   if (IsInState('Executing')) {
     firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionEnd();
   
+    firstJBGameRules = GetFirstJBGameRules();  
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyExecutionEnd();
 
@@ -1177,13 +1184,15 @@ state MatchInProgress {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBGameReplicationInfo InfoGame;
+    local JBGameRules firstJBGameRules;
   
     if (bWaitingToStartMatch)
       Super.BeginState();
     
     JBBotTeam(Teams[0].AI).ResetOrders();
     JBBotTeam(Teams[1].AI).ResetOrders();
-    
+  
+    firstJBGameRules = GetFirstJBGameRules();  
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyRound();
     
