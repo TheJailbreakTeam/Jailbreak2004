@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.4 2003/08/11 20:34:23 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.5 2003/11/11 17:48:46 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -344,7 +344,7 @@ static function ResetConfiguration()
 
 defaultproperties
 {
-  ConfigMenuClassName="JBAddonLlama.JBGUILlamaConfigPanel"
+  ConfigMenuClassName="JBAddonLlama.JBGUIPanelConfigLlama"
   IconMaterialName="JBAddonLlama.Llama"
   FriendlyName="Llama Hunt"
   GroupName="LlamaHunt"

@@ -1,13 +1,13 @@
 //=============================================================================
-// JBGUILlamaConfig
+// JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUILlamaConfigPanel.uc,v 1.4 2004/03/09 15:42:20 wormbo Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.5 2004/03/09 18:57:08 wormbo Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
 
 
-class JBGUILlamaConfigPanel extends GUIPanel;
+class JBGUIPanelConfigLlama extends GUIPanel;
 
 
 //=============================================================================
