@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.4 2004/03/12 20:43:02 tarquin Exp $
+// $Id: JBAddonProtection.uc,v 1.5 2004/03/18 20:07:42 tarquin Exp $
 //
 // This mutator protect the released players.
 // ============================================================================
@@ -86,9 +86,9 @@ defaultproperties
     ProtectionTime=3.000000
     ProtectionType=0
     FriendlyName="Release protection"
-    Description="The released players are protected some time."
+    Description="Players released from jail are protected from enemy fire."
     ConfigMenuClassName="JBAddonProtection.JBGUIPanelConfigProtection"
-    desc_ProtectionTime="The protection delay."
+    desc_ProtectionTime="The protection time."
     desc_ProtectionType="The protection type."
-    desc_ProtectArenaWinner="When enabled, the arena winner gain protection."
+    desc_ProtectArenaWinner="When enabled, the arena winner gains protection."
 }
