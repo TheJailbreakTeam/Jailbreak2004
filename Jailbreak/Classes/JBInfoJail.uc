@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.14 2003/01/19 19:11:19 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.15 2003/01/20 00:07:04 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -392,6 +392,40 @@ function NotifyJailOpened(TeamInfo Team) {
       thisTagPlayer.NotifyJailOpened();
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+
+// ============================================================================
+// NotifyJailEntered
+//
+// Called when a player enters this jail from an arena or from freedom. If the
+// jail doors are currently open, notifies the player about it.
+// ============================================================================
+
+function NotifyJailEntered(JBTagPlayer TagPlayer) {
+
+  local int iTeam;
+  local JBGameRules firstJBGameRules;
+  
+  
+  if (InfoReleaseByTeam[iTeam].bIsActive &&
+      InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
+  if (ListInfoReleaseByTeam[iTeam].bIsActive) {
+    if (!InfoReleaseByTeam[iTeam].bIsOpening)
+      TagPlayer.NotifyJailOpened();
+    if (!ListInfoReleaseByTeam[iTeam].bIsOpening)
+
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+
+// ============================================================================
+// NotifyJailLeft
+//
+// Called when a player left this jail for an arena or for freedom.
+// ============================================================================
+
+function NotifyJailLeft(JBTagPlayer TagPlayer) {
+
+  local JBGameRules firstJBGameRules;
+
+  // this space is intentionally left blank
 
 // ============================================================================
 // NotifyJailClosed

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.15 2003/01/25 23:46:48 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.16 2003/01/26 13:44:20 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -171,8 +171,8 @@ simulated function bool IsInJail() {
 // ============================================================================
 // NotifyJailEntered
 //
-// Automatically called when the player entered the jail. If the jail release
-// is open, prepares the player for release. Puts bots on the jail squad.
+// Automatically called when the player entered the jail from an arena or from
+// freedom. Notifies the jail of that. Puts bots on the jail squad.
 // ============================================================================
 
 function NotifyJailEntered() {
@@ -180,16 +180,15 @@ function NotifyJailEntered() {
   if (Bot(GetController()) != None)
     JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(GetController()));
 
-  if (Jail.IsReleaseActive(PlayerReplicationInfo.Team))
-    NotifyJailOpened();  // TODO: fix!
+  Jail.NotifyJailEntered(Self);
   }
 
 
 // ============================================================================
 // NotifyJailLeft
 //
-// Automatically called when the player left the jail. Resets all arena-related
-// information and scores points for the releaser if necessary.
+// Called when the player left the jail for an arena or for freedom. Resets
+// all arena-related information and scores points for the releaser.
 // ============================================================================
 
 function NotifyJailLeft(JBInfoJail JailPrev) {
@@ -214,6 +213,8 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
     TimeRelease = JailPrev.GetReleaseTime(PlayerReplicationInfo.Team);
     }
 
+  JailPrev.NotifyJailLeft(Self);
+
   JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleasePlayer(JailPrev.Tag, GetController());
   JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleasePlayer(JailPrev.Tag, GetController());
   }
@@ -222,21 +223,20 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 // ============================================================================
 // NotifyJailOpening
 //
-// Automatically called when the doors of the jail this player is in start
-// opening.
+// Called when the doors of the jail this player is in start opening.
 // ============================================================================
 
 function NotifyJailOpening() {
 
-  // nothing yet
+  // this space is intentionally left blank
   }
 
 
 // ============================================================================
 // NotifyJailOpened
 //
-// Automatically called when the doors of the jail this player is in have
-// fully opened. Gives bots new orders to make them leave the jail.
+// Called when the doors of the jail this player is in have fully opened.
+// Gives bots new orders to make them leave the jail.
 // ============================================================================
 
 function NotifyJailOpened() {
@@ -249,8 +249,8 @@ function NotifyJailOpened() {
 // ============================================================================
 // NotifyJailClosed
 //
-// Automatically called when the jail closes while this player is in jail.
-// Sets bots back on the jail squad.
+// Called when the jail closes while this player is in jail. Sets bots back on
+// the jail squad.
 // ============================================================================
 
 function NotifyJailClosed() {
