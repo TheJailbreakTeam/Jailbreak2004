@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.2.2.3 2004/04/15 21:43:54 tarquin Exp $
+// $Id$
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -163,7 +163,7 @@ function NotifyArenaStart(JBInfoArena Arena)
 
 function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 {
-    if(class'JBAddonProtection'.default.bProtectArenaWinner)
+    if(TagPlayerWinner != None && class'JBAddonProtection'.default.bProtectArenaWinner)
         GiveProtectionTo(TagPlayerWinner, TRUE);
 
     Super.NotifyArenaEnd(Arena, TagPlayerWinner);
