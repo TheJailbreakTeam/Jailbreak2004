@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTagPlayer.uc,v 1.7 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -244,8 +244,23 @@ function JailClosed() {
 
 private function RestartPlayer() {
 
-  if (GetController().Pawn != None)
-    GetController().Pawn.Destroy();
+  local xPawn PawnPlayer;
+
+  PawnPlayer = xPawn(GetController().Pawn);
+
+  if (PawnPlayer != None) {
+    if (PawnPlayer.CurrentCombo != None) {
+      PawnPlayer.CurrentCombo.Destroy();
+      PawnPlayer.Controller.Adrenaline = 0;
+      }
+
+    if (PawnPlayer.UDamageTimer != None) {
+      PawnPlayer.UDamageTimer.Destroy();
+      PawnPlayer.DisableUDamage();
+      }
+
+    PawnPlayer.Destroy();
+    }
   
   Level.Game.RestartPlayer(GetController());
   }
