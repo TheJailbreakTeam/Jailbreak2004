@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesTeleport
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBGameRulesTeleport.uc,v 1.2 2004/04/23 08:59:01 mychaeel Exp $
 //
 // The rules for the teleport addon.
 // ============================================================================
@@ -46,7 +46,9 @@ function bool CanRelease(TeamInfo Team, Pawn Releaser, GameObjective Objective)
         if(TeleportSpot != None)
         {
             Releaser.PlayTeleportEffect(TRUE, TRUE);
-            Releaser.Controller.ClientSetLocation(TeleportSpot.Location, TeleportSpot.Rotation);
+            Releaser.SetLocation(TeleportSpot.Location);
+            Releaser.SetRotation(TeleportSpot.Rotation);
+            Releaser.ClientSetLocation(TeleportSpot.Location, TeleportSpot.Rotation);
             Releaser.PlayTeleportEffect(TRUE, TRUE);
         }
     }
