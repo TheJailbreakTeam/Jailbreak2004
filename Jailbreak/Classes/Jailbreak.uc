@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.7 2002/11/24 14:41:31 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.8 2002/11/24 18:14:04 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -140,6 +140,50 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
 
 
 // ============================================================================
+// ScoreKill
+//
+// Translates kills into ScoreEvent calls according to Jailbreak rules.
+// ============================================================================
+
+function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
+
+  local int iRelease;
+  local float DistanceRelease;
+  local float DistanceReleaseMin;
+  local JBReplicationInfoPlayer InfoPlayerVictim;
+  local JBReplicationInfoTeam InfoTeamVictim;
+
+  InfoPlayerVictim = Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
+  if (InfoPlayerVictim != None && InfoPlayerVictim.IsInJail())
+    return;
+
+  if (ControllerKiller == None ||
+      ControllerKiller == ControllerVictim)
+    ScoreEvent(ControllerVictim, 'Suicide');
+  
+  else if (SameTeam(ControllerKiller, ControllerVictim))
+    ScoreEvent(ControllerKiller, 'Teamkill');
+
+  else {
+    DistanceReleaseMin = -1.0;
+    InfoTeamVictim = JBReplicationInfoTeam(ControllerVictim.PlayerReplicationInfo.Team);
+  
+    for (iRelease = 0; iRelease < InfoTeamVictim.ListRelease.Length; iRelease++) {
+      DistanceRelease = VSize(InfoTeamVictim.ListRelease[iRelease].Location - ControllerVictim.Pawn.Location);
+      if (DistanceReleaseMin < 0.0 ||
+          DistanceReleaseMin > DistanceRelease)
+        DistanceReleaseMin = DistanceRelease;
+      }
+  
+    if (DistanceRelease < 1024.0)
+      ScoreEvent(ControllerKiller, 'Defense');
+    else
+      ScoreEvent(ControllerKiller, 'Attack');
+    }
+  }
+
+
+// ============================================================================
 // ScoreEvent
 //
 // Adds points to the given player's score according to the given game event.
@@ -147,7 +191,14 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
 
 function ScoreEvent(Controller Controller, name Event) {
 
-  // TODO: implement
+  switch (Event) {
+    case 'Suicide':   Controller.PlayerReplicationInfo.Score -= 1;  break;
+    case 'Teamkill':  Controller.PlayerReplicationInfo.Score -= 1;  break;
+    case 'Attack':    Controller.PlayerReplicationInfo.Score += 1;  break;
+    case 'Defense':   Controller.PlayerReplicationInfo.Score += 2;  break;
+    case 'Release':   Controller.PlayerReplicationInfo.Score += 1;  break;
+    case 'Capture':   Controller.PlayerReplicationInfo.Score += 1;  break;
+    }
   }
 
 
@@ -400,6 +451,7 @@ function bool ExecutionInit() {
   local int iInfoJail;
   local int iTeam;
   local int TeamCaptured;
+  local Controller thisController;
   local JBReplicationInfoGame InfoGame;
   
   if (IsInState('MatchInProgress')) {
@@ -421,8 +473,16 @@ function bool ExecutionInit() {
     GotoState('Executing');
     
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-      if (iTeam != TeamCaptured)
+      if (iTeam != TeamCaptured) {
+        if (Teams[iTeam] != None)
+          Teams[iTeam].Score += 1;
         RestartTeam(iTeam);
+        }
+
+    for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+      if (thisController.PlayerReplicationInfo != None &&
+          thisController.PlayerReplicationInfo.Team.TeamIndex != TeamCaptured)
+        ScoreEvent(thisController, 'Capture');
 
     CameraExecution = FindCameraExecution();
     if (CameraExecution == None)
