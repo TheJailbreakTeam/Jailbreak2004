@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.10 2003/01/03 15:54:13 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.11 2003/01/03 22:33:32 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -441,7 +441,7 @@ function GameObjective GuessObjective() {
   
   DistanceTravelledMax = GetController().Pawn.GroundSpeed * (Level.TimeSeconds - TimeObjectiveGuessed);
   
-  if (DistanceApproachedMax > DistanceTravelledMax * 0.3)
+  if (DistanceApproachedMax > DistanceTravelledMax * 0.8)
     ObjectiveGuessed = ObjectiveApproachedMax;  // moving towards objective
   else
     ObjectiveGuessed = ObjectiveClosest;  // located in vicinity of objective
