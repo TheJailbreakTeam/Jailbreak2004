@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.82 2004/05/06 12:50:39 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.83 2004/05/10 15:35:28 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1702,6 +1702,7 @@ defaultproperties
   HUDType                  = "Jailbreak.JBInterfaceHud";
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
   MapListType              = "Jailbreak.JBMapList";
+  HUDSettingsMenu          = "Jailbreak.JBGUICustomHUDMenu";
 
   MessageClass             = Class'JBLocalMessage';
   GameReplicationInfoClass = Class'JBGameReplicationInfo';
