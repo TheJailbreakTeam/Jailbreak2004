@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.28 2003/07/15 07:57:07 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.29 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -225,13 +225,13 @@ simulated event PostRender(Canvas Canvas)
     if (bShowBadConnectionAlert)
       DisplayBadConnectionAlert(Canvas);
     DisplayMessages(Canvas);
+    DisplayLocalMessages(Canvas);
 
     PlayerOwner.RenderOverlays(Canvas);
 
     if (PlayerConsole != None && PlayerConsole.bTyping)
       DrawTypingPrompt(Canvas, PlayerConsole.TypedStr);
   }
-
   else {
     Super.PostRender(Canvas);
 
