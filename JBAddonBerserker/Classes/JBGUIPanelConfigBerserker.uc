@@ -1,31 +1,27 @@
 // ============================================================================
 // JBGUIPanelConfigBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigBerserker.uc,v 1.2 2004/03/12 20:57:54 tarquin Exp $
+// $Id: JBGUIPanelConfigBerserker.uc,v 1.3 2004/03/18 20:06:49 tarquin Exp $
 //
 // Options of Berserker add-on.
 // ============================================================================
 class JBGUIPanelConfigBerserker extends JBGUIPanelConfig;
 
 
+//=============================================================================
+// Constants
+//=============================================================================
+
+const CONTROL_BESERK_TIME_MULT   = 0;
+const CONTROL_BESERK_TIME_MAX    = 1;
+
+
 // ============================================================================
 // Variables
 // ============================================================================
-var GUISlider BerserkTimeMultiplier;
-var GUISlider MaxBerserkTime;
+var JBGUIEditSlider BerserkTimeMultiplier;
+var JBGUIEditSlider MaxBerserkTime;
 var localized string SecondsText;
-
-
-// ============================================================================
-// *ValueText
-//
-// Write the text value of sliders.
-// ============================================================================
-function string BerserkTimeMultiplierValueText() {
-    return "("$int(BerserkTimeMultiplier.Value)$"%)"; }
-
-function string MaxBerserkTimeValueText() {
-    return "("$int(MaxBerserkTime.Value)@SecondsText$")"; }
 
 
 // ============================================================================
@@ -38,16 +34,12 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     Super.InitComponent(MyController, MyOwner);
 
     // Berserk Time Multiplier
-    BerserkTimeMultiplier = GUISlider(Controls[1]);
+    BerserkTimeMultiplier = JBGUIEditSlider(Controls[CONTROL_BESERK_TIME_MULT]);
     BerserkTimeMultiplier.SetValue(class'JBAddonBerserker'.default.BerserkTimeMultiplier);
-    BerserkTimeMultiplier.OnDrawCaption = BerserkTimeMultiplierValueText;
-    Controls[2].FriendlyLabel = GUILabel(Controls[0]);
 
     // Max Berserk Time
-    MaxBerserkTime = GUISlider(Controls[3]);
+    MaxBerserkTime = JBGUIEditSlider(Controls[CONTROL_BESERK_TIME_MAX]);
     MaxBerserkTime.SetValue(class'JBAddonBerserker'.default.MaxBerserkTime);
-    MaxBerserkTime.OnDrawCaption = MaxBerserkTimeValueText;
-    Controls[3].FriendlyLabel = GUILabel(Controls[2]);
 }
 
 
@@ -59,9 +51,9 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 function ChangeOptions(GUIComponent Sender)
 {
     if(Sender == BerserkTimeMultiplier)
-        class'JBAddonBerserker'.default.BerserkTimeMultiplier = int(BerserkTimeMultiplier.Value);
+        class'JBAddonBerserker'.default.BerserkTimeMultiplier = int(BerserkTimeMultiplier.GetValue());
     else if(Sender == MaxBerserkTime)
-        class'JBAddonBerserker'.default.MaxBerserkTime = int(MaxBerserkTime.Value);
+        class'JBAddonBerserker'.default.MaxBerserkTime = int(MaxBerserkTime.GetValue());
 
     class'JBAddonBerserker'.static.StaticSaveConfig();
 }
@@ -88,55 +80,37 @@ function ResetConfiguration()
 // ============================================================================
 defaultproperties
 {
-    SecondsText = "seconds"
+  SecondsText = "seconds"
 
-    Begin Object class=GUILabel Name=BerserkTimeMultiplierLabel
-        Caption="Berserk time multiplier :"
-        TextALign=TXTA_Left
-        TextColor=(R=255,G=0,B=0,A=255)
-        WinWidth=0.450000
-        WinHeight=0.100000
-        WinLeft=0.00000
-        WinTop=0.100000
-        StyleName="TextLabel"
-    End Object
-    Controls(0)=GUILabel'BerserkTimeMultiplierLabel'
-    
-    Begin Object class=GUISlider Name=BerserkTimeMultiplierSlider
-        WinWidth=0.525000
-        WinHeight=0.080000
-        WinLeft=0.475000
-        WinTop=0.100000
-        MinValue=1.000000
-        MaxValue=200.000000
-        bIntSlider=True
-        OnChange=ChangeOptions
-        Hint="Multipli the arena countdown remaning"
-    End Object
-    Controls(1)=GUISlider'BerserkTimeMultiplierSlider'
+  Begin Object Class=JBGUIEditSlider Name=BerserkTimeMultiplierEditSlider
+    WinTop    =0.0 // row 1
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    CaptionWidth  = -1;
+    SliderWidth   = 0.34;
+    EditBoxWidth  = 0.18;
+    Caption="Berserk time multiplier"
+    Hint="Percentage of remaining arena time."
+    MinValue=1
+    MaxValue=200
+    bIntegerOnly=True
+  End Object
+  Controls(0)=JBGUIEditSlider'BerserkTimeMultiplierEditSlider'
 
-    Begin Object class=GUILabel Name=MaxBerserkTimeLabel
-        Caption="Maximum Berserk time :"
-        TextALign=TXTA_Left
-        TextColor=(R=255,G=0,B=0,A=255)
-        WinWidth=0.450000
-        WinHeight=0.100000
-        WinLeft=0.000000
-        WinTop=0.300000
-        StyleName="TextLabel"
-    End Object
-    Controls(2)=GUILabel'MaxBerserkTimeLabel'
-    
-    Begin Object class=GUISlider Name=MaxBerserkTimeSlider
-        WinWidth=0.525000
-        WinHeight=0.080000
-        WinLeft=0.475000
-        WinTop=0.300000
-        MinValue=10.000000
-        MaxValue=60.000000
-        bIntSlider=True
-        OnChange=ChangeOptions
-        Hint="Limit the maximum berserk time"
-    End Object
-    Controls(3)=GUISlider'MaxBerserkTimeSlider'
+  Begin Object Class=JBGUIEditSlider Name=BerserkTimeMaxEditSlider
+    WinTop    =0.2 // row 2
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    CaptionWidth  = -1;
+    SliderWidth   = 0.34;
+    EditBoxWidth  = 0.18;
+    Caption="Maximum Berserk time"
+    Hint="Maximum seconds of berserk time."
+    MinValue=10
+    MaxValue=60
+    bIntegerOnly=True
+  End Object
+  Controls(1)=JBGUIEditSlider'BerserkTimeMaxEditSlider'
 }
