@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.7 2004/01/04 16:14:01 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.8 2004/04/15 09:58:28 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -202,9 +202,15 @@ simulated function ResetCrosshairLocations()
 {
   local int i;
   
-  for (i = 0; i < LocalHUD.default.Crosshairs.Length; i++) {
-    LocalHUD.Crosshairs[i].PosX = LocalHUD.default.Crosshairs[i].PosX;
-    LocalHUD.Crosshairs[i].PosY = LocalHUD.default.Crosshairs[i].PosY;
+  for (i = 0; i < LocalHUD.Crosshairs.Length; i++) {
+    if ( i < LocalHUD.default.Crosshairs.Length ) {
+      LocalHUD.Crosshairs[i].PosX = LocalHUD.default.Crosshairs[i].PosX;
+      LocalHUD.Crosshairs[i].PosY = LocalHUD.default.Crosshairs[i].PosY;
+    }
+    else {
+      LocalHUD.Crosshairs[i].PosX = 0.5;
+      LocalHUD.Crosshairs[i].PosY = 0.5;
+    }
   }
 }
 
@@ -247,9 +253,9 @@ simulated function Tick(float DeltaTime)
   if ( LocalHUD != None ) {
     CurrentCrosshair = Clamp(LocalHUD.CrosshairStyle, 0, LocalHUD.Crosshairs.Length - 1);
     LocalHUD.Crosshairs[CurrentCrosshair].PosX
-        = LocalHUD.default.Crosshairs[CurrentCrosshair].PosX + 0.05 * Sin(Level.TimeSeconds * 3.0);
+        = 0.5 + 0.05 * Sin(Level.TimeSeconds * 3.0);
     LocalHUD.Crosshairs[CurrentCrosshair].PosY
-        = LocalHUD.default.Crosshairs[CurrentCrosshair].PosY + 0.05 * Cos(Level.TimeSeconds * 4.0);
+        = 0.5 + 0.05 * Cos(Level.TimeSeconds * 4.0);
   }
   
   if ( Pawn(Owner).Controller != None && Pawn(Owner).Controller.Pawn != None

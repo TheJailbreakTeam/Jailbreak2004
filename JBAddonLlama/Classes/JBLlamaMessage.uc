@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaMessage
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaMessage.uc,v 1.3 2003/08/11 20:34:25 wormbo Exp $
+// $Id: JBLlamaMessage.uc,v 1.4 2003/11/11 18:40:55 wormbo Exp $
 //
 // Localized messages for Llama Hunt announcements.
 //=============================================================================
@@ -81,15 +81,30 @@ static function string GetString(optional int iSwitch,
 //=============================================================================
 
 static function ClientReceive(PlayerController Player,
-                              optional int Switch,
+                              optional int iSwitch,
                               optional PlayerReplicationInfo PlayerReplicationInfo1, 
                               optional PlayerReplicationInfo PlayerReplicationInfo2,
                               optional Object ObjectOptional)
 {
   // TODO: insert announcement here
+  switch (iSwitch) {
+    case 1:
+      if ( class'JBLocalMessage'.static.IsLocalPlayer(PlayerReplicationInfo1) )
+        Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaStart", "llama");
+      else
+        Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaStart", "other");
+      break;
+    case 2:
+    case 3:
+      Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaFragged");
+      break;
+    case 4:
+      Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaDisconnect");
+      break;
+  }
   
-  if ( Switch != 1 || !class'JBLocalMessage'.static.IsLocalPlayer(PlayerReplicationInfo1) )
-    Super.ClientReceive(Player, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
+  if ( iSwitch != 1 || !class'JBLocalMessage'.static.IsLocalPlayer(PlayerReplicationInfo1) )
+    Super.ClientReceive(Player, iSwitch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
 }
 
 
