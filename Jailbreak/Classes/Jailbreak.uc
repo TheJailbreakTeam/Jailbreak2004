@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.42 2003/03/16 17:38:14 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.43 2003/03/18 18:22:44 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -144,6 +144,19 @@ function Bot SpawnBot(optional string NameBot) {
 
 
 // ============================================================================
+// InitPlacedBot
+//
+// Only gives actual bots a team, as opposed to other scripted controllers.
+// ============================================================================
+
+function InitPlacedBot(Controller Controller, RosterEntry RosterEntry) {
+
+  if (Bot(Controller) != None)
+    Super.InitPlacedBot(Controller, RosterEntry);
+  }
+
+
+// ============================================================================
 // Logout
 //
 // Destroys the JBTagPlayer and JBTagClient actors for the given player or bot
@@ -255,8 +268,11 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
   TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
   TagPlayerVictim     = Class'JBTagPlayer'.Static.FindFor(PawnVictim    .PlayerReplicationInfo);
 
-  if (TagPlayerVictim    .GetArena() !=
-      TagPlayerInstigator.GetArena()) {
+  if (TagPlayerInstigator == None ||
+      TagPlayerVictim     == None)
+    return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
+
+  if (TagPlayerVictim.GetArena() != TagPlayerInstigator.GetArena()) {
     MomentumHit = vect(0,0,0);
     return 0;
     }
