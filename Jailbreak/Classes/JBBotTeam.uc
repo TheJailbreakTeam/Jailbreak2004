@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.23 2003/06/14 19:31:02 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.24 2003/06/15 14:32:14 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -311,7 +311,7 @@ function PutOnSquadArena(Bot Bot) {
   local JBBotSquadArena SquadArena;
 
   SquadArena = Spawn(ClassSquadArena);
-  SquadArena.AddBot(Bot);
+  SquadArena.Initialize(Team, None, Bot);
 
   SquadArena.NextSquad = Squads;
   Squads = SquadArena;
@@ -329,7 +329,7 @@ function PutOnSquadJail(Bot Bot) {
   local JBBotSquadJail SquadJail;
 
   SquadJail = Spawn(ClassSquadJail);
-  SquadJail.AddBot(Bot);
+  SquadJail.Initialize(Team, None, Bot);
 
   SquadJail.NextSquad = Squads;
   Squads = SquadJail;
