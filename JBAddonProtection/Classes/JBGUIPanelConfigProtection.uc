@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.7 2004/03/28 16:14:08 tarquin Exp $
+// $Id$
 //
 // Option of protection mutator.
 // ============================================================================
@@ -20,8 +20,8 @@ const CONTROL_PROTECT_ARENA    = 2;
 // ============================================================================
 // Variables
 // ============================================================================
-var JBGUIEditSlider   ProtectionTime;
-var JBGUIOptionGroup  ProtectionType;
+var JBGUIComponentTrackbar ProtectionTime;
+var JBGUIComponentOptions  ProtectionType;
 var moCheckBox  ProtectArenaWinner;
 var localized string ProtectionTypeText[2];
 var localized string SecondText, SecondsText;
@@ -39,11 +39,11 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     Super.InitComponent(MyController, MyOwner);
 
     // Protection time
-    ProtectionTime = JBGUIEditSlider(Controls[CONTROL_PROTECTION_TIME]);
+    ProtectionTime = JBGUIComponentTrackbar(Controls[CONTROL_PROTECTION_TIME]);
     ProtectionTime.SetValue(int(class'JBAddonProtection'.default.ProtectionTime));
 
     // Protection type
-    ProtectionType = JBGUIOptionGroup(Controls[CONTROL_PROTECTION_TYPE]);
+    ProtectionType = JBGUIComponentOptions(Controls[CONTROL_PROTECTION_TYPE]);
     ProtectionType.SetIndex(class'JBAddonProtection'.default.ProtectionType);
     //log("JB set protection type to"@ class'JBAddonProtection'.default.ProtectionType);
 
@@ -101,7 +101,7 @@ defaultproperties
   SecondText="second"
   SecondsText="seconds"
   
-  Begin Object Class=JBGUIEditSlider Name=ProtectionTimeEditSlider
+  Begin Object Class=JBGUIComponentTrackbar Name=TrackbarProtectionTime
     WinTop    =0.0
     WinLeft   =0.0
     WinHeight =0.1
@@ -116,9 +116,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=ChangeOptions
   End Object
-  Controls(0)=JBGUIEditSlider'ProtectionTimeEditSlider'
+  Controls(0)=JBGUIComponentTrackbar'TrackbarProtectionTime'
 
-  Begin Object class=JBGUIOptionGroup Name=ProtectionTypeOptionGroup
+  Begin Object class=JBGUIComponentOptions Name=OptionsProtectionType
     WinTop    = 0.2;
     WinLeft   = 0.0; 
     WinWidth  = 1.0;
@@ -139,7 +139,7 @@ defaultproperties
 
     OnChange=ChangeOptions
   End Object
-  Controls(1)=JBGUIOptionGroup'ProtectionTypeOptionGroup'
+  Controls(1)=JBGUIComponentOptions'OptionsProtectionType'
 
   Begin Object class=moCheckBox Name=ProtectArenaWinnerCheckBox
     WinTop        =0.6
