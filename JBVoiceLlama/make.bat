@@ -7,7 +7,7 @@
 echo Creating package...
 
 cd ..\System
-ucc pkg import sound ..\Sounds\JBVoiceBullwinkle ..\JBVoiceBullwinkle\Sounds
+ucc pkg import sound ..\Sounds\JBVoiceLlama ..\JBVoiceLlama\Sounds
 
 echo Done.
 

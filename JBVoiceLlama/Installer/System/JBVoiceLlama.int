@@ -1,7 +1,7 @@
 ; $Id$
 
 [Public]
-Object=(Name=JBVoiceBullwinkle,Class=Class,MetaClass=Jailbreak.JBVoice,Description="Bullwinkle")
+Object=(Name=JBVoiceLlama,Class=Class,MetaClass=Jailbreak.JBVoice,Description="Llama")
 
 [Settings]
 Volume=2.0
