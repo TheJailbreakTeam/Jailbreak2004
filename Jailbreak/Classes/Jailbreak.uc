@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.115 2004/08/18 17:47:38 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.116 2004/08/19 08:27:02 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1756,18 +1756,18 @@ state MatchInProgress {
   function RespawnPickups()
   {
     local Pickup thisPickup;
+    local xPickupBase thisPickupBase;
     local SVehicleFactory thisSVehicleFactory;
     local ONSStationaryWeaponPawn thisStationaryWeaponPawn;
   
-    foreach DynamicActors(Class'Pickup', thisPickup) {
+    foreach DynamicActors(Class'Pickup', thisPickup)
       if (thisPickup.PickupBase != None &&
           thisPickup.PickupBase.bDelayedSpawn)
              thisPickup.GotoState('Sleeping');
         else thisPickup.GotoState('Pickup');
-    
-      if (thisPickup.PickupBase != None)
-        thisPickup.PickupBase.TurnOn();
-    }
+
+    foreach AllActors(Class'xPickupBase', thisPickupBase)
+      thisPickupBase.TurnOn();
 
     foreach DynamicActors(Class'SVehicleFactory', thisSVehicleFactory)
       thisSVehicleFactory.Reset();
