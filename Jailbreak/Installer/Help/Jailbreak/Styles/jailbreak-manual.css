@@ -1,0 +1,148 @@
+html {
+	}
+body {
+	margin:0px;
+	padding:0px;
+  font-family: Verdana, Arial, sans-serif;
+}
+#header {
+	text-align:right;
+	padding:4px 2px;
+	margin:0px 10px;
+	font-size:90%;
+}
+#header a {
+	text-decoration:none;
+}
+
+/* ================================ colors */
+/* ======= PJB */
+
+	/* OUTER BG */
+body, #nav, div.image {
+	background-color:rgb(160, 164, 191);
+}
+
+	/* INNER BG */
+#content {
+	background-color:rgb(203, 204, 219);
+}
+
+	/* HIGHLIGHT */
+h1, h2 {
+	border-color: rgb(85, 90, 121);
+}
+
+	/* OUTER BG TEXT */
+#header, div.image p  {
+	color: rgb(223, 224, 229);
+}
+/* links */
+a {
+	color:rgb(85, 90, 121);
+}
+a:hover {
+	background-color:rgb(85, 90, 121);
+	color:white;
+	text-decoration:none;
+}
+#header a {
+	color:white;
+}
+#header a:hover {
+	color: rgb(85, 90, 121);
+	background-color:white;
+}
+h1 + p:first-letter {
+	background-color:rgb(85, 90, 121);
+	color:rgb(203, 204, 219);
+}
+/* ================================ */
+#content {
+	margin:10px;
+	margin-top:0px;
+	padding:10px;
+	line-height:1.25;
+}
+h1, h2, h3, h4 {
+	margin:0px;
+	font-weight:bold;
+	letter-spacing:0.02em;
+}
+
+h1 {
+	font-size:150%;
+}
+h2 {
+	font-size:120%;
+}
+p {
+	text-indent:1em;
+}
+em.em2 {
+	font-weight:bold;
+	font-style:normal;
+}
+dt {
+	font-family:monospace;
+}
+dd {
+	margin-bottom:1ex;
+}
+
+/* ================= fancy effects */
+/* margin effect */
+h1, h2 {
+	margin-left: -20px;
+	padding-left:10px;
+	border-left-width:10px;
+	border-left-style:solid;
+}
+/* drop cap */
+h1+p {
+	text-indent:0em;
+	min-height:2.5em;
+}
+h1 + p:first-letter {
+	font-size:2em;
+	font-weight:bold;
+	display:block;
+	float:left;
+	padding:0.125em;
+	padding-top:0px;
+	margin:0px;
+	margin-right:2px;
+}
+
+/* ================================ images */
+div.image {
+	float:right;
+	width:300px;
+	clear:both;
+	padding:10px;
+	
+	margin-right:-10px;
+	padding-right:0px;
+	margin-left:10px; /* runaround */
+	margin-bottom:20px; /* anti-bump */
+}
+* html div.image {
+	margin-right:-10px;
+	padding-right:10px;
+}	
+div.image p {
+	text-align:right;
+	margin:0px;
+	padding:2px;
+
+
+}
+
+img.old {
+	float:right;
+	clear:both;
+	padding:10px;
+	margin-right:-20px;
+	margin-left:10px; /* runaround */
+}
+
