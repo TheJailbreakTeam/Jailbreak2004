@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBGUIPanelConfigBerserker.uc,v 1.1 2004/03/12 20:52:39 tarquin Exp $
 //
 // Options of Berserker add-on.
 // ============================================================================
@@ -38,16 +38,16 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     Super.InitComponent(MyController, MyOwner);
 
     // Berserk Time Multiplier
-    BerserkTimeMultiplier = GUISlider(Controls[2]);
+    BerserkTimeMultiplier = GUISlider(Controls[1]);
     BerserkTimeMultiplier.SetValue(class'JBAddonBerserker'.default.BerserkTimeMultiplier);
     BerserkTimeMultiplier.OnDrawCaption = BerserkTimeMultiplierValueText;
-    Controls[2].FriendlyLabel = GUILabel(Controls[1]);
+    Controls[2].FriendlyLabel = GUILabel(Controls[0]);
 
     // Max Berserk Time
-    MaxBerserkTime = GUISlider(Controls[4]);
+    MaxBerserkTime = GUISlider(Controls[3]);
     MaxBerserkTime.SetValue(class'JBAddonBerserker'.default.MaxBerserkTime);
     MaxBerserkTime.OnDrawCaption = MaxBerserkTimeValueText;
-    Controls[4].FriendlyLabel = GUILabel(Controls[3]);
+    Controls[3].FriendlyLabel = GUILabel(Controls[2]);
 }
 
 
@@ -72,7 +72,7 @@ function ChangeOptions(GUIComponent Sender)
 //
 // When you click on Reset button.
 // ============================================================================
-function bool ClickReset(GUIComponent Sender)
+function ClickReset(coerce string Msg, float MsgLife)
 {
     BerserkTimeMultiplier.SetValue(50);
     MaxBerserkTime.SetValue(30);
@@ -80,8 +80,6 @@ function bool ClickReset(GUIComponent Sender)
     class'JBAddonBerserker'.default.BerserkTimeMultiplier = 50;
     class'JBAddonBerserker'.default.MaxBerserkTime = 30;
     class'JBAddonBerserker'.static.StaticSaveConfig();
-
-    return TRUE;
 }
 
 
@@ -90,22 +88,8 @@ function bool ClickReset(GUIComponent Sender)
 // ============================================================================
 defaultproperties
 {
-    SecondsText="seconds"
-
-////////////////////////////////////////////////////////////////
-
-    Begin Object Class=GUIButton Name=ResetButton
-        Caption="RESET"
-        WinWidth=0.200000
-        WinHeight=0.100000
-        WinLeft=0.775000
-        WinTop=0.900000
-        Hint="Reset options"
-        OnClick=ClickReset
-    End Object
-    Controls(0)=GUIButton'ResetButton'
-
-////////////////////////////////////////////////////////////////
+    OnMessage   = ClickReset;
+    SecondsText = "seconds"
 
     Begin Object class=GUILabel Name=BerserkTimeMultiplierLabel
         Caption="Berserk time multiplier :"
@@ -117,7 +101,7 @@ defaultproperties
         WinTop=0.100000
         StyleName="TextLabel"
     End Object
-    Controls(1)=GUILabel'BerserkTimeMultiplierLabel'
+    Controls(0)=GUILabel'BerserkTimeMultiplierLabel'
     
     Begin Object class=GUISlider Name=BerserkTimeMultiplierSlider
         WinWidth=0.525000
@@ -130,7 +114,7 @@ defaultproperties
         OnChange=ChangeOptions
         Hint="Multipli the arena countdown remaning"
     End Object
-    Controls(2)=GUISlider'BerserkTimeMultiplierSlider'
+    Controls(1)=GUISlider'BerserkTimeMultiplierSlider'
 
     Begin Object class=GUILabel Name=MaxBerserkTimeLabel
         Caption="Maximum Berserk time :"
@@ -142,7 +126,7 @@ defaultproperties
         WinTop=0.300000
         StyleName="TextLabel"
     End Object
-    Controls(3)=GUILabel'MaxBerserkTimeLabel'
+    Controls(2)=GUILabel'MaxBerserkTimeLabel'
     
     Begin Object class=GUISlider Name=MaxBerserkTimeSlider
         WinWidth=0.525000
@@ -155,5 +139,5 @@ defaultproperties
         OnChange=ChangeOptions
         Hint="Limit the maximum berserk time"
     End Object
-    Controls(4)=GUISlider'MaxBerserkTimeSlider'
+    Controls(3)=GUISlider'MaxBerserkTimeSlider'
 }
