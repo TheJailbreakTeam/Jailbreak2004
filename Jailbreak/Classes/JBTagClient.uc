@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.14 2004/05/30 14:57:38 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.15 2004/05/30 15:54:06 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained and not
@@ -222,6 +222,7 @@ function ExecViewTeam(optional name Whom)
 {
   local Pawn PawnViewTarget;
   local TeamInfo Team;
+  local Controller ControllerViewTarget;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
@@ -252,12 +253,14 @@ function ExecViewTeam(optional name Whom)
     Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
   }
   else {
-    PlayerController(Keeper).SetViewTarget(thisTagPlayer.GetPawn());
+    ControllerViewTarget = thisTagPlayer.GetController();
+  
+    PlayerController(Keeper).SetViewTarget(ControllerViewTarget);
     PlayerController(Keeper).bBehindView = True;
     PlayerController(Keeper).ViewTarget.BecomeViewTarget();
     
-    PlayerController(Keeper).ClientSetViewTarget(PlayerController(Keeper).ViewTarget);
-    PlayerController(Keeper).ClientSetBehindView(PlayerController(Keeper).bBehindView);
+    PlayerController(Keeper).ClientSetViewTarget(ControllerViewTarget);
+    PlayerController(Keeper).ClientSetBehindView(True);
   }
 }
 
