@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.66 2004/03/06 17:57:37 mychaeel Exp $
+// $Id$
 //
 // Jailbreak game type.
 // ============================================================================
@@ -648,6 +648,10 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
   else if (SameTeam(ControllerKiller, ControllerVictim))
     ScorePlayer(ControllerKiller, 'Teamkill');
 
+  else if (TagPlayerVictim != None &&
+           TagPlayerVictim.IsInArena())
+    ScorePlayer(ControllerKiller, 'ArenaAttack');
+
   else {
     DistanceReleaseMin = -1.0;
 
@@ -660,9 +664,8 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
     }
 
     if (DistanceRelease < 1024.0)
-      ScorePlayer(ControllerKiller, 'Defense');
-    else
-      ScorePlayer(ControllerKiller, 'Attack');
+           ScorePlayer(ControllerKiller, 'Defense');
+      else ScorePlayer(ControllerKiller, 'Attack');
 
     ControllerKiller.PlayerReplicationInfo.Kills  += 1;
     ControllerVictim.PlayerReplicationInfo.Deaths += 1;
@@ -728,17 +731,19 @@ function ScorePlayer(Controller Controller, name Event)
     return;
 
   switch (Event) {
-    case 'Suicide':   ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
-    case 'Teamkill':  ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
-    case 'Attack':    ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialAttack  += 1;  break;
-    case 'Defense':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  TagPlayer.ScorePartialDefense += 1;  break;
-    case 'Release':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialRelease += 1;  break;
-    case 'Capture':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
+    case 'Suicide':       ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
+    case 'Teamkill':      ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
+    case 'Attack':        ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialAttack  += 1;  break;
+    case 'Defense':       ScoreObjective(Controller.PlayerReplicationInfo, +2);  TagPlayer.ScorePartialDefense += 1;  break;
+    case 'Release':       ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialRelease += 1;  break;
+    case 'Capture':       ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
+    case 'ArenaAttack':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  break;
   }
 
   switch (Event) {
-    case 'Defense':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
-    case 'Release':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'Defense':       Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'Release':       Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'ArenaVictory':  Controller.AwardAdrenaline(ADR_MinorBonus);  break;
   }
 }
 
@@ -774,9 +779,8 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
 
     if (ControllerKiller == None ||
         ControllerKiller == ControllerVictim)
-      SwitchMessage = 1;  // suicide
-    else
-      SwitchMessage = 0;  // homicide
+           SwitchMessage = 1;  // suicide
+      else SwitchMessage = 0;  // homicide
 
     firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)

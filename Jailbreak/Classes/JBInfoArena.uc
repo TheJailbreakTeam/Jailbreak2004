@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.27 2004/03/29 00:01:07 mychaeel Exp $
+// $Id$
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -637,8 +637,8 @@ function MatchFinish()
 
       TagPlayerWinner = Class'JBTagPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo);
       TagPlayerWinner.RestartInFreedom();
+      Jailbreak(Level.Game).ScorePlayer(ControllerWinner, 'ArenaVictory');
     }
-
     else {
       TriggerEvent(EventTied, Self, None);
       BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
