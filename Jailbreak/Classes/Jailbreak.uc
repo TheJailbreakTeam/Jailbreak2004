@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: Jailbreak.uc,v 1.67.2.29 2004/06/01 12:04:17 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -324,25 +324,23 @@ event PostBeginPlay()
 
 
 // ============================================================================
-// Login
+// PostLogin
 //
-// Gives every player new JBTagPlayer and JBTagClient actors.
+// Gives every player new JBTagClient and JBTagPlayer actors.
 // ============================================================================
 
-event PlayerController Login(string Portal, string Options, out string Error)
+event PostLogin(PlayerController PlayerControllerLogin)
 {
-  local PlayerController PlayerLogin;
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer TagPlayerLogin;
 
-  PlayerLogin = Super.Login(Portal, Options, Error);
+  Class'JBTagClient'.Static.SpawnFor(PlayerControllerLogin);
 
-  if (PlayerLogin                            != None &&
-      PlayerLogin.PlayerReplicationInfo      != None &&
-      PlayerLogin.PlayerReplicationInfo.Team != None) {
+  if (PlayerControllerLogin.PlayerReplicationInfo      != None &&
+      PlayerControllerLogin.PlayerReplicationInfo.Team != None) {
 
     for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.BelongsTo(PlayerLogin))
+      if (thisTagPlayer.BelongsTo(PlayerControllerLogin))
         break;
 
     if (thisTagPlayer != None) {
@@ -355,18 +353,16 @@ event PlayerController Login(string Portal, string Options, out string Error)
           if (thisTagPlayer.nextTag == TagPlayerLogin)
             thisTagPlayer.nextTag = TagPlayerLogin.nextTag;
 
-      TagPlayerLogin.SetOwner(PlayerLogin.PlayerReplicationInfo);
+      TagPlayerLogin.SetOwner(PlayerControllerLogin.PlayerReplicationInfo);
       TagPlayerLogin.Register();
     }
 
     else {
-      Class'JBTagPlayer'.Static.SpawnFor(PlayerLogin.PlayerReplicationInfo);
+      Class'JBTagPlayer'.Static.SpawnFor(PlayerControllerLogin.PlayerReplicationInfo);
     }
   }
 
-  Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
-
-  return PlayerLogin;
+  Super.PostLogin(PlayerControllerLogin);
 }
 
 
