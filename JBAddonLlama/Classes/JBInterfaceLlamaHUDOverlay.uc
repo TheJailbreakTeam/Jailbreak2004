@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.5 2003/11/11 17:48:48 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6 2004/01/04 16:14:00 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -16,10 +16,11 @@ class JBInterfaceLlamaHUDOverlay extends Info notplaceable;
 // Imports
 //=============================================================================
 
-#exec Texture Import File=Textures\Llama.dds Mips=Off Alpha=1 Group=JBInterfaceLlamaHUDOverlay
-#exec Texture Import File=Textures\LlamaIconMask.dds Mips=Off Alpha=1 Group=JBInterfaceLlamaHUDOverlay
-#exec Texture Import File=Textures\LlamaScreenOverlay.dds Mips=Off Alpha=1 Group=JBInterfaceLlamaHUDOverlay
+#exec Texture Import File=Textures\Llama.dds Mips=Off Alpha=1 Group=LlamaCompass
+#exec Texture Import File=Textures\LlamaIconMask.dds Mips=Off Alpha=1 Group=LlamaCompass
+#exec Texture Import File=Textures\LlamaScreenOverlay.dds Mips=Off Alpha=1 Group=LlamaHudOverlay
 #exec Audio Import File=Sounds\Heartbeat.wav
+#exec obj load file=..\Textures\HudContent.utx
 
 
 //=============================================================================
@@ -39,7 +40,7 @@ var private bool                 bHeartbeakPlayed;
 // llama compass
 var private HudBase.SpriteWidget LlamaCompassIcon;    // the llama icon
 var private HudBase.SpriteWidget LlamaCompassIconBG;  // black circle background
-var private HudBase.SpriteWidget LlamaCompassBG[3];   // connection between canvas border and actual compass
+var private HudBase.SpriteWidget LlamaCompassBG;      // connection between canvas border and actual compass
 var private HudBase.SpriteWidget LlamaCompassDot;     // compas dot showing llamas
 var private Material LlamaizedCompassIcon;            // the llama icon material when player is a llama
 var private Material LlamaScreenOverlayMaterial;      // screen overlay material when player is a llama
@@ -291,9 +292,7 @@ simulated function RenderOverlays(Canvas C)
   C.ColorModulate.W = JailbreakHUD.HudOpacity / 255;
   
   if ( ShouldDisplayLlamaCompass() || LlamaCompassSlidePosition > 0.0 ) {
-    JailbreakHUD.DrawSpriteWidget(C, LlamaCompassBG[2]);
-    JailbreakHUD.DrawSpriteWidget(C, LlamaCompassBG[1]);
-    JailbreakHUD.DrawSpriteWidget(C, LlamaCompassBG[0]);
+    JailbreakHUD.DrawSpriteWidget(C, LlamaCompassBG);
     JailbreakHUD.DrawSpriteWidget(C, LlamaCompassIconBG);
     JailbreakHUD.DrawSpriteWidget(C, LlamaCompassIcon);
   }
@@ -355,9 +354,7 @@ simulated function UpdateLlamaHUDElements()
   
   LlamaCompassIcon.PosX   = Default.LlamaCompassIcon.PosX   + Smerp(LlamaCompassSlidePosition, LlamaCompassSlideDistance, 0.0);
   LlamaCompassIconBG.PosX = Default.LlamaCompassIconBG.PosX + Smerp(LlamaCompassSlidePosition, LlamaCompassSlideDistance, 0.0);
-  LlamaCompassBG[0].PosX  = Default.LlamaCompassBG[0].PosX  + Smerp(LlamaCompassSlidePosition, LlamaCompassSlideDistance, 0.0);
-  LlamaCompassBG[1].PosX  = Default.LlamaCompassBG[1].PosX  + Smerp(LlamaCompassSlidePosition, LlamaCompassSlideDistance, 0.0);
-  LlamaCompassBG[2].PosX  = Default.LlamaCompassBG[2].PosX  + Smerp(LlamaCompassSlidePosition, LlamaCompassSlideDistance, 0.0);
+  LlamaCompassBG.PosX     = Default.LlamaCompassBG.PosX     + Smerp(LlamaCompassSlidePosition, LlamaCompassSlideDistance, 0.0);
 }
 
 
@@ -478,6 +475,7 @@ defaultproperties
     VOffset=64.000000
     Material=Texture'Llama'
     FallbackMaterial=Texture'Llama'
+    Outer=LlamaCompass
   End Object
   
   Begin Object Class=TexRotator Name=LlamaIconRotator
@@ -488,6 +486,7 @@ defaultproperties
     OscillationAmplitude=(Yaw=8000)
     Material=TexOscillator'LlamaIconOscillator'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
+    Outer=LlamaCompass
   End Object
   
   Begin Object Class=Combiner Name=LlamaIconCombiner
@@ -495,12 +494,14 @@ defaultproperties
     Material1=TexRotator'LlamaIconRotator'
     Material2=Texture'LlamaIconMask'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
+    Outer=LlamaCompass
   End Object
   
   Begin Object Class=FinalBlend Name=LlamaIconFinalBlend
     FrameBufferBlending=FB_AlphaBlend
     Material=Combiner'LlamaIconCombiner'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
+    Outer=LlamaCompass
   End Object
   
   
@@ -517,6 +518,7 @@ defaultproperties
     VOscillationAmplitude=0.5
     Material=Texture'LlamaScreenOverlay'
     FallbackMaterial=Texture'LlamaScreenOverlay'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=TexOscillator Name=OverlayOscillator2
@@ -528,6 +530,7 @@ defaultproperties
     VOscillationAmplitude=0.5
     Material=Texture'LlamaScreenOverlay'
     FallbackMaterial=Texture'LlamaScreenOverlay'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=TexOscillator Name=Overlay1Scaler
@@ -542,6 +545,7 @@ defaultproperties
     VOffset=128.0
     Material=TexOscillator'OverlayOscillator1'
     FallbackMaterial=TexOscillator'OverlayOscillator1'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=TexOscillator Name=Overlay2Scaler
@@ -557,6 +561,7 @@ defaultproperties
     VOffset=128.0
     Material=TexOscillator'OverlayOscillator2'
     FallbackMaterial=TexOscillator'OverlayOscillator2'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=Combiner Name=OverlayCombiner
@@ -564,12 +569,14 @@ defaultproperties
     AlphaOperation=CO_Add
     Material1=TexOscillator'Overlay1Scaler'
     Material2=TexOscillator'Overlay2Scaler'
+    Outer=LlamaHudOverlay
   End Object
   
   Begin Object Class=FinalBlend Name=LlamaScreenOverlayFinal
     FrameBufferBlending=FB_Translucent
     Material=Combiner'OverlayCombiner'
     FallbackMaterial=TexOscillator'Overlay2Scaler'
+    Outer=LlamaHudOverlay
   End Object
   
   
@@ -577,12 +584,10 @@ defaultproperties
   // HUD elements
   //===========================================================================
   
-  LlamaCompassIcon=(WidgetTexture=Texture'Llama',RenderStyle=STY_Alpha,TextureCoords=(X1=0,Y1=0,X2=128,Y2=128),DrawPivot=DP_MiddleMiddle,PosX=0.93,PosY=0.7,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
-  LlamaCompassIconBG=(WidgetTexture=Texture'SpriteWidgetHud',RenderStyle=STY_Alpha,TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,PosX=0.93,PosY=0.7,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
-  LlamaCompassBG(0)=(WidgetTexture=Texture'InterfaceContent.Hud.SkinA',RenderStyle=STY_Alpha,TextureCoords=(X1=611,Y1=900,X2=979,Y2=1023),TextureScale=0.3,DrawPivot=DP_MiddleLeft,PosX=0.94,PosY=0.7,ScaleMode=SM_Right,Scale=1.0,Tints[0]=(R=255,G=255,B=255,A=200),Tints[1]=(R=255,G=255,B=255,A=200))
-  LlamaCompassBG(1)=(WidgetTexture=Texture'InterfaceContent.Hud.SkinA',RenderStyle=STY_Alpha,TextureCoords=(X1=611,Y1=777,X2=979,Y2=899),TextureScale=0.3,DrawPivot=DP_MiddleLeft,PosX=0.94,PosY=0.7,ScaleMode=SM_Right,Scale=1.0,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150))
-  LlamaCompassBG(2)=(WidgetTexture=Texture'InterfaceContent.Hud.SkinA',RenderStyle=STY_Alpha,TextureCoords=(X1=611,Y1=654,X2=979,Y2=776),TextureScale=0.3,DrawPivot=DP_MiddleLeft,PosX=0.94,PosY=0.7,ScaleMode=SM_Right,Scale=1.0,Tints[0]=(R=100,G=0,B=0,A=200),Tints[1]=(R=48,G=75,B=120,A=200))
-  LlamaCompassDot=(WidgetTexture=Texture'SpriteWidgetHud',RenderStyle=STY_Alpha,TextureCoords=(X1=304,Y1=352,X2=336,Y2=384),TextureScale=0.25,DrawPivot=DP_MiddleMiddle,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255))
+  LlamaCompassIcon=(WidgetTexture=Texture'Llama',RenderStyle=STY_Alpha,TextureCoords=(X1=0,Y1=0,X2=128,Y2=128),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,PosX=0.93,PosY=0.7,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  LlamaCompassIconBG=(WidgetTexture=Texture'HUDContent.Generic.HUD',RenderStyle=STY_Alpha,TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.85,DrawPivot=DP_MiddleMiddle,PosX=0.93,PosY=0.7,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  LlamaCompassBG=(WidgetTexture=Texture'HUDContent.Generic.HUD',RenderStyle=STY_Alpha,TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.6,DrawPivot=DP_MiddleLeft,PosX=0.93,PosY=0.7,ScaleMode=SM_Right,Scale=1.0,Tints[0]=(R=0,G=0,B=0,A=150),Tints[1]=(R=0,G=0,B=0,A=150))
+  LlamaCompassDot=(WidgetTexture=Texture'HUDContent.Generic.GlowCircle',RenderStyle=STY_Alpha,TextureCoords=(X1=0,Y1=0,X2=64,Y2=64),TextureScale=0.15,DrawPivot=DP_MiddleMiddle,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255))
   LlamaizedCompassIcon=FinalBlend'LlamaIconFinalBlend'
   LlamaScreenOverlayMaterial=FinalBlend'LlamaScreenOverlayFinal'
   LlamaCompassSlideDistance=0.12
