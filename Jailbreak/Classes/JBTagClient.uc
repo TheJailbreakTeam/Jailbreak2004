@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.10 2004/05/20 12:26:18 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.11 2004/05/20 17:43:08 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained and not
@@ -112,7 +112,7 @@ function ExecArenaCam()
   local JBTagPlayer TagPlayerOwner;
 
   TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PlayerController(Owner).PlayerReplicationInfo);
-  if (TagPlayerOwner == None ||
+  if (TagPlayerOwner            != None &&
       TagPlayerOwner.GetArena() != None)
     return;
 
