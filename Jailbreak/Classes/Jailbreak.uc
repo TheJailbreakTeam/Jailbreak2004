@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.69 2004/04/14 15:40:39 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.70 2004/04/15 13:27:51 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -554,12 +554,34 @@ function AddGameSpecificInventory(Pawn PawnPlayer)
   bAllowTransPrev = bAllowTrans;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
-  if (TagPlayer != None && TagPlayer.IsInJail())
+  if (TagPlayer != None &&
+      TagPlayer.IsInJail())
     bAllowTrans = False;
 
   Super.AddGameSpecificInventory(PawnPlayer);
 
   bAllowTrans = bAllowTransPrev;
+}
+
+
+// ============================================================================
+// PickupQuery
+//
+// Prevents arena combatants from picking up adrenaline.
+// ============================================================================
+
+function bool PickupQuery(Pawn PawnPlayer, Pickup Pickup)
+{
+  local JBTagPlayer TagPlayer;
+
+  if (AdrenalinePickup(Pickup) != None) {
+    TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
+    if (TagPlayer != None &&
+        TagPlayer.IsInArena())
+      return False;
+  }
+  
+  return Super.PickupQuery(PawnPlayer, Pickup);
 }
 
 
