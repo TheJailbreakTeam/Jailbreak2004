@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagNavigation
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagNavigation.uc,v 1.6 2003/06/29 11:03:36 mychaeel Exp $
+// $Id: JBTagNavigation.uc,v 1.7 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Caches information about an actor used for navigational purposes.
 // ============================================================================
@@ -105,6 +105,7 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
 
 private function Controller GetController()
 {
+  local JBScout JBScout;
   local JBTagNavigation thisTagNavigation;
 
   if (Controller != None)
@@ -116,8 +117,12 @@ private function Controller GetController()
       return Controller;
     }
 
+  JBScout = Spawn(Class'JBScout');
+  if (JBScout == None)
+    Log(Level.TimeSeconds @ "Unable to spawn JBScout at" @ Location);
+
   Controller = Spawn(Class'ScriptedTriggerController');
-  Controller.Possess(Spawn(Class'JBScout'));
+  Controller.Possess(JBScout);
 
   return Controller;
 }
