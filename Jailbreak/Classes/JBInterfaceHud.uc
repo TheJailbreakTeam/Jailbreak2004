@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.26 2003/06/15 21:31:32 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.27 2003/06/29 14:19:28 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -37,6 +37,8 @@ var localized string TextTactics[5];          // tactics names for widget
 
 var bool bWidescreen;                         // display widescreen bars
 var private float RatioWidescreen;            // widescreen scroll-in progress
+
+var private array<Actor> ListActorOverlay;    // list of registered overlays
 
 var private transient JBTagClient TagClientOwner;  // client bridge head
 var private transient JBTagPlayer TagPlayerOwner;  // player state for owner
@@ -78,6 +80,39 @@ var SpriteWidget SpriteWidgetTacticsTint;     // tactics widget tint
 var SpriteWidget SpriteWidgetTacticsFrame;    // tactics widget frame
 var SpriteWidget SpriteWidgetTacticsIcon[5];  // tactics icons
 var SpriteWidget SpriteWidgetTacticsAuto;     // auto tactics display
+
+
+// ============================================================================
+// RegisterOverlay
+//
+// Registers an actor whose RenderOverlays event will be called once per
+// frame. If the actor is already registered, moves it to the end of the list.
+// ============================================================================
+
+simulated function RegisterOverlay(Actor ActorOverlay) {
+
+  UnregisterOverlay(ActorOverlay);
+  
+  if (ActorOverlay != None)
+    ListActorOverlay[ListActorOverlay.Length] = ActorOverlay;
+  }
+
+
+// ============================================================================
+// UnregisterOverlay
+//
+// Unregisters a previously registered overlay actor.
+// ============================================================================
+
+simulated function UnregisterOverlay(Actor ActorOverlay) {
+
+  local int iActorOverlay;
+  
+  for (iActorOverlay = ListActorOverlay.Length - 1; iActorOverlay >= 0; iActorOverlay--)
+    if (ListActorOverlay[iActorOverlay] == None ||
+        ListActorOverlay[iActorOverlay] == ActorOverlay)
+      ListActorOverlay.Remove(iActorOverlay, 1);
+  }
 
 
 // ============================================================================
@@ -202,6 +237,8 @@ simulated event PostRender(Canvas Canvas) {
 
     if (bShowScoreBoard)
       DisplayMessages(Canvas);
+    else
+      DrawOverlays(Canvas);
     }
 
   if (Level.LevelAction == LEVACT_None)  // skip precaching
@@ -282,6 +319,22 @@ simulated function SynchronizeTime() {
     return;
 
   TagClientOwner.SynchronizeTime();
+  }
+
+
+// ============================================================================
+// DrawOverlays
+//
+// Renders all overlay actors on the screen.
+// ============================================================================
+
+simulated function DrawOverlays(Canvas Canvas) {
+
+  local int iActorOverlay;
+
+  for (iActorOverlay = 0; iActorOverlay < ListActorOverlay.Length; iActorOverlay++)
+    if (ListActorOverlay[iActorOverlay] != None)
+      ListActorOverlay[iActorOverlay].RenderOverlays(Canvas);
   }
 
 
