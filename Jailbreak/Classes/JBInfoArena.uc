@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.14 2003/03/18 18:22:44 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.15 2003/03/22 18:39:41 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -1112,7 +1112,7 @@ defaultproperties {
   TagAttachPickups = Auto;
   
   SpriteWidgetCountdown = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
-  NumericWidgetCountdown = (TextureScale=0.15,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0.043,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  NumericWidgetCountdown = (TextureScale=0.15,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=140,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   
   FontNames = "UT2003Fonts.jFontMedium";
   ScaleFontNames = 0.45;
