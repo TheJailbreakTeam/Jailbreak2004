@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.34 2004/05/30 19:13:55 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.35 2004/05/31 18:48:44 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -1448,6 +1448,7 @@ function GameObjective GetPriorityFreelanceObjective()
 
 function NotifySpawn(Controller ControllerSpawned)
 {
+  local bool bIsOnSameTeam;
   local NavigationPoint NavigationPointGuessed;
   local SquadAI thisSquad;
   local JBTagPlayer TagPlayer;
@@ -1456,22 +1457,28 @@ function NotifySpawn(Controller ControllerSpawned)
   if (TagPlayer == None)
     return;
 
+  bIsOnSameTeam = (TagPlayer.GetTeam() == Team);
+
   if (TagPlayer.IsFree()) {
-    if (TagPlayer.GetTeam() == Team) {
+    if (bIsOnSameTeam) {
       if (Bot(ControllerSpawned) != None)
         ResumeBotOrders(Bot(ControllerSpawned));
     }
-
     else {
       NavigationPointGuessed = TagPlayer.GuessLocation(TagTeam[TagPlayer.GetTeam().TeamIndex].FindPlayerStarts());
       if (NavigationPointGuessed != None)
         SendSquadTo(NavigationPointGuessed, ControllerSpawned);
     }
   }
-
   else {
-    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
-      thisSquad.RemoveEnemy(ControllerSpawned.Pawn);
+    if (bIsOnSameTeam) {
+      if (TagPlayer.OrderNameFixed == 'Attack')
+        SetOrders(Bot(ControllerSpawned), 'Freelance', None);
+    }
+    else {
+      for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
+        thisSquad.RemoveEnemy(ControllerSpawned.Pawn);
+    }
   
     TagPlayer.RecordLocation(None);
   }
@@ -1481,16 +1488,36 @@ function NotifySpawn(Controller ControllerSpawned)
 // ============================================================================
 // NotifyReleaseTeam
 //
-// Called when a team is released. Dispatches a freelancing squad to the
-// objective where the release was probably caused from by the given enemy.
+// Called when a team is released. Resets all bots who were explicitly ordered
+// to attack this objective to team tactics. Dispatches a freelancing squad to
+// the objective where the release was probably caused from by the given enemy.
 // ============================================================================
 
 function NotifyReleaseTeam(name EventRelease, TeamInfo TeamReleased, Controller ControllerInstigator)
 {
+  local Bot BotAttacking;
   local GameObjective thisObjective;
+  local GameObjective ObjectiveAttacked;
   local NavigationPoint NavigationPointGuessed;
   local array<NavigationPoint> ListNavigationPointSwitch;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   local JBTagPlayer TagPlayerInstigator;
+
+  if (TeamReleased == Team) {
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.OrderNameFixed == 'Attack' &&
+          thisTagPlayer.GetTeam() == TeamReleased) {
+        BotAttacking = Bot(thisTagPlayer.GetController());
+        if (BotAttacking != None) {
+          ObjectiveAttacked = BotAttacking.Squad.SquadObjective;
+          if (ObjectiveAttacked != None &&
+              ObjectiveAttacked.Event == EventRelease)
+            SetOrders(BotAttacking, 'Freelance', None);
+        }
+      }
+  }
 
   if (ControllerInstigator == None ||
       Team == TeamReleased ||
