@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.2 2003/07/27 18:27:40 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.3 2003/07/29 14:50:54 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -12,7 +12,7 @@ class JBLlamaTag extends Inventory;
 
 
 //=============================================================================
-// variables
+// Variables
 //=============================================================================
 
 var JBGameRulesLlamaHunt       LlamaHuntRules;  // JBGameRules class for Jailbreak notifications
@@ -21,6 +21,7 @@ var JBLlamaTrailer             Trail;           // 3rd person xEmitter effect fo
 var JBLlamaArrow               LlamaArrow;      // client-side spinning arrow over the llama's head
 var JBTagPlayer                TagPlayer;       // the llama's JBTagPlayer
 var float                      LlamaStartTime;  // Level.TimeSeconds when this player was llamaized
+var JBInterfaceHUD             LocalHUD;        // the Llama's HUD
 
 
 //=============================================================================
@@ -101,10 +102,8 @@ simulated function InitLlamaTag()
   
   // make sure that the local player owns the llama tag
   if ( Pawn(Owner) != None && PlayerControllerLocal == Pawn(Owner).Controller ) {
-    //log("Found local player.", Name);
-    
-    //JBInterfaceHud(PlayerControllerLocal.myHud).RegisterOverlay(Self);
     HUDOverlay.SetLocalLlamaTag(Self);
+    LocalHUD = JBInterfaceHUD(PlayerControllerLocal.myHUD);
   }
   
   // attach the llama head
@@ -151,12 +150,8 @@ function DetachFromPawn(Pawn P)
 
 simulated event Destroyed()
 {
-  local PlayerController PlayerControllerLocal;
-  
-  PlayerControllerLocal = Level.GetLocalPlayerController();
-  if ( PlayerControllerLocal != None ) {
-    JBInterfaceHud(PlayerControllerLocal.myHud).UnregisterOverlay(Self);
-  }
+  if ( LocalHUD != None )
+    ResetCrosshairLocations();
   
   if ( Trail != None ) {
     Trail.Destroy();
@@ -173,6 +168,21 @@ simulated event Destroyed()
 
 
 //=============================================================================
+// ResetCrosshairLocations
+//
+// Reset all crosshair SpriteWidgets of the current HUD.
+//=============================================================================
+
+simulated function ResetCrosshairLocations()
+{
+  local int i;
+  
+  for (i = 0; i < LocalHUD.default.Crosshairs.Length; i++)
+    LocalHUD.Crosshairs[i] = LocalHUD.default.Crosshairs[i];
+}
+
+
+//=============================================================================
 // Tick
 //
 // Update third person llama effects and checks whether the maximum llama hunt
@@ -181,8 +191,18 @@ simulated event Destroyed()
 
 simulated function Tick(float DeltaTime)
 {
+  local int CurrentCrosshair;
+  
   //Pawn(Owner).SetHeadScale(2.0 + 1.0 * Cos(2.0 * Level.TimeSeconds));
   Pawn(Owner).SetHeadScale(0.01);
+  
+  if ( LocalHUD != None ) {
+    CurrentCrosshair = Clamp(LocalHUD.CrosshairStyle, 0, LocalHUD.Crosshairs.Length - 1);
+    LocalHUD.Crosshairs[CurrentCrosshair].PosX
+        = LocalHUD.default.Crosshairs[CurrentCrosshair].PosX + 0.05 * Sin(Level.TimeSeconds * 3.0);
+    LocalHUD.Crosshairs[CurrentCrosshair].PosY
+        = LocalHUD.default.Crosshairs[CurrentCrosshair].PosY + 0.05 * Cos(Level.TimeSeconds * 4.0);
+  }
   
   if ( Pawn(Owner).Controller != None && Pawn(Owner).Controller.Pawn != None
       && Trail != None && Trail.Owner != Pawn(Owner).Controller.Pawn )

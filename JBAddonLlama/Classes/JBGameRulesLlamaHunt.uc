@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.2 2003/07/26 23:24:48 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.3 2003/07/29 14:50:53 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -67,14 +67,18 @@ function Timer()
 
 function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsLlama)
 {
-  log("Disconnect:"@ControllerPlayer@ControllerPlayer.Pawn);
+  //log("Disconnect:"@ControllerPlayer@ControllerPlayer.Pawn);
   
-  if ( bIsLlama == 0 && ControllerPlayer == LlamaSuicidedLast )
+  if ( bIsLlama == 0 && ControllerPlayer == LlamaSuicidedLast ) {
     bIsLlama = 1;
+    BroadcastLocalizedMessage(class'JBLlamaMessage', 4, ControllerPlayer.PlayerReplicationInfo);
+  }
   
   if ( bIsLlama == 0 && ControllerPlayer.Pawn == None
-      && IsLlamaPending(class'JBTagPlayer'.static.FindFor(ControllerPlayer.PlayerReplicationInfo)) )
+      && IsLlamaPending(class'JBTagPlayer'.static.FindFor(ControllerPlayer.PlayerReplicationInfo)) ) {
     bIsLlama = 1;
+    BroadcastLocalizedMessage(class'JBLlamaMessage', 4, ControllerPlayer.PlayerReplicationInfo);
+  }
   
   //log(Level.TimeSeconds@"NotifyPlayerDisconnect"@ControllerPlayer@bIsLlama);
   Super.NotifyPlayerDisconnect(ControllerPlayer, bIsLlama);
@@ -240,7 +244,7 @@ protected function bool WasKilledByLlama(JBTagPlayer TagPlayer)
   //log(Level.TimeSeconds@"WasKilledByLlama"@TagPlayer@TagPlayer.GetController());
   
   for (i = 0; i < PlayersKilledByLlama.Length; i++) {
-    log(PlayersKilledByLlama[i]);
+    //log(PlayersKilledByLlama[i]);
     if ( PlayersKilledByLlama[i] == TagPlayer ) {
       PlayersKilledByLlama.Remove(i, 1);
       return true;

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.1 2003/07/26 20:20:34 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.2 2003/07/26 23:24:49 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -27,6 +27,8 @@ var private JBInterfaceHud       JailbreakHUD;       // local player's Jailbreak
 var private array<JBLlamaArrow>  LlamaArrows;        // a spinning arrow over the Llama's head
 var private JBLlamaTag           LocalLlamaTag;      // llama tag of local player (if any)
 var private float                TimeIndexLocalLlamaStart;
+var MotionBlur                   MotionBlur;         // a motion blur effect for the llama
+var bool                         bMotionBlurEnabled; // whether the motion blur effect is active
 
 // llama compass
 var private HudBase.SpriteWidget LlamaCompassIcon;   // the llama icon
@@ -92,6 +94,18 @@ simulated event Tick(float DeltaTime)
       if ( LlamaCompassSlidePosition < 0.0 )
         LlamaCompassSlidePosition = 0.0;
     }
+  }
+  
+  if ( LocalLlamaTag != None && !bMotionBlurEnabled ) {
+    if ( MotionBlur == None )
+      MotionBlur = new(None) class'MotionBlur';
+    
+    Level.GetLocalPlayerController().AddCameraEffect(MotionBlur, True);
+    bMotionBlurEnabled = True;
+  }
+  else if ( LocalLlamaTag == None && bMotionBlurEnabled ) {
+    Level.GetLocalPlayerController().RemoveCameraEffect(MotionBlur);
+    bMotionBlurEnabled = False;
   }
 }
 
