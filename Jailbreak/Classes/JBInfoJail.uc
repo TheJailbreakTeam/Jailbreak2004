@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.32 2004/04/20 14:58:13 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.33 2004/04/20 16:43:08 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -396,7 +396,7 @@ function TriggerEventRelease(name Event, Actor ActorSender, Pawn PawnInstigator)
   if (Event == '')
     return;
 
-  foreach DynamicActors(Class'Actor', thisActor)
+  foreach DynamicActors(Class'Actor', thisActor, Event)
     if (Mover(thisActor) == None)
            thisActor.Trigger(ActorSender, PawnInstigator);
       else thisActor.Trigger(ActorSender, None);  // hide instigator from mover
