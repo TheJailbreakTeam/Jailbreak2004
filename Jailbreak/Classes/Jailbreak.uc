@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.52 2003/06/14 21:52:32 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.53 2003/06/15 18:46:19 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -42,12 +42,18 @@ var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 // ============================================================================
 // InitGame
 //
-// Initializes the game.
+// Initializes the game and interprets Jailbreak-specific parameters.
 // ============================================================================
 
 event InitGame(string Options, out string Error) {
 
+  local string OptionJailFights;
+
   Super.InitGame(Options, Error);
+  
+  OptionJailFights = ParseOption(Options, "JailFights");
+  if (OptionJailFights != "")
+    bEnableJailFights = bool(OptionJailFights);
   
   bForceRespawn = True;
   MaxLives = 0;
