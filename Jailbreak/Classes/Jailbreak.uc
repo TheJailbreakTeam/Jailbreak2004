@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.95 2004/05/26 12:01:48 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.96 2004/05/28 20:58:30 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -193,14 +193,23 @@ static function array<string> GetAllLoadHints(optional bool bThisClassOnly)
 // ============================================================================
 // FillPlayInfo
 //
-// Adds Jailbreak-specific settings to the PlayInfo object.
+// Returns at once without adding anything to the PlayInfo if called from the
+// server browser as a workaround for people not being able to join games from
+// other game types after selecting Jailbreak because the Jailbreak package is
+// still loaded. Otherwise, adds Jailbreak-specific settings to the PlayInfo.
 // ============================================================================
 
 static function FillPlayInfo(PlayInfo PlayInfo)
 {
+  local UT2K4ServerBrowser UT2K4ServerBrowser;
+
+  foreach Default.Class.AllObjects(Class'UT2K4ServerBrowser', UT2K4ServerBrowser)
+    if (UT2K4ServerBrowser.FilterInfo == PlayInfo)
+      return;  // ignore because called from server browser
+
   Super.FillPlayInfo(PlayInfo);
 
-  PlayInfo.AddSetting("Game", "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
+  PlayInfo.AddSetting(Default.GameGroup, "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
 }
 
 
