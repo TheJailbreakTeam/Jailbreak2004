@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id$
+// $Id: JBGameObjectiveSwitch.uc,v 1.1 2004/03/15 12:47:22 tarquin Exp $
 //
 // Visible release switch that must be touched to be disabled.
 //=============================================================================
@@ -16,39 +16,31 @@ class JBGameObjectiveSwitch extends GameObjective
 // ============================================================================
 
 // static meshes
-// #exec obj load file=..\StaticMeshes\JBRelease.usx package=JBToolbox.SwitchMeshes
-
 #exec obj load file=StaticMeshes\JBReleaseBase.usx  package=JBToolbox.SwitchMeshes
 #exec obj load file=StaticMeshes\JBReleaseRing.usx  package=JBToolbox.SwitchMeshes
 #exec obj load file=StaticMeshes\JBReleaseKey.usx   package=JBToolbox.SwitchMeshes
 
 // textures
-//#exec obj load file=..\Textures\JBReleaseTextures.utx package=JBToolbox.SwitchSkins
-
 #exec obj load file=Textures\JBReleaseTexturesBase.utx  package=JBToolbox.SwitchSkins
 #exec obj load file=Textures\JBReleaseTexturesRing.utx  package=JBToolbox.SwitchSkins
 #exec obj load file=Textures\JBReleaseTexturesKey.utx   package=JBToolbox.SwitchSkins
-
-
-//=============================================================================
-// Constants
-//=============================================================================
-
-const RED_TEAM  = 0;
-const BLUE_TEAM = 1;
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var () StaticMesh     StaticMeshRing; // static mesh to display for ring
-var () StaticMesh     StaticMeshKey;  // static mesh to display for key
+var() class<Decoration> ClassRing;    // class for ring (not yet used)
+var() class<Decoration> ClassKey;     // class for key (not yet used)
 
-var() Material        SkinBaseRed;    //
-var() Material        SkinBaseBlue;   //
-var() Material        SkinRingRed;    //
-var() Material        SkinRingBlue;   //
+var() StaticMesh      StaticMeshRing; // static mesh to display for ring
+var() StaticMesh      StaticMeshKey;  // static mesh to display for key
+
+var() Material        SkinBaseRed;    // skin for base mesh: red
+var() Material        SkinBaseBlue;   // skin for base mesh: blue
+
+var() Material        SkinRingNeutral;// skin for ring mesh: neutral 
+
 var() Material        SkinKeyRed;     //
 var() Material        SkinKeyBlue;    //
 
@@ -72,7 +64,7 @@ simulated function PostBeginPlay()
   // should probably check all the Material vars are actually materials
   // replace them with defaults if None?
 
-  if (Level.NetMode != NM_Client) {
+  if (Level.NetMode != NM_DedicatedServer) {
     SwitchRing = Spawn(
       class'JBToolbox.JBDecoSwitchRing', self, , 
       Location + OffsetRing, Rotation );
@@ -110,11 +102,9 @@ function DisableObjective(Pawn PawnInstigator)
 
   Super.DisableObjective(PawnInstigator);
   
-  // visual effects 
+  // cause visual effects 
   SwitchRing.Trigger( self, PawnInstigator );
-  //SwitchKey.bHidden = True;
-  //ColorModifier(SwitchRing.Skins[0]).Color.G = 255;
-  //ColorModifier(SwitchRing.Skins[0]).Color.B = 0;
+  SwitchKey.Trigger( self, PawnInstigator );
 }
 
 
@@ -132,10 +122,9 @@ function Reset()
                Default.bBlockActors,    // implicitly call Touch again if a
                Default.bBlockPlayers);  // player is still touching this actor
                
-  // visual effects 
+  // reset visual effects 
   SwitchRing.UnTrigger( self, none );
-  //SwitchKey.bHidden = False;
-  
+  SwitchKey.UnTrigger( self, none );
 }
 
 
@@ -169,12 +158,13 @@ defaultproperties
   /* slurped from xDomPoint */
   DrawType            = DT_StaticMesh;
   Style=STY_Normal  
-  //LightType=LT_SubtlePulse
-  //LightEffect=LE_QuadraticNonIncidence
-  //LightRadius=6
-  //LightBrightness=128 
-  //LightHue=255
-  //LightSaturation=255
+  
+  LightType       = LT_SubtlePulse;
+  LightEffect     = LE_QuadraticNonIncidence;
+  LightRadius     = 6;
+  LightBrightness = 128;
+  LightHue        = 255;
+  LightSaturation = 255;
   
   /* DDOM base mesh */
   //StaticMesh          = XGame_rc.DominationPointMesh;
@@ -197,24 +187,17 @@ defaultproperties
   /* parent overrides */
   DestructionMessage  = "";
   
-  /* display */
-  // from existing packages
-  //StaticMeshRing = StaticMesh'JBRelease.RevSpinner';
-  //StaticMeshKey = StaticMesh'JBRelease.Key';
-  //SkinRingRed   = Shader'JBReleaseTextures.Spinner.SpinnerRedTranslucent';
-  //SkinRingBlue  = Shader'JBReleaseTextures.Spinner.SpinnerBlueTranslucent';
-  //SkinKeyRed    = Shader'JBReleaseTextures.Key.KeyREDsh';
-  //SkinKeyBlue   = Shader'JBReleaseTextures.Key.key256sh';
+  ClassRing     = class'JBToolbox.JBDecoSwitchRing';
+  ClassKey      = class'JBToolbox.JBDecoSwitchKey';
   
-  // from this module
+  /* display */
   StaticMeshRing  = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseRing';
   StaticMeshKey   = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseKey';
   
   SkinBaseRed   = Texture'JBToolbox.SwitchSkins.JBReleaseBaseRed';
   SkinBaseBlue  = Texture'JBToolbox.SwitchSkins.JBReleaseBaseBlue';
   
-  SkinRingRed   = ColorModifier'JBToolbox.SwitchSkins.ColorModRed';
-  SkinRingBlue  = ColorModifier'JBToolbox.SwitchSkins.ColorModBlue';
+  SkinRingNeutral = Texture'JBToolbox.SwitchSkins.JBReleaseRingWhite'; 
   
   SkinKeyRed    = Shader'JBToolbox.SwitchSkins.JBKeyFinalRed';
   SkinKeyBlue   = Shader'JBToolbox.SwitchSkins.JBKeyFinalBlue';

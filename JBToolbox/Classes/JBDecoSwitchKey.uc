@@ -1,6 +1,7 @@
+//=============================================================================
 // JBDecoSwitchKey
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id$
+// $Id: JBDecoSwitchKey.uc,v 1.1 2004/03/15 12:47:22 tarquin Exp $
 //
 // Displays the Jailbreak release switch key
 //=============================================================================
@@ -11,12 +12,12 @@ class JBDecoSwitchKey extends Decoration
   
   
 // ============================================================================
-// PreBeginPlay
+// PostBeginPlay
 //
 // Sets the key colour to show the *captive* team
 // ============================================================================
 
-event PreBeginPlay()
+event PostBeginPlay()
 {
   local JBGameObjectiveSwitch MySwitch;
   MySwitch = JBGameObjectiveSwitch( Owner );
@@ -29,8 +30,6 @@ event PreBeginPlay()
   else {
     Skins[0] = MySwitch.SkinKeyRed;
   }
-  
-  super.PreBeginPlay();
 }
 
 
@@ -52,7 +51,7 @@ defaultproperties
   
   /* blame Spoon */
   AmbientGlow=255
-  Style=STY_Translucent
+  //Style=STY_Translucent
   bCollideActors=False
   bBlockActors=False
   bBlockPlayers=False
