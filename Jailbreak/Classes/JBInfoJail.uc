@@ -84,6 +84,37 @@ event PostBeginPlay()
 
 
 // ============================================================================
+// Tick
+//
+// If this JBInfoJail actor is not yet registered in the global JBInfoJail
+// linked list client-side yet, adds it to it.
+// ============================================================================
+
+simulated event Tick(float TimeDelta)
+{
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+  local JBGameReplicationInfo InfoGame;
+
+  if (Role < ROLE_Authority) {
+    InfoGame = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo);
+    if (InfoGame == None)
+      return;
+
+    firstJail = InfoGame.firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+      if (thisJail == Self)
+        return;
+
+    nextJail = InfoGame.firstJail;
+    InfoGame.firstJail = Self;
+  }
+
+  Disable('Tick');
+}
+
+
+// ============================================================================
 // FindReleases
 //
 // Adds movers triggered by the given tag to the given array unless they are

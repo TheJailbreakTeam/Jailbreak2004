@@ -153,6 +153,37 @@ event PostBeginPlay()
 
 
 // ============================================================================
+// Tick
+//
+// If this JBInfoArena actor is not yet registered in the global JBInfoArena
+// linked list client-side yet, adds it to it.
+// ============================================================================
+
+simulated event Tick(float TimeDelta)
+{
+  local JBInfoArena firstArena;
+  local JBInfoArena thisArena;
+  local JBGameReplicationInfo InfoGame;
+
+  if (Role < ROLE_Authority) {
+    InfoGame = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo);
+    if (InfoGame == None)
+      return;
+
+    firstArena = InfoGame.firstArena;
+    for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+      if (thisArena == Self)
+        return;
+
+    nextArena = InfoGame.firstArena;
+    InfoGame.firstArena = Self;
+  }
+
+  Disable('Tick');
+}
+
+
+// ============================================================================
 // Destroyed
 //
 // Destroys the event probes if they're present.
