@@ -72,16 +72,18 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 //
 // Called to check whether a jailed player can be sent to the given arena. If
 // this function returns False during the arena countdown for a player already
-// scheduled for a fight in the given arena, the match will be cancelled.
+// scheduled for a fight in the given arena, the match will be cancelled. The
+// bForceSendToArena out parameter can be set to allow even players who are
+// not in jail to be sent to the arena.
 // ============================================================================
 
-function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena)
+function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena, out byte bForceSendToArena)
 {
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
-    return nextJBGameRules.CanSendToArena(TagPlayer, Arena);
+    return nextJBGameRules.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
 
   return True;
 }

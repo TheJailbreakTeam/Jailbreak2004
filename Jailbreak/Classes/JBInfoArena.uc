@@ -219,6 +219,7 @@ function bool ContainsActor(Actor Actor)
 
 function bool CanFight(Controller ControllerCandidate)
 {
+  local byte bForceSendToArena;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer TagPlayer;
 
@@ -226,20 +227,20 @@ function bool CanFight(Controller ControllerCandidate)
   if (TagPlayer == None)
     return False;
 
-  if (!TagPlayer.IsInJail() ||
-       TagPlayer.IsInArena())
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None &&
+     !firstJBGameRules.CanSendToArena(TagPlayer, Self, bForceSendToArena))
+    return False;
+
+  if ( TagPlayer.IsInArena() ||
+     (!TagPlayer.IsInJail() && !bool(bForceSendToArena)))
     return False;
 
   if (TagPlayer.GetArenaPending() != None &&
       TagPlayer.GetArenaPending() != Self)
     return False;
 
-  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
-  if (firstJBGameRules == None ||
-      firstJBGameRules.CanSendToArena(TagPlayer, Self))
-    return True;
-
-  return False;
+  return True;
 }
 
 
