@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.9 2004/05/18 18:31:26 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.10 2004/05/24 10:50:13 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -89,9 +89,12 @@ function PostRender(Canvas C)
       MessageSize--;
       C.Font = ViewportOwner.Actor.myHUD.GetFontSizeIndex(C, MessageSize);
       C.TextSize(CaptureMessage, XL, YL);
-    } until (XL < 0.7 * C.SizeX);
+    } until (XL < 0.7 * C.SizeX || MessageSize < -6);
     C.DrawColor = MessageColor;
+    if ( XL > C.SizeX )
+      C.FontScaleX = C.SizeX / XL;
     C.DrawScreenText(CaptureMessage, 1 - 0.5 * YL / C.ClipY, 1 - 0.5 * YL / C.ClipY, DP_LowerRight);
+    C.FontScaleX = 1.0;
   }
 }
 
