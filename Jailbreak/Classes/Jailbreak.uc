@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.39 2003/03/16 10:16:52 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.40 2003/03/16 10:38:38 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -788,6 +788,7 @@ function bool ExecutionInit() {
 function ExecutionCommit(TeamInfo TeamExecuted) {
 
   local Controller thisController;
+  local JBCamera thisCamera;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
   local TeamInfo TeamCapturer;
@@ -801,6 +802,9 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
           thisController.PlayerReplicationInfo.Team != TeamExecuted)
         ScorePlayer(thisController, 'Capture');
 
+    foreach DynamicActors(Class'JBCamera', thisCamera)
+      thisCamera.DeactivateForAll();
+
     CameraExecution = FindCameraExecution(TeamExecuted);
     if (CameraExecution == None)
       Log("Warning: No execution camera found");
@@ -810,7 +814,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
         if (thisController.PlayerReplicationInfo != None &&
             thisController.PlayerReplicationInfo.bOnlySpectator)
           CameraExecution.ActivateFor(thisController);
-  
+
     TeamCapturer = OtherTeam(TeamExecuted);
     TeamCapturer.Score += 1;
     RestartTeam(TeamCapturer);
