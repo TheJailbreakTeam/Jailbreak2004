@@ -144,4 +144,6 @@ defaultproperties
   bBlockPlayers             = False;
   bCollideActors            = False;
   bCollideWorld             = False;
+
+  RemoteRole                = ROLE_None;
 }
