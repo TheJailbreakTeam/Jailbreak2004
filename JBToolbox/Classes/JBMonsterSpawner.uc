@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.3 2003/03/16 13:20:48 will Exp $
+// $Id: JBMonsterSpawner.uc,v 1.4 2003/03/16 13:29:52 will Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -51,7 +51,7 @@ Function PostBeginPlay()
 {
 	Local JBInfoJail Jails; 
 
-	If (DynamicLoadObject("Skaarjpack.Monster", Class'class', True) == None)
+	If (DynamicLoadObject("SkaarjPack.Monster", Class'class', True) == None)
 		{
 		For (Jails = JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstJail; Jails != None; Jails = Jails.NextJail)
 				Jails.ExecutionDelayFallback = 3;
@@ -60,7 +60,7 @@ Function PostBeginPlay()
 		}
 	
 	If (MonsterType != Custom)
-		MonsterClass = Class<xPawn>(DynamicLoadObject("Skaarjpack." $ String(MonsterType), Class'class', True));
+		MonsterClass = Class<xPawn>(DynamicLoadObject("Skaarjpack." $ String(GetEnum(Enum'EMonsterType', MonsterType)), Class'class'));
 	Else
 		{
 		If (DynamicLoadObject(CustomMonster, Class'class', True) == None);
