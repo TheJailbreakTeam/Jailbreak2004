@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.3 2003/01/08 20:51:34 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.4 2003/01/25 23:46:48 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -34,35 +34,6 @@ function AddBot(Bot Bot) {
 
 
 // ============================================================================
-// CanFight
-//
-// Checks and returns whether the given player is currently carrying their
-// primary default weapon and isn't scheduled for an upcoming arena fight.
-// ============================================================================
-
-static function bool CanFight(Pawn PawnOther, optional bool bCanSwitchWeapon) {
-
-  local JBTagPlayer TagPlayer;
-  
-  if (PawnOther == None || !Class'Jailbreak'.Default.bEnableJailFights)
-    return False;
-  
-  TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnOther.PlayerReplicationInfo);
-
-  if (TagPlayer == None    ||
-     !TagPlayer.IsInJail() ||
-      TagPlayer.GetArenaPending() != None)
-    return False;
-  
-  if (bCanSwitchWeapon)
-    return True;
-  
-  return (PawnOther.Weapon != None &&
-          PawnOther.Weapon.Class == PawnOther.Level.Game.BaseMutator.GetDefaultWeapon());
-  }
-
-
-// ============================================================================
 // FriendlyToward
 //
 // Returns True for anybody except other players carrying their primary
@@ -71,43 +42,175 @@ static function bool CanFight(Pawn PawnOther, optional bool bCanSwitchWeapon) {
 
 function bool FriendlyToward(Pawn PawnOther) {
 
-  return CanFight(PawnOther);
+  return !IsPlayerFighting(PawnOther.Controller);
   }
 
 
 // ============================================================================
 // SetEnemy
 //
-// If the given player is ready to fight in jail, draw primary default weapon
-// and acquire this player as an enemy.
+// If the given player is ready to fight in jail and there are no other
+// players to fight with, draw primary default weapon and acquire this player
+// as an enemy.
 // ============================================================================
 
 function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
 
-  if (CanFight(Bot.Pawn, True) &&
-      CanFight(PawnEnemy) &&
-      Super.SetEnemy(Bot, PawnEnemy)) {
-
-    PawnEnemy.PendingWeapon = Weapon(PawnEnemy.FindInventoryType(Level.Game.BaseMutator.GetDefaultWeapon()));
+  local Controller ControllerEnemy;
+  local JBTagPlayer TagPlayerBot;
+  local JBTagPlayer TagPlayerEnemy;
   
-    if (PawnEnemy.PendingWeapon == None ||
-       !PawnEnemy.PendingWeapon.HasAmmo())
-      return False;
-
-    if (PawnEnemy.PendingWeapon == PawnEnemy.Weapon)
-      return True;
-  
-    if (PawnEnemy.Weapon == None)
-      PawnEnemy.ChangedWeapon();
-    else
-      PawnEnemy.Weapon.PutDown();
-  
-    return True;
-    }
-  
-  else {
+  if (!Jailbreak(Level.Game).bEnableJailFights)
     return False;
+  
+  ControllerEnemy = PawnEnemy.Controller;
+  if (ControllerEnemy == None)
+    return False;
+
+  TagPlayerBot   = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
+  TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
+
+  if (TagPlayerBot.GetJail() != TagPlayerEnemy.GetJail())
+    return False;
+
+  if (IsPlayerFighting(ControllerEnemy)) {
+    if (IsPlayerFighting(Bot))
+      return Super.SetEnemy(Bot, PawnEnemy);
+
+    if (CanPlayerFight(Bot) && CountPlayersFighting(TagPlayerBot.GetJail()) < 2) {
+      PrepareForFight(Bot);
+      return Super.SetEnemy(Bot, PawnEnemy);
+      }
     }
+
+  return False;
+  }
+
+
+// ============================================================================
+// CountPlayersFighting
+//
+// Counts the number of fighting players in the given jail.
+// ============================================================================
+
+static function int CountPlayersFighting(JBInfoJail Jail) {
+
+  local int nPlayersFighting;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  
+  firstTagPlayer = JBReplicationInfoGame(Jail.Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetJail() == Jail &&
+        IsPlayerFighting(thisTagPlayer.GetController()))
+      nPlayersFighting += 1;
+
+  return nPlayersFighting;
+  }
+
+
+// ============================================================================
+// GetPrimaryWeaponFor
+//
+// Gets the given player's primary weapon, that is the non-discardable weapon
+// in the lowest inventory slot.
+// ============================================================================
+
+static function Weapon GetPrimaryWeaponFor(Pawn Pawn) {
+
+  local byte InventoryGroupSelected;
+  local Inventory thisInventory;
+  local Weapon WeaponSelected;
+
+  for (thisInventory = Pawn.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
+    if (Weapon(thisInventory) != None &&
+       !Weapon(thisInventory).bCanThrow &&
+       (WeaponSelected == None || InventoryGroupSelected > thisInventory.InventoryGroup)) {
+     WeaponSelected = Weapon(thisInventory);
+     InventoryGroupSelected = thisInventory.InventoryGroup;
+     }
+
+  return WeaponSelected;
+  }
+
+
+// ============================================================================
+// CountWeaponsFor
+//
+// Counts the number of weapons in the given player's inventory.
+// ============================================================================
+
+static function int CountWeaponsFor(Pawn Pawn) {
+
+  local int nWeapons;
+  local Inventory thisInventory;
+
+  for (thisInventory = Pawn.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
+    if (Weapon(thisInventory) != None)
+      nWeapons += 1;
+
+  return nWeapons;
+  }
+
+
+// ============================================================================
+// CanPlayerFight
+//
+// Checks whether the given player is currently eligible for fighing.
+// ============================================================================
+
+static function bool CanPlayerFight(Controller Controller) {
+
+  if (Controller.Pawn == None)
+    return False;
+
+  return (Bot(Controller) != None || IsPlayerFighting(Controller));
+  }
+
+
+// ============================================================================
+// IsPlayerFighting
+//
+// Checks whether the given player is currently fighting or at least ready to
+// fight, that is, has drawn their primary weapon and still the option to opt
+// out by switching to a different weapon.
+// ============================================================================
+
+static function bool IsPlayerFighting(Controller Controller) {
+
+  if (Controller.Pawn == None)
+    return False;
+
+  return (CountWeaponsFor(Controller.Pawn) > 1 &&
+          GetPrimaryWeaponFor(Controller.Pawn) == Controller.Pawn.Weapon);
+  }
+
+
+// ============================================================================
+// PrepareForFight
+//
+// Prepares the given bot for a fight by making it activate its primary
+// weapon.
+// ============================================================================
+
+static function PrepareForFight(Bot Bot) {
+
+  if (Bot.Pawn == None)
+    return;
+
+  Bot.Pawn.PendingWeapon = GetPrimaryWeaponFor(Bot.Pawn);
+
+  if (Bot.Pawn.PendingWeapon == Bot.Pawn.Weapon)
+    Bot.Pawn.PendingWeapon = None;
+  if (Bot.Pawn.PendingWeapon == None)
+    return;
+
+  Bot.StopFiring();
+
+  if (Bot.Pawn.Weapon == None)
+    Bot.Pawn.ChangedWeapon();
+  else if (Bot.Pawn.Weapon != Bot.Pawn.PendingWeapon)
+    Bot.Pawn.Weapon.PutDown();
   }
 
 
@@ -115,7 +218,7 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
 // GetOrderStringFor
 //
 // Returns a string describing the given player's current status. That is,
-// in this squad, simply jailed.
+// in this squad, simply that they're jailed.
 // ============================================================================
 
 simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo) {

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.30 2003/02/09 18:18:45 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.31 2003/02/11 08:29:49 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -229,6 +229,49 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
     }
 
   return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+  }
+
+
+// ============================================================================
+// ReduceDamage
+//
+// Applies several rules on who may inflict damage on whom:
+//
+//   * Players in an arena cannot be damaged by anyone except themselves and
+//     their opponents.
+//
+//   * Players in jail can damage anybody, but not players in the same jail
+//     unless they both are currently engaged in a jail fight. In that case
+//     they get full damage regardless of current friendly fire settings.
+//
+// ============================================================================
+
+function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator,
+                          vector LocationHit, out vector MomentumHit, Class<DamageType> ClassDamageType) {
+
+  local JBTagPlayer TagPlayerInstigator;
+  local JBTagPlayer TagPlayerVictim;
+
+  if (PawnInstigator == None ||
+      PawnInstigator.Controller == PawnVictim.Controller)
+    return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
+
+  TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
+  TagPlayerVictim     = Class'JBTagPlayer'.Static.FindFor(PawnVictim    .PlayerReplicationInfo);
+
+  if (TagPlayerVictim.IsInArena() &&
+      TagPlayerVictim.GetArena() != TagPlayerInstigator.GetArena())
+    return 0;
+
+  if (TagPlayerVictim.IsInJail() &&
+      TagPlayerVictim.GetJail() == TagPlayerInstigator.GetJail())
+    if (Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerInstigator.GetController()) &&
+        Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerVictim    .GetController()))
+      return Damage;
+    else
+      return 0;
+
+  return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
   }
 
 
