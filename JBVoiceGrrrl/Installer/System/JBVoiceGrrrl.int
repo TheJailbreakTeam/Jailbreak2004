@@ -1,4 +1,4 @@
-; $Id: JBVoiceGrrrl.int,v 1.1.1.1 2004/05/17 03:22:43 mychaeel Exp $
+; $Id: JBVoiceGrrrl.int,v 1.2 2004/05/26 11:28:43 mychaeel Exp $
 
 [Public]
 Object=(Name=JBVoiceGrrrl.Classic,Class=Class,MetaClass=Jailbreak.JBVoice,Description="UnrealGrrl Classic")
@@ -25,6 +25,7 @@ ArenaEndTimeout="ArenaEndLoser"
 ArenaEndWinner="ArenaEndWinner"
 ArenaEndLoser="ArenaEndLoser"
 GameStart="GameStart"
+GameOvertime="GameOvertime"
 GameOverWinnerRed="(red: GameOverWinner) (blue: GameOverLoser) (spectator: GameOverRed)"
 GameOverWinnerBlue="(red: GameOverLoser) (blue: GameOverWinner) (spectator: GameOverBlue)"
 AddonLlamaStart="LlamaStart"
