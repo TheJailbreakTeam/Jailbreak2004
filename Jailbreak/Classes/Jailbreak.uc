@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.19 2003/01/03 23:22:48 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.20 2003/01/11 22:17:46 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -116,32 +116,31 @@ function Logout(Controller ControllerExiting) {
 
 function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Controller Controller) {
 
-  local byte Restart;
+  local name Restart;
   local JBInfoArena Arena;
   local JBTagPlayer TagPlayer;
 
-  if (Controller != None &&
-      Controller.PreviousPawnClass != None)  // not first spawn
+  if (Controller != None)
     TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
 
   if (TagPlayer == None)
-    Restart = 1;  // ERestart.Restart_Freedom
+    Restart = 'Restart_Freedom';  // initial spawn point in offline games
   else
-    Restart = int(TagPlayer.GetRestart());  // cannot cast to byte
+    Restart = TagPlayer.GetRestart();
   
   switch (Restart) {
-    case 0:  // ERestart.Restart_Jail
-      if (!ContainsActorJail(NavigationPoint))
-        return -20000000;
-      break;
-    
-    case 1:  // ERestart.Restart_Freedom
+    case 'Restart_Freedom':
       if (ContainsActorJail (NavigationPoint) ||
           ContainsActorArena(NavigationPoint))
         return -20000000;
       break;
 
-    case 2:  // ERestart.Restart_Arena
+    case 'Restart_Jail':
+      if (!ContainsActorJail(NavigationPoint))
+        return -20000000;
+      break;
+    
+    case 'Restart_Arena':
       if (!ContainsActorArena(NavigationPoint, Arena) || Arena != TagPlayer.GetArenaRestart())
         return -20000000;
       break;
@@ -654,6 +653,21 @@ state MatchInProgress {
       }
   
     Super.Timer();
+    }
+
+
+  // ================================================================
+  // RestartPlayer
+  //
+  // Records the player's current potential locations.
+  // ================================================================
+
+  function RestartPlayer(Controller Controller) {
+  
+    Super.RestartPlayer(Controller);
+
+    JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
+    JBBotTeam(Teams[1].AI).NotifySpawn(Controller);
     }
 
   } // state MatchInProgress

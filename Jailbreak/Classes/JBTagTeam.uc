@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.7 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.8 2003/01/11 22:17:46 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -33,6 +33,8 @@ var private float TimeCountPlayers;  // time of last CountPlayers call
 var private int nPlayers;            // replicated total number of players
 var private int nPlayersFree;        // number of free players
 var private int nPlayersJailed;      // number of jailed players
+
+var private array<PlayerStart> ListPlayerStart;  // spawn points for this team
 
 
 // ============================================================================
@@ -139,6 +141,31 @@ simulated function int CountPlayersTotal() {
     return Size;
   else
     return nPlayers;  // replicated value
+  }
+
+
+// ============================================================================
+// FindPlayerStarts
+//
+// Returns a list of PlayerStart actors used to spawn players of this team in
+// freedom.
+// ============================================================================
+
+function array<PlayerStart> FindPlayerStarts() {
+
+  local NavigationPoint thisNavigationPoint;
+
+  if (ListPlayerStart.Length == 0)
+    for (thisNavigationPoint = Level.NavigationPointList;
+         thisNavigationPoint != None;
+         thisNavigationPoint = thisNavigationPoint.nextNavigationPoint)
+      if (PlayerStart(thisNavigationPoint) != None &&
+          PlayerStart(thisNavigationPoint).TeamNumber == TeamIndex &&
+          !Jailbreak(Level.Game).ContainsActorArena(thisNavigationPoint) &&
+          !Jailbreak(Level.Game).ContainsActorJail (thisNavigationPoint))
+        ListPlayerStart[ListPlayerStart.Length] = PlayerStart(thisNavigationPoint);
+
+  return ListPlayerStart;
   }
 
 

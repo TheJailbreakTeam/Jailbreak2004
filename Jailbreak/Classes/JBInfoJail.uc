@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.12 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.13 2003/01/03 15:54:13 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -57,8 +57,10 @@ var class<LocalMessage> ClassLocalMessage;
 
 var JBInfoJail nextJail;  // next jail in linked list
 
-var private TInfoRelease ListInfoReleaseByTeam[2];  // state of releases
-var private array<Volume> ListVolume;               // volumes attached to jail
+var private TInfoRelease ListInfoReleaseByTeam[2];  // state of jail releases
+
+var private array<Volume> ListVolume;  // attached volumes
+var private array<NavigationPoint> ListNavigationPointExit;
 
 
 // ============================================================================
@@ -111,6 +113,34 @@ function FindReleases(name TagMover, out array<Mover> ListMover) {
     ListMover[iMover] = thisMover;
     FindReleases(thisMover.OpeningEvent, ListMover);
     }
+  }
+
+
+// ============================================================================
+// FindExits
+//
+// Finds and returns a list of NavigationPoint actors outside jail that are
+// directly connected to NavigationPoint actors in this jail. If multiple
+// paths lead from a point in jail to one outside, this exit will be listed
+// multiple times.
+// ============================================================================
+
+function array<NavigationPoint> FindExits() {
+
+  local int iReachSpec;
+  local NavigationPoint thisNavigationPoint;
+
+  if (ListNavigationPointExit.Length == 0)
+    for (thisNavigationPoint = Level.NavigationPointList;
+         thisNavigationPoint != None;
+         thisNavigationPoint = thisNavigationPoint.nextNavigationPoint)
+      if (ContainsActor(thisNavigationPoint))
+        for (iReachSpec = 0; iReachSpec < thisNavigationPoint.PathList.Length; iReachSpec++)
+          if (!Jailbreak(Level.Game).ContainsActorArena(thisNavigationPoint.PathList[iReachSpec].End) &&
+              !Jailbreak(Level.Game).ContainsActorJail (thisNavigationPoint.PathList[iReachSpec].End))
+            ListNavigationPointExit[ListNavigationPointExit.Length] = thisNavigationPoint.PathList[iReachSpec].End;
+  
+  return ListNavigationPointExit;
   }
 
 
@@ -293,9 +323,13 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
 
     if (CanRelease(Team)) {
       if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
-        if (Jailbreak(Level.Game).CanFireEvent(Tag, True))
-          BroadcastLocalizedMessage(ClassLocalMessage, 200, ControllerInstigator.PlayerReplicationInfo, ,
-                                                            ControllerInstigator.PlayerReplicationInfo.Team);
+        if (Jailbreak(Level.Game).CanFireEvent(Tag, True)) {
+          if (ControllerInstigator != None)
+            BroadcastLocalizedMessage(ClassLocalMessage, 200, ControllerInstigator.PlayerReplicationInfo, , Team);
+          JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
+          JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
+          }
+
         TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
         }
       
@@ -304,7 +338,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
       ListInfoReleaseByTeam[Team.TeamIndex].Time = Level.TimeSeconds;
       ListInfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = ControllerInstigator;
       
-      JailOpening(Team);
+      NotifyJailOpening(Team);
       }
     }
   
@@ -315,14 +349,14 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
 
 
 // ============================================================================
-// JailOpening
+// Called when the doors to this jail start opening before NotifyJailOpened is
 // called. Disables all GameObjectives that can be used to trigger this jail's
-// Called when the doors to this jail start opening, before JailOpened is
+// release and communicates the event to all inmates.
 // ============================================================================
 
 function NotifyJailOpening(TeamInfo Team) {
 
-function JailOpening(TeamInfo Team) {
+  local GameObjective firstObjective;
   local GameObjective thisObjective;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
@@ -339,18 +373,18 @@ function JailOpening(TeamInfo Team) {
         thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.NotifyJailOpening();
 
-      thisTagPlayer.JailOpening();
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
 
 // ============================================================================
 // NotifyJailOpened
 //
-// JailOpened
+// Called when the doors to this jail have fully opened. Communicates that
 // event to all inmates.
 // ============================================================================
 
 function NotifyJailOpened(TeamInfo Team) {
 
-function JailOpened(TeamInfo Team) {
+  local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
@@ -359,18 +393,18 @@ function JailOpened(TeamInfo Team) {
         thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.NotifyJailOpened();
 
-      thisTagPlayer.JailOpened();
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
 
 // ============================================================================
 // NotifyJailClosed
 //
-// JailClosed
+// Called when this jail is closed. Communicates that event to all inmates.
 // ============================================================================
 // Called when this jail is closed. Communicates that event to all inmates and
 // enables all objectives that can be used to open this jail.
 function NotifyJailClosed(TeamInfo Team) {
 
-function JailClosed(TeamInfo Team) {
+  local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
   local GameObjective firstObjective;
   local GameObjective thisObjective;
@@ -381,7 +415,7 @@ function JailClosed(TeamInfo Team) {
         thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.NotifyJailClosed();
 
-      thisTagPlayer.JailClosed();
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
     if (thisObjective.Event == Tag &&
         thisObjective.DefenderTeamIndex != Team.TeamIndex &&
@@ -510,7 +544,7 @@ auto state Waiting {
       if (IsReleaseOpen(Team) && ListInfoReleaseByTeam[iTeam].bIsOpening) {
         ListInfoReleaseByTeam[iTeam].bIsOpening = False;
 
-        JailOpened(Team);
+        NotifyJailOpened(Team);
       else if (IsReleaseClosed(Team)) {
         if (InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
           InfoReleaseByTeam[iTeam].TimeReset = Level.TimeSeconds + 0.5;
@@ -519,7 +553,7 @@ auto state Waiting {
         ListInfoReleaseByTeam[iTeam].Time = 0.0;
         ListInfoReleaseByTeam[iTeam].ControllerInstigator = None;
           InfoReleaseByTeam[iTeam].bIsActive  = False;
-        JailClosed(Team);
+        NotifyJailClosed(Team);
     }
 
 

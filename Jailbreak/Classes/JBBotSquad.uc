@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.3 2003/01/08 20:27:16 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.4 2003/01/11 22:17:46 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -28,10 +28,27 @@ struct TInfoEnemy {
 // Variables
 // ============================================================================
 
-var private TInfoEnemy ListInfoEnemy[8];  // indexed after the Enemies array
+var private float TimeInitialized;  // time of this squad's initialization
 
-var transient float TimeCacheCountEnemies;
-var transient int CacheCountEnemies;
+var private TInfoEnemy ListInfoEnemy[8];  // indexed like the Enemies array
+
+var private Controller ControllerHunted;            // hunted player
+var private NavigationPoint NavigationPointHunted;  // last known location
+
+var private transient float TimeCacheCountEnemies;
+var private transient int CacheCountEnemies;
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Records the time this squad was created at.
+// ============================================================================
+
+event PostBeginPlay() {
+
+  TimeInitialized = Level.TimeSeconds;
+  }
 
 
 // ============================================================================
@@ -48,6 +65,22 @@ function Initialize(UnrealTeamInfo UnrealTeamInfo, GameObjective GameObjective, 
 
   SetLeader(ControllerLeader);
   SetObjective(GameObjective, True);  // force reassessment
+  }
+
+
+// ============================================================================
+// FindPathToObjective
+//
+// If the given objective is a JBGameObjective, finds the path to the
+// associated trigger instead.
+// ============================================================================
+
+function bool FindPathToObjective(Bot Bot, Actor ActorObjective) {
+
+  if (JBGameObjective(ActorObjective) != None)
+    ActorObjective = JBGameObjective(ActorObjective).TriggerRelease;
+  
+  return Super.FindPathToObjective(Bot, ActorObjective);
   }
 
 
@@ -106,11 +139,15 @@ function ClearEnemies() {
   local int iEnemy;
   local Bot thisBot;
   
+  TimeInitialized = Level.TimeSeconds;
+  
   for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
     Enemies[iEnemy] = None;
 
   for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
     thisBot.Enemy = None;
+  
+  ClearHunt();
   }
 
 
@@ -118,7 +155,7 @@ function ClearEnemies() {
 // GetSize
 //
 // Unlike its superclass counterpart, returns the actual number of human
-// players and bots in this squad. Bugfix for Epic's code.
+// players and bots in this squad. Bugfix for Epic's code prior to patch two.
 // ============================================================================
 
 function int GetSize() {
@@ -175,7 +212,8 @@ function RemoveBot(Bot Bot) {
 // AddEnemy
 //
 // Initializes the TInfoEnemy structure for the newly added enemy if this
-// squad is ordered for an objective's defense.
+// squad is ordered for an objective's defense. Also, if the acquired enemy is
+// the one this squad hunted for, resets the hunting order.
 // ============================================================================
 
 function bool AddEnemy(Pawn PawnEnemy) {
@@ -186,17 +224,22 @@ function bool AddEnemy(Pawn PawnEnemy) {
   
   bEnemyAdded = Super.AddEnemy(PawnEnemy);
   
-  if (bEnemyAdded && GetOrders() == 'Defend') {
-    for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
-      if (Enemies[iEnemy] == PawnEnemy)
-        break;
-    
-    DistanceObjective = Class'JBBotTeam'.Static.CalcDistance(PawnEnemy.Controller, SquadObjective);
-    
-    ListInfoEnemy[iEnemy].TimeUpdate        = Level.TimeSeconds;
-    ListInfoEnemy[iEnemy].bIsApproaching    = False;
-    ListInfoEnemy[iEnemy].bIsVisible        = True;
-    ListInfoEnemy[iEnemy].DistanceObjective = DistanceObjective;
+  if (bEnemyAdded) {
+    if (GetOrders() == 'Defend') {
+      for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
+        if (Enemies[iEnemy] == PawnEnemy)
+          break;
+      
+      DistanceObjective = Class'JBBotTeam'.Static.CalcDistance(PawnEnemy.Controller, SquadObjective);
+      
+      ListInfoEnemy[iEnemy].TimeUpdate        = Level.TimeSeconds;
+      ListInfoEnemy[iEnemy].bIsApproaching    = False;
+      ListInfoEnemy[iEnemy].bIsVisible        = True;
+      ListInfoEnemy[iEnemy].DistanceObjective = DistanceObjective;
+      }
+
+    if (PawnEnemy.Controller == ControllerHunted)
+      ClearHunt();  // found him, no more hunting needed
     }
 
   return bEnemyAdded;
@@ -274,4 +317,128 @@ function bool MustKeepEnemy(Pawn PawnEnemy) {
     }
 
   return Super.MustKeepEnemy(PawnEnemy);
+  }
+
+
+// ============================================================================
+// CheckSquadObjectives
+//
+// If this squad is on a hunt, directs the leader to the hunting target or
+// aborts the hunt if the leader has already reached it.
+// ============================================================================
+
+function bool CheckSquadObjectives(Bot Bot) {
+
+  if (Super.CheckSquadObjectives(Bot))
+    return True;
+  
+  if (NavigationPointHunted != None && Bot == SquadLeader)
+    if (Bot.Pawn.ReachedDestination(NavigationPointHunted))
+      ClearHunt();
+    else
+      return FindPathToObjective(Bot, NavigationPointHunted);
+  
+  return False;
+  }
+
+
+// ============================================================================
+// Hunt
+//
+// Sends this squad on a hunt for the given player who was last seen at the
+// given location. The hunt ends when the player is found or killed. Returns
+// whether the hunt could be started.
+// ============================================================================
+
+function bool Hunt(Controller Controller, NavigationPoint NavigationPoint) {
+
+  if (Bot(SquadLeader) == None)
+    return False;
+
+  ControllerHunted = Controller;
+  NavigationPointHunted = NavigationPoint;
+  
+  return CheckSquadObjectives(Bot(SquadLeader));
+  }
+
+
+// ============================================================================
+// CanHunt
+//
+// Checks and returns whether this squad is currently fit to hunt an enemy
+// player.
+// ============================================================================
+
+function bool CanHunt() {
+
+  return (TimeInitialized < Level.TimeSeconds - 0.5 &&
+          Bot(SquadLeader) != None &&
+          GetOrders() == 'Freelance' &&
+          CountEnemies() == 0);
+  }
+
+
+// ============================================================================
+// CanHuntBetterThan
+//
+// Checks and returns whether this squad is currently more fit to hunt the
+// given enemy than the given squad.
+// ============================================================================
+
+function bool CanHuntBetterThan(JBBotSquad Squad, Controller Controller) {
+
+  if (Squad == None)
+    return True;
+
+  return (Squad.ControllerHunted != None &&
+          Squad.ControllerHunted != Controller &&
+          (ControllerHunted == None ||
+           ControllerHunted == Controller));
+  }
+
+
+// ============================================================================
+// IsHunting
+//
+// Checks and returns whether this squad is currently hunting the given player
+// or any player at all if none is specified.
+// ============================================================================
+
+function bool IsHunting(optional Controller Controller) {
+
+  if (Controller == None)
+    return (ControllerHunted != None);
+  else
+    return (ControllerHunted == Controller);
+  }
+
+
+// ============================================================================
+// ClearHunt
+//
+// Stops an ongoing hunt.
+// ============================================================================
+
+function ClearHunt() {
+
+  ControllerHunted = None;
+  NavigationPointHunted = None;
+  
+  if (Bot(SquadLeader) != None && SquadLeader.Pawn != None)
+    CheckSquadObjectives(Bot(SquadLeader));
+  }
+
+
+// ============================================================================
+// NotifyKilled
+//
+// If the killed player is the one this squad hunted for, ends the hunt.
+// ============================================================================
+
+function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim) {
+
+  if (ControllerVictim == ControllerHunted)
+    ClearHunt();
+
+  Super.NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
   }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.8 2003/01/03 22:35:28 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.9 2003/01/11 22:17:46 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -49,7 +49,7 @@ var private transient float CacheRatePlayers;
 //   Normal
 //   Aggressive
 //   Suicidal
-//   
+//
 // ============================================================================
 
 function name SetTactics(name Tactics) {
@@ -298,6 +298,51 @@ function PutOnSquadJail(Bot Bot) {
 
 
 // ============================================================================
+// SendSquadTo
+//
+// Finds an idle squad that could be sent to investigate the given location
+// and orders it to go there. If a hunted player is specified, prefers a squad
+// already ordered to hunt that player or, failing to find that, one that
+// doesn't hunt any player at the moment at all. Returns whether a suitable
+// squad was found and ordered.
+// ============================================================================
+
+function bool SendSquadTo(NavigationPoint NavigationPoint, optional Controller ControllerHunted) {
+
+  local float Distance;
+  local float DistanceClosest;
+  local SquadAI thisSquad;
+  local JBBotSquad SquadSelected;
+  
+  if (ControllerHunted != None)
+    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
+      if (JBBotSquad(thisSquad) != None &&
+          JBBotSquad(thisSquad).IsHunting(ControllerHunted))
+        break;
+
+  SquadSelected = JBBotSquad(thisSquad);
+
+  if (SquadSelected == None)
+    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
+      if (JBBotSquad(thisSquad) != None &&
+          JBBotSquad(thisSquad).CanHunt()) {
+
+        Distance = CalcDistance(thisSquad.SquadLeader, NavigationPoint);
+
+        if (JBBotSquad(thisSquad).CanHuntBetterThan(SquadSelected, ControllerHunted) || Distance < DistanceClosest) {
+          SquadSelected = JBBotSquad(thisSquad);
+          DistanceClosest = Distance;
+          }
+        }
+
+  if (SquadSelected != None)
+    return SquadSelected.Hunt(ControllerHunted, NavigationPoint);
+
+  return False;
+  }
+
+
+// ============================================================================
 // IsObjectiveAttack
 //
 // Returns whether the given objective is to be attacked by this team.
@@ -394,25 +439,21 @@ function int CountPlayersReleasable(GameObjective GameObjective) {
 // CalcDistance
 //
 // Calculates the traveling distance of the given player or bot to the given
-// objective. Expensive, so use sparingly.
+// objective or actor. Expensive, so use sparingly.
 // ============================================================================
 
-static function float CalcDistance(Controller Controller, GameObjective GameObjective) {
-
-  local Actor ActorTarget;
+static function float CalcDistance(Controller Controller, Actor ActorTarget) {
 
   if (Controller.Pawn == None)
     return 0.0;  // no pathfinding without pawn
 
-  if (JBGameObjective(GameObjective) == None)
-    ActorTarget = GameObjective;
-  else
-    ActorTarget = JBGameObjective(GameObjective).TriggerRelease;
+  if (JBGameObjective(ActorTarget) != None)
+    ActorTarget = JBGameObjective(ActorTarget).TriggerRelease;
   
-  if (Controller.FindPathToward(ActorTarget) == None)
-    return VSize(ActorTarget.Location - Controller.Pawn.Location);
+  if (Controller.FindPathToward(ActorTarget) != None)
+    return Controller.RouteDist;
   
-  return Controller.RouteDist;
+  return VSize(ActorTarget.Location - Controller.Pawn.Location);
   }
 
 
@@ -980,6 +1021,117 @@ function GameObjective GetPriorityAttackObjective() {
 function GameObjective GetPriorityFreelanceObjective() {
 
   return None;
+  }
+
+
+// ============================================================================
+// NotifySpawn
+//
+// Called when a player respawns. When an enemy spawned in freedom, dispatches
+// a freelancing squad to the enemy's probable spawning point.
+// ============================================================================
+
+function NotifySpawn(Controller ControllerSpawned) {
+
+  local NavigationPoint NavigationPointGuessed;
+  local JBTagPlayer TagPlayer;
+
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(ControllerSpawned.PlayerReplicationInfo);
+  if (TagPlayer == None)
+    return;
+
+  switch (TagPlayer.GetRestart()) {
+    case 'Restart_Freedom':
+      if (TagPlayer.GetTeam() != Team) {
+        NavigationPointGuessed = TagPlayer.GuessLocation(JBReplicationInfoTeam(TagPlayer.GetTeam()).FindPlayerStarts());
+        if (NavigationPointGuessed != None)
+          SendSquadTo(NavigationPointGuessed, ControllerSpawned);
+        }
+      break;
+
+    case 'Restart_Jail':
+    case 'Restart_Arena':
+      TagPlayer.RecordLocation(None);
+      break;
+    }
+  }
+
+
+// ============================================================================
+// NotifyReleaseTeam
+//
+// Called when a team is released. Dispatches a freelancing squad to the
+// objective where the release was probably caused from by the given enemy.
+// ============================================================================
+
+function NotifyReleaseTeam(name EventRelease, TeamInfo TeamReleased, Controller ControllerInstigator) {
+
+  local GameObjective thisObjective;
+  local NavigationPoint NavigationPointGuessed;
+  local array<NavigationPoint> ListNavigationPointSwitch;
+  local JBTagPlayer TagPlayerInstigator;
+  
+  if (ControllerInstigator == None ||
+      Team == TeamReleased ||
+      Team == ControllerInstigator.PlayerReplicationInfo.Team)
+    return;
+  
+  TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(ControllerInstigator.PlayerReplicationInfo);
+  if (TagPlayerInstigator == None)
+    return;
+
+  for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    if (IsObjectiveDefense(thisObjective) && thisObjective.Event == EventRelease)
+      ListNavigationPointSwitch[ListNavigationPointSwitch.Length] = thisObjective;
+  
+  NavigationPointGuessed = TagPlayerInstigator.GuessLocation(ListNavigationPointSwitch);
+  
+  if (NavigationPointGuessed != None)
+    SendSquadTo(NavigationPointGuessed, ControllerInstigator);
+  }
+
+
+// ============================================================================
+// NotifyReleasePlayer
+//
+// Called when an individual player leaves jail. Dispatches a freelancing
+// squad to the location where the enemy player probably left the jail.
+// ============================================================================
+
+function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased) {
+
+  local int iNavigationPoint;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+  local JBTagPlayer TagPlayerReleased;
+  local NavigationPoint NavigationPointGuessed;
+  local array<NavigationPoint> ListNavigationPointExitJail;
+  local array<NavigationPoint> ListNavigationPointExitTotal;
+
+  if (ControllerReleased.PlayerReplicationInfo.Team == Team) {
+    if(Bot(ControllerReleased) != None && JBBotSquadJail(Bot(ControllerReleased).Squad) != None)
+      SetBotOrders(Bot(ControllerReleased), None);
+    }
+  
+  else {
+    TagPlayerReleased = Class'JBTagPlayer'.Static.FindFor(ControllerReleased.PlayerReplicationInfo);
+    if (TagPlayerReleased == None)
+      return;
+  
+    firstJail = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+      if (thisJail.Tag == EventRelease) {
+        ListNavigationPointExitJail = thisJail.FindExits();
+        ListNavigationPointExitTotal.Insert(0, ListNavigationPointExitJail.Length);
+        for (iNavigationPoint = 0; iNavigationPoint < ListNavigationPointExitJail.Length; iNavigationPoint++)
+          ListNavigationPointExitTotal[iNavigationPoint] = ListNavigationPointExitJail[iNavigationPoint];
+        }
+  
+    NavigationPointGuessed = TagPlayerReleased.GuessLocation(ListNavigationPointExitTotal);
+    
+    if (NavigationPointGuessed != None)
+      SendSquadTo(NavigationPointGuessed, ControllerReleased);
+    }
   }
 
 
