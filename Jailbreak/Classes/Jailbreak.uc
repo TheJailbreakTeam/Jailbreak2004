@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.61 2003/07/19 22:02:25 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.62 2003/12/15 22:09:42 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -737,7 +737,6 @@ function ScorePlayer(Controller Controller, name Event) {
   switch (Event) {
     case 'Defense':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
     case 'Release':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
-    case 'Capture':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
     }
   }
 
