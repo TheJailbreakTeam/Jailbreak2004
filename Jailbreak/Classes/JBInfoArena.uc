@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.2 2002/11/20 18:55:12 mychaeel Exp $
 //
 // Holds information about an arena.
 // ============================================================================
@@ -9,6 +9,13 @@
 
 class JBInfoArena extends Info
   placeable;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\JBInfoArena.pcx mips=off masked=on
 
 
 // ============================================================================
@@ -854,6 +861,7 @@ defaultproperties {
   TagAttachStarts  = 'Auto';
   TagAttachPickups = 'Auto';
   
+  Texture = Texture'JBInfoArena';
   RemoteRole = ROLE_SimulatedProxy;
   bAlwaysRelevant = True;
   }

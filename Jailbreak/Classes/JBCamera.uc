@@ -1,13 +1,20 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.3 2002/11/17 13:49:05 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.4 2002/11/17 16:38:11 elbundee Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
 
 
 class JBCamera extends Keypoint;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\JBCamera.pcx mips=off masked=on
 
 
 // ============================================================================
@@ -180,6 +187,7 @@ defaultproperties {
 
   bOverlayDistort = False;
 
+  Texture = Texture'JBCamera';
   RemoteRole = ROLE_SimulatedProxy;
   bNoDelete = True;
   bStatic = False;

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.5 2002/11/24 11:15:23 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.6 2002/11/24 12:38:23 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -9,6 +9,13 @@
 
 class JBInfoJail extends Info
   placeable;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\JBInfoJail.pcx mips=off masked=on
 
 
 // ============================================================================
@@ -487,4 +494,5 @@ defaultproperties {
   TagAttachZones   = 'Auto';
   TagAttachVolumes = 'None';
   bAlwaysRelevant = True;
+  RemoteRole = ROLE_SimulatedProxy;
   }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBRelease
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBRelease.uc,v 1.2 2002/11/17 11:11:18 mychaeel Exp $
+// $Id: JBRelease.uc,v 1.3 2002/11/20 22:53:27 mychaeel Exp $
 //
 // Marks a spot bots approach to release their teammates.
 // ============================================================================
@@ -9,6 +9,13 @@
 
 class JBRelease extends GameObjective
   placeable;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\JBRelease.pcx mips=off masked=on
 
 
 // ============================================================================
@@ -103,6 +110,7 @@ defaultproperties {
 
   TagAttachJails = 'JBInfoJail';
   
+  Texture = Texture'JBRelease';
   RemoteRole = ROLE_SimulatedProxy;
   bStatic = False;
   bNoDelete = False;
