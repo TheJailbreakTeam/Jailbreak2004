@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBCamera.uc,v 1.26.2.1 2004/04/01 18:36:33 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -270,7 +270,6 @@ function SwitchTo(JBCamera Camera, optional bool bOverrideManual)
 
 function SwitchToPrev(Controller Controller, optional bool bManual)
 {
-  local int iInfoPlayer;
   local JBCamera CameraPrev;
 
   if (CamManager == None)
