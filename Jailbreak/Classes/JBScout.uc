@@ -1,7 +1,7 @@
 // ============================================================================
 // JBScout
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBScout.uc,v 1.3 2003/06/29 10:14:00 mychaeel Exp $
+// $Id: JBScout.uc,v 1.4 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Pawn used by JBTagNavigation to calculate travelling distances between two
 // arbitrary actors in a map.
@@ -29,6 +29,7 @@ function Died(Controller ControllerKiller, class<DamageType> ClassDamageType, ve
 
 defaultproperties
 {
+  bProjTarget     = False;
   bCollideActors  = False;
   bCollideWorld   = False;
   CollisionRadius = 25.0;
