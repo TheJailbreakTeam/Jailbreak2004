@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.6.2.4 2004/05/12 09:09:13 wormbo Exp $
+// $Id: JBAddonProtection.uc,v 1.6.2.5 2004/05/12 09:17:52 wormbo Exp $
 //
 // This add-on protects players released from jail.
 // ============================================================================
@@ -90,10 +90,10 @@ function ModifyPlayer(Pawn P)
 static function FillPlayInfo(PlayInfo PlayInfo)
 {
     PlayInfo.AddClass(default.class);
-    PlayInfo.AddSetting(default.FriendlyName, "ProtectionTime", default.caption_ProtectionTime, 0, 1, "Text", "2;0:10");
-    PlayInfo.AddSetting(default.FriendlyName, "ProtectionType", default.caption_ProtectionType, 0, 2, "Select", default.options_ProtectionType);
-    PlayInfo.AddSetting(default.FriendlyName, "bProtectArenaWinner", default.caption_ProtectArenaWinner , 0, 3, "Check");
-    PlayInfo.AddSetting(default.FriendlyName, "bLlamaizeCampers", default.caption_LlamaizeCampers , 0, 4, "Check");
+    PlayInfo.AddSetting(PlayInfoGroup(), "ProtectionTime", default.caption_ProtectionTime, 0, 1, "Text", "2;0:10");
+    PlayInfo.AddSetting(PlayInfoGroup(), "ProtectionType", default.caption_ProtectionType, 0, 2, "Select", default.options_ProtectionType);
+    PlayInfo.AddSetting(PlayInfoGroup(), "bProtectArenaWinner", default.caption_ProtectArenaWinner , 0, 3, "Check");
+    PlayInfo.AddSetting(PlayInfoGroup(), "bLlamaizeCampers", default.caption_LlamaizeCampers , 0, 4, "Check");
     PlayInfo.PopClass();
 }
 
