@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.14 2004/02/16 17:17:02 mychaeel Exp $
+// $Id$
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -82,6 +82,10 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
   local Controller ControllerEnemy;
   local JBTagPlayer TagPlayerBot;
   local JBTagPlayer TagPlayerEnemy;
+
+  if (PawnEnemy.IsA('Monster') &&
+     !PawnEnemy.bStasis)
+   return Super.SetEnemy(Bot, PawnEnemy);
 
   if (!Jailbreak(Level.Game).bEnableJailFights)
     return False;
@@ -298,7 +302,7 @@ static function StopFighting(Bot Bot, optional bool bSwitchWeapon)
 function bool AssignSquadResponsibility(Bot Bot)
 {
   if (Bot.Enemy != None) {
-    if (IsPlayerFighting(Bot.Enemy.Controller))
+    if (Bot.Enemy.IsA('Monster') || IsPlayerFighting(Bot.Enemy.Controller))
       return Super.AssignSquadResponsibility(Bot);
     StopFighting(Bot);
   }
