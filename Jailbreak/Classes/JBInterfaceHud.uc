@@ -41,6 +41,7 @@ var localized string TextArenaNotifier;       // arena notifier slider
 
 var bool bWidescreen;                         // display widescreen bars
 var private float RatioWidescreen;            // widescreen scroll-in progress
+var private float RatioBlackout;              // blackout fade-out progress
 
 var private array<Actor> ListActorOverlay;    // list of registered overlays
 
@@ -55,6 +56,7 @@ var private float TimeUpdateDisposition;      // last disposition rendering
 var private float TimeUpdateArenaNotifier;    // last arena notifier rendering
 var private float TimeUpdateTactics;          // last tactics rendering
 var private float TimeUpdateWidescreen;       // last widescreen bar rendering
+var private float TimeUpdateBlackout;         // last blackout rendering
 
 var vector LocationChatScoreboard;            // location of chat on scoreboard
 var private float AlphaLocationChat;          // relative chat area position
@@ -62,6 +64,8 @@ var private float AlphaLocationChat;          // relative chat area position
 var private byte SpeechMenuState;             // current speech menu state
 var private bool bSpeechMenuVisible;          // speech menu displayed
 var private bool bSpeechMenuVisibleTactics;   // tactics submenu displayed
+
+var private Actor ViewTargetPrev;             // previous view target
 
 var private float AlphaCompass;               // transparency of compass dots
 var private Pawn PawnOwnerCompass;            // previous compass owner
@@ -232,7 +236,14 @@ simulated event PostRender(Canvas Canvas)
     bHasGameEnded = True;
   }
 
+  if (ViewTargetPrev != PlayerOwner.ViewTarget) {
+    Blackout();
+    ViewTargetPrev = PlayerOwner.ViewTarget;
+  }
+
   ShowWidescreen(Canvas);
+  ShowBlackout  (Canvas);
+
   MoveChat(bShowScoreBoard);
 
   if (JBCamera(PlayerOwner.ViewTarget) != None) {
@@ -423,6 +434,46 @@ simulated function ShowWidescreen(Canvas Canvas)
 
   Canvas.SetPos(0, 0);             Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX,  HeightBars);
   Canvas.SetPos(0, Canvas.ClipY);  Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX, -HeightBars);
+}
+
+
+// ============================================================================
+// Blackout
+//
+// Briefly blacks out the player's screen.
+// ============================================================================
+
+simulated function Blackout()
+{
+  RatioBlackout = 1.0;
+  TimeUpdateBlackout = Level.TimeSeconds;
+}
+
+
+// ============================================================================
+// ShowBlackout
+//
+// Updates the opacity and draws the brief blackout which appears when players
+// switch cameras.
+// ============================================================================
+
+simulated function ShowBlackout(Canvas Canvas)
+{
+  local float TimeDelta;
+  
+  if (RatioBlackout <= 0.0)
+    return;
+  
+  TimeDelta = Level.TimeSeconds - TimeUpdateBlackout;
+  TimeUpdateBlackout = Level.TimeSeconds;
+  
+  RatioBlackout = FMax(0.0, RatioBlackout - TimeDelta * 4.0);
+  
+  Canvas.Style = ERenderStyle.STY_Alpha;
+  Canvas.DrawColor.A = 255 * RatioBlackout;
+  
+  Canvas.SetPos(0, 0);
+  Canvas.DrawRect(Texture'BlackTexture', Canvas.ClipX, Canvas.ClipY);
 }
 
 
