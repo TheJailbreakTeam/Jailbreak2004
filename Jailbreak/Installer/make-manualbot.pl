@@ -5,7 +5,7 @@
 #  make-manualbot.pl
 #
 #  Copyright 2004 by tarquin <tarquin@planetjailbreak.com>
-#  $Id$
+#  $Id: make-manualbot.pl,v 1.1 2004/05/23 15:45:17 tarquin Exp $
 #
 #  Jailbreak manual maker bot
 #  Automatically creates the manual HTML files, reading the text from the JDN.
@@ -107,9 +107,9 @@ foreach $wikiname ( $soloPage or @pageNames ) {
   # read content from the web
   ($content) = 
     $ua->get($url)->{_content} 
-      =~ m[<div class="wiki-content">(.*)</div>]m;
+      =~ m[<div class="wiki-content">(.*)</div>]s;
       
-  die unless $content;    
+  #die unless $content;    
   
   ########## formatting
   
