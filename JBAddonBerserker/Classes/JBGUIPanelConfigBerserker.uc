@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigBerserker.uc,v 1.3 2004/03/18 20:06:49 tarquin Exp $
+// $Id: JBGUIPanelConfigBerserker.uc,v 1.4 2004/03/26 20:43:46 tarquin Exp $
 //
 // Options of Berserker add-on.
 // ============================================================================
@@ -95,6 +95,7 @@ defaultproperties
     MinValue=1
     MaxValue=200
     bIntegerOnly=True
+    OnChange=ChangeOptions
   End Object
   Controls(0)=JBGUIEditSlider'BerserkTimeMultiplierEditSlider'
 
@@ -111,6 +112,7 @@ defaultproperties
     MinValue=10
     MaxValue=60
     bIntegerOnly=True
+    OnChange=ChangeOptions
   End Object
   Controls(1)=JBGUIEditSlider'BerserkTimeMaxEditSlider'
 }
