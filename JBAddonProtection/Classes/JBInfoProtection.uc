@@ -49,8 +49,6 @@ event PostBeginPlay()
     ProtectedPawn = Pawn(Owner);
     RelatedPRI = ProtectedPawn.PlayerReplicationInfo;
 
-    ProtectedPawn.ReducedDamageType = Class'JBDamageTypeNone';
-
     if(RelatedPRI.Team.TeamIndex == 0)
              ProtectionEffect = Spawn(Class'JBxEmitterProtectionRed',  ProtectedPawn, , ProtectedPawn.Location, ProtectedPawn.Rotation);
         else ProtectionEffect = Spawn(Class'JBxEmitterProtectionBlue', ProtectedPawn, , ProtectedPawn.Location, ProtectedPawn.Rotation);
@@ -144,9 +142,6 @@ simulated function RenderOverlays(Canvas C)
 
 event Destroyed()
 {
-    if(ProtectedPawn != None)
-        ProtectedPawn.ReducedDamageType = None;
-
     if(ProtectionEffect != None)
     {
         ProtectionEffect.mRegen    = False;
