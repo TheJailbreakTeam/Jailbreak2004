@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.8 2004/05/20 21:31:57 tarquin Exp $
+// $Id: JBGameRulesProtection.uc,v 1.9 2004/05/20 21:47:13 mychaeel Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -229,9 +229,13 @@ function HitShieldEffect(Pawn ProtectedPawn)
 // NetDamage
 //
 // Called when a player receives damage.
-// No damage is done to a protected player, and if the damage *would* have
-// been lethal, then the attacker is made a llama.
-// A protected player who attacks does no damage or has protection removed
+// If the damaged player is protected, the damage is nullified, but the 
+// Protection item keeps a running total of *theoretical* damage. 
+// If this passes a threshold (the default full health) then the last damager 
+// is made a llama (not totally fair, but the way it was done in JBIII).
+//
+// If the attacking player is protected, he either does no damage 
+// or has protection removed, depending on config.
 // ============================================================================
 
 function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn InstigatedBy, vector HitLocation, out vector Momentum, class<DamageType> DamageType)
@@ -240,12 +244,16 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
 
   if( IsProtected(Injured) )
   {
+    MyProtection = GetMyProtection(Injured.PlayerReplicationInfo);
+      
     if( class'JBAddonProtection'.default.bLlamaizeCampers == True
         && InstigatedBy != None 
         && InstigatedBy != Injured
-        && Damage >= Injured.Default.Health 
-        && InstigatedBy.Controller != None )
-      Llamaize(InstigatedBy.Controller);
+        && InstigatedBy.Controller != None ) {
+      if( MyProtection.KeepDamageScore(Damage, Injured) ) {
+        Llamaize(InstigatedBy.Controller);
+      }
+    }
     
     HitShieldEffect(Injured);
     Momentum = vect(0,0,0);
