@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.3 2002/11/20 22:52:00 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.4 2002/11/24 20:30:05 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -18,47 +18,44 @@ class JBReplicationInfoTeam extends xTeamRoster
 replication {
 
   reliable if (Role == ROLE_Authority)
-    nPlayersJailed;
+    nPlayersFree, nPlayersJailed, bTacticsAuto, Tactics;
   }
+
+
+// ============================================================================
+// Types
+// ============================================================================
+
+enum ETactics {
+
+  Tactics_Evasive,
+  Tactics_Defensive,
+  Tactics_Normal,
+  Tactics_Aggressive,
+  Tactics_Suicidal,
+  };
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var private int nPlayersJailed;            // number of jailed players
-var private array<JBRelease> ListRelease;  // releases this team will attack
+var private int nPlayersFree;    // number of free players
+var private int nPlayersJailed;  // number of jailed players
+
+var private bool bTacticsAuto;   // automatically select appropriate tactics
+var private ETactics Tactics;    // currently selected team tactics
 
 
 // ============================================================================
-// PostNetBeginPlay
+// PostBeginPlay
 //
-// Initializes the ListRelease array, spawns JBRelease actors where necessary
-// and sets the timer.
+// Starts the timer.
 // ============================================================================
 
-simulated event PostNetBeginPlay() {
+event PostBeginPlay() {
 
-  local JBInfoJail thisJail;
-  local JBRelease thisRelease;
-  local Trigger thisTrigger;
-  
-  foreach DynamicActors(Class'JBRelease', thisRelease)
-    if (thisRelease.Team == TeamIndex)
-      ListRelease[ListRelease.Length] = thisRelease;
-  
-  if (Role < ROLE_Authority)
-    return;
-
-  if (ListRelease.Length == 0)
-    foreach DynamicActors(Class'Trigger', thisTrigger)
-      foreach DynamicActors(Class'JBInfoJail', thisJail, thisTrigger.Event)
-        if (thisJail.CanRelease(TeamIndex)) {
-          ListRelease[ListRelease.Length] = Spawn(Class'JBRelease', thisTrigger, , thisTrigger.Location);
-          break;
-          }
-
-  SetTimer(0.1, True);
+  SetTimer(0.2, True);
   }
 
 
@@ -70,7 +67,36 @@ simulated event PostNetBeginPlay() {
 
 event Timer() {
 
+  CountPlayersFree();
   CountPlayersJailed();
+  }
+
+
+// ============================================================================
+// CountPlayersFree
+//
+// Returns the number of free players in this team, server-side by counting
+// them, client-side by reading the replicated value.
+// ============================================================================
+
+simulated function int CountPlayersFree() {
+
+  local int iInfoPlayer;
+  local JBReplicationInfoGame InfoGame;
+  local JBReplicationInfoPlayer InfoPlayer;
+
+  if (Role == ROLE_Authority) {
+    InfoGame = JBReplicationInfoGame(Level.GRI);
+    nPlayersFree = 0;
+    
+    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
+      InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
+      if (InfoPlayer.IsFree() && InfoPlayer.GetPlayerReplicationInfo().Team == Self)
+        nPlayersFree++;
+      }
+    }
+  
+  return nPlayersFree;
   }
 
 
@@ -112,4 +138,48 @@ simulated function int CountPlayersJailed() {
 simulated function int CountPlayersTotal() {
 
   return Size;
+  }
+
+
+// ============================================================================
+// SetTactics
+//
+// Sets the current team tactics.
+// ============================================================================
+
+function SetTactics(coerce ETactics NewTactics, optional bool bNewTacticsAuto) {
+
+  Tactics = NewTactics;
+  bTacticsAuto = bNewTacticsAuto;
+  
+  switch (Tactics) {
+    case Tactics_Evasive:     AI.GotoState('TacticsEvasive');     break;
+    case Tactics_Defensive:   AI.GotoState('TacticsDefensive');   break;
+    case Tactics_Normal:      AI.GotoState('TacticsNormal');      break;
+    case Tactics_Aggressive:  AI.GotoState('TacticsAggressive');  break;
+    case Tactics_Suicidal:    AI.GotoState('TacticsSuicidal');    break;
+    }
+  }
+
+
+// ============================================================================
+// Accessors
+// ============================================================================
+
+simulated function ETactics GetTactics() {
+  return Tactics;
+  }
+
+simulated function bool GetTacticsAuto() {
+  return bTacticsAuto;
+  }
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
+defaultproperties {
+
+  bTacticsAuto = True;
   }

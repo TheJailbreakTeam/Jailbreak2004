@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.7 2002/11/24 13:22:21 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.8 2002/11/24 18:14:03 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -203,9 +203,6 @@ function int CountPlayersTotal() {
 
 function Release(byte Team, optional Controller ControllerInstigator) {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
-
   if (IsInState('Waiting')) {
     if (ListInfoReleaseByTeam[Team].bIsActive)
       return;
@@ -221,19 +218,15 @@ function Release(byte Team, optional Controller ControllerInstigator) {
     if (CanRelease(Team)) {
       if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
         BroadcastLocalizedMessage(ClassLocalMessage, 200, ControllerInstigator.PlayerReplicationInfo, ,
-                                                              ControllerInstigator.PlayerReplicationInfo.Team);
+                                                          ControllerInstigator.PlayerReplicationInfo.Team);
         TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
         }
       
       ListInfoReleaseByTeam[Team].bIsActive = True;
       ListInfoReleaseByTeam[Team].Time = Level.TimeSeconds;
       ListInfoReleaseByTeam[Team].ControllerInstigator = ControllerInstigator;
-      
-      InfoGame = JBReplicationInfoGame(Level.GRI);
-      
-      for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-        if (InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
-          InfoGame.ListInfoPlayer[iInfoPlayer].ReleasePrepare();
+
+      JailOpened(TeamGame(Level.Game).Teams[Team], ControllerInstigator);
       }
     }
   
@@ -244,6 +237,67 @@ function Release(byte Team, optional Controller ControllerInstigator) {
 
 
 // ============================================================================
+// JailOpened
+// called. Disables all GameObjectives that can be used to trigger this jail's
+// Called when this jail is opened. Communicates that event to all inmates and
+// temporarily disables all objectives that can be used to open this jail.
+function NotifyJailOpening(TeamInfo Team) {
+
+function JailOpened(UnrealTeamInfo Team, optional Controller ControllerInstigator) {
+  local GameObjective thisObjective;
+  local int iInfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBReplicationInfoGame InfoGame;
+  local JBReplicationInfoPlayer InfoPlayer;
+  for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
+  InfoGame = JBReplicationInfoGame(Level.GRI);
+  
+  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
+    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
+    if (InfoPlayer.GetJail() == Self &&
+        InfoPlayer.GetPlayerReplicationInfo().Team == Team)
+      InfoPlayer.JailOpened();
+    }
+  
+  for (thisObjective = Team.AI.Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    if (thisObjective.Event == Tag &&
+        thisObjective.DefenderTeamIndex != Team.TeamIndex)
+      thisObjective.bDisabled = True;
+
+// ============================================================================
+// NotifyJailClosed
+//
+// JailClosed
+// ============================================================================
+// Called when this jail is closed. Communicates that event to all inmates and
+// enables all objectives that can be used to open this jail.
+function NotifyJailClosed(TeamInfo Team) {
+
+function JailClosed(UnrealTeamInfo Team) {
+  local JBTagPlayer firstTagPlayer;
+  local int iInfoPlayer;
+  local GameObjective thisObjective;
+  local JBReplicationInfoGame InfoGame;
+  local JBReplicationInfoPlayer InfoPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+  InfoGame = JBReplicationInfoGame(Level.GRI);
+  
+  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
+    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
+    if (InfoPlayer.GetJail() == Self &&
+        InfoPlayer.GetPlayerReplicationInfo().Team == Team)
+      InfoPlayer.JailClosed();
+    }
+  for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
+  for (thisObjective = Team.AI.Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+        thisObjective.bDisabled)
+      thisObjective.Reset();
+  }
+
+
+// ============================================================================
+// ExecutePlayer
+//
 // Initiates the execution sequence. Can be called only in state Waiting and
 // logs a warning otherwise.
 // ============================================================================
@@ -352,6 +406,8 @@ auto state Waiting {
         if (!ListInfoReleaseByTeam[iTeam].bIsActive) {
           ListInfoReleaseByTeam[iTeam].Time = 0.0;
           ListInfoReleaseByTeam[iTeam].ControllerInstigator = None;
+
+          JailClosed(TeamGame(Level.Game).Teams[iTeam]);
           }
     }
 

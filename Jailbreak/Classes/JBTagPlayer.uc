@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoPlayer.uc,v 1.3 2002/11/24 09:35:17 mychaeel Exp $
+// $Id: JBReplicationInfoPlayer.uc,v 1.4 2002/11/24 14:39:39 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -156,6 +156,19 @@ simulated static function JBReplicationInfoPlayer FindFor(PlayerReplicationInfo 
 
 
 // ============================================================================
+// IsFree
+//
+// Returns whether this player is in freedom at the moment.
+// ============================================================================
+
+simulated function bool IsFree() {
+
+  return (Arena == None &&
+          Jail  == None);
+  }
+
+
+// ============================================================================
 // IsInArena
 //
 // Returns whether this player is fighting in an arena at the moment.
@@ -163,7 +176,7 @@ simulated static function JBReplicationInfoPlayer FindFor(PlayerReplicationInfo 
 
 simulated function bool IsInArena() {
 
-  return Arena != None;
+  return (Arena != None);
   }
 
 
@@ -175,7 +188,7 @@ simulated function bool IsInArena() {
 
 simulated function bool IsInJail() {
 
-  return Jail != None;
+  return (Jail != None);
   }
 
 
@@ -183,12 +196,16 @@ simulated function bool IsInJail() {
 // JailEntered
 //
 // Automatically called when the player entered the jail. If the jail release
-// is open, prepares the player for release.
+// is open, prepares the player for release. Puts bots on the jail squad.
 // ============================================================================
 
 function JailEntered() {
 
-  ReleasePrepare();
+  if (Bot(Owner) != None)
+    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(Owner));
+
+  if (Jail.IsReleaseActive(PlayerReplicationInfo.Team.TeamIndex))
+    JailOpened();
   }
 
 
@@ -202,6 +219,7 @@ function JailEntered() {
 function JailLeft(JBInfoJail JailPrev) {
 
   local int iInfoArena;
+  local Controller ControllerInstigator;
   local JBReplicationInfoGame InfoGame;
 
   if (ArenaPending != None)
@@ -214,9 +232,43 @@ function JailLeft(JBInfoJail JailPrev) {
     InfoGame.ListInfoArena[iInfoArena].ExcludeRemove(Controller(Owner));
 
   if (JailPrev.GetReleaseTime(PlayerReplicationInfo.Team.TeamIndex) != TimeRelease) {
+    ControllerInstigator = JailPrev.GetReleaseInstigator(PlayerReplicationInfo.Team.TeamIndex);
+    if (ControllerInstigator != None)
+      Jailbreak(Level.Game).ScorePlayer(ControllerInstigator, 'Release');
+
     TimeRelease = JailPrev.GetReleaseTime(PlayerReplicationInfo.Team.TeamIndex);
-    Jailbreak(Level.Game).ScoreEvent(JailPrev.GetReleaseInstigator(PlayerReplicationInfo.Team.TeamIndex), 'Release');
     }
+
+  if (Bot(Owner) != None && JBBotSquadJail(Bot(Owner).Squad) != None)
+    UnrealTeamInfo(PlayerReplicationInfo.Team).AI.SetBotOrders(Bot(Owner), None);
+  }
+
+
+// ============================================================================
+// JailOpened
+//
+// Automatically called when the jail opens while this player is in jail.
+// Gives bots new orders to make them leave the jail.
+// ============================================================================
+
+function JailOpened() {
+
+  if (Bot(Owner) != None)
+    UnrealTeamInfo(PlayerReplicationInfo.Team).AI.SetBotOrders(Bot(Owner), None);
+  }
+
+
+// ============================================================================
+// JailClosed
+//
+// Automatically called when the jail closes while this player is in jail.
+// Sets bots back on the jail squad.
+// ============================================================================
+
+function JailClosed() {
+
+  if (Bot(Owner) != None)
+    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(Owner));
   }
 
 
@@ -294,18 +346,6 @@ function RestartArena(JBInfoArena NewArenaRestart) {
   ArenaRestart = None;
   
   Restart = Restart_Jail;
-  }
-
-
-// ============================================================================
-// ReleasePrepare
-//
-// Prepares this player for release.
-// ============================================================================
-
-function ReleasePrepare() {
-
-  // nothing yet
   }
 
 

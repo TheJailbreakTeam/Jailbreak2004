@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.12 2002/11/24 21:06:11 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.13 2002/11/24 21:49:22 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -12,18 +12,27 @@ class Jailbreak extends TeamGame
 
 
 // ============================================================================
+// Configuration
+// ============================================================================
+
+var config bool bEnableJailFights;
+
+
+// ============================================================================
 // Variables
 // ============================================================================
 
 var class<LocalMessage> ClassLocalMessage;
 
-var private JBCamera CameraExecution;    // camera for execution sequence
+var private JBCamera CameraExecution;      // camera for execution sequence
 
-var private float TimeExecution;         // time when execution starts
-var private float TimeRestart;           // time when next round starts
+var private float TimeExecution;           // time when execution starts
+var private float TimeRestart;             // time when next round starts
 
-var private array<name> ListEventFired;  // events fired in this tick
-var private float TimeEventFired;        // update time of event list
+var private array<name> ListEventFired;    // events fired in this tick
+var private float TimeEventFired;          // update time of event list
+
+var private GameObjective GameObjectives;  // linked list of objectives
 
 
 // ============================================================================
@@ -143,14 +152,14 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
 // ============================================================================
 // ScoreKill
 //
-// Translates kills into ScoreEvent calls according to Jailbreak rules.
+// Translates kills into ScorePlayer calls according to Jailbreak rules.
 // ============================================================================
 
 function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
 
-  local int iRelease;
   local float DistanceRelease;
   local float DistanceReleaseMin;
+  local GameObjective thisObjective;
   local JBReplicationInfoPlayer InfoPlayerVictim;
   local JBReplicationInfoTeam InfoTeamVictim;
 
@@ -166,26 +175,34 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
 
   if (ControllerKiller == None ||
       ControllerKiller == ControllerVictim)
-    ScoreEvent(ControllerVictim, 'Suicide');
+    ScorePlayer(ControllerVictim, 'Suicide');
   
   else if (SameTeam(ControllerKiller, ControllerVictim))
-    ScoreEvent(ControllerKiller, 'Teamkill');
+    ScorePlayer(ControllerKiller, 'Teamkill');
 
   else {
     DistanceReleaseMin = -1.0;
     InfoTeamVictim = JBReplicationInfoTeam(ControllerVictim.PlayerReplicationInfo.Team);
   
-    for (iRelease = 0; iRelease < InfoTeamVictim.ListRelease.Length; iRelease++) {
-      DistanceRelease = VSize(InfoTeamVictim.ListRelease[iRelease].Location - ControllerVictim.Pawn.Location);
+    if (GameObjectives == None)
+      foreach AllActors(Class'GameObjective', GameObjectives)
+        if (GameObjectives.bFirstObjective)
+          break;
+  
+    for (thisObjective = GameObjectives; thisObjective != None; thisObjective = thisObjective.NextObjective) {
+      DistanceRelease = VSize(thisObjective.Location - ControllerVictim.Pawn.Location);
       if (DistanceReleaseMin < 0.0 ||
           DistanceReleaseMin > DistanceRelease)
         DistanceReleaseMin = DistanceRelease;
       }
   
     if (DistanceRelease < 1024.0)
-      ScoreEvent(ControllerKiller, 'Defense');
+      ScorePlayer(ControllerKiller, 'Defense');
     else
-      ScoreEvent(ControllerKiller, 'Attack');
+      ScorePlayer(ControllerKiller, 'Attack');
+    
+    ControllerKiller.PlayerReplicationInfo.Kills  += 1;
+    ControllerVictim.PlayerReplicationInfo.Deaths += 1;
     }
   }
 
@@ -227,27 +244,27 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
 
     ControllerKiller.SendMessage(
       ControllerVictim.PlayerReplicationInfo, 'AutoTaunt',
-      ControllerKiller.PlayerReplicationInfo.VoiceType.Static.PickRandomTauntFor(
-        ControllerKiller, False, bNoHumanOnly), 10, 'Global');
+      ControllerKiller.PlayerReplicationInfo.VoiceType.Static.PickRandomTauntFor(ControllerKiller, False, bNoHumanOnly),
+      10, 'Global');
 	}
   }
 
 
 // ============================================================================
-// ScoreEvent
+// ScorePlayer
 //
 // Adds points to the given player's score according to the given game event.
 // ============================================================================
 
-function ScoreEvent(Controller Controller, name Event) {
+function ScorePlayer(Controller Controller, name Event) {
 
   switch (Event) {
-    case 'Suicide':   Controller.PlayerReplicationInfo.Score -= 1;  break;
-    case 'Teamkill':  Controller.PlayerReplicationInfo.Score -= 1;  break;
-    case 'Attack':    Controller.PlayerReplicationInfo.Score += 1;  break;
-    case 'Defense':   Controller.PlayerReplicationInfo.Score += 2;  break;
-    case 'Release':   Controller.PlayerReplicationInfo.Score += 1;  break;
-    case 'Capture':   Controller.PlayerReplicationInfo.Score += 1;  break;
+    case 'Suicide':   ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
+    case 'Teamkill':  ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
+    case 'Attack':    ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
+    case 'Defense':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  break;
+    case 'Release':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
+    case 'Capture':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
     }
 
   switch (Event) {
@@ -544,7 +561,6 @@ function bool ExecutionInit() {
 function ExecutionCommit(byte TeamExecuted) {
 
   local int iInfoJail;
-  local int iTeam;
   local Controller thisController;
   local JBReplicationInfoGame InfoGame;
   local JBReplicationInfoTeam InfoTeam;
@@ -561,7 +577,7 @@ function ExecutionCommit(byte TeamExecuted) {
       if (thisController.PlayerReplicationInfo      != None &&
           thisController.PlayerReplicationInfo.Team != None &&
           thisController.PlayerReplicationInfo.Team.TeamIndex != TeamExecuted)
-        ScoreEvent(thisController, 'Capture');
+        ScorePlayer(thisController, 'Capture');
   
     CameraExecution = FindCameraExecution();
     if (CameraExecution == None)
@@ -721,6 +737,8 @@ state Executing {
 
 defaultproperties {
 
+  bEnableJailFights = True;
+
   ClassLocalMessage = Class'JBLocalMessage';
 
   MapPrefix  = "JB";
@@ -729,6 +747,9 @@ defaultproperties {
 
   GameReplicationInfoClass = Class'JBReplicationInfoGame';
   DefaultEnemyRosterClass = "Jailbreak.JBReplicationInfoTeam";
+  
+  TeamAIType[0] = Class'JBBotTeam';
+  TeamAIType[1] = Class'JBBotTeam';
   
   bSpawnInTeamArea = True;
   bScoreTeamKills = False;
