@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.19 2003/03/16 13:08:04 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.20 2003/06/14 18:05:55 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -779,8 +779,7 @@ function ReAssessStrategy() {
 
   switch (Strategy) {
     case 'Scorelimit':
-           if (ScoreLead > 2) Tactics = 'TacticsSuicidal';  // even out a bit
-      else if (ScoreLead > 1) Tactics = 'TacticsDefensive';
+           if (ScoreLead > 1) Tactics = 'TacticsDefensive';
       else if (ScoreLead < 0) Tactics = 'TacticsAggressive';
       break;
   
