@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.22 2003/03/29 12:58:26 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.23 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -868,7 +868,8 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
   local name Tactics;
   local TeamInfo Team;
 
-       if (TextTeam ~= Left("red",  Len(TextTeam))) Team = PlayerOwner.GameReplicationInfo.Teams[0];
+       if (TextTeam == "")                          Team = None;
+  else if (TextTeam ~= Left("red",  Len(TextTeam))) Team = PlayerOwner.GameReplicationInfo.Teams[0];
   else if (TextTeam ~= Left("blue", Len(TextTeam))) Team = PlayerOwner.GameReplicationInfo.Teams[1];
   
        if (TextTactics ~= Left("auto",       Len(TextTactics))) Tactics = 'Auto';
