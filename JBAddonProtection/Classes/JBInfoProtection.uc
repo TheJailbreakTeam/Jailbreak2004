@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBInfoProtection.uc,v 1.8 2004/05/23 13:23:16 tarquin Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -90,6 +90,7 @@ function Tick(float DeltaTime)
     ProtectionCharge = (EndProtectionTime - Level.TimeSeconds);
 
     if((ProtectionCharge < 0)
+    || (ProtectedPawn == None)
     || (ProtectedPawn.HasUDamage()))
         Destroy();
 }
