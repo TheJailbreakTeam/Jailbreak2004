@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBInfoProtection.uc,v 1.6 2004/05/22 22:00:49 tarquin Exp $
+// $Id$
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -144,11 +144,9 @@ simulated function RenderOverlays(Canvas C)
 function bool KeepDamageScore(int Damage, Pawn myPawn)
 {
   ProtectedPawnAbsorbedDamage += Damage;
-  //log("PROTECTION - adding:"@Damage@"- tally:"@ProtectedPawnAbsorbedDamage);
 
   if( ProtectedPawnAbsorbedDamage >= myPawn.Default.Health ) {
-    //log("PROTECTION - damage OVER!!"@myPawn.Default.Health);
-    ProtectedPawnAbsorbedDamage -= myPawn.Default.Health;
+    ProtectedPawnAbsorbedDamage = 0;
     return True;
   }
   return False; 
