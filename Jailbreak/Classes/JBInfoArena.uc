@@ -84,6 +84,7 @@ var() float MaxCombatTime;
 
 var() name TagAttachCameras;
 var() name TagAttachStarts;
+var() name TagAttachStartsWinner;
 var() name TagAttachPickups;
 
 
@@ -636,7 +637,12 @@ function MatchFinish()
       }
 
       TagPlayerWinner = Class'JBTagPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo);
-      TagPlayerWinner.RestartInFreedom();
+      if (TagAttachStartsWinner != ''     &&
+          TagAttachStartsWinner != 'None' &&
+          TagAttachStartsWinner != 'Auto')
+             TagPlayerWinner.RestartInFreedom(TagAttachStartsWinner);
+        else TagPlayerWinner.RestartInFreedom();
+
       Jailbreak(Level.Game).ScorePlayer(ControllerWinner, 'ArenaVictory');
     }
     else {
@@ -1296,9 +1302,10 @@ defaultproperties
 
   MaxCombatTime = 60.0;
 
-  TagAttachCameras = Auto;
-  TagAttachStarts  = Auto;
-  TagAttachPickups = Auto;
+  TagAttachCameras      = Auto;
+  TagAttachStarts       = Auto;
+  TagAttachStartsWinner = Auto;
+  TagAttachPickups      = Auto;
 
   SpriteWidgetCountdown = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   NumericWidgetCountdown = (TextureScale=0.15,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=140,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))

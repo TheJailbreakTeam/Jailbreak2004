@@ -464,9 +464,8 @@ function JBGameRules GetFirstJBGameRules()
 function NavigationPoint FindPlayerStart(Controller Controller, optional byte iTeam, optional string Teleporter)
 {
   if (Controller == None)
-    TagPlayerRestart = None;
-  else
-    TagPlayerRestart = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+         TagPlayerRestart = None;
+    else TagPlayerRestart = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
 
   return Super.FindPlayerStart(Controller, iTeam, Teleporter);
 }
@@ -484,14 +483,15 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
   if (TagPlayerRestart == None)
     if (ContainsActorJail (NavigationPoint) ||
         ContainsActorArena(NavigationPoint))
-      return -20000000;
-    else
-      return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+           return -20000000;  // prefer spawn-fragging over jail or arena
+      else return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
 
-  if (TagPlayerRestart.IsValidStart(NavigationPoint))
-    return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
-  else
-    return -20000000;
+  if (TagPlayerRestart.IsStartValid(NavigationPoint))
+    if (TagPlayerRestart.IsStartPreferred(NavigationPoint))
+           return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + 10000000;
+      else return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+  
+  return -20000000;  // prefer spawn-fragging over inappropriate start spots
 }
 
 

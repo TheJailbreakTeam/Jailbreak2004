@@ -90,6 +90,7 @@ var private TInfoScore InfoScore;         // persistent score over reconnects
 
 var float TimeRestart;                    // time of next restart
 var private ERestart Restart;             // restart location for this player
+var private transient name TagRestart;    // tag of preferred starting spots
 
 var private JBInfoArena Arena;            // arena player is currently in
 var private JBInfoArena ArenaRestart;     // arena player will be restarted in
@@ -739,10 +740,10 @@ function NotifyJailClosed()
 //
 // Restarts the player, making sure everything is properly cleaned up before
 // doing so. Plays a teleport effect at the place where the player teleports
-// away from.
+// away from. Prefers starting spots with a given Tag if specified.
 // ============================================================================
 
-private function RestartPlayer(ERestart RestartCurrent)
+private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferred)
 {
   local xPawn xPawn;
 
@@ -766,11 +767,13 @@ private function RestartPlayer(ERestart RestartCurrent)
   }
 
   Restart = RestartCurrent;
+  TagRestart = TagPreferred;
 
   TimeRestart = Level.TimeSeconds;
   Level.Game.RestartPlayer(Controller);
 
   Restart = Restart_Jail;
+  TagRestart = '';
 }
 
 
@@ -778,11 +781,12 @@ private function RestartPlayer(ERestart RestartCurrent)
 // RestartInFreedom
 // RestartInJail
 //
-// Restarts the player in freedom or in jail, respectively.
+// Restarts the player in freedom or in jail, respectively. Prefers starting
+// spots with a given tag, if specified. 
 // ============================================================================
 
-function RestartInFreedom() { RestartPlayer(Restart_Freedom); }
-function RestartInJail()    { RestartPlayer(Restart_Jail);    }
+function RestartInFreedom(optional name TagPreferred) { RestartPlayer(Restart_Freedom, TagPreferred); }
+function RestartInJail   (optional name TagPreferred) { RestartPlayer(Restart_Jail,    TagPreferred); }
 
 
 // ============================================================================
@@ -841,13 +845,13 @@ private function ERestart GetRestart()
 
 
 // ============================================================================
-// IsValidStart
+// IsStartValid
 //
-// Checks and returns if the given NavigationPoint is a valid start for this
-// player in the current situation, regardless of the player's team.
+// Checks and returns whether the given NavigationPoint is a valid start for
+// this player in the current situation, regardless of the player's team.
 // ============================================================================
 
-function bool IsValidStart(NavigationPoint NavigationPoint)
+function bool IsStartValid(NavigationPoint NavigationPoint)
 {
   local JBInfoArena firstArena;
   local JBInfoArena thisArena;
@@ -876,6 +880,24 @@ function bool IsValidStart(NavigationPoint NavigationPoint)
     case Restart_Arena:
       return ArenaRestart.ContainsActor(NavigationPoint);
   }
+}
+
+
+// ============================================================================
+// IsStartPreferred
+//
+// Checks and returns whether this NavigationPoint is currently a preferred
+// start for this player, regardless of the player's team. Returns False for
+// all starts if no particular start is preferred.
+// ============================================================================
+
+function bool IsStartPreferred(NavigationPoint NavigationPoint)
+{
+  if (TagRestart == '' ||
+      TagRestart == 'None')
+    return False;
+
+  return (NavigationPoint.Tag == TagRestart);
 }
 
 
