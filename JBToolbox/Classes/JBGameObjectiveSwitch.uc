@@ -217,5 +217,6 @@ defaultproperties
   RemoteRole             = ROLE_SimulatedProxy;
   bStatic                = False;
   bNoDelete              = True;
+  bAlwaysRelevant        = True;
   bReplicateInstigator   = True;
 }
