@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.30 2004/04/07 02:17:54 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.31 2004/04/14 15:40:44 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -81,6 +81,7 @@ var() float MaxCombatTime;
 
 var() name TagAttachCameras;
 var() name TagAttachStarts;
+var() name TagAttachStartsWinner;
 var() name TagAttachPickups;
 
 
@@ -633,7 +634,12 @@ function MatchFinish()
       }
 
       TagPlayerWinner = Class'JBTagPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo);
-      TagPlayerWinner.RestartInFreedom();
+      if (TagAttachStartsWinner != ''     &&
+          TagAttachStartsWinner != 'None' &&
+          TagAttachStartsWinner != 'Auto')
+             TagPlayerWinner.RestartInFreedom(TagAttachStartsWinner);
+        else TagPlayerWinner.RestartInFreedom();
+
       Jailbreak(Level.Game).ScorePlayer(ControllerWinner, 'ArenaVictory');
     }
     else {
@@ -1268,9 +1274,10 @@ defaultproperties
 
   MaxCombatTime = 60.0;
 
-  TagAttachCameras = Auto;
-  TagAttachStarts  = Auto;
-  TagAttachPickups = Auto;
+  TagAttachCameras      = Auto;
+  TagAttachStarts       = Auto;
+  TagAttachStartsWinner = Auto;
+  TagAttachPickups      = Auto;
 
   SpriteWidgetCountdown = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.7,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   NumericWidgetCountdown = (TextureScale=0.36,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=54,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
