@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.8 2004/05/18 05:33:33 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.9 2004/05/18 18:31:26 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -58,7 +58,10 @@ function PostRender(Canvas C)
   }
   
   if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None ) {
-    JBInterfaceHud(ViewportOwner.Actor.myHUD).bWidescreen = True;
+    if ( ExecutionCamera == None || ExecutionCamera.Overlay.Material == None || ExecutionCamera.bWidescreen )
+      JBInterfaceHud(ViewportOwner.Actor.myHUD).bWidescreen = True;
+    else
+      JBInterfaceHud(ViewportOwner.Actor.myHUD).bWidescreen = False;
     JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = True;
   }
   
