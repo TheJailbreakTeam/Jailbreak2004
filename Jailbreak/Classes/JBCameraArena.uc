@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCameraArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCameraArena.uc,v 1.2 2004/04/01 18:19:28 mychaeel Exp $
+// $Id: JBCameraArena.uc,v 1.3 2004/05/28 17:08:18 mychaeel Exp $
 //
 // Arena follower camera which tracks the arena opponent. Destroys itself when
 // the trailed player dies or is respawned or when the last viewer is gone.
@@ -85,7 +85,7 @@ function DeactivateFor(Controller Controller)
   Super.DeactivateFor(Controller);
   
   if (!HasViewers())
-    Destroy();
+    GotoState('Deactivate');
 }
 
 
@@ -111,14 +111,49 @@ state Finished
 
 
   // ================================================================
-  // State
+  // State Code
   // ================================================================
 
   Begin:
     Sleep(3.0);
-    Destroy();
+    GotoState('Deactivate');
 
 }  // state Finished
+
+
+// ============================================================================
+// state Deactivate
+//
+// Waits for a short while before destroying the camera.
+// ============================================================================
+
+state Deactivate
+{
+  // ================================================================
+  // IsViewerAllowed
+  //
+  // Does not accept any more viewers while pending destruction.
+  // ================================================================
+
+  function bool IsViewerAllowed(Controller Controller)
+  {
+    return False;
+  }
+
+
+  // ================================================================
+  // State Code
+  //
+  // Deactivates the camera for all viewers, waits for a short while
+  // and destroys the camera.
+  // ================================================================
+
+  Begin:
+    DeactivateForAll();
+    Sleep(3.0);
+    Destroy();
+
+} // state Deactivate
 
 
 // ============================================================================
