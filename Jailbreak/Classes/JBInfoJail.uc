@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.33 2004/04/20 16:43:08 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.34 2004/04/21 10:10:18 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -600,6 +600,22 @@ function ResetObjectives(TeamInfo Team)
         thisObjective.DefenderTeamIndex != Team.TeamIndex &&
         thisObjective.bDisabled)
       thisObjective.Reset();
+}
+
+
+// ============================================================================
+// ActivateCameraFor
+//
+// Activates the attached camera or camera array for the given player.
+// ============================================================================
+
+function ActivateCameraFor(Controller Controller)
+{
+  local JBCamera thisCamera;
+  
+  if (PlayerController(Controller) != None)
+    foreach DynamicActors(Class'JBCamera', thisCamera, Event)
+      thisCamera.TriggerForController(Self, Controller);
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.27 2004/04/01 18:19:28 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.28 2004/04/05 20:32:15 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -195,6 +195,19 @@ simulated event SetInitialState()
 
 event Trigger(Actor ActorOther, Pawn PawnInstigator)
 {
+  TriggerForController(ActorOther, PawnInstigator.Controller);
+}
+
+
+// ============================================================================
+// TriggerForController
+//
+// Like Trigger, but takes a controller reference as the instigator. Can be
+// used to trigger the camera when players have no pawns.
+// ============================================================================
+
+function TriggerForController(Actor ActorOther, Controller ControllerInstigator)
+{
   local JBCamera CameraActivate;
 
   if (CamManager == None) {
@@ -209,7 +222,7 @@ event Trigger(Actor ActorOther, Pawn PawnInstigator)
   }
 
   if (CameraActivate != None)
-    CameraActivate.ActivateFor(PawnInstigator.Controller);
+    CameraActivate.ActivateFor(ControllerInstigator);
 }
 
 
