@@ -2,7 +2,7 @@
 
 ###############################################################################
 #
-#  make-distribution-int.pl
+#  make-distribution.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
 #  $Id$
@@ -14,7 +14,12 @@ use strict;
 use warnings;
 
 use Cwd;
+use Digest::MD5;
 use File::Copy;
+use Getopt::Long;
+
+use constant TRUE  => 1;
+use constant FALSE => 0;
 
 
 ###############################################################################
@@ -31,6 +36,8 @@ use File::Copy;
 our $localization;
 our $product;
 our $version;
+our $versionReference;
+our $versionSuffix = '';
 
 our $UT200x;
 our $UT200xSuffix;
@@ -88,8 +95,8 @@ do 'make-distribution.conf';
 #
 
 our $dirGame;
-
 our @paths;
+our %reference;
 
 
 ###############################################################################
@@ -217,6 +224,53 @@ sub getTimeFile ($)
 
 ###############################################################################
 #
+#  isFileIncluded $file
+#
+#  Returns whether the given file should be included in the distribution
+#  package. Assumes that the given file specification is relative to the game
+#  base directory.
+#
+
+sub isFileIncluded ($)
+{
+  my $file = shift;
+  $file =~ s[[\\/]+] [/]g;
+  
+  return $main::cacheIsFileIncluded{$file}
+    if exists $main::cacheIsFileIncluded{$file};
+  
+  $main::cacheIsFileIncluded{$file} = TRUE;
+  
+  return TRUE
+    unless exists $reference{$file};
+
+  open FILE, '<', $file
+    or die "Unable to read file $file for reference check.\n";
+  binmode FILE;
+
+  my $buffer;
+
+  read FILE, $buffer, 4096;
+  return TRUE
+    if $reference{$file}{md5short} ne Digest::MD5::md5_hex($buffer);
+
+  my $md5full = Digest::MD5->new();
+  $md5full->add($buffer);
+  $md5full->add($buffer)
+    while read(FILE, $buffer, 256 * 1024);
+
+  close FILE;
+
+  return TRUE
+    if $reference{$file}{md5full} ne $md5full->hexdigest();
+
+  $main::cacheIsFileIncluded{$file} = FALSE;
+  return FALSE;
+}
+
+
+###############################################################################
+#
 #  timestamp $file
 #
 #  Replaces the pattern %%%%-%%-%% %%:%% by the current timestamp in the given
@@ -285,10 +339,61 @@ die "Unable to find game base directory.\n"
 
 #####################################################################
 #
+#  Parameters
+#
+
+my $skipRebuild = FALSE;
+my $fileReference;
+
+GetOptions(
+  'version=s'           => \$versionSuffix,
+  'skip-rebuild'        => \$skipRebuild,
+  'reference-file=s'    => \$fileReference,
+  'reference-version=i' => \$versionReference,
+);
+
+
+###########################################################
+#
+#  Reference
+#
+#  If a reference file for delta installer builds is
+#  specified, reads and parses it.
+#
+
+if (defined $fileReference) {
+  open REFERENCE, '<', $fileReference
+    or die "Unable to read reference file $fileReference.\n";
+
+  while (<REFERENCE>) {
+    next if /^#|^\s*$/;
+    die "Invalid line in reference file: $_"
+      unless /^([0-9a-f]{32})\s+([0-9a-f]{32})\s+(.*)$/;
+    
+    my $md5short = $1;
+    my $md5full  = $2;
+    my $file     = $3;
+    
+    $reference{$file}{md5short} = $md5short;
+    $reference{$file}{md5full}  = $md5full;
+  }
+
+  close REFERENCE;
+
+  die "Reference file specified, but no reference version given.\n"
+    unless defined $versionReference;
+}
+
+
+#####################################################################
+#
 #  Modules
 #
 
 my @modules = sort { uc($a) cmp uc($b) } keys %modules;
+
+goto MakeZip
+  if $skipRebuild;
 
 
 ###########################################################
@@ -317,7 +422,7 @@ foreach my $module (@modules) {
   die "Unable to update module $module from CVS. $!\n"
     if ($? >> 8) != 0;
   die "Module $module has uncommitted local changes or conflicts.\n"
-    if $output =~ m[^[ARMC]\s(?!Installer/make-distribution\.(?:pl|conf)$)]m; 
+    if $output =~ m[^[ARMC]\s(?!Installer/(?:make-distribution\.(?:pl|conf)|Manifest-\Q$product\E\.\w+t)$)]m; 
 
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
@@ -431,9 +536,14 @@ print "\n";
 #  Zip Installer
 #
 
+MakeZip:
+
+my $hasGroupMain = FALSE;
+my $hasGroupMaps = FALSE;
+
 print "Packing .zip installer:\n";
 
-my $fileZip = cwd() . "/$product$UT200xSuffix-zip.zip";
+my $fileZip = cwd() . "/$product$UT200xSuffix$versionSuffix-zip.zip";
 unlink $fileZip
   or die "Unable to remove old archive $fileZip.\n"
   if -e $fileZip;
@@ -464,17 +574,60 @@ foreach my $module (@modules) {
   $filePackage =~ s[^\Q$dirGame\E[/\\]] [];
   $filePackage = canonPath($filePackage);
   
-  my $output = `zip -9 "$fileZip" "$filePackage" 2>&1`;
-  die "Unable to add $filePackage to archive.\n", $output, "\n"
-    if ($? >> 8) != 0;
+  if (isFileIncluded($filePackage)) {
+    my $output = `zip -9 "$fileZip" "$filePackage" 2>&1`;
+    die "Unable to add $filePackage to archive.\n", $output, "\n"
+      if ($? >> 8) != 0;
+    $hasGroupMain = TRUE;
+  }
 
   if (-d "$module/Installer") {
     chdir "$module/Installer"
       or die "Unable to change to Installer directory of module $module.\n";
+
+    my @dirSub;
+
+    opendir DIR, '.'
+      or die "Unable to open Installer directory.\n";
     
-    my $output = `zip -Dr9 "$fileZip" */* -x CVS/* */CVS/* 2>&1`;
-    die "Unable to add Installer directory contents to archive.\n", $output, "\n"
-      if ($? >> 8) != 0;
+    foreach my $fileOrDir (readdir(DIR)) {
+      next
+        if $fileOrDir eq '.'
+        or $fileOrDir eq '..'
+        or $fileOrDir eq 'CVS';
+
+      push @dirSub, $fileOrDir
+        if -d "$dirGame/$module/Installer/$fileOrDir";
+    }
+    
+    closedir DIR;
+    
+    while (my $dirSub = shift @dirSub) {
+      opendir DIR, $dirSub
+        or die "Unable to open Installer/$dirSub directory.\n";
+      
+      foreach my $fileOrDir (readdir(DIR)) {
+        next
+          if $fileOrDir eq '.'
+          or $fileOrDir eq '..'
+          or $fileOrDir eq 'CVS';
+        
+        if (-d "$dirSub/$fileOrDir") {
+          push @dirSub, "$dirSub/$fileOrDir";
+        }
+        else {
+          my $file = "$dirSub/$fileOrDir";
+          if (isFileIncluded($file)) {
+            my $output = `zip -9 "$fileZip" "$file" 2>&1`;
+            die "Unable to add file $file to archive.\n", $output, "\n"
+              if ($? >> 8) != 0;
+            $hasGroupMain = TRUE;
+          }
+        }
+      }
+
+      closedir DIR;
+    }
   }
   
   chdir $dirCurrent
@@ -497,11 +650,14 @@ if (@maps) {
     or die "Unable to change to game directory.\n";
 
   foreach my $file (@maps) {
-    print ".....$file\n";
-    
-    my $output = `zip -r9 "$fileZip" "$file" 2>&1`;
-    die "Unable to add file $file to archive.\n", $output, "\n"
-      if ($? >> 8) != 0;
+    if (isFileIncluded($file)) {
+      print ".....$file\n";
+      
+      my $output = `zip -9 "$fileZip" "$file" 2>&1`;
+      die "Unable to add file $file to archive.\n", $output, "\n"
+        if ($? >> 8) != 0;
+      $hasGroupMaps = TRUE;
+    }
   }
 
   chdir $dirCurrent
@@ -515,6 +671,8 @@ print "\n";
 #
 #  UMod Installer
 #
+
+MakeUMod:
 
 print "Packing .$UT200xExt installer:\n";
 print "...distributing files and creating configuration\n";
@@ -542,20 +700,27 @@ print MANIFEST "[Setup]\n";
 print MANIFEST "Product=$product\n";
 print MANIFEST "Version=$version\n";
 print MANIFEST "Language=int\n";
-print MANIFEST "Archive=$product.$UT200xExt\n";
+print MANIFEST "Archive=$product$UT200xSuffix$versionSuffix.$UT200xExt\n";
 print MANIFEST "SrcPath=.\n";
 print MANIFEST "MasterPath=..\n";
 print MANIFEST "Requires=Requirement$UT200x\n";
+print MANIFEST "Requires=Requirement$product\n" if %reference;
 print MANIFEST "Visible=True\n";
 
 print MANIFEST "Group=GroupSetup\n";
-print MANIFEST "Group=GroupMain\n";
-print MANIFEST "Group=GroupMaps\n" if @maps;
+print MANIFEST "Group=GroupMain\n" if           $hasGroupMain;
+print MANIFEST "Group=GroupMaps\n" if @maps and $hasGroupMaps;
 print MANIFEST "Group=GroupKeys\n" if %keys;
 
 print MANIFEST "[Requirement$UT200x]\n";
 print MANIFEST "Product=$UT200x\n";
 print MANIFEST "Version=$UT200xVersion\n";
+
+if (%reference) {
+  print MANIFEST "[Requirement$product]\n";
+  print MANIFEST "Product=$product\n";
+  print MANIFEST "Version=$versionReference\n";
+}
 
 print MANIFEST "[GroupSetup]\n";
 print MANIFEST "Copy=(Src=System\\Manifest.ini,Flags=3)\n";
@@ -596,9 +761,11 @@ foreach my $module (@modules) {
   $filePackage = canonPath($filePackage);
   $filePackage =~ tr[/] [\\];
 
-  print MANIFEST "AddIni=$UT200x.ini,Engine.GameEngine.ServerPackages=$module\n"
-    if $filePackage =~ /\.u$/;
-  print MANIFEST "File=(Src=\"$filePackage\",Size=$sizeFilePackage)\n";
+  if (isFileIncluded($filePackage)) {
+    print MANIFEST "AddIni=$UT200x.ini,Engine.GameEngine.ServerPackages=$module\n"
+      if $filePackage =~ /\.u$/;
+    print MANIFEST "File=(Src=\"$filePackage\",Size=$sizeFilePackage)\n";
+  }
 
   if (-e "$dirGame/$module/Installer") {
     my @dirSub;
@@ -643,15 +810,17 @@ foreach my $module (@modules) {
           my $fileTarget   =                   "$dirSub/$fileOrDir";
           $fileTarget =~ tr[/] [\\];
           
-          my $sizeFile = -s "$dirGame/$fileOriginal";
-          print MANIFEST "File=(Src=\"$fileTarget\",Size=$sizeFile)\n";
-        
-          my $timeFileOriginal = getTimeFile("$dirGame/$fileOriginal");
-          my $timeFileTarget   = getTimeFile("$dirGame/$fileTarget");
+          if (isFileIncluded($fileTarget)) {
+            my $sizeFile = -s "$dirGame/$fileOriginal";
+            print MANIFEST "File=(Src=\"$fileTarget\",Size=$sizeFile)\n";
           
-          copy "$dirGame/$fileOriginal", "$dirGame/$fileTarget"
-            or die "Unable to copy $fileTarget from Installer directory to game directory.\n"
-            if not defined $timeFileTarget or $timeFileOriginal > $timeFileTarget;
+            my $timeFileOriginal = getTimeFile("$dirGame/$fileOriginal");
+            my $timeFileTarget   = getTimeFile("$dirGame/$fileTarget");
+            
+            copy "$dirGame/$fileOriginal", "$dirGame/$fileTarget"
+              or die "Unable to copy $fileTarget from Installer directory to game directory.\n"
+              if not defined $timeFileTarget or $timeFileOriginal > $timeFileTarget;
+          }
         }
       }
 
@@ -677,10 +846,12 @@ if (@maps) {
   print MANIFEST "Visible=True\n";
 
   foreach my $file (@maps) {
-    my $sizeFile = -s "$dirGame/$file";
-    die "File $file does not exist.\n"
-      unless defined $sizeFile;
-    print MANIFEST "File=(Src=\"$file\",Size=$sizeFile)\n";
+    if (isFileIncluded($file)) {
+      my $sizeFile = -s "$dirGame/$file";
+      die "File $file does not exist.\n"
+        unless defined $sizeFile;
+      print MANIFEST "File=(Src=\"$file\",Size=$sizeFile)\n";
+    }
   }
 }
 
@@ -729,14 +900,14 @@ foreach my $file (<Manifest-$product.*t>) {
   chdir "$dirGame/System"
     or die "Unable to change to System directory.\n";
 
-  unlink "$product.$UT200xExt";
+  unlink "$product$UT200xSuffix$versionSuffix.$UT200xExt";
   my $output = `ucc master Manifest-$product.ini`;
   
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
 
   die "Installer file was not created.\n", $output, "\n"
-    unless -e "$dirGame/System/$product.$UT200xExt";
+    unless -e "$dirGame/System/$product$UT200xSuffix$versionSuffix.$UT200xExt";
 }
 
 copy "$dirGame/System/Manifest.ini", "Manifest-$product.ini";
@@ -752,7 +923,7 @@ unlink <$dirGame/System/Manifest.*t>;
 
 print "...packing archive\n";
 
-my $fileZipUMod = "$product$UT200xSuffix-umod.zip";
+my $fileZipUMod = "$product$UT200xSuffix$versionSuffix-umod.zip";
 unlink $fileZipUMod
   or die "Unable to remove old archive $fileZipUMod.\n"
   if -e $fileZipUMod;
@@ -761,12 +932,12 @@ unlink $fileZipUMod
 die "Unable to add $product.txt to archive.\n"
   if ($? >> 8) != 0;
 
-`zip -j9 "$fileZipUMod" "$dirGame/System/$product.$UT200xExt"`;
-die "Unable to add $product.$UT200xExt to archive.\n"
+`zip -j9 "$fileZipUMod" "$dirGame/System/$product$UT200xSuffix$versionSuffix.$UT200xExt"`;
+die "Unable to add $product$UT200xSuffix$versionSuffix.$UT200xExt to archive.\n"
   if ($? >> 8) != 0;
 
-unlink "$dirGame/System/$product.$UT200xExt"
-  or die "Unable to remove file $product.$UT200xExt.\n";
+unlink "$dirGame/System/$product$UT200xSuffix$versionSuffix.$UT200xExt"
+  or die "Unable to remove file $product$UT200xSuffix$versionSuffix.$UT200xExt.\n";
 
 print "\n";
 
