@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.46 2004/04/28 11:52:22 mychaeel Exp $
+// $Id$
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -212,6 +212,20 @@ function Register()
 
   Enable('Tick');
   SetTimer(RandRange(0.18, 0.22), True);
+}
+
+
+// ============================================================================
+// RegisterLocal
+//
+// Fixes the location displayed in player talk messages during the execution
+// sequence. This goes at the expense of displaying them as dead in the brief
+// period between a frag and the subsequent respawn.
+// ============================================================================
+
+protected simulated function RegisterLocal()
+{
+  PlayerReplicationInfo(Keeper).StringDead = PlayerReplicationInfo(Keeper).StringSpectating;
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTag.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
+// $Id$
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -215,9 +215,22 @@ function Register()
 
   RegisterInList();
   RegisterInInventory();
+  RegisterLocal();
 
   bIsRegisteredOnServer = True;  // triggers PostNetReceive on clients
 }
+
+
+// ============================================================================
+// RegisterLocal
+// UnregisterLocal
+//
+// Called locally on every client after this item has been registered or
+// before it is unregistered.
+// ============================================================================
+
+protected simulated function RegisterLocal();
+protected simulated function UnregisterLocal();
 
 
 // ============================================================================
@@ -348,6 +361,7 @@ simulated event PostNetReceive()
   if (bIsRegisteredOnServer)
     GotoState('Registering');
   else {
+    UnregisterLocal();
     UnregisterFromList();
     UnregisterFromInventory();
   }
@@ -364,6 +378,7 @@ simulated event PostNetReceive()
 
 simulated event Destroyed()
 {
+  UnregisterLocal();
   UnregisterFromList();
   UnregisterFromInventory();
 }
@@ -385,6 +400,7 @@ simulated state Registering {
 
     RegisterInList();
     RegisterInInventory();
+    RegisterLocal();
 
 } // state Registering
 
