@@ -1,13 +1,13 @@
 //=============================================================================
 // JBLlamaMessage
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaMessage.uc,v 1.2 2003/07/29 19:06:55 wormbo Exp $
+// $Id: JBLlamaMessage.uc,v 1.3 2003/08/11 20:34:25 wormbo Exp $
 //
 // Localized messages for Llama Hunt announcements.
 //=============================================================================
 
 
-class JBLlamaMessage extends LocalMessage;
+class JBLlamaMessage extends LocalMessage abstract;
 
 
 //=============================================================================

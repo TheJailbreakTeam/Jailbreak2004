@@ -1,2 +1,40 @@
 [Public]
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonLlama.JBAddonLlama)
+
+[JBAddonLlama]
+RewardAdrenalineText="Adrenaline gained for killing a Llama"
+RewardHealthText="Health gained for killing a Llama"
+RewardShieldText="Shield gained for killing a Llama"
+MaximumLlamaDurationText="Maximum duration of the llama hunt"
+FriendlyName="Llama Hunt"
+Description="Turns cheating players into llamas and lets other players perform a jolly hunt on them."
+
+[JBDamageTypeLlamaDied]
+DeathString="%o didn't want to be a llama anymore."
+FemaleSuicide="%o didn't want to be a llama anymore."
+MaleSuicide="%o didn't want to be a llama anymore."
+
+[JBLlamaHelpMessage]
+HelpMessageLines[0]="Syntax: 'mutate llama <parameter>' or 'mutate unllama <playername>'"
+HelpMessageLines[1]=" <parameter> can be a playername or 'config' followed by a second parameter."
+HelpMessageLines[2]=" Additional parameters for 'config' can be 'health', 'shield', 'adrenaline' and 'duration', each followed by their new value."
+
+[JBLlamaMessage]
+TextLlamaHuntStart="Kill %llama% for a little reward."
+TextLlamaCaught="%llama% was caught by %killer%!"
+TextLlamaDied="%llama% was busted!"
+TextLlamaDisconnected="%llama% ran away!"
+
+[JBGUILlamaConfigPanel]
+ResetButton.Caption="RESET"
+ResetButton.Hint="Reset Llama Hunt options."
+LlamaKillRewardLabel.Caption="Rewards for killing a Llama:"
+MaximumLlamaDuration.Caption="Llama Hunt Duration"
+MaximumLlamaDuration.Hint="Maximum duration of a llama hunt."
+RewardAdrenaline.Caption="Adrenaline"
+RewardAdrenaline.Hint="Adrenaline gained for killing a llama."
+RewardHealth.Caption="Health"
+RewardHealth.Hint="Health gained for killing a llama."
+RewardShield.Caption="Shield"
+RewardShield.Hint="Shield gained for killing a llama."
+

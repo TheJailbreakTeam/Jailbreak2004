@@ -1,13 +1,13 @@
 //=============================================================================
 // JBLlamaHelpMessage
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaMessage.uc,v 1.3 2003/08/11 20:34:25 wormbo Exp $
+// $Id: JBLlamaHelpMessage.uc,v 1.1 2003/11/11 17:48:49 wormbo Exp $
 //
 // Localized help message for "mutate llama" commands.
 //=============================================================================
 
 
-class JBLlamaHelpMessage extends LocalMessage;
+class JBLlamaHelpMessage extends LocalMessage abstract;
 
 
 //=============================================================================
