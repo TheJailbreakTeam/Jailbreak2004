@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesCelebration.uc,v 1.4 2004/05/18 18:31:26 wormbo Exp $
+// $Id: JBGameRulesCelebration.uc,v 1.5 2004/05/26 14:28:06 wormbo Exp $
 //
 // The JBGameRules class for the Celebration Screen used to get Jailbreak
 // notifications.
@@ -111,7 +111,7 @@ function ScoreKill(Controller Killer, Controller Killed)
   local int TeamNum;
   local JBTagPlayer TagKilled;
   
-  if ( Killed != None ) {
+  if ( Killed != None && Killed.PlayerReplicationInfo != None && !Killed.PlayerReplicationInfo.bOnlySpectator ) {
     TagKilled = class'JBTagPlayer'.static.FindFor(Killed.PlayerReplicationInfo);
     
     if ( TagKilled.IsFree() || TagKilled.IsInArena() ) {
