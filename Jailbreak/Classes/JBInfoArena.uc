@@ -721,6 +721,9 @@ function Controller FindWinner()
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
+  if (!Level.Game.IsInState('MatchInProgress'))
+    return None;
+
   if (IsInState('MatchRunning') ||
       IsInState('MatchFinished')) {
 
