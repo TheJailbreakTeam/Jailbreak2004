@@ -113,6 +113,8 @@ var() byte MotionBlur;                           // amount of motion blur
 // Variables
 // ============================================================================
 
+var Class<JBCamController> ClassCamController;   // default camera controller
+
 var private JBCamManager CamManager;             // camera array manager actor
 var private bool bHasCamManager;                 // replicated flag for clients
 var private float TimeUpdateMovement;            // last movement update
@@ -135,7 +137,7 @@ simulated event PostBeginPlay()
     Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
 
   if (CamController == None)
-    CamController = new Class'JBCamController';
+    CamController = new ClassCamController;
 
   CamController.Camera = Self;
   CamController.Init();
@@ -872,6 +874,8 @@ simulated function RemoveCameraEffect(CameraEffect CameraEffect)
 
 defaultproperties
 {
+  ClassCamController = Class'JBCamController';
+
   bWidescreen = False;
   MotionBlur  = 0;
   FieldOfView = 85.0;
