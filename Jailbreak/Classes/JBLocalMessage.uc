@@ -158,13 +158,13 @@ static function ClientReceive(PlayerController PlayerController,
     case 402:  PlayerController.PlayBeepSound();  break;
     case 401:  PlayerController.PlayBeepSound();  break;
    
-    case 400:  PlaySpeech(PlayerController, "$ArenaStart");       break;
-    case 410:  PlaySpeech(PlayerController, "$ArenaCancelled");   break;
-    case 420:  PlaySpeech(PlayerController, "$ArenaEndTimeout");  break;
+    case 400:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaStart");       break;
+    case 410:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaCancelled");   break;
+    case 420:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaEndTimeout");  break;
 
     case 430:
-           if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo1) PlaySpeech(PlayerController, "$ArenaEndWinner");
-      else if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo2) PlaySpeech(PlayerController, "$ArenaEndLoser");
+           if (IsLocalPlayer(PlayerReplicationInfo1)) PlaySpeech(PlayerController, "$ArenaEndWinner");
+      else if (IsLocalPlayer(PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaEndLoser");
       break;
 
     case 600:  PlaySpeech(PlayerController, "$LastMan");          break;
@@ -281,13 +281,18 @@ static function string ReplaceTextArena(string TextTemplate,
 // ============================================================================
 // IsLocalPlayer
 //
-// Returns whether the given PlayerReplicationInfo actor belongs to the local
-// player on this client.
+// Returns whether any of the given PlayerReplicationInfo actors belongs to
+// the local player on this client.
 // ============================================================================
 
-static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo)
+static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo1,
+                          optional PlayerReplicationInfo PlayerReplicationInfo2)
 {
-  return (PlayerReplicationInfo.Level.GetLocalPlayerController().PlayerReplicationInfo == PlayerReplicationInfo);
+  local PlayerReplicationInfo PlayerReplicationInfoLocal;
+
+  PlayerReplicationInfoLocal = PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo;
+  return (PlayerReplicationInfo1 == PlayerReplicationInfoLocal ||
+          PlayerReplicationInfo2 == PlayerReplicationInfoLocal);
 }
 
 
