@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.86 2004/05/17 14:41:16 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.87 2004/05/18 00:12:50 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -9,6 +9,13 @@
 
 class Jailbreak extends xTeamGame
   notplaceable;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec obj load file=Textures\Preview.utx package=Jailbreak group=Preview
 
 
 // ============================================================================
@@ -1701,7 +1708,7 @@ defaultproperties
 {
   Build = "%%%%-%%-%% %%:%%";
 
-  Description = "Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point."
+  Description = "Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
 
   TextHintJailbreak[ 0] = "Watch the compass dots: The faster they pulse, the more players can be released by the corresponding switch."
   TextHintJailbreak[ 1] = "Use %PREVWEAPON% and %NEXTWEAPON% to switch view points when watching through a surveillance camera."
@@ -1746,6 +1753,7 @@ defaultproperties
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
   MapListType              = "Jailbreak.JBMapList";
   HUDSettingsMenu          = "Jailbreak.JBGUICustomHUDMenu";
+  ScreenShotName           = "Jailbreak.Preview";
 
   MessageClass             = Class'JBLocalMessage';
   GameReplicationInfoClass = Class'JBGameReplicationInfo';
