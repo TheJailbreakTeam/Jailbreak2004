@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInteractionKeys.uc,v 1.1.2.4 2004/04/21 12:24:40 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -282,7 +282,7 @@ event PostRender(Canvas Canvas)
   SizeDialog.Y *= 0.5 + Alpha * 0.5;
 
   LocationDialog.X = int((Canvas.ClipX - SizeDialog.X) / 2);
-  LocationDialog.Y = int((Canvas.ClipY - SizeDialog.Y) / 2);
+  LocationDialog.Y = int((Canvas.ClipY - SizeDialog.Y) / 3);
 
   Canvas.Style = 5;  // ERenderStyle.STY_Alpha;
 
