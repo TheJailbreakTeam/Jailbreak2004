@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.26 2003/03/15 17:30:41 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.27 2003/03/16 14:34:54 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -58,27 +58,28 @@ struct TInfoLocation {
 // Variables
 // ============================================================================
 
-var name OrderNameFixed;                // bot should stick to these orders
+var name OrderNameFixed;                  // bot should stick to these orders
 
-var private string HashIdPlayer;        // key hash for later recognition
+var private string HashIdPlayer;          // key hash for later recognition
 
-var private bool bIsLlama;              // player disconnected in jail
-var private int TimeElapsedConnect;     // elapsed time at player connect
-var private int TimeElapsedDisconnect;  // elapsed time at player disconnect
-var private TInfoScore InfoScore;       // persistent score over reconnects
+var private bool bIsLlama;                // player disconnected in jail
+var private int TimeElapsedConnect;       // elapsed time at player connect
+var private int TimeElapsedDisconnect;    // elapsed time at player disconnect
+var private TInfoScore InfoScore;         // persistent score over reconnects
 
-var float TimeRestart;                  // time of next restart
-var private ERestart Restart;           // restart location for this player
-var private Pawn PawnRestarted;         // last known pawn of this player
+var float TimeRestart;                    // time of next restart
+var private ERestart Restart;             // restart location for this player
+var private Pawn PawnRestarted;           // last known pawn of this player
 
-var private JBInfoArena Arena;          // arena player is currently in
-var private JBInfoArena ArenaRestart;   // arena player will be restarted in
-var private JBInfoArena ArenaPending;   // arena player is scheduled for
-var private JBInfoArena ArenaRequest;   // arena player has requested
-var private float TimeArenaRequest;     // time of the arena request
+var private JBInfoArena Arena;            // arena player is currently in
+var private JBInfoArena ArenaRestart;     // arena player will be restarted in
+var private JBInfoArena ArenaPending;     // arena player is scheduled for
+var private JBInfoArena ArenaRequest;     // arena player has requested
+var private float TimeArenaRequest;       // time of the arena request
+var private bool bAdrenalineEnabledPrev;  // adrenaline state before arena
 
-var private JBInfoJail Jail;            // jail the player is currently in
-var private float TimeRelease;          // time of last release from jail
+var private JBInfoJail Jail;              // jail the player is currently in
+var private float TimeRelease;            // time of last release from jail
 
 var private float TimeInfoLocation;                 // last known location time
 var private array<TInfoLocation> ListInfoLocation;  // location probabilities
@@ -294,6 +295,9 @@ function NotifyArenaEntered() {
 
   if (Bot(GetController()) != None)
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadArena(Bot(GetController()));
+
+  bAdrenalineEnabledPrev = GetController().bAdrenalineEnabled;
+  GetController().bAdrenalineEnabled = False;
   }
 
 
@@ -304,6 +308,8 @@ function NotifyArenaEntered() {
 // ============================================================================
 
 function NotifyArenaLeft(JBInfoArena ArenaPrev) {
+
+  GetController().bAdrenalineEnabled = bAdrenalineEnabledPrev;
 
   if (IsInJail())
     return;
