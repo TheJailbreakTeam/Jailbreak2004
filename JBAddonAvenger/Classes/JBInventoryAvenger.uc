@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInventoryAvenger
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBInventoryAvenger.uc,v 1.1 2004/04/09 19:16:36 tarquin Exp $
+// $Id$
 //
 // Spawned for each avenger player. Gives the player the combo and then 
 // destroys it after set time.
@@ -66,4 +66,5 @@ event Destroyed() {
   ) {
     xPawn(Owner).CurrentCombo.Destroy();
   }
+  Super.Destroyed();
 }
