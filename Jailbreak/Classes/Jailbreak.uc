@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.67.2.16 2004/05/25 12:25:30 mychaeel Exp $
+// $Id$
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1262,12 +1262,11 @@ function ExecutionEnd()
 
 static function ResetViewTarget(PlayerController PlayerController)
 {
-  if (JBCamera(PlayerController.ViewTarget) != None) {
+  if (JBCamera(PlayerController.ViewTarget) != None)
     JBCamera(PlayerController.ViewTarget).DeactivateFor(PlayerController);
-  }
 
-  else if (PlayerController.ViewTarget != PlayerController &&
-           PlayerController.ViewTarget != PlayerController.Pawn) {
+  if (PlayerController.ViewTarget != PlayerController &&
+      PlayerController.ViewTarget != PlayerController.Pawn) {
 
     PlayerController.SetViewTarget(PlayerController.Pawn);
     PlayerController.bBehindView = False;
