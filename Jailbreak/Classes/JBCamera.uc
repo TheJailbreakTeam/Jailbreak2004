@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.9 2003/01/05 21:08:31 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.10 2003/01/06 11:18:36 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -29,21 +29,34 @@ enum EOverlayStyle {
   };
 
 
+struct TInfoCaption {
+
+  var() bool bBlinking;       // caption pulses
+  var() Color Color;          // caption color and transparency
+  var() string Font;          // caption font name
+  var() string Text;          // caption text
+  var() float Position;       // relative vertical position
+  
+  var Font FontObject;        // loaded Font object
+  };
+
+
+struct TInfoOverlay {
+
+  var() Material Material;    // material overlaid on screen
+  var() Color Color;          // material color and transparency
+  var() EOverlayStyle Style;  // material arrangement style
+  };
+
+
 // ============================================================================
 // Properties
 // ============================================================================
 
 var() bool bWidescreen;            // draw widescreen bars
 
-var() Color OverlayColor;          // drawing color for the overlay
-var() Material OverlayMaterial;    // overlay material
-var() EOverlayStyle OverlayStyle;  // overlay drawing style
-
-var() bool bCaptionBlink;          // caption blinks
-var() Color CaptionColor;          // drawing color for caption text
-var() string CaptionFont;          // font name used for caption
-var() float CaptionOffset;         // vertical relative offset for caption
-var() string CaptionText;          // caption text
+var() TInfoCaption Caption;
+var() TInfoOverlay Overlay;
 
 var() byte MotionBlur;             // amount of motion blur
 
@@ -73,7 +86,7 @@ simulated event PostBeginPlay() {
     Disable('Tick');
 
   if (Level.NetMode != NM_DedicatedServer)
-    FontCaption = Font(DynamicLoadObject(CaptionFont, Class'Font'));
+    Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
   }
 
 
@@ -302,7 +315,7 @@ simulated event Tick(float TimeDelta) {
 // ============================================================================
 // RenderOverlayMaterial
 //
-// Renders the OverlayMaterial on the given Canvas.
+// Renders the material overlay on the given Canvas.
 // ============================================================================
 
 simulated function RenderOverlayMaterial(Canvas Canvas) {
@@ -311,22 +324,22 @@ simulated function RenderOverlayMaterial(Canvas Canvas) {
   local vector RatioStretch;
   local vector SizeOverlay;
 
-  if (OverlayMaterial == None)
+  if (Overlay.Material == None)
     return;
   
-  Canvas.DrawColor = OverlayColor;
+  Canvas.DrawColor = Overlay.Color;
 
-  switch (OverlayStyle) {
+  switch (Overlay.Style) {
     case OverlayStyle_ScaleDistort:
       Canvas.SetPos(0, 0);
-      Canvas.DrawTile(OverlayMaterial, Canvas.ClipX, Canvas.ClipY, 0, 0,
-        OverlayMaterial.MaterialUSize(),
-        OverlayMaterial.MaterialVSize());  // DrawTileStretched is buggy
+      Canvas.DrawTile(Overlay.Material, Canvas.ClipX, Canvas.ClipY, 0, 0,
+        Overlay.Material.MaterialUSize(),
+        Overlay.Material.MaterialVSize());  // DrawTileStretched is buggy
       break;
 
     case OverlayStyle_ScaleProportional:
-      SizeOverlay.X = OverlayMaterial.MaterialUSize();
-      SizeOverlay.Y = OverlayMaterial.MaterialVSize();
+      SizeOverlay.X = Overlay.Material.MaterialUSize();
+      SizeOverlay.Y = Overlay.Material.MaterialVSize();
     
       RatioStretch.X = Canvas.ClipX / SizeOverlay.X;
       RatioStretch.Y = Canvas.ClipY / SizeOverlay.Y;
@@ -335,12 +348,12 @@ simulated function RenderOverlayMaterial(Canvas Canvas) {
       SizeOverlay *= RatioStretchTotal;
       Canvas.SetPos((Canvas.ClipX - SizeOverlay.X) / 2.0,
                     (Canvas.ClipY - SizeOverlay.Y) / 2.0);
-      Canvas.DrawTileScaled(OverlayMaterial, RatioStretchTotal, RatioStretchTotal);
+      Canvas.DrawTileScaled(Overlay.Material, RatioStretchTotal, RatioStretchTotal);
       break;
 
     case OverlayStyle_Tile:
       Canvas.SetPos(0, 0);
-      Canvas.DrawTile(OverlayMaterial, Canvas.ClipX, Canvas.ClipY, 0, 0, Canvas.ClipX, Canvas.ClipY);
+      Canvas.DrawTile(Overlay.Material, Canvas.ClipX, Canvas.ClipY, 0, 0, Canvas.ClipX, Canvas.ClipY);
       break;
     }
   }
@@ -357,21 +370,22 @@ simulated function RenderOverlayCaption(Canvas Canvas) {
   local vector SizeCaption;
   local vector LocationCaption;
 
-  if (CaptionText == "" || FontCaption == None)
+  if (Caption.Text == "" ||
+      Caption.FontObject == None)
     return;  
 
-  Canvas.Font = FontCaption;
-  Canvas.TextSize(CaptionText, SizeCaption.X, SizeCaption.Y);
+  Canvas.Font = Caption.FontObject;
+  Canvas.TextSize(Caption.Text, SizeCaption.X, SizeCaption.Y);
 
   LocationCaption.X = (Canvas.ClipX - SizeCaption.X) / 2.0;
-  LocationCaption.Y = Canvas.ClipY * CaptionOffset - SizeCaption.Y / 2.0;
+  LocationCaption.Y = Canvas.ClipY * Caption.Position - SizeCaption.Y / 2.0;
   
-  Canvas.DrawColor = CaptionColor;
-  if (bCaptionBlink)
+  Canvas.DrawColor = Caption.Color;
+  if (Caption.bBlinking)
     Canvas.DrawColor.A -= Canvas.DrawColor.A * (Level.TimeSeconds % 0.7) / 1.4;
   
   Canvas.SetPos(LocationCaption.X, LocationCaption.Y);
-  Canvas.DrawText(CaptionText);
+  Canvas.DrawText(Caption.Text);
   }
 
 
@@ -394,13 +408,8 @@ simulated function RenderOverlays(Canvas Canvas) {
 
 defaultproperties {
 
-  bCaptionBlink = True;
-  CaptionColor  = (R=255,G=255,B=255,A=255);
-  CaptionFont   = "UT2003Fonts.FontEurostile12";
-  CaptionOffset = 0.8;
-
-  OverlayColor = (R=255,G=255,B=255,A=255);
-  OverlayStyle = OverlayStyle_ScaleProportional;
+  Caption = (bBlinking=True,Color=(R=255,G=255,B=255,A=255),Font="UT2003Fonts.FontEurostile12",Position=0.8);
+  Overlay = (Color=(R=255,G=255,B=255,A=255),Style=OverlayStyle_ScaleProportional);
 
   Texture = Texture'JBCamera';
   RemoteRole = ROLE_SimulatedProxy;
