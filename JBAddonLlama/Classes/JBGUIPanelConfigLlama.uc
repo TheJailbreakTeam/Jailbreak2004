@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.8.2.1 2004/04/04 11:54:22 mychaeel Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.8.2.2 2004/05/31 19:55:00 wormbo Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -188,10 +188,13 @@ defaultproperties
   Begin Object Class=moCheckbox Name=chkLlamaizeOnJailDisconnect
     WinTop    =0.8
     WinLeft   =0.0
-    WinHeight =0.1
+    WinHeight =0.07
     WinWidth  =1.0
     Caption="Llamaize when disconnecting from jail"
     Hint="Llamaize players who disconnect while jailed and reconnect to gain freedom."
+    bSquare=True
+    CaptionWidth=0.9
+    bHeightFromComponent=False
     OnChange=SaveINISettings
   End Object
   Controls(5)=moCheckbox'chkLlamaizeOnJailDisconnect'
