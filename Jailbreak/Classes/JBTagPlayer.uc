@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.18 2003/01/30 20:04:33 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.19 2003/02/08 22:44:22 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -374,21 +374,27 @@ function NotifyJailClosed() {
 
 private function RestartPlayer(ERestart RestartCurrent) {
 
-  local xPawn PawnPlayer;
+  local Pawn PawnPlayer;
+  local xPawn xPawnPlayer;
 
-  PawnPlayer = xPawn(GetController().Pawn);
+  while (True) {
+    PawnPlayer = GetController().Pawn;
+    if (PawnPlayer == None)
+      break;
 
-  if (PawnPlayer != None) {
-    if (PawnPlayer.CurrentCombo != None) {
-      PawnPlayer.CurrentCombo.Destroy();
-      PawnPlayer.Controller.Adrenaline = 0;
+    xPawnPlayer = xPawn(PawnPlayer);
+    if (xPawnPlayer != None) {
+      if (xPawnPlayer.CurrentCombo != None) {
+        xPawnPlayer.CurrentCombo.Destroy();
+        xPawnPlayer.Controller.Adrenaline = 0;
+        }
+  
+      if (xPawnPlayer.UDamageTimer != None) {
+        xPawnPlayer.UDamageTimer.Destroy();
+        xPawnPlayer.DisableUDamage();
+        }
       }
-
-    if (PawnPlayer.UDamageTimer != None) {
-      PawnPlayer.UDamageTimer.Destroy();
-      PawnPlayer.DisableUDamage();
-      }
-
+    
     PawnPlayer.Destroy();
     }
   
