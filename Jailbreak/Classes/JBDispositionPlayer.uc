@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBDispositionPlayer.uc,v 1.1 2003/01/01 22:11:16 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -51,11 +51,6 @@ function SetTarget(vector NewLocationTarget, float NewScaleTarget) {
 
   LocationTarget = NewLocationTarget;
   ScaleTarget = NewScaleTarget;
-  
-  if (bInitial)
-    Location = NewLocationTarget;
-
-  bInitial = False;
   }
 
 
@@ -73,31 +68,38 @@ function Move(float TimeDelta) {
   local float ScaleDelta;
   local vector LocationDelta;
 
-  DistanceTotal = VSize(LocationTarget - Location);
-
-  if (DistanceTotal > 0.0) {
-    Velocity += 1.0 * TimeDelta;
-    DistanceDelta = Velocity * TimeDelta;
-
-    LocationDelta = LocationTarget - Location;
-    if (DistanceDelta < DistanceTotal)
-      LocationDelta *= DistanceDelta / DistanceTotal;
-
-    Location += LocationDelta;
-    if (Location == LocationTarget)
-      Velocity = 0.0;
+  if (bInitial) {
+    bInitial = False;
+    Location = LocationTarget;
     }
 
-  if (Scale != ScaleTarget) {
-    if (DistanceTotal > 0.0)
-      ScaleDelta = Abs(ScaleTarget - Scale) * DistanceDelta / DistanceTotal;
-    else
-      ScaleDelta = 1.0 * TimeDelta;
-    
-    if (Scale < ScaleTarget)
-      Scale = FMin(ScaleTarget, Scale + ScaleDelta);
-    else
-      Scale = FMax(ScaleTarget, Scale - ScaleDelta);
+  else {
+    DistanceTotal = VSize(LocationTarget - Location);
+  
+    if (DistanceTotal > 0.0) {
+      Velocity += 1.0 * TimeDelta;
+      DistanceDelta = Velocity * TimeDelta;
+  
+      LocationDelta = LocationTarget - Location;
+      if (DistanceDelta < DistanceTotal)
+        LocationDelta *= DistanceDelta / DistanceTotal;
+  
+      Location += LocationDelta;
+      if (Location == LocationTarget)
+        Velocity = 0.0;
+      }
+  
+    if (Scale != ScaleTarget) {
+      if (DistanceTotal > 0.0)
+        ScaleDelta = Abs(ScaleTarget - Scale) * DistanceDelta / DistanceTotal;
+      else
+        ScaleDelta = 1.0 * TimeDelta;
+      
+      if (Scale < ScaleTarget)
+        Scale = FMin(ScaleTarget, Scale + ScaleDelta);
+      else
+        Scale = FMax(ScaleTarget, Scale - ScaleDelta);
+      }
     }
   }
 
