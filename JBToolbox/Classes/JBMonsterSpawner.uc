@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.1 2003/03/16 12:08:58 will Exp $
+// $Id: JBMonsterSpawner.uc,v 1.2 2003/03/16 12:16:45 will Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -123,9 +123,6 @@ Function EraseWeapons()
 Function KillMonster()
 {
 	If (MyMonster != None)
-		{
-		If (MyMonster.Controller.IsA('PlayerController'))
-			UnControlMonster(PlayerController(MyMonster.Controller));
 		MyMonster.Destroy();
 }
 
