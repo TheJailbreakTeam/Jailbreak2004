@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.8 2004/03/26 20:44:10 tarquin Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.9 2004/04/04 00:55:14 mychaeel Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -49,10 +49,10 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 function LoadINISettings()
 {
   bInitialized = False;
-  JBGUIEditSlider(Controls[CONTROL_REWARD_ADRENALINE]).SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
-  JBGUIEditSlider(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
-  JBGUIEditSlider(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
-  JBGUIEditSlider(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
+  JBGUIComponentTrackbar(Controls[CONTROL_REWARD_ADRENALINE]).SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
+  JBGUIComponentTrackbar(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
+  JBGUIComponentTrackbar(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
+  JBGUIComponentTrackbar(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
   bInitialized = True;
 }
 
@@ -69,10 +69,10 @@ function SaveINISettings(GUIComponent Sender)
   if ( !bInitialized )
     return;
   
-  class'JBAddonLlama'.default.RewardAdrenaline     = JBGUIEditSlider(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
-  class'JBAddonLlama'.default.RewardHealth         = JBGUIEditSlider(Controls[CONTROL_REWARD_HEALTH]).GetValue();
-  class'JBAddonLlama'.default.RewardShield         = JBGUIEditSlider(Controls[CONTROL_REWARD_SHIELD]).GetValue();
-  class'JBAddonLlama'.default.MaximumLlamaDuration = JBGUIEditSlider(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
+  class'JBAddonLlama'.default.RewardAdrenaline     = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
+  class'JBAddonLlama'.default.RewardHealth         = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_HEALTH]).GetValue();
+  class'JBAddonLlama'.default.RewardShield         = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_SHIELD]).GetValue();
+  class'JBAddonLlama'.default.MaximumLlamaDuration = JBGUIComponentTrackbar(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
   class'JBAddonLlama'.static.StaticSaveConfig();
 }
 
@@ -106,7 +106,7 @@ defaultproperties
   End Object
   Controls(0)=GUILabel'LlamaKillRewardLabel'
   
-  Begin Object Class=JBGUIEditSlider Name=RewardAdrenaline
+  Begin Object Class=JBGUIComponentTrackbar Name=RewardAdrenaline
     WinTop=0.3
     WinLeft   =0.0
     WinHeight =0.1
@@ -123,9 +123,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(1)=JBGUIEditSlider'RewardAdrenaline'
+  Controls(1)=JBGUIComponentTrackbar'RewardAdrenaline'
   
-  Begin Object Class=JBGUIEditSlider Name=RewardHealth
+  Begin Object Class=JBGUIComponentTrackbar Name=RewardHealth
     WinTop=0.45
     WinLeft   =0.0
     WinHeight =0.1
@@ -142,9 +142,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(2)=JBGUIEditSlider'RewardHealth'
+  Controls(2)=JBGUIComponentTrackbar'RewardHealth'
   
-  Begin Object Class=JBGUIEditSlider Name=RewardShield
+  Begin Object Class=JBGUIComponentTrackbar Name=RewardShield
     WinTop=0.6
     WinLeft   =0.0
     WinHeight =0.1
@@ -161,9 +161,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(3)=JBGUIEditSlider'RewardShield'
+  Controls(3)=JBGUIComponentTrackbar'RewardShield'
   
-  Begin Object Class=JBGUIEditSlider Name=MaximumLlamaDuration
+  Begin Object Class=JBGUIComponentTrackbar Name=MaximumLlamaDuration
     WinTop    =0.0 // row 1
     WinLeft   =0.0
     WinHeight =0.1
@@ -179,7 +179,7 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(4)=JBGUIEditSlider'MaximumLlamaDuration'
+  Controls(4)=JBGUIComponentTrackbar'MaximumLlamaDuration'
   
   WinTop=0.330
   WinLeft=0.360
