@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.27.2.3 2004/04/15 13:31:59 mychaeel Exp $
+// $Id$
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -503,7 +503,10 @@ function MatchCancel()
         thisTagPlayer.SetArenaPending(None);
 
     TriggerEvent(EventTied, Self, None);
-    BroadcastLocalizedMessage(MessageClass, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+
+    if (Level.Game.IsInState('MatchInProgress'))
+      BroadcastLocalizedMessage(MessageClass, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+
     GotoState('Waiting');
   }
 
