@@ -38,6 +38,7 @@ Zip Installation
 
     *.ogg   Music\
     *.uax   Sounds\
+    *.xml   Speech\
     *.usx   StaticMeshes\
 
     *.txt   Help\

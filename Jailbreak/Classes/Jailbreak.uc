@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.80 2004/05/03 16:20:25 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.81 2004/05/04 13:07:21 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1340,6 +1340,54 @@ static function ResetViewTarget(PlayerController PlayerController)
 
     PlayerController.ClientSetViewTarget(PlayerController.ViewTarget);
     PlayerController.ClientSetBehindView(PlayerController.bBehindView);
+  }
+}
+
+
+// ============================================================================
+// SetGrammar
+//
+// Specifies the grammar file to load for speech recognition.
+// ============================================================================
+
+event SetGrammar()
+{
+  LoadSRGrammar("JB");
+}
+
+
+// ============================================================================
+// ParseVoiceCommand
+//
+// Parses Jailbreak-specific voice commands in addition to the default ones
+// provided by any team game.
+// ============================================================================
+
+function ParseVoiceCommand(PlayerController PlayerControllerSender, string Command)
+{
+  local string Tactics;
+  local JBTagClient TagClientSender;
+
+       if (Left (Command, 8) ==  "TACTICS ") Tactics = Mid (Command,                8);
+  else if (Right(Command, 8) == " TACTICS" ) Tactics = Left(Command, Len(Command) - 8);
+
+  if (Tactics != "") {
+    TagClientSender = Class'JBTagClient'.Static.FindFor(PlayerControllerSender);
+    
+    switch (Tactics) {
+      case "AUTO":        TagClientSender.ExecTeamTactics('auto');        break;
+      case "UP":          TagClientSender.ExecTeamTactics('up');          break;
+      case "DOWN":        TagClientSender.ExecTeamTactics('down');        break;
+      case "SUICIDAL":    TagClientSender.ExecTeamTactics('suicidal');    break;
+      case "AGGRESSIVE":  TagClientSender.ExecTeamTactics('aggressive');  break;
+      case "NORMAL":      TagClientSender.ExecTeamTactics('normal');      break;
+      case "DEFENSIVE":   TagClientSender.ExecTeamTactics('defensive');   break;
+      case "EVASIVE":     TagClientSender.ExecTeamTactics('evasive');     break;
+    }
+  }
+  
+  else {
+    Super.ParseVoiceCommand(PlayerControllerSender, Command);
   }
 }
 
