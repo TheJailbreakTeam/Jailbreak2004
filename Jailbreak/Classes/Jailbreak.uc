@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.101 2004/05/30 17:12:01 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.102 2004/05/30 17:48:39 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -88,6 +88,7 @@ event InitGame(string Options, out string Error)
   local int iCharSeparator;
   local string OptionAddon;
   local string OptionJailFights;
+  local string OptionFavorHumansForArena;
   local string NameAddon;
   local WebServer thisWebServer;
 
@@ -119,6 +120,10 @@ event InitGame(string Options, out string Error)
   OptionJailFights = ParseOption(Options, "JailFights");
   if (OptionJailFights != "")
     bEnableJailFights = bool(OptionJailFights);
+
+  OptionFavorHumansForArena = ParseOption(Options, "FavorHumansForArena");
+  if (OptionFavorHumansForArena != "")
+    bFavorHumansForArena = bool(OptionFavorHumansForArena);
 
   bForceRespawn    = True;
   bTeamScoreRounds = False;
