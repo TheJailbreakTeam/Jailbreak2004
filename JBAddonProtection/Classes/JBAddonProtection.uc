@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.6.2.7 2004/05/20 21:25:01 tarquin Exp $
+// $Id: JBAddonProtection.uc,v 1.6.2.8 2004/05/23 08:56:24 tarquin Exp $
 //
 // This add-on protects players released from jail.
 // ============================================================================
@@ -15,7 +15,7 @@ class JBAddonProtection extends JBAddon config;
 //=============================================================================
 
 const DEFAULT_PROTECTION_TIME = 3;
-const DEFAULT_PROTECTION_TYPE = 0;
+const DEFAULT_PROTECTION_TYPE = 1;
 const DEFAULT_PROTECT_ARENA   = True;
 const DEFAULT_LLAMAIZE_CAMPERS= True;
 
