@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.26 2004/03/28 22:45:38 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.27 2004/03/29 00:01:07 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -48,20 +48,17 @@ struct TDisplayPlayer
   var protected float TimeStart;
   var protected float TimeUpdate;
   var protected float HealthDisplayed;
-  var protected string PlayerNameDisplayed;
-  var protected string PlayerNameOriginal;
+  var protected string PlayerName;
 
   var Color ColorName;
   var vector LocationName;
   var EDrawPivot DrawPivotName;
 
-  var HudBase.SpriteWidget SpriteWidgetNameFill;
-  var HudBase.SpriteWidget SpriteWidgetNameTint;
-  var HudBase.SpriteWidget SpriteWidgetNameFrame;
-  var HudBase.SpriteWidget SpriteWidgetSymbol;
-  var HudBase.SpriteWidget SpriteWidgetHealthFill;
-  var HudBase.SpriteWidget SpriteWidgetHealthTint;
-  var HudBase.SpriteWidget SpriteWidgetHealthFrame;
+  var HudBase.SpriteWidget SpriteWidgetNameBack;
+  var HudBase.SpriteWidget SpriteWidgetTeamCircle;
+  var HudBase.SpriteWidget SpriteWidgetTeamSymbol;
+  var HudBase.SpriteWidget SpriteWidgetHealthBack;
+  var HudBase.SpriteWidget SpriteWidgetHealthBar;
 };
 
 
@@ -108,7 +105,7 @@ var HudBase.SpriteWidget SpriteWidgetCountdown;    // circle around countdown
 var HudBase.NumericWidget NumericWidgetCountdown;  // countdown number
 
 var string FontNames;                              // font for player names
-var float ScaleFontNames;                          // relative font scale
+var vector SizeFontNames;                          // relative font scale
 var TDisplayPlayer DisplayPlayerLeft;              // player info left
 var TDisplayPlayer DisplayPlayerRight;             // player info right
 
@@ -830,12 +827,14 @@ simulated function ShowCountdown(Canvas Canvas, HudBase HudBase)
   NumericWidgetCountdown.Value = TimeCountdownTie;
 
   if (NumericWidgetCountdown.Value > 99)
-    NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale * 2/3;
-  else
-    NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale;
+         NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale * 2/3;
+    else NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale;
 
   HudBase.DrawSpriteWidget(Canvas, SpriteWidgetCountdown);
-  HudBase.DrawNumericWidget(Canvas, NumericWidgetCountdown, HudBDeathMatch(HudBase).DigitsBig);
+
+  if (NumericWidgetCountdown.Value > 10)
+         HudBase.DrawNumericWidget(Canvas, NumericWidgetCountdown, HudCDeathMatch(HudBase).DigitsBig);
+    else HudBase.DrawNumericWidget(Canvas, NumericWidgetCountdown, HudCDeathMatch(HudBase).DigitsBigPulse);
 }
 
 
@@ -861,6 +860,7 @@ simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer
   }
 
   ShowPlayerName  (Canvas, HudBase, DisplayPlayer);
+  ShowPlayerSymbol(Canvas, HudBase, DisplayPlayer);
   ShowPlayerHealth(Canvas, HudBase, DisplayPlayer);
 
   DisplayPlayer.TimeUpdate = Level.TimeSeconds;
@@ -875,48 +875,21 @@ simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer
 
 simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer)
 {
-  local int nCharTotal;
-  local int nCharRemoved;
-  local vector SizeText;
-  local vector SizeTextMax;
-
-  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameFill);
-  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameTint);
-  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameFrame);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameBack);
 
   if (FontObjectNames == None)
     FontObjectNames = Font(DynamicLoadObject(FontNames, Class'Font'));
 
   Canvas.Font = FontObjectNames;
-  Canvas.FontScaleX = ScaleFontNames * HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipX / 640;
-  Canvas.FontScaleY = ScaleFontNames * HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipY / 480;
+  Canvas.FontScaleX = SizeFontNames.X * HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipX / 640;
+  Canvas.FontScaleY = SizeFontNames.Y * HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipY / 480;
 
-  if (DisplayPlayer.PlayerReplicationInfo != None &&
-      DisplayPlayer.PlayerReplicationInfo.PlayerName != DisplayPlayer.PlayerNameOriginal) {
-
-    DisplayPlayer.PlayerNameOriginal  = DisplayPlayer.PlayerReplicationInfo.PlayerName;
-    DisplayPlayer.PlayerNameDisplayed = DisplayPlayer.PlayerReplicationInfo.PlayerName;
-
-    SizeTextMax.X = Abs(DisplayPlayer.LocationName.X) - 0.040;
-    SizeTextMax.X *= HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipX;
-
-    nCharTotal = Len(DisplayPlayer.PlayerNameOriginal);
-
-    while (nCharRemoved < nCharTotal) {
-      Canvas.TextSize(DisplayPlayer.PlayerNameDisplayed, SizeText.X, SizeText.Y);
-      if (SizeTextMax.X >= SizeText.X)
-        break;
-
-      nCharRemoved += 1;
-      DisplayPlayer.PlayerNameDisplayed =
-        Left(DisplayPlayer.PlayerNameOriginal, (nCharTotal - nCharRemoved + 1) / 2) $ "..." $
-        Mid (DisplayPlayer.PlayerNameOriginal, (nCharTotal - nCharRemoved + 1) / 2 + nCharRemoved);
-    }
-  }
+  if (DisplayPlayer.PlayerReplicationInfo != None)
+    DisplayPlayer.PlayerName = DisplayPlayer.PlayerReplicationInfo.PlayerName;
 
   Canvas.DrawColor = DisplayPlayer.ColorName;
   Canvas.DrawScreenText(
-    DisplayPlayer.PlayerNameDisplayed,
+    DisplayPlayer.PlayerName,
     HudBase.HudCanvasScale * (DisplayPlayer.LocationName.X * HudBase.HudScale)       + 0.5,
     HudBase.HudCanvasScale * (DisplayPlayer.LocationName.Y * HudBase.HudScale - 0.5) + 0.5,
     DisplayPlayer.DrawPivotName);
@@ -934,16 +907,11 @@ simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPl
 
 simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer)
 {
-  local int iTeam;
+  DisplayPlayer.SpriteWidgetTeamSymbol.WidgetTexture =
+    HudCTeamDeathMatch(HudBase).TeamSymbols[DisplayPlayer.PlayerReplicationInfo.Team.TeamIndex].WidgetTexture;
 
-  iTeam = DisplayPlayer.PlayerReplicationInfo.Team.TeamIndex;
-
-  DisplayPlayer.SpriteWidgetSymbol.WidgetTexture = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].WidgetTexture;
-  DisplayPlayer.SpriteWidgetSymbol.TextureCoords = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].TextureCoords;
-  DisplayPlayer.SpriteWidgetSymbol.Tints[0]      = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].Tints[0];
-  DisplayPlayer.SpriteWidgetSymbol.Tints[1]      = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].Tints[1];
-
-  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetSymbol);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetTeamCircle);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetTeamSymbol);
 }
 
 
@@ -968,11 +936,10 @@ simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplay
   HealthDelta = HealthCurrent - DisplayPlayer.HealthDisplayed;
 
   DisplayPlayer.HealthDisplayed += HealthDelta * FMin(1.0, TimeDelta * 2.0);
-  DisplayPlayer.SpriteWidgetHealthFill.Scale = FClamp(DisplayPlayer.HealthDisplayed, 0.0, 100.0) / 100.0;
+  DisplayPlayer.SpriteWidgetHealthBar.Scale = FClamp(DisplayPlayer.HealthDisplayed, 0.0, 100.0) / 100.0;
 
-  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthFill);
-  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthTint);
-  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthFrame);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthBack);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthBar);
 }
 
 
@@ -1300,13 +1267,13 @@ defaultproperties
   TagAttachStarts  = Auto;
   TagAttachPickups = Auto;
 
-  SpriteWidgetCountdown = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
-  NumericWidgetCountdown = (TextureScale=0.15,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=140,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  SpriteWidgetCountdown = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.7,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  NumericWidgetCountdown = (TextureScale=0.36,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=54,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
 
-  FontNames = "UT2003Fonts.jFontMedium";
-  ScaleFontNames = 0.56;
-  DisplayPlayerLeft  = (ColorName=(R=255,G=255,B=255,A=255),LocationName=(X=-0.169,Y=0.037),DrawPivotName=DP_MiddleLeft,SpriteWidgetNameFill=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=016,X1=382,Y2=109),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=200),Tints[1]=(R=048,G=075,B=120,A=200)),SpriteWidgetNameTint=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=128,X1=382,Y2=211),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=100),Tints[1]=(R=037,G=066,B=102,A=150)),SpriteWidgetNameFrame=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=240,X1=382,Y2=333),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetSymbol=(TextureScale=0.065,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-405,OffsetY=150,RenderStyle=STY_Alpha),SpriteWidgetHealthFill=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=454,X2=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,ScaleMode=SM_Left,Scale=0.7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255)),SpriteWidgetHealthTint=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=454,X2=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150)),SpriteWidgetHealthFrame=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=415,X2=836,Y2=453),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)));
-  DisplayPlayerRight = (ColorName=(R=255,G=255,B=255,A=255),LocationName=(X=0.169,Y=0.037),DrawPivotName=DP_MiddleRight,SpriteWidgetNameFill=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=016,X2=382,Y2=109),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=200),Tints[1]=(R=048,G=075,B=120,A=200)),SpriteWidgetNameTint=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=128,X2=382,Y2=211),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=100),Tints[1]=(R=037,G=066,B=102,A=150)),SpriteWidgetNameFrame=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=240,X2=382,Y2=333),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetSymbol=(TextureScale=0.065,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=405,OffsetY=150,RenderStyle=STY_Alpha),SpriteWidgetHealthFill=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=454,X1=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,ScaleMode=SM_Right,Scale=0.7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255)),SpriteWidgetHealthTint=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=454,X1=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150)),SpriteWidgetHealthFrame=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=415,X1=836,Y2=453),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)));
+  FontNames = "2K4Fonts.Verdana20";
+  SizeFontNames = (X=0.400,Y=0.450);
+  DisplayPlayerLeft  = (ColorName=(R=176,G=176,B=176,A=255),LocationName=(X=-0.080,Y=0.036),DrawPivotName=DP_MiddleRight,SpriteWidgetNameBack=(WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.53,DrawPivot=DP_UpperRight,PosX=0.5,OffsetX=-50,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=0,G=0,B=0,A=150),Tints[1]=(R=0,G=0,B=0,A=150)),SpriteWidgetTeamCircle=(WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.53,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-35,OffsetY=5,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetTeamSymbol=(TextureCoords=(X1=0,Y1=0,X2=256,Y2=256),TextureScale=0.1,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-200,OffsetY=45,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=100,B=100,A=200),Tints[1]=(R=255,G=32,B=32,A=200)),SpriteWidgetHealthBack=(WidgetTexture=Texture'SpriteWidgetHud',TextureCoords=(X1=16,Y1=32,X2=187,Y2=64),TextureScale=0.4,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-40,OffsetY=90,RenderStyle=STY_Alpha,Tints[0]=(R=0,G=0,B=0,A=150),Tints[1]=(R=0,G=0,B=0,A=150)),SpriteWidgetHealthBar=(WidgetTexture=Texture'SpriteWidgetHud',TextureCoords=(X1=187,Y1=80,X2=16,Y2=112),TextureScale=0.4,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-40,OffsetY=90,ScaleMode=SM_Left,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=220),Tints[1]=(R=255,G=255,B=255,A=220)));
+  DisplayPlayerRight = (ColorName=(R=176,G=176,B=176,A=255),LocationName=(X=0.080,Y=0.036),DrawPivotName=DP_MiddleLeft,SpriteWidgetNameBack=(WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0.5,OffsetX=50,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=0,G=0,B=0,A=150),Tints[1]=(R=0,G=0,B=0,A=150)),SpriteWidgetTeamCircle=(WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=35,OffsetY=5,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetTeamSymbol=(TextureCoords=(X1=0,Y1=0,X2=256,Y2=256),TextureScale=0.1,PosX=0.5,PosY=0,OffsetX=200,OffsetY=45,RenderStyle=STY_Alpha,Tints[0]=(R=0,G=128,B=255,A=200),Tints[1]=(R=32,G=210,B=255,A=200)),SpriteWidgetHealthBack=(WidgetTexture=Texture'SpriteWidgetHud',TextureCoords=(X1=16,Y1=32,X2=187,Y2=64),TextureScale=0.4,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=40,OffsetY=90,RenderStyle=STY_Alpha,Tints[0]=(R=0,G=0,B=0,A=150),Tints[1]=(R=0,G=0,B=0,A=150)),SpriteWidgetHealthBar=(WidgetTexture=Texture'SpriteWidgetHud',TextureCoords=(X1=16,Y1=80,X2=187,Y2=112),TextureScale=0.4,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=40,OffsetY=90,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=220),Tints[1]=(R=255,G=255,B=255,A=220)));
 
   Texture = Texture'JBInfoArena';
   RemoteRole = ROLE_SimulatedProxy;
