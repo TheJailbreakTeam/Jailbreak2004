@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6 2004/01/04 16:14:00 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6.2.1 2004/04/15 09:56:06 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -587,7 +587,7 @@ defaultproperties
   // HUD elements
   //===========================================================================
   
-  LlamaCompassIcon=(WidgetTexture=Texture'Llama',RenderStyle=STY_Alpha,TextureCoords=(X1=0,Y1=0,X2=128,Y2=128),DrawPivot=DP_MiddleMiddle,PosX=0.93,PosY=0.7,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  LlamaCompassIcon=(WidgetTexture=Texture'Llama',RenderStyle=STY_Alpha,TextureCoords=(X1=0,Y1=0,X2=128,Y2=128),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,PosX=0.93,PosY=0.7,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   LlamaCompassIconBG=(WidgetTexture=Texture'SpriteWidgetHud',RenderStyle=STY_Alpha,TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,PosX=0.93,PosY=0.7,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   LlamaCompassBG(0)=(WidgetTexture=Texture'InterfaceContent.Hud.SkinA',RenderStyle=STY_Alpha,TextureCoords=(X1=611,Y1=900,X2=979,Y2=1023),TextureScale=0.3,DrawPivot=DP_MiddleLeft,PosX=0.94,PosY=0.7,ScaleMode=SM_Right,Scale=1.0,Tints[0]=(R=255,G=255,B=255,A=200),Tints[1]=(R=255,G=255,B=255,A=200))
   LlamaCompassBG(1)=(WidgetTexture=Texture'InterfaceContent.Hud.SkinA',RenderStyle=STY_Alpha,TextureCoords=(X1=611,Y1=777,X2=979,Y2=899),TextureScale=0.3,DrawPivot=DP_MiddleLeft,PosX=0.94,PosY=0.7,ScaleMode=SM_Right,Scale=1.0,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150))
