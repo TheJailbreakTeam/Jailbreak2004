@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInventoryAvenger
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBInventoryAvenger.uc,v 1.1.2.5 2004/05/23 10:16:40 tarquin Exp $
+// $Id: JBInventoryAvenger.uc,v 1.1.2.6 2004/05/23 12:37:37 tarquin Exp $
 //
 // Spawned for each avenger player. Gives the player the combo and then 
 // destroys it after set time.
@@ -155,11 +155,12 @@ simulated event Destroyed() {
     xPawn(Owner).CurrentCombo.Destroy();
   }
 
-  if(LocalHUD != None)
+  if(LocalHUD != None) {
       LocalHUD.UnregisterOverlay(Self);
   
-  LocalHUD.AdrenalineCount.Tints[0].A = LocalHUD.Default.AdrenalineCount.Tints[0].A;
-  LocalHUD.AdrenalineCount.Tints[1].A = LocalHUD.Default.AdrenalineCount.Tints[1].A;
+      LocalHUD.AdrenalineCount.Tints[0].A = LocalHUD.Default.AdrenalineCount.Tints[0].A;
+      LocalHUD.AdrenalineCount.Tints[1].A = LocalHUD.Default.AdrenalineCount.Tints[1].A;
+  }
   
   Super.Destroyed();
 }
