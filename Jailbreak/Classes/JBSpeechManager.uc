@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.6 2004/05/30 17:00:05 mychaeel Exp $
+// $Id: JBSpeechManager.uc,v 1.7 2004/05/30 21:44:27 mychaeel Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -49,6 +49,7 @@ struct TInfoVoicePack                         // info on loaded voice pack
 // ============================================================================
 
 var protected config string VoicePack;        // package name of voice pack
+var config bool bQueueAnnouncements;          // queue subsequent announcements
 
 
 // ============================================================================
@@ -223,9 +224,15 @@ simulated function bool Play(string Definition, optional string Tags)
   SpeechClient = Spawn(Class'JBSpeechClient', Self);
   
   if (SpeechClient.Parse(Definition, Tags)) {
-    ListQueueSpeechClient[ListQueueSpeechClient.Length] = SpeechClient;
-    if (ListQueueSpeechClient.Length > 1 || SpeechClient.Play())
-      return True;
+    if (bQueueAnnouncements) {
+      ListQueueSpeechClient[ListQueueSpeechClient.Length] = SpeechClient;
+      if (ListQueueSpeechClient.Length > 1 || SpeechClient.Play())
+        return True;
+    }
+    else {
+      if (SpeechClient.Play())
+        return True;
+    }
   }
   
   SpeechClient.Destroy();
@@ -242,7 +249,8 @@ simulated function bool Play(string Definition, optional string Tags)
 
 simulated function NotifyFinishedPlaying(JBSpeechClient SpeechClient)
 {
-  if (SpeechClient != ListQueueSpeechClient[0])
+  if (ListQueueSpeechClient.Length == 0 ||
+      ListQueueSpeechClient[0] != SpeechClient)
     return;
   
   ListQueueSpeechClient.Remove(0, 1);
@@ -384,4 +392,5 @@ event Destroyed()
 defaultproperties
 {
   VoicePack = "JBVoiceGrrrl.Classic";
+  bQueueAnnouncements = True;
 }
