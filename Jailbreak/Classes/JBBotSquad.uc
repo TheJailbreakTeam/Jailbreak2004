@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.13 2003/06/14 18:05:55 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.14 2003/06/14 18:36:14 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -542,8 +542,6 @@ state Evasive {
 
   event BeginState() {
   
-    local Bot thisBot;
-    
     bFreelance       = True;
     bFreelanceAttack = False;
     bFreelanceDefend = False;
@@ -565,7 +563,6 @@ state Evasive {
     local int iNavigationPoint;
     local float RatingNavigationPointBest;
     local float RatingNavigationPointCurrent;
-    local Bot thisBot;
     local NavigationPoint NavigationPointBest;
     local NavigationPoint NavigationPointCurrent;
     local NavigationPoint NavigationPointStart;
