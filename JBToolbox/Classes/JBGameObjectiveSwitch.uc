@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id$
+// $Id: JBGameObjectiveSwitch.uc,v 1.3.2.3 2004/05/10 15:07:10 mychaeel Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -84,17 +84,13 @@ function DisableObjective(Pawn PawnInstigator)
       PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex)
     return;
 
-  bDisabledRep = True;
   Super.DisableObjective(PawnInstigator);
 
   Instigator = PawnInstigator;
   
-  foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch) {
-    if(ObjectiveSwitch.Event == Event) {
+  foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch)
+    if(ObjectiveSwitch.Event == Event)
       ObjectiveSwitch.SetCollision(False, False, False);
-      ObjectiveSwitch.DoEffectDisabled();
-    }
-  }
 }
 
 
@@ -109,36 +105,34 @@ function Reset()
   local JBGameObjectiveSwitch ObjectiveSwitch;
   
   Super.Reset();
-  bDisabledRep = False;
 
-  foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch) {
-    if(ObjectiveSwitch.Event == Event) {
-      ObjectiveSwitch.DoEffectReset();
+  foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch)
+    if(ObjectiveSwitch.Event == Event)
       ObjectiveSwitch.SetCollision(
         Default.bCollideActors,  // resetting the collision will
         Default.bBlockActors,    // implicitly call Touch again if a
         Default.bBlockPlayers);  // player is still touching this actor
-    }
-  }
 }
 
 
 // ============================================================================
-// PostNetReceive
+// Tick
 //
-// Triggers the visual effects client-side when the flag changes its status.
+// Communicates the state of the bDisabled variable to all clients and, on the
+// clients, updates the visual state of the switch according to bDisabled.
 // ============================================================================
 
-simulated event PostNetReceive()
+simulated event Tick(float TimeDelta)
 {
-  if (bDisabledRep == bDisabledPrev)
-    return;
-  
-  if (bDisabledRep)
-         DoEffectDisabled();
-    else DoEffectReset();
-  
-  bDisabledPrev = bDisabledRep;
+  if (Role == ROLE_Authority && bDisabledRep != bDisabled)
+    bDisabledRep = bDisabled;
+
+  if (Level.NetMode != NM_DedicatedServer && bDisabledRep != bDisabledPrev) {
+    bDisabledPrev = bDisabledRep;
+    if (bDisabledRep)
+           DoEffectDisabled();
+      else DoEffectReset();
+  }
 }
 
 
@@ -220,7 +214,6 @@ defaultproperties
   RemoteRole             = ROLE_SimulatedProxy;
   bStatic                = False;
   bNoDelete              = True;
-  bNetNotify             = True;
   bReplicateInstigator   = True;
 }
   
