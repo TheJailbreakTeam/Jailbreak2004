@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.72 2004/04/21 17:10:52 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.73 2004/04/22 10:41:50 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1288,7 +1288,12 @@ state MatchInProgress {
 
   event Timer()
   {
+    local bool bSynchronizeTime;
     local int iTeam;
+
+    bSynchronizeTime = ElapsedTime % 30 == 0 ||
+                       ElapsedTime != GameReplicationInfo.ElapsedTime ||
+                       DilationTimePrev != Level.TimeDilation;
 
     Super.Timer();
 
@@ -1303,9 +1308,9 @@ state MatchInProgress {
       ExecutionInit();
     }
 
-    if (ElapsedTime % 30 == 0 || DilationTimePrev != Level.TimeDilation) {
-      DilationTimePrev = Level.TimeDilation;
+    if (bSynchronizeTime) {
       JBGameReplicationInfo(GameReplicationInfo).SynchronizeMatchTimer(ElapsedTime);
+      DilationTimePrev = Level.TimeDilation;
     }
   }
 
