@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.31 2004/04/14 15:40:44 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.32 2004/04/15 13:27:54 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -374,7 +374,7 @@ function TriggerRequest(Actor ActorOther, Pawn PawnInstigator)
 {
   local JBTagPlayer TagPlayer;
 
-  if (PawnInstigator.Controller == None)
+  if (PlayerController(PawnInstigator.Controller) == None)
     return;
 
   if (IsExcluded(PawnInstigator.Controller)) {
@@ -399,7 +399,7 @@ function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator)
 {
   local JBTagPlayer TagPlayer;
 
-  if (PawnInstigator.Controller == None)
+  if (PlayerController(PawnInstigator.Controller) == None)
     return;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
@@ -990,9 +990,8 @@ auto state Waiting {
     if (TagRequest == ''     ||
         TagRequest == 'Auto' ||
         TagRequest == 'None')
-      bStarted = MatchInitRandom();
-    else
-      bStarted = MatchInitRequested();
+           bStarted = MatchInitRandom();
+      else bStarted = MatchInitRequested();
 
     if (!bStarted)
       TriggerEvent(EventWaiting, Self, None);
@@ -1051,27 +1050,46 @@ auto state Waiting {
 
   function bool MatchInitRequested()
   {
+    local byte bFoundHumanByTeam[2];
+    local int iTeam;
+    local Controller ControllerCandidateByTeam[2];
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBTagPlayer TagPlayerCandidateByTeam[2];
-    local TeamInfo TeamPlayer;
 
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
-      TeamPlayer = thisTagPlayer.GetTeam();
+      iTeam = thisTagPlayer.GetTeam().TeamIndex;
+
+      if (PlayerController(thisTagPlayer.GetController()) != None)
+        bFoundHumanByTeam[iTeam] = byte(True);
 
       if (thisTagPlayer.GetArenaRequest() == Self && CanFight(thisTagPlayer.GetController()))
-        if (TagPlayerCandidateByTeam[TeamPlayer.TeamIndex] == None ||
-            TagPlayerCandidateByTeam[TeamPlayer.TeamIndex].GetArenaRequestTime() > thisTagPlayer.GetArenaRequestTime())
-          TagPlayerCandidateByTeam[TeamPlayer.TeamIndex] = thisTagPlayer;
+        if (TagPlayerCandidateByTeam[iTeam] == None ||
+            TagPlayerCandidateByTeam[iTeam].GetArenaRequestTime() > thisTagPlayer.GetArenaRequestTime())
+          TagPlayerCandidateByTeam[iTeam] = thisTagPlayer;
     }
 
-    if (TagPlayerCandidateByTeam[0] != None &&
-        TagPlayerCandidateByTeam[1] != None)
-      return MatchInit(TagPlayerCandidateByTeam[0].GetController(),
-                       TagPlayerCandidateByTeam[1].GetController());
+    for (iTeam = 0; iTeam < ArrayCount(ControllerCandidateByTeam); iTeam++)
+      if (TagPlayerCandidateByTeam[iTeam] != None)
+        ControllerCandidateByTeam[iTeam] = TagPlayerCandidateByTeam[iTeam].GetController();
 
-    return False;
+    if (ControllerCandidateByTeam[0] == None &&
+        ControllerCandidateByTeam[1] == None)
+      return False;
+
+    for (iTeam = 0; iTeam < ArrayCount(ControllerCandidateByTeam); iTeam++)
+      if (ControllerCandidateByTeam[iTeam] == None) {
+        if (bool(bFoundHumanByTeam[iTeam]))
+          return False;
+        ControllerCandidateByTeam[iTeam] =
+          JBBotTeam(TeamGame(Level.Game).Teams[iTeam].AI).FindBotForArena(Self, ControllerCandidateByTeam[1 - iTeam]);
+        if (ControllerCandidateByTeam[iTeam] == None)
+          return False;
+      } 
+
+    return MatchInit(ControllerCandidateByTeam[0],
+                     ControllerCandidateByTeam[1]);
   }
 
 } // state Waiting
