@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.10 2004/04/03 17:01:51 tarquin Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.11 2004/04/04 00:41:42 mychaeel Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -213,6 +213,7 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
     
     GUILabelConfigNone.SetVisibility(False);
     ListInfoAddon[iInfoAddon].GUIPanelConfig.SetVisibility(True);
+    ListInfoAddon[iInfoAddon].GUIPanelConfig.EnableMe();
   }
 }
 
@@ -229,8 +230,10 @@ function GUIComponentTabsAddons_TabClosed(GUIComponent GUIComponentSender, GUIMe
 
   iInfoAddon = GUIComponentTabsAddons.GetTabIndex(GUIMenuOptionTab);
 
-  if (ListInfoAddon[iInfoAddon].GUIPanelConfig != None)
-    ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = False;
+  if (ListInfoAddon[iInfoAddon].GUIPanelConfig != None) {
+    ListInfoAddon[iInfoAddon].GUIPanelConfig.SetVisibility(False);
+    ListInfoAddon[iInfoAddon].GUIPanelConfig.DisableMe();
+  }
 }
 
 
