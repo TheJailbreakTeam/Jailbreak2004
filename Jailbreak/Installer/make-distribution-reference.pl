@@ -5,7 +5,7 @@
 #  make-distribution-reference.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id$
+#  $Id: make-distribution-reference.pl,v 1.1 2004/05/31 23:19:17 mychaeel Exp $
 #
 #  Creates a reference text file reporting on the file versions contained in a
 #  zip installer. Used later to create a delta installer.
@@ -14,8 +14,8 @@
 use strict;
 use warnings;
 
+use Digest::MD5;
 use FileHandle;
-use Digest::MD5 'md5_hex';
 
 
 ###############################################################################
@@ -76,13 +76,13 @@ foreach my $file (keys %fileinfo) {
   while (read(PIPE, $buffer, 256 * 1024)) {
     print $progress[$iProgress++ % @progress], "\b";
 
-    $fileinfo{$file}{md5short} = md5_hex(substr($buffer, 0, 4096))
+    $fileinfo{$file}{md5short} = Digest::MD5::md5_hex(substr($buffer, 0, 4096))
       unless defined $fileinfo{$file}{md5short};
 
     $md5full->add($buffer);
   }
 
-  $fileinfo{$file}{md5short} = md5_hex(substr($buffer, 0, 4096))
+  $fileinfo{$file}{md5short} = Digest::MD5::md5_hex(substr($buffer, 0, 4096))
     unless defined $fileinfo{$file}{md5short};
   $fileinfo{$file}{md5full} = $md5full->hexdigest();
 
