@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.29.2.8 2004/05/24 14:40:15 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.29.2.9 2004/05/25 14:22:00 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -212,8 +212,11 @@ function bool CanReleaseBy(Controller Controller, TeamInfo Team)
       Controller.PlayerReplicationInfo == None)
     return False;
 
-  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+  if (      Controller.Pawn  == None ||
+      xPawn(Controller.Pawn) == None)
+    return False;
 
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
   return (TagPlayer != None &&
           TagPlayer.IsFree());
 }
