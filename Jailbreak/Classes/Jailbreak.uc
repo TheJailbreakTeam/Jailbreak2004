@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: Jailbreak.uc,v 1.67.2.14 2004/05/18 00:14:57 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1269,6 +1269,26 @@ static function ResetViewTarget(PlayerController PlayerController)
     PlayerController.ClientSetViewTarget(PlayerController.ViewTarget);
     PlayerController.ClientSetBehindView(PlayerController.bBehindView);
   }
+}
+
+
+// ============================================================================
+// CheckEndGame
+//
+// Restores the PlayerReplicationInfo of the winning bot in order to ensure
+// that the bot is displayed with the correct mesh and skin.
+// ============================================================================
+
+function bool CheckEndGame(PlayerReplicationInfo PlayerReplicationInfoWinner, string Reason)
+{
+  if (!Super.CheckEndGame(PlayerReplicationInfoWinner, Reason))
+    return False;
+
+  if (xPawn(EndGameFocus) != None &&
+      xPawn(EndGameFocus).PlayerReplicationInfo == None)
+    xPawn(EndGameFocus).PlayerReplicationInfo = xPawn(EndGameFocus).OldController.PlayerReplicationInfo;
+
+  return True;
 }
 
 
