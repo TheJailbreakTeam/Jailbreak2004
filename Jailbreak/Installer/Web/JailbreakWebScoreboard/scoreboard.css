@@ -1,0 +1,27 @@
+body                  { color: white; background: black; font-family: Arial,sans-serif; }
+.scoreboard           { width: 500px; }
+.game-title           { font-size: 24px; font-weight: bold; padding-bottom: 14px; padding-top: 40px; }
+.game-description     { font-size: 12px; font-weight: bold; padding-bottom:  1px; }
+.game-mutators        { font-size: 12px; font-weight: bold; padding-bottom:  1px; }
+.teamscore-red        { text-align: left;  padding-top: 40px; }
+.teamscore-blue       { text-align: right; padding-top: 40px; }
+.teamscore-score-red  { font-size: 24px; font-weight: bold; color: red;  padding-left:  12px; padding-bottom: 2px; }
+.teamscore-score-blue { font-size: 24px; font-weight: bold; color: blue; padding-right: 12px; padding-bottom: 2px; }
+.info-red             { text-align: left;  padding-left:  10px; padding-bottom: 10px; padding-right: 50px; }
+.info-blue            { text-align: right; padding-right: 10px; padding-bottom: 10px; padding-left:  50px; }
+.score-red            { text-align: right; padding-right: 10px; font-size: 18px; font-weight: bold; color: red;  }
+.score-blue           { text-align: left;  padding-left:  10px; font-size: 18px; font-weight: bold; color: blue; }
+.score-spacer-red     { padding-left:  40px; }
+.score-spacer-blue    { padding-right: 40px; }
+.info-name-red        { font-size: 18px; font-weight: bold; color: red;  }
+.info-name-blue       { font-size: 18px; font-weight: bold; color: blue; }
+.info-scores-red      { font-size: 12px; color: white; white-space: nowrap; }
+.info-scores-blue     { font-size: 12px; color: white; white-space: nowrap; }
+.info-none-red        { font-size: 12px; font-weight: bold; color: red;   white-space: nowrap; line-height: 25px; }
+.info-none-blue       { font-size: 12px; font-weight: bold; color: blue;  white-space: nowrap; line-height: 25px; }
+.vertbar-red          { padding-left:  2px; background: red;  }
+.vertbar-blue         { padding-right: 2px; background: blue; }
+.horzbar-red          { height: 2px; background: red;  }
+.horzbar-blue         { height: 2px; background: blue; }
+.join                 { text-align: center; font-size: 10px; padding-bottom: 6px; }
+.join a               { color: white; }

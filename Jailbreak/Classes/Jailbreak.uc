@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.55 2003/06/25 19:01:46 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.56 2003/06/26 14:00:33 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -19,6 +19,9 @@ var string Build;
 
 var config bool bEnableJailFights;
 var config bool bEnableSpectatorDeathCam;
+
+var config string WebScoreboardClass;
+var config string WebScoreboardPath;
 
 
 // ============================================================================
@@ -150,10 +153,51 @@ function ReadAddonsForWebAdmin() {
 
 
 // ============================================================================
+// SetupWebScoreboard
+//
+// Sets up the Jailbreak Web Scoreboard if the web server is running.
+// ============================================================================
+
+function SetupWebScoreboard() {
+
+  local int iWebApplication;
+  local WebServer WebServer;
+  local WebApplication WebApplicationScoreboard;
+  local Class<WebApplication> ClassWebApplicationScoreboard;
+  
+  foreach DynamicActors(Class'WebServer', WebServer)
+    break;
+  
+  if (WebServer == None)
+    return;  // web server not running
+  
+  for (iWebApplication = 0; iWebApplication < ArrayCount(WebServer.ApplicationObjects); iWebApplication++)
+    if (WebServer.ApplicationObjects[iWebApplication] == None)
+      break;
+  
+  if (iWebApplication >= ArrayCount(WebServer.ApplicationObjects))
+    return;  // no empty application slot found
+  
+  ClassWebApplicationScoreboard = Class<WebApplication>(DynamicLoadObject(WebScoreboardClass, Class'Class', True));
+  if (ClassWebApplicationScoreboard == None)
+    return;
+  
+  WebApplicationScoreboard = new(None) ClassWebApplicationScoreboard;
+  WebApplicationScoreboard.Level     = Level;
+  WebApplicationScoreboard.WebServer = WebServer;
+  WebApplicationScoreboard.Path      = WebScoreboardPath;
+  WebApplicationScoreboard.Init();
+
+  WebServer.ApplicationObjects[iWebApplication] = WebApplicationScoreboard;
+  WebServer.ApplicationPaths  [iWebApplication] = WebScoreboardPath;
+  }
+
+
+// ============================================================================
 // PostBeginPlay
 //
-// Spawns JBTagTeam actors for both teams and reads the list of Jailbreak
-// Add-Ons for the web admin interface.
+// Spawns JBTagTeam actors for both teams. Reads the add-on list for the web
+// admin interface. Sets up the Jailbreak Web Scoreboard.
 // ============================================================================
 
 event PostBeginPlay() {
@@ -164,6 +208,7 @@ event PostBeginPlay() {
   Class'JBTagTeam'.Static.SpawnFor(Teams[1]);
 
   ReadAddonsForWebAdmin();
+  SetupWebScoreboard();
   }
 
 
@@ -1303,6 +1348,9 @@ defaultproperties {
 
   TextWebAdminEnableJailFights = "Allow Jail Fights";
   TextWebAdminPrefixAddon      = "Jailbreak:";
+
+  WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard";
+  WebScoreboardPath  = "/scoreboard";
 
   bEnableJailFights        = True;
   bEnableSpectatorDeathCam = True;

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.3 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.4 2003/06/15 18:03:49 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -390,14 +390,14 @@ simulated function DrawGradient(Canvas Canvas, int HeightTables) {
 simulated function DrawHeader(Canvas Canvas) {
 
   if (TextTitle == "")
-    TextTitle = GetGameTitle();
+    TextTitle = GetGameTitle(Level);
 
   Canvas.Font = GetSmallerFontFor(Canvas, 0);
   Canvas.SetDrawColor(255, 255, 255);
   Canvas.DrawScreenText(TextTitle, 0.050, 0.050, DP_UpperLeft);
   
   if (TextSubtitle == "")
-    TextSubtitle = GetGameDescription() @ GetGameLimits();
+    TextSubtitle = GetGameDescription(Level) @ GetGameLimits(Level);
 
   Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
   Canvas.SetDrawColor(255, 255, 255);
@@ -412,7 +412,7 @@ simulated function DrawHeader(Canvas Canvas) {
 // processes the map package name to create one.
 // ============================================================================
 
-simulated function string GetGameTitle() {
+static function string GetGameTitle(LevelInfo Level) {
 
   local int iChar;
   local int iCharSeparator;
@@ -445,23 +445,39 @@ simulated function string GetGameTitle() {
 
 
 // ============================================================================
+// GetGameReplicationInfo
+//
+// Returns a reference to the GameReplicationInfo actor corresponding to the
+// given LevelInfo object.
+// ============================================================================
+
+static function GameReplicationInfo GetGameReplicationInfo(LevelInfo Level) {
+
+  if (Level.Game != None)
+    return Level.Game.GameReplicationInfo;
+
+  return Level.GetLocalPlayerController().GameReplicationInfo;
+  }
+
+
+// ============================================================================
 // GetGameDescription
 //
 // Returns a description of the current type of game.
 // ============================================================================
 
-simulated function string GetGameDescription() {
+static function string GetGameDescription(LevelInfo Level) {
 
   local int iSkill;
 
   if (Level.NetMode != NM_Standalone)
-    return TextGameOnline @ GRI.ServerName;
+    return Default.TextGameOnline @ GetGameReplicationInfo(Level).ServerName;
 
   iSkill = Level.Game.GameDifficulty;
   if (Level.Game.CurrentGameProfile != None)
     iSkill = Level.Game.CurrentGameProfile.BaseDifficulty;
 
-  return TextSkill[iSkill] @ TextGameBotmatch;
+  return Default.TextSkill[iSkill] @ Default.TextGameBotmatch;
   }
 
 
@@ -471,20 +487,20 @@ simulated function string GetGameDescription() {
 // Returns a description of the game limits.
 // ============================================================================
 
-simulated function string GetGameLimits() {
+static function string GetGameLimits(LevelInfo Level) {
 
   local string TextLimits;
   
-  if (GRI.TimeLimit > 0)
-    TextLimits = GRI.TimeLimit @ TextLimitTime;
+  if (GetGameReplicationInfo(Level).TimeLimit > 0)
+    TextLimits = GetGameReplicationInfo(Level).TimeLimit @ Default.TextLimitTime;
 
-  if (GRI.GoalScore > 0) {
+  if (GetGameReplicationInfo(Level).GoalScore > 0) {
     if (TextLimits != "")
       TextLimits = TextLimits $ ", ";
-    TextLimits = TextLimits $ GRI.GoalScore @ TextLimitScore;
+    TextLimits = TextLimits $ GetGameReplicationInfo(Level).GoalScore @ Default.TextLimitScore;
     }
 
-  return TextLimitPrefix $ TextLimits $ TextLimitSuffix;
+  return Default.TextLimitPrefix $ TextLimits $ Default.TextLimitSuffix;
   }
 
 
@@ -939,29 +955,29 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer) {
 // Returns a string describing the given player's partial scores.
 // ============================================================================
 
-simulated function string GetInfoScores(JBTagPlayer TagPlayer) {
+static function string GetInfoScores(JBTagPlayer TagPlayer) {
 
   local string TextInfoScores;
   
   if (TagPlayer.ScorePartialAttack > 0)
-    TextInfoScores = TagPlayer.ScorePartialAttack @ TextScoresAttack;
+    TextInfoScores = TagPlayer.ScorePartialAttack @ Default.TextScoresAttack;
   
   if (TagPlayer.ScorePartialDefense > 0) {
     if (TextInfoScores != "")
       TextInfoScores = TextInfoScores $ ", ";
-    TextInfoScores = TextInfoScores $ TagPlayer.ScorePartialDefense @ TextScoresDefense;
+    TextInfoScores = TextInfoScores $ TagPlayer.ScorePartialDefense @ Default.TextScoresDefense;
     }
   
   if (TagPlayer.ScorePartialRelease > 0) {
     if (TextInfoScores != "")
       TextInfoScores = TextInfoScores $ ", ";
-    TextInfoScores = TextInfoScores $ TagPlayer.ScorePartialRelease @ TextScoresRelease;
+    TextInfoScores = TextInfoScores $ TagPlayer.ScorePartialRelease @ Default.TextScoresRelease;
     }
 
   if (TextInfoScores != "")
     return TextInfoScores;
 
-  return TextScoresNone;
+  return Default.TextScoresNone;
   }
 
 
