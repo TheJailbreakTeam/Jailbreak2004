@@ -1,13 +1,13 @@
 // ============================================================================
-// JBReplicationInfoGame
+// JBGameReplicationInfo
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoGame.uc,v 1.8 2003/01/25 23:46:48 mychaeel Exp $
+// $Id$
 //
 // Replicated information for the entire game.
 // ============================================================================
 
 
-class JBReplicationInfoGame extends GameReplicationInfo
+class JBGameReplicationInfo extends GameReplicationInfo
   notplaceable;
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.9 2003/01/25 23:46:48 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.10 2003/02/26 17:46:15 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -257,7 +257,7 @@ simulated function ShowCompass(Canvas Canvas) {
   else
     LocationOwner = PlayerOwner.Location;
   
-  firstTagObjective = JBReplicationInfoGame(PlayerOwner.GameReplicationInfo).firstTagObjective;
+  firstTagObjective = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagObjective;
   for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
     Objective = thisTagObjective.GetObjective();
     
@@ -483,13 +483,13 @@ private simulated function SetupSpeechMenuOrders(ExtendedConsole Console) {
 private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
 
   local int iOrderNameTactics;
-  local JBReplicationInfoGame InfoGame;
+  local JBGameReplicationInfo InfoGame;
   local JBTagTeam TagTeam;
 
   Console.SMState = SMS_Other;
   Console.SMStateName[Console.SMState] = TextMenuTitleTactics;
 
-  InfoGame = JBReplicationInfoGame(PlayerOwner.GameReplicationInfo);
+  InfoGame = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo);
 
   Console.SMArraySize = ArrayCount(InfoGame.OrderNameTactics);
   for (iOrderNameTactics = 0; iOrderNameTactics < Console.SMArraySize; iOrderNameTactics++) {

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagObjective.uc,v 1.5 2003/02/08 22:44:22 mychaeel Exp $
+// $Id: JBTagObjective.uc,v 1.6 2003/02/26 18:11:29 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -47,9 +47,9 @@ static function JBTagObjective SpawnFor(GameObjective Keeper) {
   return JBTagObjective(InternalSpawnFor(Keeper)); }
 
 protected simulated function JBTag InternalGetFirst() {
-  return JBReplicationInfoGame(GetGameReplicationInfo()).firstTagObjective; }
+  return JBGameReplicationInfo(GetGameReplicationInfo()).firstTagObjective; }
 protected simulated function InternalSetFirst(JBTag TagFirst) {
-  JBReplicationInfoGame(GetGameReplicationInfo()).firstTagObjective = JBTagObjective(TagFirst); }
+  JBGameReplicationInfo(GetGameReplicationInfo()).firstTagObjective = JBTagObjective(TagFirst); }
 protected simulated function JBTag InternalGetNext() {
   return nextTag; }
 protected simulated function InternalSetNext(JBTag TagNext) {
@@ -103,7 +103,7 @@ simulated function int CountPlayersReleasable(optional bool bCached) {
   
   nPlayersReleasable = 0;
 
-  firstTagPlayer = JBReplicationInfoGame(GetGameReplicationInfo()).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(GetGameReplicationInfo()).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
     TeamPlayer = thisTagPlayer.GetTeam();
 

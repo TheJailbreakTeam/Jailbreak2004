@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.21 2003/02/16 22:58:17 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.22 2003/02/22 09:50:50 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -268,7 +268,7 @@ function int CountPlayers(TeamInfo Team) {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetTeam() == Team &&
         thisTagPlayer.GetJail() == Self)
@@ -290,7 +290,7 @@ function int CountPlayersTotal() {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetJail() == Self)
       nPlayersJailed++;
@@ -389,7 +389,7 @@ function NotifyJailOpening(TeamInfo Team) {
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    if (thisTagPlayer.GetJail() == Self &&
         thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.NotifyJailOpening();
 
@@ -412,7 +412,7 @@ function NotifyJailOpened(TeamInfo Team) {
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    if (thisTagPlayer.GetJail() == Self &&
         thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.NotifyJailOpened();
 
@@ -474,7 +474,7 @@ function NotifyJailClosed(TeamInfo Team) {
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    if (thisTagPlayer.GetJail() == Self &&
         thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.NotifyJailClosed();
 
@@ -499,7 +499,7 @@ function ResetObjectives(TeamInfo Team) {
 
   firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
-  firstJail = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstJail;
+    if (thisJail != Self &&
         thisJail.Tag == Tag &&
         thisJail.IsReleaseActive(Team))
       return;
@@ -564,7 +564,7 @@ function ExecutionEnd() {
 
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+      if (thisTagPlayer.GetJail() == Self)
         ExecutePlayer(thisTagPlayer.GetController());
     
     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionEnd, True))
@@ -779,7 +779,7 @@ state ExecutionFallback {
   
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+      if (thisTagPlayer.IsInJail())
         ExecutePlayer(thisTagPlayer.GetController());
     }
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTag.uc,v 1.3 2003/02/08 22:44:22 mychaeel Exp $
+// $Id: JBTag.uc,v 1.4 2003/02/26 17:46:15 mychaeel Exp $
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -31,7 +31,7 @@
 // variable declared in the JBTag subclass. InternalGetFirst and
 // InternalSetFirst access a centrally available reference to the first item
 // in the linked list. This may be anywhere, for instance in the globally
-// available instance of JBReplicationInfoGame.
+// available instance of JBGameReplicationInfo.
 //
 // Mixing JBTag actors with inventory of any other kind is not advisable.
 // ============================================================================
@@ -51,7 +51,7 @@ class JBTag extends Inventory
 //   KeeperClass      Class of actors that keep items of your JBTag subclass.
 //   firstTagCustom   Reference to the first item in the linked list.
 //
-// Also introduce the firstTagCustom variable in JBReplicationInfoGame.
+// Also introduce the firstTagCustom variable in JBGameReplicationInfo.
 // ============================================================================
 
 /*
@@ -63,9 +63,9 @@ static function JBTagCustom SpawnFor(KeeperClass Keeper) {
   return JBTagCustom(InternalSpawnFor(Keeper)); }
 
 protected simulated function JBTag InternalGetFirst() {
-  return JBReplicationInfoGame(GetGameReplicationInfo()).firstTagCustom; }
+  return JBGameReplicationInfo(GetGameReplicationInfo()).firstTagCustom; }
 protected simulated function InternalSetFirst(JBTag TagFirst) {
-  JBReplicationInfoGame(GetGameReplicationInfo()).firstTagCustom = JBTagCustom(TagFirst); }
+  JBGameReplicationInfo(GetGameReplicationInfo()).firstTagCustom = JBTagCustom(TagFirst); }
 protected simulated function JBTag InternalGetNext() {
   return nextTag; }
 protected simulated function InternalSetNext(JBTag TagNext) {

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.34 2003/02/17 22:55:18 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.35 2003/02/26 17:46:15 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -127,7 +127,7 @@ function Bot SpawnBot(optional string NameBot) {
 
   local int iOrderNameTactics;
   local Bot BotSpawned;
-  local JBReplicationInfoGame InfoGame;
+  local JBGameReplicationInfo InfoGame;
   
   BotSpawned = Super.SpawnBot(NameBot);
   if (BotSpawned == None)
@@ -135,7 +135,7 @@ function Bot SpawnBot(optional string NameBot) {
 
   Class'JBTagPlayer'.Static.SpawnFor(BotSpawned.PlayerReplicationInfo);
   
-  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
+  InfoGame = JBGameReplicationInfo(GameReplicationInfo);
   for (iOrderNameTactics = 0; iOrderNameTactics < ArrayCount(InfoGame.OrderNameTactics); iOrderNameTactics++)
     BotSpawned.OrderNames[InfoGame.OrderNameTactics[iOrderNameTactics].iOrderName] =
       InfoGame.OrderNameTactics[iOrderNameTactics].OrderName;
@@ -346,7 +346,7 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
   else {
     DistanceReleaseMin = -1.0;
   
-    firstTagObjective = JBReplicationInfoGame(GameReplicationInfo).firstTagObjective;
+    firstTagObjective = JBGameReplicationInfo(GameReplicationInfo).firstTagObjective;
     for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
       DistanceRelease = VSize(thisTagObjective.GetObjective().Location - ControllerVictim.Pawn.Location);
       if (DistanceReleaseMin < 0.0 ||
@@ -468,7 +468,7 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
     else
       SwitchMessage = 0;  // homicide
 
-    firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetJail() == TagPlayerVictim.GetJail() &&
           PlayerController(thisTagPlayer.GetController()) != None)
@@ -544,7 +544,7 @@ function bool ContainsActorJail(Actor Actor, optional out JBInfoJail Jail) {
 
   local JBInfoJail firstJail;
 
-  firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+  firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
   for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)
     if (Jail.ContainsActor(Actor))
       return True;
@@ -564,7 +564,7 @@ function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena) {
 
   local JBInfoArena firstArena;
   
-  firstArena = JBReplicationInfoGame(GameReplicationInfo).firstArena;
+  firstArena = JBGameReplicationInfo(GameReplicationInfo).firstArena;
   for (Arena = firstArena; Arena != None; Arena = Arena.nextArena)
     if (Arena.ContainsActor(Actor))
       return True;
@@ -625,7 +625,7 @@ function int RateCameraExecution(JBCamera CameraExecution) {
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
   
-  firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+  firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
     if (thisJail.Event == CameraExecution.Tag)
       nPlayersJailed += thisJail.CountPlayersTotal();
@@ -683,7 +683,7 @@ function RestartAll() {
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer nextTagPlayer;
   
-  firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
     nextTagPlayer = thisTagPlayer.nextTag;
     thisTagPlayer.RestartFreedom();
@@ -703,7 +703,7 @@ function RestartTeam(TeamInfo Team) {
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer nextTagPlayer;
   
-  firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
     nextTagPlayer = thisTagPlayer.nextTag;
     if (thisTagPlayer.GetTeam() == Team)
@@ -723,7 +723,7 @@ function bool IsReleaseActive(TeamInfo Team) {
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
   
-  firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+  firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
     if (thisJail.IsReleaseActive(Team))
       return True;
@@ -811,7 +811,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
     TeamCapturer.Score += 1;
     RestartTeam(TeamCapturer);
     
-    firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+    firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionInit();
 
@@ -839,7 +839,7 @@ function ExecutionEnd() {
   local JBInfoJail thisJail;
 
   if (IsInState('Executing')) {
-    firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+    firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionEnd();
   
@@ -895,7 +895,7 @@ state MatchInProgress {
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyRound();
     
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       thisTagPlayer.NotifyRound();
     for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -995,7 +995,7 @@ state Executing {
       ExecutionEnd();
       }
 
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.TimeRestart <= Level.TimeSeconds &&
           thisTagPlayer.IsInJail() &&
@@ -1036,7 +1036,7 @@ defaultproperties {
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
   
   MessageClass             = Class'JBLocalMessage';
-  GameReplicationInfoClass = Class'JBReplicationInfoGame';
+  GameReplicationInfoClass = Class'JBGameReplicationInfo';
   TeamAIType[0]            = Class'JBBotTeam';
   TeamAIType[1]            = Class'JBBotTeam';
   

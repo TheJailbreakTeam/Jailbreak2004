@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.23 2003/02/23 12:33:59 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.24 2003/02/26 18:08:54 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -101,9 +101,9 @@ static function JBTagPlayer SpawnFor(PlayerReplicationInfo Keeper) {
   return JBTagPlayer(InternalSpawnFor(Keeper)); }
 
 protected simulated function JBTag InternalGetFirst() {
-  return JBReplicationInfoGame(GetGameReplicationInfo()).firstTagPlayer; }
+  return JBGameReplicationInfo(GetGameReplicationInfo()).firstTagPlayer; }
 protected simulated function InternalSetFirst(JBTag TagFirst) {
-  JBReplicationInfoGame(GetGameReplicationInfo()).firstTagPlayer = JBTagPlayer(TagFirst); }
+  JBGameReplicationInfo(GetGameReplicationInfo()).firstTagPlayer = JBTagPlayer(TagFirst); }
 protected simulated function JBTag InternalGetNext() {
   return nextTag; }
 protected simulated function InternalSetNext(JBTag TagNext) {
@@ -222,7 +222,7 @@ event Timer() {
     }
 
   if (Arena == None) {
-    firstJail = JBReplicationInfoGame(GetGameReplicationInfo()).firstJail;
+    firstJail = JBGameReplicationInfo(GetGameReplicationInfo()).firstJail;
     for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)    
       if (Jail.ContainsActor(PawnCurrent))
         break;
@@ -349,7 +349,7 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
     ArenaPending.MatchCancel();
   ArenaRequest = None;
   
-  firstArena = JBReplicationInfoGame(GetGameReplicationInfo()).firstArena;
+  firstArena = JBGameReplicationInfo(GetGameReplicationInfo()).firstArena;
   for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
     thisArena.ExcludeRemove(GetController());
 

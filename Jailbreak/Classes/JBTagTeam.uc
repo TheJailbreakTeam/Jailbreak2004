@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTagTeam.uc,v 1.11 2003/02/26 17:46:15 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -96,7 +96,7 @@ private function CountPlayers() {
   nPlayersFree   = 0;
   nPlayersJailed = 0;
   
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetTeam() == Keeper)
       if (thisTagPlayer.IsInJail())

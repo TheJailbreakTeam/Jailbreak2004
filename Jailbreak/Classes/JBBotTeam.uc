@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.16 2003/02/23 21:16:06 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.17 2003/02/26 17:46:15 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -434,7 +434,7 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
   local SquadAI thisSquad;
   local SquadAI SquadControlled;
 
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (PlayerController(thisTagPlayer.GetController()) != None &&
         thisTagPlayer.IsFree() &&
@@ -542,7 +542,7 @@ function float RatePlayers() {
   if (CacheRatePlayers.Time == Level.TimeSeconds)
     return CacheRatePlayers.Result;
   
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree()) {
       PlayerReplicationInfo = thisTagPlayer.GetPlayerReplicationInfo();
@@ -618,7 +618,7 @@ function int CountEnemiesAccounted() {
 
   CacheCountEnemiesAccounted.Result = 0;
 
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree() && IsEnemyAcquired(thisTagPlayer.GetController()))
       CacheCountEnemiesAccounted.Result += 1;
@@ -666,7 +666,7 @@ function int EstimateStrengthAttack(GameObjective GameObjective) {
   if (bEnemiesReleasable)
     nEnemiesAttacking += CountEnemiesUnaccounted();  // worst case
   
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree() &&
         (IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), GameObjective) ||
@@ -690,7 +690,7 @@ function int EstimateStrengthDefense(GameObjective GameObjective) {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree() &&
         IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), GameObjective))
@@ -951,7 +951,7 @@ protected function DeployRestart() {
   local JBTagObjective firstTagObjective;
   local JBTagObjective thisTagObjective;
 
-  firstTagObjective = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagObjective;
+  firstTagObjective = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagObjective;
   for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
     thisTagObjective.nPlayersDeployed = 0;
 
@@ -1121,7 +1121,7 @@ protected function DeployExecute() {
   if (TimeDeployment != Level.TimeSeconds)
     return;  // no deployment orders available
 
-  firstTagObjective = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagObjective;        
+  firstTagObjective = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagObjective;        
 
   while (True) {
     BotDeploy = None;
@@ -1373,7 +1373,7 @@ function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased) {
     if (TagPlayerReleased == None)
       return;
 
-    firstJail = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstJail;
+    firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       if (thisJail.Tag == EventRelease) {
         ListNavigationPointExitJail = thisJail.FindExits();

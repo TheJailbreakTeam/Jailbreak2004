@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.10 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.11 2003/02/17 21:18:20 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -189,7 +189,7 @@ function bool CanStart() {
   if (!Level.Game.IsInState('MatchInProgress'))
     return False;
   
-  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArenaPending() == Self && CanFight(thisTagPlayer.GetController())) {
       TeamPlayer = thisTagPlayer.GetTeam();
@@ -403,7 +403,7 @@ function MatchCancel() {
   local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchCountdown')) {
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArenaPending() == Self)
         thisTagPlayer.SetArenaPending(None);
@@ -433,7 +433,7 @@ function bool MatchStart() {
 
   if (IsInState('MatchCountdown')) {
     if (CanStart()) {
-      firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+      firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
       for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
         if (thisTagPlayer.GetArenaPending() == Self)
           thisTagPlayer.RestartArena(Self);
@@ -489,7 +489,7 @@ function MatchTie() {
   local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchRunning')) {
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self)
         thisTagPlayer.RestartJail();
@@ -548,7 +548,7 @@ function MatchFinish() {
       BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       }
     
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self)
         thisTagPlayer.RestartJail();
@@ -582,7 +582,7 @@ function Controller FindWinner() {
   if (IsInState('MatchRunning') ||
       IsInState('MatchFinished')) {
     
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self)
         if (ControllerWinner == None)
@@ -662,7 +662,7 @@ auto state Waiting {
     local array<JBTagPlayer> ListTagPlayerCandidate;
     local TeamInfo TeamCandidate;
 
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (CanFight(thisTagPlayer.GetController()) && !IsExcluded(thisTagPlayer.GetController()))
         ListTagPlayerCandidate[ListTagPlayerCandidate.Length] = thisTagPlayer;
@@ -702,7 +702,7 @@ auto state Waiting {
     local JBTagPlayer TagPlayerCandidateByTeam[2];
     local TeamInfo TeamPlayer;
     
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
       TeamPlayer = thisTagPlayer.GetTeam();
 
@@ -744,7 +744,7 @@ state MatchCountdown {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
 
-    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArenaPending() == Self &&
           PlayerController(thisTagPlayer.GetController()) != None)

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroup
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroup.uc,v 1.1 2003/01/01 22:11:16 mychaeel Exp $
+// $Id: JBDispositionGroup.uc,v 1.2 2003/01/06 11:46:09 mychaeel Exp $
 //
 // Manages the disposition of a group of players on a team. Takes care of
 // their visual arrangement of the icons on the screen and of drawing them.
@@ -74,7 +74,7 @@ function Recount() {
   
   nPlayersRequired = 0;
   
-  firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (BelongsToGroup(thisTagPlayer))
       nPlayersRequired++;

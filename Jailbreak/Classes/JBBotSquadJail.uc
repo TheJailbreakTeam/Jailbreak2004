@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.7 2003/02/17 19:41:32 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.8 2003/02/23 11:39:09 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -103,7 +103,7 @@ static function int CountPlayersFighting(JBInfoJail Jail) {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
-  firstTagPlayer = JBReplicationInfoGame(Jail.Level.Game.GameReplicationInfo).firstTagPlayer;
+  firstTagPlayer = JBGameReplicationInfo(Jail.Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetJail() == Jail &&
         IsPlayerFighting(thisTagPlayer.GetController()))
