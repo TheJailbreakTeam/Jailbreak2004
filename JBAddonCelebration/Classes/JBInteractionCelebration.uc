@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.7 2004/05/11 08:47:59 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.8 2004/05/18 05:33:33 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -17,17 +17,20 @@ class JBInteractionCelebration extends Interaction
 
 var JBGameRulesCelebration CelebrationGameRules;
 
-var string CaptureMessage;              // the capture message displayed during the execution
-var color MessageColor;                 // color to display the CaptureMessage in
+var   string CaptureMessage;            // the capture message displayed during the execution
+var() color MessageColor;               // color to display the CaptureMessage in
 
 var string SavedCameraMessage;          // the message the execution camera would display
 var JBCamera ExecutionCamera;           // the camera the execution is viewed through
 
-var vector MeshLoc, ShadowLoc;
-var Material MeshShadowMaterial;        // the material used to display the player shadow
-var JBTauntingMeshActor PlayerMesh;     // the displayed player mesh
-var JBGameRulesCelebration.TPlayerInfo PlayerInfo;
-var name TauntAnim;                     // used to convert a string to a name to the taunt animation
+var() vector MeshLoc, ShadowLoc;
+var() Material MeshShadowMaterial;      // the material used to display the player shadow
+var   JBTauntingMeshActor PlayerMesh;   // the displayed player mesh
+var   JBGameRulesCelebration.TPlayerInfo PlayerInfo;
+var   name TauntAnim;                   // used to convert a string to a name to the taunt animation
+
+// TODO: remove debugging code before release
+var() editconst int DebugCounter;
 
 
 //=============================================================================
@@ -43,7 +46,8 @@ function PostRender(Canvas C)
   
   if ( !ViewportOwner.Actor.ViewTarget.IsA('JBCamera') || ViewportOwner.Actor.MyHud != None
       && ViewportOwner.Actor.MyHud.bShowScoreBoard ) {
-    JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = False;
+    if ( !ViewportOwner.Actor.ViewTarget.IsA('JBCamera') )
+      JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = False;
     return;
   }
   if ( ExecutionCamera == None )
@@ -249,6 +253,20 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
 
 
 //=============================================================================
+// Initialized
+//
+// Debug logging to help tracking down the arana cam display bug and the
+// problem with multiple player meshes and/or capture messages.
+//=============================================================================
+
+function Initialized()
+{
+  default.DebugCounter++;
+  log("Initialized"@Name@DebugCounter, 'JBDebug');
+}
+
+
+//=============================================================================
 // Remove
 //
 // Restores the execution camera's caption text, cleans up actor references and
@@ -257,6 +275,8 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
 
 function Remove()
 {
+  log("Removing"@Name@DebugCounter, 'JBDebug');
+  
   if ( ExecutionCamera != None && SavedCameraMessage != "" )
     ExecutionCamera.Caption.Text = SavedCameraMessage;
   
@@ -267,11 +287,28 @@ function Remove()
     PlayerMesh.Destroy();
   
   PlayerMesh = None;
+  if ( CelebrationGameRules != None && CelebrationGameRules.CelebrationInteraction == Self )
+    CelebrationGameRules.CelebrationInteraction = None;
+  else if ( CelebrationGameRules != None )
+    warn(CelebrationGameRules@"has another CelebrationInteraction!");
   CelebrationGameRules = None;
   
   if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None )
     JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = False;
   Master.RemoveInteraction(Self);
+}
+
+
+//=============================================================================
+// NotifyLevelChange
+//
+// Removes the interaction on mapchange or disconnect.
+//=============================================================================
+
+function NotifyLevelChange()
+{
+  Remove();
+  Super.NotifyLevelChange();
 }
 
 
