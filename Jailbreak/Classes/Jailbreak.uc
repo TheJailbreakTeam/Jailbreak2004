@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.85 2004/05/17 02:59:06 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.86 2004/05/17 14:41:16 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -403,7 +403,7 @@ function bool NeedPlayers()
   if (Super.NeedPlayers())
     return True;
   
-  if (!bBalanceTeams || NumBots > 0 || NumPlayers == 1 || NumPlayers % 2 == 0)
+  if (!bBalanceTeams || NumBots > 0 || NumPlayers <= 1 || NumPlayers % 2 == 0)
     return False;
 
   return (Abs(CountPlayersTotal(Teams[0]) -
@@ -419,11 +419,14 @@ function bool NeedPlayers()
 
 function bool TooManyBots(Controller BotToRemove)
 {
-  if (!bBalanceTeams || NumBots > 1)
-    return Super.TooManyBots(BotToRemove);
+  if (Super.TooManyBots(BotToRemove))
+    if (!bBalanceTeams || NumBots > 1)
+      return True;
+    else
+      return (CountPlayersTotal(Teams[0]) !=
+              CountPlayersTotal(Teams[1]));
 
-  return (CountPlayersTotal(Teams[0]) !=
-          CountPlayersTotal(Teams[1]));
+  return False;
 }
 
 
