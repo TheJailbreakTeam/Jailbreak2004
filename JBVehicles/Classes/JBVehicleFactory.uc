@@ -1,7 +1,7 @@
 //=============================================================================
 // JBVehicleFactory
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBVehicleFactory.uc,v 1.2 2004/06/03 00:07:01 wormbo Exp $
+// $Id: JBVehicleFactory.uc,v 1.3 2004/06/03 01:35:06 wormbo Exp $
 //
 // Base class for Jailbreak vehicle factories.
 //=============================================================================
@@ -27,14 +27,14 @@ var() name  EventVehicleDestroyed;
 // Variables
 //=============================================================================
 
-var float   PreSpawnEffectTime;
-var bool    bPreSpawn;
-var bool    bResetting;
-var array<Vehicle> LastSpawned;
+var() float           PreSpawnEffectTime;
+var   bool            bPreSpawn;
+var   bool            bResetting;
+var   array<Vehicle>  LastSpawned;
 
-var class<Emitter> RedBuildEffectClass;
-var class<Emitter> BlueBuildEffectClass;
-var Emitter        BuildEffect;
+var() class<Emitter>  RedBuildEffectClass;
+var() class<Emitter>  BlueBuildEffectClass;
+var   Emitter         BuildEffect;
 
 
 //=============================================================================
@@ -215,6 +215,7 @@ function Reset()
   if ( bInitiallyActive )
     Timer();
 }
+
 
 //=============================================================================
 // Default properties
