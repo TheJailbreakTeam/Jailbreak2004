@@ -1,11 +1,11 @@
 // ============================================================================
-// JBGUIPanelBerserkerConfig
+// JBGUIPanelConfigBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelBerserkerConfig.uc,v 1.1 2003/06/27 11:14:32 crokx Exp $
+// $Id$
 //
 // Options of Berserker add-on.
 // ============================================================================
-class JBGUIPanelBerserkerConfig extends GUIPanel;
+class JBGUIPanelConfigBerserker extends GUIPanel;
 
 
 // ============================================================================
