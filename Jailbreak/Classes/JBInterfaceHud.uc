@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.30 2004/03/05 15:18:27 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.31 2004/03/08 01:43:09 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -403,9 +403,9 @@ simulated function ShowWidescreen(Canvas Canvas)
   TimeUpdateWidescreen = Level.TimeSeconds;
 
   if (bWidescreen)
-    RatioWidescreen = FMin(1.0, RatioWidescreen + TimeDelta);
+    RatioWidescreen = FMin(1.0, RatioWidescreen + TimeDelta * 3.0);
   else
-    RatioWidescreen = FMax(0.0, RatioWidescreen - TimeDelta);
+    RatioWidescreen = FMax(0.0, RatioWidescreen - TimeDelta * 3.0);
 
   HeightBars = RatioWidescreen * Max(0, Canvas.ClipY - Canvas.ClipX / (16.0 / 9.0)) / 2;
 
