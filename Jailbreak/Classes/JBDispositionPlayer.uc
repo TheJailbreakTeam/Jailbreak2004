@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionPlayer.uc,v 1.1 2003/01/01 22:11:16 mychaeel Exp $
+// $Id: JBDispositionPlayer.uc,v 1.2 2003/01/02 15:07:57 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -93,7 +93,7 @@ function Move(float TimeDelta) {
       if (DistanceTotal > 0.0)
         ScaleDelta = Abs(ScaleTarget - Scale) * DistanceDelta / DistanceTotal;
       else
-        ScaleDelta = 1.0 * TimeDelta;
+        ScaleDelta = 2.0 * TimeDelta;
       
       if (Scale < ScaleTarget)
         Scale = FMin(ScaleTarget, Scale + ScaleDelta);
@@ -113,7 +113,7 @@ function Move(float TimeDelta) {
 
 function bool Fadeout(float TimeDelta) {
 
-  Scale = FMax(0.0, Scale - 1.0 * TimeDelta);
+  Scale = FMax(0.0, Scale - 2.0 * TimeDelta);
 
   return (Scale == 0.0);
   }
