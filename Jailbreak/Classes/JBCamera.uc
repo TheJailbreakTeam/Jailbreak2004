@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.15 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.16 2003/03/15 21:54:01 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -452,4 +452,5 @@ defaultproperties {
   bNoDelete = True;
   bStatic = False;
   bDirectional = True;
+  Velocity = (X=1.0);  // hack fix for undesired automatic scoreboard display
   }
