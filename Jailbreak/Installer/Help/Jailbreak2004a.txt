@@ -60,6 +60,7 @@ User Interface
 135362 – Temporary key bindings keep popping up when somebody joins the server.
 135362 – Enhancement: Pressing Alt-Fire instead of Fire permanently hides the
          auto key binder dialog (until the auto key bindings change).
+136520 - Enhancement: New and spiffed-up loading screens for all bundled maps.
 136356 – Some loading screens, map preview images and panorama maps appear
          blurred at low texture settings.
 135972 – Enhancement: Fallback to default voice if voice pack cannot be loaded.
