@@ -912,7 +912,8 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
     TagPlayerKiller = Class'JBTagPlayer'.Static.FindFor(ControllerKiller.PlayerReplicationInfo);
   TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
 
-  if (TagPlayerVictim.IsInJail() &&
+  if (TagPlayerVictim != None &&
+      TagPlayerVictim.IsInJail() &&
       (TagPlayerKiller == None ||
        TagPlayerKiller.IsInJail())) {
 
