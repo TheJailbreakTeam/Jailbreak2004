@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.10 2004/05/17 22:55:41 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.11 2004/05/30 19:56:48 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -1006,7 +1006,7 @@ simulated function TTableLayout CalcTableLayout(Canvas Canvas, TTable Table)
   Canvas.Font = FontObjectMain;  Canvas.TextSize("X", SizeText.X, SizeText.Y);  Layout.HeightEntry  = SizeText.Y;
   Canvas.Font = FontObjectInfo;  Canvas.TextSize("X", SizeText.X, SizeText.Y);  Layout.HeightEntry += SizeText.Y;
 
-  Layout.SpacingEntry = Layout.HeightEntry * 0.4;
+  Layout.SpacingEntry = Min(Layout.HeightEntry * 0.4, Canvas.ClipY * 0.7 / Table.nEntriesDisplayed - Layout.HeightEntry);
 
   Layout.WidthLineMain  = Canvas.ClipX * 0.003;
   Layout.WidthLineStats = Canvas.ClipX * 0.002;
