@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.10 2003/01/19 19:11:19 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.11 2003/01/23 18:31:36 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -18,9 +18,10 @@ class JBBotTeam extends TeamAI
 var class<JBBotSquadArena> ClassSquadArena;
 var class<JBBotSquadJail>  ClassSquadJail;
 
-var private bool bTacticsAuto;  // team tactics selected automatically
+var private bool bTacticsAuto;     // team tactics selected automatically
+var private float TimeTacticsSet;  // time of last tactics selection
 
-var private int nObjectives;  // counted once by CountObjectives
+var private int nObjectives;       // counted once by CountObjectives
 
 var private transient float TimeDeployment;  // time of last deployment order
 
@@ -59,6 +60,9 @@ var private transient float CacheRatePlayers;
 
 function name SetTactics(name Tactics) {
 
+  if (TimeTacticsSet == Level.TimeSeconds)
+    return GetTactics();  // set tactics only once per tick
+
   bTacticsAuto = False;
 
   switch (Tactics) {
@@ -94,6 +98,8 @@ function name SetTactics(name Tactics) {
     default:
       Log("Warning: Invalid tactics" @ Tactics @ "selected for team" @ Team.TeamIndex);
     }
+
+  TimeTacticsSet = Level.TimeSeconds;
 
   return GetTactics();
   }
@@ -404,14 +410,21 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local SquadAI thisSquad;
+  local SquadAI SquadControlled;
 
   firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (PlayerController(thisTagPlayer.GetController()) != None &&
         thisTagPlayer.IsFree() &&
         thisTagPlayer.GetTeam() == Team &&
-        thisTagPlayer.GuessObjective() == GameObjective)
-      nPlayersAtObjective++;
+        thisTagPlayer.GuessObjective() == GameObjective) {
+
+      SquadControlled = GetSquadLedBy(thisTagPlayer.GetController());
+      if (SquadControlled == None)
+        nPlayersAtObjective += 1;
+      else
+        nPlayersAtObjective += SquadControlled.GetSize();
+      }
 
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
     if (thisSquad.SquadObjective == GameObjective)
@@ -748,6 +761,46 @@ function ReAssessOrders() {
 
 
 // ============================================================================
+// SetOrders
+//
+// Called when a player issues an explicit order for a bot, and when something
+// is selected from the custom team tactics submenu in the speech menu.
+// ============================================================================
+
+function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander) {
+
+  local JBTagPlayer TagPlayerBot;
+
+  TagPlayerBot = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
+
+  switch (OrderName) {
+    case 'Attack':
+    case 'Defend':
+    case 'Follow':
+    case 'Hold':
+      TagPlayerBot.OrderNameFixed = OrderName;
+      break;
+
+    case 'Freelance':
+      TagPlayerBot.OrderNameFixed = '';  // reset to team tactics
+      break;
+
+    case 'TacticsAuto':        SetTactics('Auto');        return;
+    case 'TacticsSuicidal':    SetTactics('Suicidal');    return;
+    case 'TacticsAggressive':  SetTactics('Aggressive');  return;
+    case 'TacticsNormal':      SetTactics('Normal');      return;
+    case 'TacticsDefensive':   SetTactics('Defensive');   return;
+    case 'TacticsEvasive':     SetTactics('Evasive');     return;
+    }
+
+  if (TagPlayerBot.IsFree()) {
+    Super.SetOrders(Bot, OrderName, ControllerCommander);
+    RequestReAssessment();
+    }
+  }
+
+
+// ============================================================================
 // SetBotOrders
 //
 // Called for bots that just entered the game or were released from jail. Puts
@@ -756,8 +809,37 @@ function ReAssessOrders() {
 
 function SetBotOrders(Bot Bot, RosterEntry RosterEntry) {
 
+  local JBTagPlayer TagPlayerBot;
+
+  TagPlayerBot = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
+  if (TagPlayerBot != None)
+    TagPlayerBot.OrderNameFixed = '';  // reset to team tactics
+
   PutOnFreelance(Bot);
   RequestReAssessment();
+  }
+
+
+// ============================================================================
+// ResumeBotOrders
+//
+// If the given bot has been explicitly ordered to attack or defend, resumes
+// those orders. Otherwise clears the fixed orders and sets team orders.
+// ============================================================================
+
+function ResumeBotOrders(Bot Bot) {
+
+  local JBTagPlayer TagPlayerBot;
+
+  TagPlayerBot = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
+  if (TagPlayerBot == None)
+    return;
+
+  if (TagPlayerBot.OrderNameFixed == 'Attack' ||
+      TagPlayerBot.OrderNameFixed == 'Defend')
+    SetOrders(Bot, TagPlayerBot.OrderNameFixed, None);
+  else
+    SetBotOrders(Bot, None);  // team tactics
   }
 
 
@@ -893,26 +975,28 @@ protected function DeployToDefense(int nPlayers) {
 
 
 // ============================================================================
-// IsDeployable
+// CanDeploy
 //
 // Checks and returns whether the given controller is a bot on this team and 
 // can be drawn off from its current objective.
 // ============================================================================
 
-protected function bool IsDeployable(Controller Controller) {
+protected function bool CanDeploy(Controller Controller) {
 
+  local Controller ControllerLeader;
   local JBTagObjective TagObjective;
 
   if (Bot(Controller) == None ||
       Controller.Pawn == None ||
-      Controller.PlayerReplicationInfo.Team != Team)
+      Controller.PlayerReplicationInfo.Team != Team ||
+      JBBotSquad(Bot(Controller).Squad) == None)
     return False;
 
-  if (JBBotSquad(Bot(Controller).Squad) == None)
+  ControllerLeader = Bot(Controller).Squad.SquadLeader;
+  if (PlayerController(ControllerLeader) != None)
     return False;
 
-  if (Bot(Controller).Squad != None &&
-      Bot(Controller).Squad.SquadObjective != None)
+  if (Bot(Controller).Squad.SquadObjective != None)
     TagObjective = Class'JBTagObjective'.Static.FindFor(Bot(Controller).Squad.SquadObjective);
   
   if (TagObjective == None ||
@@ -921,6 +1005,31 @@ protected function bool IsDeployable(Controller Controller) {
     return True;
   
   return False;
+  }
+
+
+// ============================================================================
+// CanDeployToObjective
+//
+// Checks and returns whether the given player can be deployed to the given
+// objective. Assumes that CanDeploy returns True for the given player.
+// ============================================================================
+
+protected function bool CanDeployToObjective(Controller Controller, GameObjective ObjectiveDeploy) {
+
+  local JBTagPlayer TagPlayer;
+  
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+  
+  if (TagPlayer != None)
+    switch (TagPlayer.OrderNameFixed) {
+      case 'Attack':  return IsObjectiveAttack (ObjectiveDeploy);
+      case 'Defend':  return IsObjectiveDefense(ObjectiveDeploy);
+      case 'Follow':  return PlayerController(Bot(Controller).Squad.SquadLeader) == None;
+      case 'Hold':    return HoldSpot(Bot(Controller).GoalScript) == None;
+      }
+  
+  return True;
   }
 
 
@@ -951,9 +1060,10 @@ protected function DeployExecute() {
     BotDeploy = None;
   
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-      if (IsDeployable(thisController))
+      if (CanDeploy(thisController))
         for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
-          if (thisTagObjective.nPlayersDeployed > 0 &&
+          if (CanDeployToObjective(thisController, thisTagObjective.GetObjective()) &&
+              thisTagObjective.nPlayersDeployed > 0 &&
               thisTagObjective.nPlayersDeployed > thisTagObjective.nPlayersCurrent) {
 
             DistanceObjective = CalcDistance(thisController, thisTagObjective.GetObjective());
@@ -977,7 +1087,8 @@ protected function DeployExecute() {
     }
 
   for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-    if (IsDeployable(thisController) &&
+    if (CanDeploy(thisController) &&
+        CanDeployToObjective(thisController, None) &&
         Bot(thisController).Squad.SquadObjective != None) {
 
       TagObjectiveBot = Class'JBTagObjective'.Static.FindFor(Bot(thisController).Squad.SquadObjective);
@@ -990,39 +1101,97 @@ protected function DeployExecute() {
 
 
 // ============================================================================
+// GetLeastDefendedObjective
+//
+// Returns the objective that has the lowest ratio currently present to
+// actually suggested defenders. If no objective currently requires defenders,
+// selects the objective that currently has the smallest number of them.
+// ============================================================================
+
+function GameObjective GetLeastDefendedObjective() {
+
+  local int nPlayersCurrent;
+  local int nPlayersCurrentMin;
+  local int nPlayersSuggested;
+  local float RatioPlayers;
+  local float RatioPlayersSelected;
+  local GameObjective thisObjective;
+  local GameObjective ObjectiveSelected;
+  
+  for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    if (IsObjectiveDefense(thisObjective)) {
+      nPlayersSuggested = SuggestStrengthDefense(thisObjective);
+      if (nPlayersSuggested > 0) {
+        nPlayersCurrent = CountPlayersAtObjective(thisObjective);
+        RatioPlayers = nPlayersCurrent / nPlayersSuggested;
+        if (ObjectiveSelected == None || RatioPlayers < RatioPlayersSelected) {
+          ObjectiveSelected = thisObjective;
+          RatioPlayersSelected = RatioPlayers;
+          }
+        }
+      }
+
+  if (ObjectiveSelected == None)
+    for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+      if (IsObjectiveDefense(thisObjective)) {
+        nPlayersCurrent = CountPlayersAtObjective(thisObjective);
+        if (ObjectiveSelected == None || nPlayersCurrent < nPlayersCurrentMin) {
+          ObjectiveSelected = thisObjective;
+          nPlayersCurrentMin = nPlayersCurrent;
+          }
+        }
+
+  return ObjectiveSelected;
+  }
+
+
+// ============================================================================
 // GetPriorityAttackObjective
 //
 // Finds the objective that should be attacked. Selects the objective where
 // most players can be released with the least required amount of attacking
-// players.
+// players. If no objective currently requires attackers, selects the
+// objective that currently has the smallest number of them.
 // ============================================================================
 
 function GameObjective GetPriorityAttackObjective() {
 
+  local int nPlayersCurrent;
+  local int nPlayersCurrentMin;
   local int nPlayersReleasable;
   local int nPlayersReleasableMax;
-  local int nPlayersAttacking;
-  local int nPlayersAttackingMin;
+  local int nPlayersSuggested;
+  local int nPlayersSuggestedMin;
   local GameObjective thisObjective;
-  local GameObjective ObjectiveAttack;
+  local GameObjective ObjectiveSelected;
   
   for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
     if (IsObjectiveAttack(thisObjective)) {
-      nPlayersAttacking = SuggestStrengthAttack(thisObjective);
-      if (nPlayersAttacking == 0)
+      nPlayersSuggested = SuggestStrengthAttack(thisObjective);
+      if (nPlayersSuggested == 0)
         continue;
 
-      if (ObjectiveAttack == None || nPlayersAttacking < nPlayersAttackingMin) {
+      if (ObjectiveSelected == None || nPlayersSuggested < nPlayersSuggestedMin) {
         nPlayersReleasable = CountPlayersReleasable(thisObjective);
-        if (ObjectiveAttack == None || nPlayersReleasable > nPlayersReleasableMax) {
-          nPlayersAttackingMin  = nPlayersAttacking;
+        if (ObjectiveSelected == None || nPlayersReleasable > nPlayersReleasableMax) {
+          nPlayersSuggestedMin  = nPlayersSuggested;
           nPlayersReleasableMax = nPlayersReleasable;
-          ObjectiveAttack = thisObjective;
+          ObjectiveSelected = thisObjective;
           }
         }
       }
   
-  return ObjectiveAttack;
+  if (ObjectiveSelected == None)
+    for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+      if (IsObjectiveAttack(thisObjective)) {
+        nPlayersCurrent = CountPlayersAtObjective(thisObjective);
+        if (ObjectiveSelected == None || nPlayersCurrent < nPlayersCurrentMin) {
+          ObjectiveSelected = thisObjective;
+          nPlayersCurrentMin = nPlayersCurrent;
+          }
+        }
+  
+  return ObjectiveSelected;
   }
 
 
@@ -1043,8 +1212,9 @@ function GameObjective GetPriorityFreelanceObjective() {
 // ============================================================================
 // NotifySpawn
 //
-// Called when a player respawns. When an enemy spawned in freedom, dispatches
-// a freelancing squad to the enemy's probable spawning point.
+// Called when a player respawns. When an enemy spawns in freedom, dispatches
+// a freelancing squad to the enemy's probable spawning point. Tells bots to
+// resume their fixed orders if they have any.
 // ============================================================================
 
 function NotifySpawn(Controller ControllerSpawned) {
@@ -1058,11 +1228,17 @@ function NotifySpawn(Controller ControllerSpawned) {
 
   switch (TagPlayer.GetRestart()) {
     case 'Restart_Freedom':
-      if (TagPlayer.GetTeam() != Team) {
+      if (TagPlayer.GetTeam() == Team) {
+        if (Bot(ControllerSpawned) != None)
+          ResumeBotOrders(Bot(ControllerSpawned));
+        }
+
+      else {
         NavigationPointGuessed = TagPlayer.GuessLocation(JBReplicationInfoTeam(TagPlayer.GetTeam()).FindPlayerStarts());
         if (NavigationPointGuessed != None)
           SendSquadTo(NavigationPointGuessed, ControllerSpawned);
         }
+
       break;
 
     case 'Restart_Jail':
@@ -1125,15 +1301,15 @@ function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased) {
   local array<NavigationPoint> ListNavigationPointExitTotal;
 
   if (ControllerReleased.PlayerReplicationInfo.Team == Team) {
-    if(Bot(ControllerReleased) != None && JBBotSquadJail(Bot(ControllerReleased).Squad) != None)
-      SetBotOrders(Bot(ControllerReleased), None);
+    if (Bot(ControllerReleased) != None && JBBotSquadJail(Bot(ControllerReleased).Squad) != None)
+      ResumeBotOrders(Bot(ControllerReleased));
     }
   
   else {
     TagPlayerReleased = Class'JBTagPlayer'.Static.FindFor(ControllerReleased.PlayerReplicationInfo);
     if (TagPlayerReleased == None)
       return;
-  
+
     firstJail = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       if (thisJail.Tag == EventRelease) {

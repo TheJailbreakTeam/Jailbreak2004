@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.4 2003/01/11 22:17:46 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.5 2003/01/19 19:11:19 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -28,9 +28,9 @@ struct TInfoEnemy {
 // Variables
 // ============================================================================
 
-var private float TimeInitialized;  // time of this squad's initialization
+var private float TimeInitialized;  // time of squad initialization
 
-var private TInfoEnemy ListInfoEnemy[8];  // indexed like the Enemies array
+var private TInfoEnemy ListInfoEnemy[8];  // indexed corresponding to Enemies
 
 var private Controller ControllerHunted;            // hunted player
 var private NavigationPoint NavigationPointHunted;  // last known location
@@ -170,12 +170,16 @@ function int GetSize() {
 // ============================================================================
 // AddBot
 //
-// Adds the added bot's enemy to the squad's enemies and retasks the bot.
+// Adds the added bot's enemy to the squad's enemies and retasks the bot. If
+// the bot is currently following a scripted sequence, stops it.
 // ============================================================================
 
 function AddBot(Bot Bot) {
 
   Super.AddBot(Bot);
+
+  Bot.FreeScript();
+  TeamPlayerReplicationInfo(Bot.PlayerReplicationInfo).bHolding = False;
 
   if (Bot.Enemy != None)
     AddEnemy(Bot.Enemy);

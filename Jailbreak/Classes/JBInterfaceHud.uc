@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.7 2003/01/11 22:17:46 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.8 2003/01/19 23:09:41 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -19,20 +19,33 @@ class JBInterfaceHud extends HudBTeamDeathMatch
 
 
 // ============================================================================
+// Localization
+// ============================================================================
+
+var localized string TextMenuEntryTactics;
+var localized string TextMenuTitleTactics;
+var localized string TextOrderName[6];
+
+
+// ============================================================================
 // Variables
 // ============================================================================
 
-var() SpriteWidget SpriteWidgetCompass[2];
+var SpriteWidget SpriteWidgetCompass[2];
 
-var bool bWidescreen;               // display widescreen bars
-var private float RatioWidescreen;  // widescreen scroll-in progress
+var bool bWidescreen;                        // display widescreen bars
+var private float RatioWidescreen;           // widescreen scroll-in progress
 
-var private float TimeUpdateCompass;      // last compass rendering
-var private float TimeUpdateDisposition;  // last disposition rendering
-var private float TimeUpdateWidescreen;   // last widescreen bar rendering
+var private float TimeUpdateCompass;         // last compass rendering
+var private float TimeUpdateDisposition;     // last disposition rendering
+var private float TimeUpdateWidescreen;      // last widescreen bar rendering
 
-var private JBDispositionTeam DispositionTeamRed;
-var private JBDispositionTeam DispositionTeamBlue;
+var private byte SpeechMenuState;            // current speech menu state
+var private bool bSpeechMenuVisible;         // speech menu displayed
+var private bool bSpeechMenuVisibleTactics;  // tactics submenu displayed
+
+var private JBDispositionTeam DispositionTeamRed;   // red team disposition
+var private JBDispositionTeam DispositionTeamBlue;  // blue team disposition
 
 
 // ============================================================================
@@ -357,6 +370,147 @@ simulated function JBTagClient GetTagClientOwner() {
 
 
 // ============================================================================
+// Tick
+//
+// Monitors the speech menu in order to hack into it.
+// ============================================================================
+
+simulated function Tick(float TimeDelta) {
+
+  HackSpeechMenu();  // hack into the speech menu
+
+  Super.Tick(TimeDelta);
+  }
+
+
+// ============================================================================
+// HackSpeechMenu
+//
+// Hacks into the speech menu in order to add a team tactics selection there.
+// Monitors the menu and adds or changes menu entries depending on the menu's
+// current state.
+// ============================================================================
+
+simulated function HackSpeechMenu() {
+
+  local byte KeySubmenuOrder;
+  local ExtendedConsole Console;
+
+  Console = ExtendedConsole(Level.GetLocalPlayerController().Player.Console);
+
+  if (Console.IsInState('SpeechMenuVisible')) {
+    if (Console.SMState != SpeechMenuState || !bSpeechMenuVisible) {
+      if (Console.SMState == SMS_Main && bSpeechMenuVisibleTactics) {
+        if (Console.bSpeechMenuUseLetters)
+          KeySubmenuOrder = Console.LetterKeys[3];
+        else
+          KeySubmenuOrder = Console.NumberKeys[3];
+
+        Console.SMAcceptSound = None;  // disable opening sound
+        Console.KeyEvent(EInputKey(KeySubmenuOrder), IST_Press, 0.0);
+        Console.SMAcceptSound = Console.Default.SMAcceptSound;
+        }
+
+      ResetSpeechMenu(Console);
+
+      switch (Console.SMState) {
+        case SMS_Order:
+          bSpeechMenuVisibleTactics = False;
+          SetupSpeechMenuOrders(Console);
+          break;
+        
+        case SMS_PlayerSelect:
+          bSpeechMenuVisibleTactics = (Console.SMIndex == 1337);
+          if (bSpeechMenuVisibleTactics)
+            SetupSpeechMenuTactics(Console);
+          break;
+        
+        default:
+          bSpeechMenuVisibleTactics = False;
+          break;
+        }
+    
+      bSpeechMenuVisible = True;
+      SpeechMenuState = Console.SMState;
+      }
+    }
+
+  else if (bSpeechMenuVisible) {
+    ResetSpeechMenu(Console);
+    bSpeechMenuVisible        = False;
+    bSpeechMenuVisibleTactics = False;
+    }
+  }
+
+
+// ============================================================================
+// ResetSpeechMenu
+//
+// Resets everything that was permanently changed in the speech menu while the
+// tactics submenu was displayed.
+// ============================================================================
+
+private simulated function ResetSpeechMenu(ExtendedConsole Console) {
+
+  local int iStateName;
+
+  for (iStateName = 0; iStateName < ArrayCount(Console.SMStateName); iStateName++)
+    Console.SMStateName[iStateName] = Console.Default.SMStateName[iStateName];
+  }
+
+
+// ============================================================================
+// SetupSpeechMenuOrders
+//
+// Adds a team tactics menu item to the orders submenu of the speech menu.
+// ============================================================================
+
+private simulated function SetupSpeechMenuOrders(ExtendedConsole Console) {
+
+  Console.SMNameArray [Console.SMArraySize] = TextMenuEntryTactics;
+  Console.SMIndexArray[Console.SMArraySize] = 1337;
+
+  Console.SMArraySize += 1;
+  }
+
+
+// ============================================================================
+// SetupSpeechMenuTactics
+//
+// Sets up the tactics submenu of the speech menu.
+// ============================================================================
+
+private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
+
+  local int iOrderNameTactics;
+  local JBReplicationInfoGame InfoGame;
+
+  Console.SMState = SMS_Other;
+  Console.SMStateName[Console.SMState] = TextMenuTitleTactics;
+
+  InfoGame = JBReplicationInfoGame(PlayerOwner.GameReplicationInfo);
+
+  Console.SMArraySize = ArrayCount(InfoGame.OrderNameTactics);
+  for (iOrderNameTactics = 0; iOrderNameTactics < Console.SMArraySize; iOrderNameTactics++) {
+    Console.SMNameArray [iOrderNameTactics] = TextOrderName[iOrderNameTactics];
+    Console.SMIndexArray[iOrderNameTactics] = InfoGame.OrderNameTactics[iOrderNameTactics].iOrderName;
+    }
+
+  if (JBReplicationInfoTeam(PlayerOwner.PlayerReplicationInfo.Team).GetTacticsAuto())
+    Console.HighlightRow = 0;
+  else {
+    switch (JBReplicationInfoTeam(PlayerOwner.PlayerReplicationInfo.Team).GetTactics()) {
+      case 'Suicidal':    Console.HighlightRow = 1;  break;
+      case 'Aggressive':  Console.HighlightRow = 2;  break;
+      case 'Normal':      Console.HighlightRow = 3;  break;
+      case 'Defensive':   Console.HighlightRow = 4;  break;
+      case 'Evasive':     Console.HighlightRow = 5;  break;
+      }
+    }
+  }
+
+
+// ============================================================================
 // exec TeamTactics
 //
 // Allows the player to change the current team tactics from the console.
@@ -389,6 +543,15 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
 // ============================================================================
 
 defaultproperties {
+
+  TextMenuEntryTactics = "Team tactics";
+  TextMenuTitleTactics = "Team Tactics"
+  TextOrderName[0] = "[AUTO]";
+  TextOrderName[1] = "Suicidal";
+  TextOrderName[2] = "Aggressive";
+  TextOrderName[3] = "Normal";
+  TextOrderName[4] = "Defensive";
+  TextOrderName[5] = "Evasive";
 
   SpriteWidgetCompass[0] = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=0,Y1=880,X1=142,Y2=1023),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-2,OffsetY=5,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
   SpriteWidgetCompass[1] = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=0,Y1=880,X1=142,Y2=1023),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=2,OffsetY=5,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.23 2003/01/20 00:07:04 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.24 2003/01/23 19:30:11 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -22,13 +22,13 @@ var config bool bEnableJailFights;
 // Variables
 // ============================================================================
 
-var private JBCamera CameraExecution;      // camera for execution sequence
+var private JBCamera CameraExecution;    // camera for execution sequence
 
-var private float TimeExecution;           // time when execution starts
-var private float TimeRestart;             // time when next round starts
+var private float TimeExecution;         // time when execution starts
+var private float TimeRestart;           // time when next round starts
 
-var private array<name> ListEventFired;    // events fired in this tick
-var private float TimeEventFired;          // update time of event list
+var private array<name> ListEventFired;  // events fired in this tick
+var private float TimeEventFired;        // update time of event list
 
 
 // ============================================================================
@@ -72,16 +72,26 @@ event PlayerController Login(string Portal, string Options, out string Error) {
 // ============================================================================
 // SpawnBot
 //
-// Gives every new bot a JBTagPlayer actor.
+// Gives every new bot a JBTagPlayer actor and fills the OrderNames slots used
+// for the custom team tactics submenu of the speech menu.
 // ============================================================================
 
 function Bot SpawnBot(optional string NameBot) {
 
+  local int iOrderNameTactics;
   local Bot BotSpawned;
+  local JBReplicationInfoGame InfoGame;
   
   BotSpawned = Super.SpawnBot(NameBot);
-  if (BotSpawned != None)
-    Class'JBTagPlayer'.Static.SpawnFor(BotSpawned.PlayerReplicationInfo);
+  if (BotSpawned == None)
+    return None;
+
+  Class'JBTagPlayer'.Static.SpawnFor(BotSpawned.PlayerReplicationInfo);
+  
+  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
+  for (iOrderNameTactics = 0; iOrderNameTactics < ArrayCount(InfoGame.OrderNameTactics); iOrderNameTactics++)
+    BotSpawned.OrderNames[InfoGame.OrderNameTactics[iOrderNameTactics].iOrderName] =
+      InfoGame.OrderNameTactics[iOrderNameTactics].OrderName;
   
   return BotSpawned;
   }

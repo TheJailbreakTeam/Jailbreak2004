@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.13 2003/01/13 20:20:44 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.14 2003/01/19 19:11:19 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -44,6 +44,8 @@ struct TInfoLocation {
 // ============================================================================
 // Variables
 // ============================================================================
+
+var name OrderNameFixed;               // bot should stick to these orders
 
 var private PlayerReplicationInfo PlayerReplicationInfo;
 
@@ -179,7 +181,7 @@ function NotifyJailEntered() {
     JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(GetController()));
 
   if (Jail.IsReleaseActive(PlayerReplicationInfo.Team))
-    NotifyJailOpened();
+    NotifyJailOpened();  // TODO: fix!
   }
 
 
@@ -240,7 +242,7 @@ function NotifyJailOpening() {
 function NotifyJailOpened() {
 
   if (Bot(GetController()) != None)
-    UnrealTeamInfo(PlayerReplicationInfo.Team).AI.SetBotOrders(Bot(GetController()), None);
+    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).ResumeBotOrders(Bot(GetController()));
   }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.2 2003/01/01 22:11:16 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.3 2003/01/08 20:51:34 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -16,6 +16,21 @@ class JBBotSquadJail extends DMSquad
 // ============================================================================
 
 var localized string TextJailed;
+
+
+// ============================================================================
+// AddBot
+//
+// If the bot is currently following a scripted sequence, stops it.
+// ============================================================================
+
+function AddBot(Bot Bot) {
+
+  Super.AddBot(Bot);
+
+  Bot.FreeScript();
+  TeamPlayerReplicationInfo(Bot.PlayerReplicationInfo).bHolding = False;
+  }
 
 
 // ============================================================================
