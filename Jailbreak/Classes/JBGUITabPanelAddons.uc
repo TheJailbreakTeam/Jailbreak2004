@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.8 2004/03/12 20:16:23 tarquin Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.9.2.1 2004/04/03 16:51:58 tarquin Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -46,6 +46,8 @@ var GUIScrollTextBox    GUIScrollTextBoxAddon;  // text box for description
 var GUIPanel            GUIPanelConfigTemplate; // template for config panels
 var GUILabel            GUILabelConfigNone;     // shown if no config panel
 var GUIButton           GUIButtonReset;         // reset addon settings
+
+var localized string    ResetHintText;
 
 
 // ============================================================================
@@ -207,7 +209,7 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
     }
     
     GUIButtonReset.bVisible = (JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig) != None);
-    GUIButtonReset.Hint = "Reset" @ ListInfoAddon[iInfoAddon].TextName @ "options.";  
+    GUIButtonReset.Hint = ResetHintText @ ListInfoAddon[iInfoAddon].TextName $ ".";  
     
     GUILabelConfigNone.bVisible = False;
     ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = True;
@@ -340,7 +342,8 @@ function bool GUIButtonConfigReset_Click(GUIComponent GUIComponentClicked)
 defaultproperties
 {
   LastAddons = "JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
-
+  ResetHintText = "Reset options for"; // ... name of add-on added in code
+  
   WinLeft   = 0.000;
   WinWidth  = 1.000;
   WinHeight = 0.770;
