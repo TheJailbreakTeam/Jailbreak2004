@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIComponentTabs
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIComponentTabs.uc,v 1.4 2004/03/10 12:56:05 mychaeel Exp $
+// $Id: JBGUIComponentTabs.uc,v 1.5 2004/04/04 00:41:42 mychaeel Exp $
 //
 // User interface component: Has a column of tabs on the left side, each
 // containing an instance of a specified component class such as a checkbox.
@@ -33,6 +33,9 @@ var() float TabWidth;             // tab width   (relative to component)
 var() float TabHeight;            // tab height  (relative to screen)
 var() float TabSpacing;           // tab spacing (relative to screen)
 
+var() int iTabFirst;              // index of first visible tab
+var() int nTabsVisibleMax;        // maximum number of tabs visible on screen
+
 var() Class<GUIMenuOption> TabComponentClass;  // component class for tabs
 var() float TabComponentWidth;    // component width  (relative to tab width)
 var() float TabComponentHeight;   // component height (relative to screen)
@@ -43,6 +46,7 @@ var() float TabComponentHeight;   // component height (relative to screen)
 // ============================================================================
 
 var private int nTabs;            // total number of tabs in this component
+var private int iTabFirstPrev;    // previous number of first visible tab
 var private int iTabOpen;         // index of currently open tab
 var private int iTabOpenPrev;     // index of previously open tab
 
@@ -70,6 +74,16 @@ delegate OnTabInit(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionT
   GUIMenuOptionTab.bSquare = True;
   GUIMenuOptionTab.CaptionWidth = 0.9;
 }
+
+
+// ============================================================================
+// delegate OnScroll
+//
+// Called when the tab component scrolls. Can be used to update any user
+// interface elements used to scroll the component.
+// ============================================================================
+
+delegate OnScroll(GUIComponent GUIComponentSender);
 
 
 // ============================================================================
@@ -233,12 +247,22 @@ function bool PreDraw(Canvas Canvas)
   local int iTab;
   local int iTabFocused;
 
-  for (iTab = 0; iTab < nTabs; iTab++)
-    PlaceTab(GUIMenuOption(Controls[iTab]), iTab);
-
   iTabFocused = FindComponentIndex(FocusedControl);
   if (iTabFocused >= 0 && iTabFocused < nTabs)
     iTabOpen = iTabFocused;
+
+  if (nTabsVisibleMax > 0) {
+    if (iTabOpen < iTabFirst)
+      iTabFirst = iTabOpen;
+    else if (iTabOpen >= iTabFirst + nTabsVisibleMax)
+      iTabFirst = iTabOpen - nTabsVisibleMax + 1;
+  
+    if (iTabFirst != iTabFirstPrev)
+      OnScroll(Self);
+  }
+
+  for (iTab = 0; iTab < nTabs; iTab++)
+    PlaceTab(GUIMenuOption(Controls[iTab]), iTab);
 
   if (iTabOpen != iTabOpenPrev) {
     if (iTabOpenPrev >= 0)
@@ -286,7 +310,7 @@ function bool Draw(Canvas Canvas)
 function CalcTabMetrics(int iTab, optional out vector LocationTab, optional out vector SizeTab)
 {
   LocationTab.X = int(ActualLeft());
-  LocationTab.Y = int(ActualTop() + iTab * (TabHeight + TabSpacing) * ActualHeight() + 32.0);
+  LocationTab.Y = int(ActualTop() + (iTab - iTabFirst) * (TabHeight + TabSpacing) * ActualHeight() + 32.0);
 
   SizeTab.X = int(TabWidth  * ActualWidth());
   SizeTab.Y = int(TabHeight * ActualHeight());
@@ -304,6 +328,9 @@ function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab)
   local vector LocationTab;
   local vector SizeTab;
   local Material Material;
+
+  if (!IsTabVisible(iTab))
+    return;
 
   switch (MenuStateTab) {
     case EMenuState.MSAT_Blurry:   Material = Texture'GUITabBlurred';  break;
@@ -346,18 +373,27 @@ function DrawPanel(Canvas Canvas, int iTab)
 
   Canvas.Style = EMenuRenderStyle.MSTY_Alpha;
   Canvas.SetDrawColor(255, 255, 255, 255);
+  
+  if (IsTabVisible(iTab)) {
+    Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
 
-  Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
+    if (iTab == iTabFirst)
+           Canvas.DrawTileStretched(Texture'GUIPanelTopRight', SizePanel.X, 32.0);
+      else Canvas.DrawTileStretched(Texture'GUIPanelTop',      SizePanel.X, LocationTab.Y - LocationPanel.Y);
+  
+    Canvas.SetPos(LocationPanel.X, LocationTab.Y);
+    Canvas.DrawTileStretched(Texture'GUIPanelRight', SizePanel.X, SizeTab.Y);
+  
+    Canvas.SetPos(LocationPanel.X, LocationTab.Y + SizeTab.Y);
+    Canvas.DrawTileStretched(Texture'GUIPanelBottom', SizePanel.X, LocationPanel.Y + SizePanel.Y - Canvas.CurY);
+  }
+  else {
+    Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
+    Canvas.DrawTileStretched(Texture'GUIPanelTop', SizePanel.X, 32.0);
 
-  if (iTab == 0)
-         Canvas.DrawTileStretched(Texture'GUIPanelTopRight', SizePanel.X, 32.0);
-    else Canvas.DrawTileStretched(Texture'GUIPanelTop',      SizePanel.X, LocationTab.Y - LocationPanel.Y);
-
-  Canvas.SetPos(LocationPanel.X, LocationTab.Y);
-  Canvas.DrawTileStretched(Texture'GUIPanelRight', SizePanel.X, SizeTab.Y);
-
-  Canvas.SetPos(LocationPanel.X, LocationTab.Y + SizeTab.Y);
-  Canvas.DrawTileStretched(Texture'GUIPanelBottom', SizePanel.X, LocationPanel.Y + SizePanel.Y - Canvas.CurY);
+    Canvas.SetPos(LocationPanel.X, LocationPanel.Y + 32.0);
+    Canvas.DrawTileStretched(Texture'GUIPanelTop', SizePanel.X, SizePanel.Y - 32.0);
+  }
 }
 
 
@@ -464,18 +500,26 @@ function bool GUIMenuOptionTab_ComponentKeyEvent(out byte Key, out byte State, f
 
 function PlaceTab(GUIMenuOption GUIMenuOptionTab, int iTab)
 {
-  GUIMenuOptionTab.bBoundToParent = True;
-  GUIMenuOptionTab.bScaleToParent = True;
+  if (IsTabVisible(iTab)) {
+    GUIMenuOptionTab.bBoundToParent = True;
+    GUIMenuOptionTab.bScaleToParent = True;
 
-  GUIMenuOptionTab.WinTop    = FMax(0.0, iTab * (TabHeight + TabSpacing));
-  GUIMenuOptionTab.WinLeft   = 0.0;
-  GUIMenuOptionTab.WinWidth  = TabComponentWidth * TabWidth * WinWidth;
-  GUIMenuOptionTab.WinHeight = TabComponentHeight;
+    GUIMenuOptionTab.WinTop    = FMax(0.0, (iTab - iTabFirst) * (TabHeight + TabSpacing));
+    GUIMenuOptionTab.WinLeft   = 0.0;
+    GUIMenuOptionTab.WinWidth  = TabComponentWidth * TabWidth * WinWidth;
+    GUIMenuOptionTab.WinHeight = TabComponentHeight;
+  
+    GUIMenuOptionTab.WinTop  += (TabHeight       - TabComponentHeight)            / 2;
+    GUIMenuOptionTab.WinLeft += (TabWidth * (1.0 - TabComponentWidth) * WinWidth) / 2;
+  
+    GUIMenuOptionTab.WinTop = int(GUIMenuOptionTab.WinTop * ActualHeight() + 32.0);
+  }
+  else {
+    GUIMenuOptionTab.bBoundToParent = False;
+    GUIMenuOptionTab.bScaleToParent = False;
 
-  GUIMenuOptionTab.WinTop  += (TabHeight       - TabComponentHeight)            / 2;
-  GUIMenuOptionTab.WinLeft += (TabWidth * (1.0 - TabComponentWidth) * WinWidth) / 2;
-
-  GUIMenuOptionTab.WinTop = int(GUIMenuOptionTab.WinTop * ActualHeight() + 32.0);
+    GUIMenuOptionTab.WinTop = 1.0;
+  }
 }
 
 
@@ -514,6 +558,23 @@ function int GetTabIndex(GUIMenuOption GUIMenuOptionTab)
 
 
 // ============================================================================
+// IsTabVisible
+//
+// Checks and returns whether the tab with the given index is currently
+// visible on the screen.
+// ============================================================================
+
+function bool IsTabVisible(int iTab)
+{
+  if (nTabsVisibleMax <= 0)
+    return True;
+  
+  return (iTab >= iTabFirst &&
+          iTab <  iTabFirst + nTabsVisibleMax);
+}
+
+
+// ============================================================================
 // GetCurrentTabComponent
 // GetCurrentTabIndex
 //
@@ -526,6 +587,18 @@ function int           GetCurrentTabIndex()     { return                 iTabOpe
 
 
 // ============================================================================
+// CountTabs
+// CountTabsVisible
+//
+// Return the total number of tabs in this component and the number of tabs
+// currently visible on the screen, respectively.
+// ============================================================================
+
+function int CountTabs()        { return     nTabs; }
+function int CountTabsVisible() { return Max(nTabs - iTabFirst, nTabsVisibleMax); }
+
+
+// ============================================================================
 // Defaults
 // ============================================================================
 
@@ -534,8 +607,9 @@ defaultproperties
   bTabStop = True;
   PropagateVisibility = False;
 
-  iTabOpen     = -1;
-  iTabOpenPrev = -1;
+  iTabFirstPrev = -1;
+  iTabOpen      = -1;
+  iTabOpenPrev  = -1;
 
   TabWidth   = 0.330;
   TabHeight  = 0.080;
