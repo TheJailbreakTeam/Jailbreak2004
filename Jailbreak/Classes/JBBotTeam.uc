@@ -1386,9 +1386,21 @@ function GameObjective GetPriorityAttackObjective()
       if (nPlayersSuggested == 0)
         continue;
 
-      if (ObjectiveSelected == None || nPlayersSuggested < nPlayersSuggestedMin) {
+      if (ObjectiveSelected == None || nPlayersSuggested <= nPlayersSuggestedMin) {
         nPlayersReleasable = CountPlayersReleasable(thisObjective);
-        if (ObjectiveSelected == None || nPlayersReleasable > nPlayersReleasableMax) {
+        if (ObjectiveSelected == None || nPlayersReleasable >= nPlayersReleasableMax) {
+          if (ObjectiveSelected != None &&
+              nPlayersSuggested  == nPlayersSuggestedMin &&
+              nPlayersReleasable == nPlayersReleasableMax) {
+
+            if (thisObjective.DefensePriority > ObjectiveSelected.DefensePriority) continue;
+            if (thisObjective.DefensePriority < ObjectiveSelected.DefensePriority) break;
+
+            if (Class'JBTagObjective'.Static.FindFor(thisObjective    ).GetRandomWeight() <
+                Class'JBTagObjective'.Static.FindFor(ObjectiveSelected).GetRandomWeight())
+              continue;
+          }
+
           nPlayersSuggestedMin  = nPlayersSuggested;
           nPlayersReleasableMax = nPlayersReleasable;
           ObjectiveSelected = thisObjective;
