@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.24 2003/02/26 18:08:54 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.25 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -497,8 +497,6 @@ private function LeftJail() {
 // ============================================================================
 
 function RestartFreedom() {
-
-  local JBInfoJail JailPrev;
 
   ArenaRestart = None;
   ArenaPending = None;
