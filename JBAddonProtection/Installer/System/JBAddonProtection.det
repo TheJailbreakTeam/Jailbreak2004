@@ -18,4 +18,7 @@ ProtectArenaWinnerCheckBox.Caption="Arena-Gewinner schützen"
 ProtectArenaWinnerCheckBox.Hint="Ob der Gewinner eines Arena-Kampfs Schutz erhält."
 TrackbarProtectionTime.Caption="Dauer des Schutzes"
 TrackbarProtectionTime.Hint="Dauer des Schutzes in Sekunden."
+OptionsProtectionType.GroupCaption="Art des Schutzes:"
+OptionsProtectionType.OptionText=("Eigene Waffen verursachen keinen Schaden","Waffenverwendung deaktiviert Schutz")
+OptionsProtectionType.OptionHint=("Ihre eigenen Waffen verursachen keinen Schaden, solange Sie geschützt sind.","Ihr Schutz wird deaktiviert, sobald Sie einen anderen Spieler verletzen.")
 
