@@ -1,7 +1,7 @@
 //=============================================================================
 // JBVehicleFactory
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBVehicleFactory.uc,v 1.1 2004/05/29 12:49:23 wormbo Exp $
 //
 // Base class for Jailbreak vehicle factories.
 //=============================================================================
@@ -17,6 +17,7 @@ class JBVehicleFactory extends SVehicleFactory
 //=============================================================================
 
 var() bool  bLockedForOpponent;
+var() bool  bInitiallyActive;
 var() int   TeamNum;
 var() float RespawnTime;
 
@@ -47,7 +48,7 @@ simulated event PostBeginPlay()
   if ( Level.NetMode != NM_DedicatedServer )
     VehicleClass.static.StaticPrecache(Level);
   
-  if ( Level.NetMode != NM_Client )
+  if ( Level.NetMode != NM_Client && bInitiallyActive )
     Timer();
 }
 
@@ -77,7 +78,12 @@ event VehicleDestroyed(Vehicle V)
   Super.VehicleDestroyed(V);
   
   bPreSpawn = True;
-  SetTimer(RespawnTime - PreSpawnEffectTime, False);
+  if ( RespawnTime > 0 ) {
+    if ( RespawnTime - PreSpawnEffectTime > 0 )
+      SetTimer(RespawnTime - PreSpawnEffectTime, False);
+    else
+      Timer();
+  }
 }
 
 
@@ -162,7 +168,11 @@ function Timer()
 // Triggering is not used.
 //=============================================================================
 
-event Trigger(Actor Other, Pawn EventInstigator);
+event Trigger(Actor Other, Pawn EventInstigator)
+{
+  if ( bPreSpawn )
+    Timer();
+}
 
 
 //=============================================================================
@@ -172,6 +182,7 @@ event Trigger(Actor Other, Pawn EventInstigator);
 defaultproperties
 {
   bLockedForOpponent=True
+  bInitiallyActive=True
   RespawnTime=15.000000
   PreSpawnEffectTime=2.000000
   bPreSpawn=True
