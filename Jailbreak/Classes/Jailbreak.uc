@@ -137,6 +137,25 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 
 
 // ============================================================================
+// GetServerDetails
+//
+// Adds the Jailbreak build number to server details.
+// ============================================================================
+
+function GetServerDetails(out ServerResponseLine ServerState)
+{
+  local int iServerInfo;
+
+  Super.GetServerDetails(ServerState);
+
+  iServerInfo = ServerState.ServerInfo.Length;
+  ServerState.ServerInfo.Insert(iServerInfo, 1);
+  ServerState.ServerInfo[iServerInfo].Key = "Build";
+  ServerState.ServerInfo[iServerInfo].Value = Build;
+}
+
+
+// ============================================================================
 // AcceptPlayInfoProperty
 //
 // Hides several properties from the web admin interface that don't apply for
