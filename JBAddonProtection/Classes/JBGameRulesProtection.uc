@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.7 2004/05/18 20:20:35 mychaeel Exp $
+// $Id: JBGameRulesProtection.uc,v 1.8 2004/05/20 21:31:57 tarquin Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -182,7 +182,7 @@ function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
     local Pawn P;
 
     P = TagPlayer.GetController().Pawn; // for make sure no GetPawn() here
-    if((P != None) && (P.Health > 0) && (P.ReducedDamageType == None))
+    if((P != None) && (P.Health > 0) && (!IsProtected(P)))
     {
         MyProtection = Spawn(class'JBInfoProtection', P);
         if((MyProtection != None) && (bProtectNow))
@@ -199,7 +199,7 @@ function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
 
 function bool IsProtected(Pawn thisPawn)
 {
-  return thisPawn.ReducedDamageType == class'JBDamageTypeNone';
+  return GetMyProtection(thisPawn.PlayerReplicationInfo) != None;
 }
 
 

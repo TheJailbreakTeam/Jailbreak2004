@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBInfoProtection.uc,v 1.2.2.1 2004/04/28 19:59:54 mychaeel Exp $
+// $Id: JBInfoProtection.uc,v 1.4 2004/04/28 21:29:11 mychaeel Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -47,8 +47,6 @@ event PostBeginPlay()
 {
     ProtectedPawn = Pawn(Owner);
     RelatedPRI = ProtectedPawn.PlayerReplicationInfo;
-
-    ProtectedPawn.ReducedDamageType = Class'JBDamageTypeNone';
 
     if(RelatedPRI.Team.TeamIndex == 0)
              ProtectionEffect = Spawn(Class'JBxEmitterProtectionRed',  ProtectedPawn, , ProtectedPawn.Location, ProtectedPawn.Rotation);
@@ -142,9 +140,6 @@ simulated function RenderOverlays(Canvas C)
 
 event Destroyed()
 {
-    if(ProtectedPawn != None)
-        ProtectedPawn.ReducedDamageType = None;
-
     if(ProtectionEffect != None)
     {
         ProtectionEffect.mRegen    = False;
