@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.13 2004/05/25 12:36:09 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.14 2004/05/30 14:57:38 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained and not
@@ -71,18 +71,40 @@ simulated event PostBeginPlay()
 
 
 // ============================================================================
-// RegisterLocal
+// SetInitialState
 //
-// Adds the JBInteractionKeys interaction client-side.
+// Disables the Tick event server-side.
 // ============================================================================
 
-protected simulated function RegisterLocal()
+simulated event SetInitialState()
+{
+  Super.SetInitialState();
+
+  if (Level.NetMode == NM_DedicatedServer)
+    Disable('Tick');
+}
+
+
+// ============================================================================
+// Tick
+//
+// Adds the JBInteractionKeys interaction client-side as soon as the keeper
+// PlayerController has a valid Player reference.
+// ============================================================================
+
+simulated function Tick(float TimeDelta)
 {
   local PlayerController PlayerControllerLocal;
 
   PlayerControllerLocal = Level.GetLocalPlayerController();
+  if (PlayerControllerLocal        == None ||
+      PlayerControllerLocal.Player == None)
+    return;
+
   if (PlayerControllerLocal == Keeper)
     PlayerControllerLocal.Player.InteractionMaster.AddInteraction("Jailbreak.JBInteractionKeys", PlayerControllerLocal.Player);
+
+  Disable('Tick');
 }
 
 
