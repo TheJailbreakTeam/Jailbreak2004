@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIRadioButton
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGUIRadioButton.uc,v 1.2 2004/03/28 16:12:46 tarquin Exp $
+// $Id: JBGUIRadioButton.uc,v 1.3 2004/04/04 00:41:42 mychaeel Exp $
 //
 // A radio button. To be used by a JBGUIOptionGroup
 //=============================================================================
@@ -30,8 +30,8 @@ function bool InternalOnClick(GUIComponent Sender)
     return False; // clicking a checked button has no effect
 
   Super.InternalOnClick(Sender);
-  if( JBGUIOptionGroup(MenuOwner) != None )
-    JBGUIOptionGroup(MenuOwner).SetIndex(IndexInParent);
+  if( JBGUIComponentOptions(MenuOwner) != None )
+    JBGUIComponentOptions(MenuOwner).SetIndex(IndexInParent);
 } 
 
 
