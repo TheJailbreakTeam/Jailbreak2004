@@ -16,6 +16,8 @@ ResetButton.Caption="Vorgaben"
 ResetButton.Hint="Alle Einstellungen auf ihre Vorgaben zurücksetzen."
 VoicePack.Caption="Sprachpaket"
 VoicePack.Hint="Sprachpaket, das für Jailbreak-Sprachmitteilungen verwendet wird."
+TestVoicePackButton.Caption="Test"
+TestVoicePackButton.Hint="Hier klicken, um eine Beispiel-Sprachmitteilung abzuspielen."
 
 [JBGUIHook]
 TextCaptionGoalScore="Runden-Limit"
