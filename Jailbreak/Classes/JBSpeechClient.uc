@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechClient
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechClient.uc,v 1.4 2004/05/10 15:30:05 mychaeel Exp $
+// $Id: JBSpeechClient.uc,v 1.5 2004/05/17 02:59:06 mychaeel Exp $
 //
 // Parses and interprets a speech sequence definition and plays it.
 // 
@@ -591,5 +591,6 @@ simulated state Playing
 
 defaultproperties
 {
+  bAlwaysTick = True;
   OnFinishedPlaying = FinishedPlaying;
 }
