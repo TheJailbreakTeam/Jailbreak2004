@@ -141,8 +141,8 @@ defaultproperties
     DrawStyle                 = PTDS_AlphaBlend;
 
     MaxParticles              = 400;
-    RelativeWarmupTime        = 1.0;
-    WarmupTicksPerSecond      = 1.0;
+    RelativeWarmupTime        =  1.0;
+    WarmupTicksPerSecond      = 20.0;
 
     Acceleration              = (Z=16.0);
     GetVelocityDirectionFrom  = PTVD_AddRadial;
