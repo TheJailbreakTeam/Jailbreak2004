@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id$
+// $Id: JBGameObjectiveSwitch.uc,v 1.9 2004/05/23 15:10:48 mychaeel Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -71,12 +71,16 @@ simulated function PostBeginPlay()
 // ============================================================================
 // DisableObjective
 //
-// Disables this objective if instigated by a player not of the defending team.
+// Disables this objective if instigated by a player not of the defending
+// team. If no players will be released by this action, plays a message.
 // ============================================================================
 
 function DisableObjective(Pawn PawnInstigator) 
 {
+  local int nPlayersReleasable;
+  local PlayerController PlayerControllerInstigator;
   local JBGameObjectiveSwitch ObjectiveSwitch;
+  local JBInfoJail thisJail;
   
   if (PawnInstigator                            == None ||
       PawnInstigator.PlayerReplicationInfo      == None ||
@@ -87,10 +91,24 @@ function DisableObjective(Pawn PawnInstigator)
   Super.DisableObjective(PawnInstigator);
 
   Instigator = PawnInstigator;
-  
+
   foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch)
     if(ObjectiveSwitch.Event == Event)
       ObjectiveSwitch.SetCollision(False, False, False);
+
+  PlayerControllerInstigator = PlayerController(PawnInstigator.Controller);
+  if (PlayerControllerInstigator != None) {
+    foreach DynamicActors(Class'JBInfoJail', thisJail, Event)
+      nPlayersReleasable += thisJail.CountPlayers(PawnInstigator.PlayerReplicationInfo.Team);
+  
+    if (nPlayersReleasable == 0)
+      Level.Game.BroadcastHandler.BroadcastLocalized(
+        Self,
+        PlayerControllerInstigator,
+        MessageClass, 210,
+        PawnInstigator.PlayerReplicationInfo, ,
+        PawnInstigator.PlayerReplicationInfo.Team);
+  }
 }
 
 
@@ -219,4 +237,7 @@ defaultproperties
   bNoDelete              = True;
   bAlwaysRelevant        = True;
   bReplicateInstigator   = True;
+  
+  /* messages */
+  MessageClass           = Class'Jailbreak.JBLocalMessage';
 }
