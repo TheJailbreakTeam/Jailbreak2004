@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.7 2004/03/28 22:01:12 mychaeel Exp $
+// $Id$
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -62,7 +62,8 @@ event PostBeginPlay()
 //                                 for the given team. If no team is specified,
 //                                 affects both teams.
 //
-//   CanBeJailed On|Off [<name>]   Sets whether the given player will be sent
+//   CanBeJailed On|Off [<name>|Me]
+//                                 Sets whether the given player will be sent
 //                                 to jail after being killed or not. If no
 //                                 name is specified, affects all players.
 //
@@ -71,7 +72,11 @@ event PostBeginPlay()
 //                                 given jail (for both teams if applicable) or
 //                                 the given switch event, respectively.
 //
-//   KillPlayer <name>             Kills the given player. Splat.
+//   KillPlayer Red|Blue|Each|<name>
+//                                 Kills the given player. Splat.
+//
+//   ArenaMatch                    Starts an Arena match in the first Arena 
+//                                 it finds.
 //
 // ============================================================================
 
@@ -82,6 +87,7 @@ function Mutate(string TextMutate, PlayerController Sender)
   local string TextName;
   local string TextTeam;
   local Actor thisActor;
+  local JBInfoArena thisArena;
   local Controller ControllerKilled;
 
   Super.Mutate(TextMutate, Sender);
@@ -105,6 +111,9 @@ function Mutate(string TextMutate, PlayerController Sender)
   else if (TextCommand ~= "CanBeJailed") {
     TextFlag = GetParam(TextMutate);
     TextName = GetParam(TextMutate);
+    
+    if( TextName ~= "Me" )
+      TextName = Sender.PlayerReplicationInfo.PlayerName;
 
     JBGameRulesDebug.ExecCanBeJailed(TextName, TextFlag ~= "On");
   }
@@ -116,9 +125,27 @@ function Mutate(string TextMutate, PlayerController Sender)
   else if (TextCommand ~= "KillPlayer") {
     TextName = GetParam(TextMutate);
 
-    ControllerKilled = JBGameRulesDebug.FindPlayer(TextName);
-    if (ControllerKilled != None)
-      ControllerKilled.Pawn.GibbedBy(Sender);
+    if( TextName ~= "Each" ) {
+      ControllerKilled = JBGameRulesDebug.FindPlayer("Red");
+      if (ControllerKilled != None)
+        ControllerKilled.Pawn.GibbedBy(Sender);
+      ControllerKilled = JBGameRulesDebug.FindPlayer("Blue");
+      if (ControllerKilled != None)
+        ControllerKilled.Pawn.GibbedBy(Sender);
+    } 
+    else {
+      ControllerKilled = JBGameRulesDebug.FindPlayer(TextName);
+      if (ControllerKilled != None)
+        ControllerKilled.Pawn.GibbedBy(Sender);
+    }
+  }
+  
+  else if (TextCommand ~= "ArenaMatch") {
+    foreach AllActors(class'JBInfoArena',thisArena)
+      break;
+    if ( thisArena != None ) {
+      thisArena.Trigger(Self, None);
+    }
   }
 }
 
