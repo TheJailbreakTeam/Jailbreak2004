@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.9.2.2 2004/04/03 22:08:14 mychaeel Exp $
+// $Id$
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -49,6 +49,8 @@ var config string LastAddons;                   // comma-separated class list
 var array<TInfoAddon>   ListInfoAddon;          // loaded add-on information
 
 var JBGUIComponentTabs  GUIComponentTabsAddons; // main tab control
+var GUIVertScrollButton GUIScrollButtonUp;      // scroll up   for tab control
+var GUIVertScrollButton GUIScrollButtonDown;    // scroll down for tab control
 var GUIScrollTextBox    GUIScrollTextBoxAddon;  // text box for description
 var GUIPanel            GUIPanelConfigTemplate; // template for config panels
 var GUILabel            GUILabelConfigNone;     // shown if no config panel
@@ -71,8 +73,13 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   SortListInfoAddon(0, ListInfoAddon.Length - 1);
 
   GUIComponentTabsAddons = JBGUIComponentTabs(Controls[0]);
+  GUIComponentTabsAddons.nTabsVisibleMax = 8;
   GUIComponentTabsAddons.OnTabOpened = GUIComponentTabsAddons_TabOpened;
   GUIComponentTabsAddons.OnTabClosed = GUIComponentTabsAddons_TabClosed;
+  GUIComponentTabsAddons.OnScroll    = GUIComponentTabsAddons_Scroll;
+
+  GUIScrollButtonUp   = GUIVertScrollButton(Controls[1]);
+  GUIScrollButtonDown = GUIVertScrollButton(Controls[2]);
 
   GUIScrollTextBoxAddon = GUIScrollTextBox(GUIComponentTabsAddons.Controls[0]);
   GUILabelConfigNone    = GUILabel        (GUIComponentTabsAddons.Controls[1]); 
@@ -246,6 +253,67 @@ function GUIComponentTabsAddons_TabClosed(GUIComponent GUIComponentSender, GUIMe
 
 
 // ============================================================================
+// GUIComponentTabsAddons_Scroll
+//
+// Called when tabs are scrolled. Shows or hides the scroll buttons as
+// appropriate.
+// ============================================================================
+
+function GUIComponentTabsAddons_Scroll(GUIComponent GUIComponentSender)
+{
+  if (GUIComponentTabsAddons.iTabFirst > 0)
+         { GUIScrollButtonUp.bVisible = True;  GUIScrollButtonUp.MenuStateChange(MSAT_Blurry  ); }
+    else { GUIScrollButtonUp.bVisible = False; GUIScrollButtonUp.MenuStateChange(MSAT_Disabled); }
+
+  if (GUIComponentTabsAddons.iTabFirst + GUIComponentTabsAddons.nTabsVisibleMax < GUIComponentTabsAddons.CountTabs())
+         { GUIScrollButtonDown.bVisible = True;  GUIScrollButtonDown.MenuStateChange(MSAT_Blurry  ); }
+    else { GUIScrollButtonDown.bVisible = False; GUIScrollButtonDown.MenuStateChange(MSAT_Disabled); }
+}
+
+
+// ============================================================================
+// GUIScrollButtonUp_Click
+//
+// Called when the scroll-up button is clicked.
+// ============================================================================
+
+function bool GUIScrollButtonUp_Click(GUIComponent GUIComponentSender)
+{
+  local int iTabLast;
+
+  if (GUIComponentTabsAddons.iTabFirst <= 0)
+    return False;
+
+  GUIComponentTabsAddons.iTabFirst -= 1;
+  
+  iTabLast = GUIComponentTabsAddons.iTabFirst + GUIComponentTabsAddons.nTabsVisibleMax - 1;
+  if (GUIComponentTabsAddons.GetCurrentTabIndex() > iTabLast)
+    GUIComponentTabsAddons.GetTabComponent(iTabLast).SetFocus(None);
+  
+  return True;
+}
+
+
+// ============================================================================
+// GUIScrollButtonDown_Click
+//
+// Called when the scroll-down button is clicked.
+// ============================================================================
+
+function bool GUIScrollButtonDown_Click(GUIComponent GUIComponentSender)
+{
+  if (GUIComponentTabsAddons.iTabFirst + GUIComponentTabsAddons.nTabsVisibleMax >= GUIComponentTabsAddons.CountTabs())
+    return False;
+    
+  GUIComponentTabsAddons.iTabFirst += 1;
+  if (GUIComponentTabsAddons.GetCurrentTabIndex() < GUIComponentTabsAddons.iTabFirst)
+    GUIComponentTabsAddons.GetTabComponent(GUIComponentTabsAddons.iTabFirst).SetFocus(None);
+
+  return True;
+}
+
+
+// ============================================================================
 // GetAddons
 //
 // Returns a comma-separated list of the fully qualified class names of all
@@ -390,6 +458,26 @@ defaultproperties
     WinHeight    = 0.058;
   End Object
 
+  Begin Object Class=GUIVertScrollButton Name=GUIScrollButtonUpDef
+    UpButton     = True;
+    StyleName    = "TextButton";
+    OnClick      = GUIScrollButtonUp_Click;
+    WinTop       = 0.035;
+    WinLeft      = 0.150;
+    WinWidth     = 0.038;
+    WinHeight    = 0.050;
+  End Object
+
+  Begin Object Class=GUIVertScrollButton Name=GUIScrollButtonDownDef
+    UpButton     = False;
+    StyleName    = "TextButton";
+    OnClick      = GUIScrollButtonDown_Click;
+    WinTop       = 0.833;
+    WinLeft      = 0.150;
+    WinWidth     = 0.038;
+    WinHeight    = 0.050;
+  End Object
+
   Begin Object Class=JBGUIComponentTabs Name=GUIComponentTabsAddonsDef
     WinTop       = 0.025;
     WinLeft      = 0.022;
@@ -420,7 +508,9 @@ defaultproperties
   End Object
 
   Controls[0] = JBGUIComponentTabs'GUIComponentTabsAddonsDef';
-  Controls[1] = GUIButton'GUIButtonDownloadAddonsDef';
+  Controls[1] = GUIVertScrollButton'GUIScrollButtonUpDef';
+  Controls[2] = GUIVertScrollButton'GUIScrollButtonDownDef';
+  Controls[3] = GUIButton'GUIButtonDownloadAddonsDef';
 
   GUIPanelConfigTemplate = GUIPanel'GUIPanelConfigTemplateDef';
 }
