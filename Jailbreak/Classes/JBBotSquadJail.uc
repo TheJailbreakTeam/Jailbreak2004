@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.13 2004/01/01 20:09:51 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.14 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -196,13 +196,13 @@ static function int CountWeaponsFor(Pawn Pawn)
 // Checks whether the given player is currently eligible for fighing.
 // ============================================================================
 
-static function bool CanPlayerFight(Controller Controller)
+static function bool CanPlayerFight(Controller Controller, optional bool bIgnorePendingWeapon)
 {
   if (Controller      == None ||
       Controller.Pawn == None)
     return False;
 
-  return (Bot(Controller) != None || IsPlayerFighting(Controller));
+  return (Bot(Controller) != None || IsPlayerFighting(Controller, bIgnorePendingWeapon));
 }
 
 
@@ -214,7 +214,7 @@ static function bool CanPlayerFight(Controller Controller)
 // out by switching to a different weapon.
 // ============================================================================
 
-static function bool IsPlayerFighting(Controller Controller)
+static function bool IsPlayerFighting(Controller Controller, optional bool bIgnorePendingWeapon)
 {
   local Weapon WeaponPrimary;
 
@@ -228,7 +228,7 @@ static function bool IsPlayerFighting(Controller Controller)
   WeaponPrimary = GetPrimaryWeaponFor(Controller.Pawn);
 
   return (WeaponPrimary == Controller.Pawn.Weapon ||
-          WeaponPrimary == Controller.Pawn.PendingWeapon);
+         (WeaponPrimary == Controller.Pawn.PendingWeapon && !bIgnorePendingWeapon));
 }
 
 

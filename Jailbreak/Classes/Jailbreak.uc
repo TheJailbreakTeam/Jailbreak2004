@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.67.2.14 2004/05/18 00:14:57 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.67.2.15 2004/05/20 20:41:33 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -623,8 +623,8 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
       TagPlayerVictim.GetJail() == TagPlayerInstigator.GetJail() &&
      !TagPlayerVictim.GetJail().IsReleaseActive(PawnVictim.PlayerReplicationInfo.Team))
     if (bEnableJailFights &&
-        Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerInstigator.GetController()) &&
-        Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerVictim    .GetController()))
+        Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerInstigator.GetController(), True) &&
+        Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerVictim    .GetController(), True))
       return Damage;
     else
       return 0;
