@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionBurning
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionBurning.uc, v1.00 2003/03/03 04:23 crokx Exp $
+// $Id: JBExecutionBurning.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
 //
 // An burning execution.
 // ============================================================================
@@ -22,7 +22,7 @@ const DESTROY_FLAME_DELAY = 0.15; // 0.125001
 //
 // Execute a player.
 // ============================================================================
-private function ExecutePlayer(Controller Victim)
+protected function ExecutePlayer(Controller Victim)
 {
     local JBManagerBurning Manager;
 

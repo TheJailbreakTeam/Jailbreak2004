@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecution
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecution.uc, v1.00 2003/03/01 ??:?? crokx Exp $
+// $Id: JBExecution.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
 //
 // Base of all triggered execution.
 // ============================================================================
@@ -50,7 +50,7 @@ function PostBeginPlay()
 //
 // Execute a player.
 // ============================================================================
-private function ExecutePlayer(Controller Victim);
+protected function ExecutePlayer(Controller Victim);
 
 
 // ============================================================================

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionDepressurized
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurized.uc, v0.75 2003/03/04 19:01 crokx Exp $
+// $Id: JBExecutionDepressurized.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
@@ -113,7 +113,7 @@ function Tick(float DeltaTime)
 //
 // Execute a player.
 // ============================================================================
-private function ExecutePlayer(Controller Victim)
+protected function ExecutePlayer(Controller Victim)
 {
     MakeNormal(Victim.Pawn);
     Victim.Pawn.Died(None, class'Depressurized', vect(0,0,0));
