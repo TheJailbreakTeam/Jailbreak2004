@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.28 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.29 2003/02/08 22:44:22 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -769,6 +769,10 @@ function ExecutionEnd() {
         if (thisController.PlayerReplicationInfo != None &&
             thisController.PlayerReplicationInfo.bOnlySpectator)
           CameraExecution.DeactivateFor(thisController);
+
+    if (Teams[0].Score >= GoalScore ||
+        Teams[1].Score >= GoalScore)
+      EndGame(None, "TeamScoreLimit");
     }
   
   else {
@@ -868,6 +872,7 @@ state MatchInProgress {
 state Executing {
 
   ignores BroadcastDeathMessage;  // no death messages during execution
+  ignores CheckEndGame;           // game cannot end during execution
 
 
   // ================================================================
