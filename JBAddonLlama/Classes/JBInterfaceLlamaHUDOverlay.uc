@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.4 2003/08/11 20:34:23 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.5 2003/11/11 17:48:48 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -77,6 +77,67 @@ simulated function color HueToRGB(float Hue)
 
 
 //=============================================================================
+// FindCameraEffect
+//
+// Looks for an existing CameraEffect object in the CameraEffects array first.
+// Only if it doesn't find one, it takes one from the ObjectPool.
+// That CameraEffect will be returned.
+//=============================================================================
+
+simulated function CameraEffect FindCameraEffect(class<CameraEffect> CameraEffectClass)
+{
+  local PlayerController PlayerControllerLocal;
+  local CameraEffect CameraEffectFound;
+  local int i;
+  
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+  if ( PlayerControllerLocal != None ) {
+    for (i = 0; i < PlayerControllerLocal.CameraEffects.Length; i++)
+      if ( PlayerControllerLocal.CameraEffects[i].Class == CameraEffectClass ) {
+        CameraEffectFound = PlayerControllerLocal.CameraEffects[i];
+        //log("Found"@CameraEffectFound@"in CammeraEffects array");
+        break;
+      }
+    if ( CameraEffectFound == None ) {
+      CameraEffectFound = CameraEffect(Level.ObjectPool.AllocateObject(CameraEffectClass));
+      //log("Got"@CameraEffectFound@"from ObjectPool");
+    }
+    if ( CameraEffectFound != None )
+      PlayerControllerLocal.AddCameraEffect(CameraEffectFound);
+  }
+  return CameraEffectFound;
+}
+
+
+//=============================================================================
+// RemoveCameraEffect
+//
+// Removes one reference to the CameraEffect from the CameraEffects array. If
+// there are any more references to the same CameraEffect object, they remain
+// there. The CameraEffect will be put back in the ObjectPool if no other
+// references to it are left in the CameraEffects array.
+//=============================================================================
+
+simulated function RemoveCameraEffect(CameraEffect CameraEffect)
+{
+  local PlayerController PlayerControllerLocal;
+  local int i;
+  
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+  if ( PlayerControllerLocal != None ) {
+    PlayerControllerLocal.RemoveCameraEffect(CameraEffect);
+    for (i = 0; i < PlayerControllerLocal.CameraEffects.Length; i++)
+      if ( PlayerControllerLocal.CameraEffects[i] == CameraEffect ) {
+        //log(CameraEffect@"still in CameraEffects array");
+        return;
+      }
+    //log("Freeing"@CameraEffect);
+    Level.ObjectPool.FreeObject(CameraEffect);
+  }
+}
+
+
+//=============================================================================
 // PostBeginPlay
 //
 // Registers this actor as HUD overlay.
@@ -105,14 +166,12 @@ simulated event Destroyed()
   JailbreakHUD.UnregisterOverlay(Self);
   if ( bCameraEffectsEnabled ) {
     if ( CameraOverlay != None )
-      Level.GetLocalPlayerController().RemoveCameraEffect(CameraOverlay);
+      RemoveCameraEffect(CameraOverlay);
     if ( MotionBlur != None )
-      Level.GetLocalPlayerController().RemoveCameraEffect(MotionBlur);
+      RemoveCameraEffect(MotionBlur);
+    MotionBlur = None;
+    CameraOverlay = None;
   }
-  Level.ObjectPool.FreeObject(MotionBlur);
-  Level.ObjectPool.FreeObject(CameraOverlay);
-  MotionBlur = None;
-  CameraOverlay = None;
 }
 
 
@@ -148,30 +207,25 @@ simulated event Tick(float DeltaTime)
   if ( LocalLlamaTag != None && PlayerControllerLocal.ViewTarget == PlayerControllerLocal.Pawn
       && (MotionBlur == None || CameraOverlay == None) ) {
     if ( MotionBlur == None ) {
-      MotionBlur = MotionBlur(Level.ObjectPool.AllocateObject(class'MotionBlur'));
+      MotionBlur = MotionBlur(FindCameraEffect(class'MotionBlur'));
       MotionBlur.Alpha = 1.0;
       MotionBlur.BlurAlpha = 128;
       MotionBlur.FinalEffect = False;
     }
     if ( CameraOverlay == None ) {
-      CameraOverlay = CameraOverlay(Level.ObjectPool.AllocateObject(class'CameraOverlay'));
+      CameraOverlay = CameraOverlay(FindCameraEffect(class'CameraOverlay'));
       CameraOverlay.OverlayMaterial = LlamaScreenOverlayMaterial;
       CameraOverlay.Alpha = 1.0;
       CameraOverlay.FinalEffect = False;
     }
-    
-    PlayerControllerLocal.AddCameraEffect(CameraOverlay, True);
-    PlayerControllerLocal.AddCameraEffect(MotionBlur, True);
     bCameraEffectsEnabled = True;
     if ( JailbreakHUD != None )
       HUDCanvasScale = JailbreakHUD.HUDCanvasScale;
   }
   else if ( (LocalLlamaTag == None || PlayerControllerLocal.ViewTarget != PlayerControllerLocal.Pawn)
       && bCameraEffectsEnabled ) {
-    PlayerControllerLocal.RemoveCameraEffect(CameraOverlay);
-    PlayerControllerLocal.RemoveCameraEffect(MotionBlur);
-    Level.ObjectPool.FreeObject(MotionBlur);
-    Level.ObjectPool.FreeObject(CameraOverlay);
+    RemoveCameraEffect(CameraOverlay);
+    RemoveCameraEffect(MotionBlur);
     MotionBlur = None;
     CameraOverlay = None;
     bCameraEffectsEnabled = False;
@@ -535,4 +589,5 @@ defaultproperties
   LlamaIconPulseRateR=1.5317
   LlamaIconPulseRateG=2.6873
   LlamaIconPulseRateB=1.0912
+  bAlwaysTick=True
 }

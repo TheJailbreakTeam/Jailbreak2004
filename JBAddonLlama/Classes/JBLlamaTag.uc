@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.5 2003/08/11 20:34:25 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.6 2003/11/11 17:48:49 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -227,14 +227,15 @@ simulated function Tick(float DeltaTime)
           || PlayerController(Pawn(Owner).Controller).ViewTarget == Self
           || PlayerController(Pawn(Owner).Controller).ViewTarget == Owner) ) {
     PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation - ViewRotationOffset);
-    ViewRotationOffset.Pitch = 1024 * Sin(1.2 * Pi * (Level.TimeSeconds - LlamaStartTime));
-    ViewRotationOffset.Yaw   = 1024 * Sin(0.9 * Pi * (Level.TimeSeconds - LlamaStartTime));
+    ViewRotationOffset.Pitch = 1536 * Sin(1.2 * Pi * (Level.TimeSeconds - LlamaStartTime));
+    ViewRotationOffset.Yaw   = 1536 * Sin(0.9 * Pi * (Level.TimeSeconds - LlamaStartTime));
     ViewRotationOffset.Roll  = 1536 * Sin(1.1 * Pi * (Level.TimeSeconds - LlamaStartTime));
     PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation + ViewRotationOffset);
     bShiftedView = True;
   }
   else if ( bShiftedView ) {
-    PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation - ViewRotationOffset);
+    if ( Pawn(Owner).Controller != None )
+      Pawn(Owner).Controller.SetRotation(Pawn(Owner).Controller.Rotation - ViewRotationOffset);
     bShiftedView = False;
   }
   
