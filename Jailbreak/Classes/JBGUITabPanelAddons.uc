@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.7 2004/03/11 17:39:16 tarquin Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.8 2004/03/12 20:16:23 tarquin Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -44,7 +44,7 @@ var array<TInfoAddon>   ListInfoAddon;          // loaded add-on information
 var JBGUIComponentTabs  GUIComponentTabsAddons; // main tab control
 var GUIScrollTextBox    GUIScrollTextBoxAddon;  // text box for description
 var GUIPanel            GUIPanelConfigTemplate; // template for config panels
-var GUILabel            GUILabelConfigNone;     // shown if no config
+var GUILabel            GUILabelConfigNone;     // shown if no config panel
 var GUIButton           GUIButtonReset;         // reset addon settings
 
 
@@ -173,6 +173,7 @@ function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd)
 // Called when a tab is opened. Shows the corresponding add-on description. 
 // Loads and displays its configuration panel if one is available, or
 // shows a label informing the user no options exist.
+// Shows a reset button if the panel class is a child of JBGUIPanelConfig
 // ============================================================================
 
 function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab)
@@ -189,7 +190,6 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
     GUIButtonReset.bVisible     = False;
   }
   else {
-      
     if (ListInfoAddon[iInfoAddon].GUIPanelConfig == None) {
       GUIPanelConfig = new ListInfoAddon[iInfoAddon].ClassGUIPanelConfig;
       ListInfoAddon[iInfoAddon].GUIPanelConfig = GUIPanelConfig;
@@ -206,9 +206,9 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
       GUIComponentTabsAddons.AddComponent(GUIPanelConfig);
     }
     
-    GUIButtonReset.bVisible = ListInfoAddon[iInfoAddon].ClassAddon.default.bCanResetConfig;
-    GUIButtonReset.Hint = "Reset " $ ListInfoAddon[iInfoAddon].TextName $ " options.";  
-
+    GUIButtonReset.bVisible = (JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig) != None);
+    GUIButtonReset.Hint = "Reset" @ ListInfoAddon[iInfoAddon].TextName @ "options.";  
+    
     GUILabelConfigNone.bVisible = False;
     ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = True;
   }
@@ -316,8 +316,8 @@ function bool GUIButtonDownloadAddons_Click(GUIComponent GUIComponentClicked)
 // ============================================================================
 // GUIButtonConfigReset_Click
 //
-// Called when a user clicks the Reset button. Calls the currently open tab's
-// OnMessage delegate, which is expected to reset the Add-on's defaults.
+// Called when a user clicks the Reset button. Calls ResetConfiguration of the 
+// current config panel object if it is a subclass of JBGUIPanelConfig.
 // ============================================================================
 
 function bool GUIButtonConfigReset_Click(GUIComponent GUIComponentClicked)
@@ -325,8 +325,10 @@ function bool GUIButtonConfigReset_Click(GUIComponent GUIComponentClicked)
   local int iInfoAddon;
   
   iInfoAddon = GUIComponentTabsAddons.GetCurrentTabIndex();  
-  ListInfoAddon[iInfoAddon].GUIPanelConfig.OnMessage("JBAddonResetConfig", 0 );
   
+  if(JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig) != None)
+    JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig).ResetConfiguration();
+
   return True;
 }
 
@@ -396,7 +398,7 @@ defaultproperties
     OnClick      = GUIButtonConfigReset_Click;
     WinTop       = 0.863;
     WinLeft      = 0.765;
-    WinWidth     = 0.184; // fiddle this
+    WinWidth     = 0.184;
     WinHeight    = 0.058;
   End Object
 
