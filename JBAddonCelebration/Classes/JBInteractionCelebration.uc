@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.11 2004/05/29 09:45:29 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.13 2004/05/30 15:10:49 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -122,23 +122,23 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
           Taunt(TauntName);
           break;
         }
-        else if ( Trim(Binds[i]) ~= "RandomTaunt" ) {
+        else if ( Trim(Binds[i]) ~= "RandomTaunt" || Trim(Binds[i]) ~= "Fire" || Trim(Binds[i]) ~= "AltFire" ) {
           RandomTaunt();
           break;
         }
-        else if ( Trim(Binds[i]) ~= "MoveForward" ) {
+        else if ( Trim(Binds[i]) ~= "MoveForward" || Trim(Binds[i]) ~= "LookUp" || Trim(Binds[i]) ~= "Jump" ) {
           Taunt("PThrust");
           break;
         }
-        else if ( Trim(Binds[i]) ~= "MoveBackward" ) {
+        else if ( Trim(Binds[i]) ~= "MoveBackward" || Trim(Binds[i]) ~= "LookDown" || Trim(Binds[i]) ~= "Duck" ) {
           Taunt("AssSmack");
           break;
         }
-        else if ( Trim(Binds[i]) ~= "StrafeLeft" ) {
+        else if ( Trim(Binds[i]) ~= "StrafeLeft" || Trim(Binds[i]) ~= "TurnLeft" ) {
           Taunt("ThroatCut");
           break;
         }
-        else if ( Trim(Binds[i]) ~= "StrafeRight" ) {
+        else if ( Trim(Binds[i]) ~= "StrafeRight" || Trim(Binds[i]) ~= "TurnRight" ) {
           Taunt("Specific_1");
           break;
         }
