@@ -16,6 +16,8 @@ ResetButton.Caption="Par défaut"
 ResetButton.Hint="Restaurer les valeurs par défaut."
 VoicePack.Caption="Annonceur"
 VoicePack.Hint="L'annonceur à utiliser dans Jailbreak."
+TestVoicePackButton.Caption="Test"
+TestVoicePackButton.Hint="Cliquez pour jouer un son au hazard du voice pack selectionné"
 
 [JBGUIHook]
 TextCaptionGoalScore="Limite de Captures"
