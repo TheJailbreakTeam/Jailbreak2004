@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.8 2003/02/08 15:29:51 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.9 2003/02/08 22:01:25 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -93,6 +93,27 @@ function bool FindPathToObjective(Bot Bot, Actor ActorObjective) {
   
   return Super.FindPathToObjective(Bot, ActorObjective);
   }
+
+
+// ============================================================================
+// SetEnemy
+//
+// Only acquires free players as new enemies.
+// ============================================================================
+
+function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
+
+  local JBTagPlayer TagPlayerEnemy;
+  
+  TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
+
+  if (TagPlayerEnemy == None ||
+      TagPlayerEnemy.IsFree())
+    return Super.SetEnemy(Bot, PawnEnemy);
+
+  return False;
+  }
+
 
 
 // ============================================================================
