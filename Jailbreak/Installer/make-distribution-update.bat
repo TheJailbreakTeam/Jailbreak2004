@@ -4,7 +4,7 @@ echo ===========================================================================
 echo Full Installer
 echo ===============================================================================
 echo.
-perl make-distribution.pl --version="a" --skip-keypress
+perl make-distribution.pl --version="b" --skip-keypress
 
 if errorlevel 1 goto :END
 
@@ -14,7 +14,7 @@ echo ===========================================================================
 echo Patch
 echo ===============================================================================
 echo.
-perl make-distribution.pl --version="a-Patch" --reference-file="Jailbreak2004-reference.txt" --reference-version=100 --skip-rebuild
+perl make-distribution.pl --version="b-Patch" --reference-file="Jailbreak2004-reference.txt" --reference-version=100 --skip-rebuild
 
 
 :END
