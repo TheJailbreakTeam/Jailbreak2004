@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.11 2004/05/20 17:43:08 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.12 2004/05/24 16:03:07 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained and not
@@ -41,6 +41,10 @@ var private bool bTimeSynchronized;     // server replied to sync request
 var private float TimeSynchronization;  // client time at sync request
 var private float TimeOffsetServer;     // offset from client to server time
 
+var private float TimeDeltaAccu;        // accumulated time difference
+var private float TimeLevelPrev;        // previous level time
+var private float TimeWorldPrev;        // previous world time
+
 
 // ============================================================================
 // Internal
@@ -50,6 +54,20 @@ static function JBTagClient FindFor(PlayerController Keeper) {
   return JBTagClient(InternalFindFor(Keeper)); }
 static function JBTagClient SpawnFor(PlayerController Keeper) {
   return JBTagClient(InternalSpawnFor(Keeper)); }
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Starts the timer which is used to resynchronize client to server time
+// whenever a tick took longer in real time than in level time.
+// ============================================================================
+
+simulated event PostBeginPlay()
+{
+  if (Role < ROLE_Authority)
+    SetTimer(2.0, True);
+}
 
 
 // ============================================================================
@@ -72,6 +90,43 @@ simulated event Tick(float TimeDelta)
       Disable('Tick');
     }
   }
+}
+
+
+// ============================================================================
+// Timer
+//
+// Checks whether considerably more time passed in real time than in level
+// time since the last check. If so, resynchronizes client to server time.
+// ============================================================================
+
+simulated event Timer()
+{
+  local float TimeLevelDelta;
+  local float TimeWorld;
+  local float TimeWorldDelta;
+
+  if (!bTimeSynchronized)
+    return;
+
+  TimeWorld = Level.Hour * 60.0 * 60.0
+            + Level.Minute      * 60.0
+            + Level.Second
+            + Level.Millisecond / 1000.0;
+
+  if (TimeLevelPrev > 0.0) {
+    TimeLevelDelta = (Level.TimeSeconds - TimeLevelPrev) / Level.TimeDilation;
+    TimeWorldDelta = TimeWorld - TimeWorldPrev;
+    if (TimeWorldDelta < 0.0)
+      TimeWorldDelta += 24.0 * 60.0 * 60.0;
+
+    TimeDeltaAccu += TimeWorldDelta - TimeLevelDelta;
+    if (TimeDeltaAccu > 0.2)
+      SynchronizeTime();
+  }
+
+  TimeLevelPrev = Level.TimeSeconds;
+  TimeWorldPrev = TimeWorld;
 }
 
 
@@ -274,11 +329,20 @@ private function ServerSynchronizeTime()
 
 private simulated function ClientSynchronizeTime(float TimeServer)
 {
-  // take half of the round-trip time into account
-  TimeOffsetServer = TimeServer - Level.TimeSeconds + (Level.TimeSeconds - TimeSynchronization) / 2;
+  local float TimeRoundTrip;
+
+  TimeRoundTrip = Level.TimeSeconds - TimeSynchronization;
+  TimeOffsetServer = TimeServer - Level.TimeSeconds + TimeRoundTrip / 2;
 
   TimeSynchronization = 0.0;
   bTimeSynchronized = True;
+
+  Log("Synchronized time with server:"
+      @ "Local="     @ Level.TimeSeconds           $  "s"
+      @ "Offset="    @ TimeOffsetServer            $  "s"
+      @ "RoundTrip=" @ int(TimeRoundTrip * 1000.0) $ "ms");
+
+  TimeDeltaAccu = 0.0;
 }
 
 
