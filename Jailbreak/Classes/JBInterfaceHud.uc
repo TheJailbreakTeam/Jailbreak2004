@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.39 2004/04/07 02:06:02 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.40 2004/04/10 16:13:48 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1122,8 +1122,8 @@ defaultproperties
   ColorTactics[0]            = (R=000,G=255,B=000,A=192);
   ColorTactics[1]            = (R=128,G=255,B=128,A=192);
   ColorTactics[2]            = (R=128,G=128,B=128,A=192);
-  ColorTactics[3]            = (R=255,G=112,B=000,A=192);
-  ColorTactics[4]            = (R=255,G=112,B=000,A=192);
+  ColorTactics[3]            = (R=240,G=064,B=032,A=192);
+  ColorTactics[4]            = (R=240,G=064,B=032,A=192);
 
   SpriteWidgetArenaNotifier  = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.40,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=97,RenderStyle=STY_Alpha,Tints[0]=(R=000,G=000,B=000,A=150),Tints[1]=(R=000,G=000,B=000,A=150));
   SpriteWidgetCompass[0]     = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.60,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-32,OffsetY=7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
