@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.5 2003/02/16 20:00:08 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.6 2003/02/16 22:34:41 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -30,19 +30,6 @@ function AddBot(Bot Bot) {
 
   Bot.FreeScript();
   TeamPlayerReplicationInfo(Bot.PlayerReplicationInfo).bHolding = False;
-  }
-
-
-// ============================================================================
-// FriendlyToward
-//
-// Returns True for anybody except other players carrying their primary
-// default weapon for jail fights.
-// ============================================================================
-
-function bool FriendlyToward(Pawn PawnOther) {
-
-  return !IsPlayerFighting(PawnOther.Controller);
   }
 
 
