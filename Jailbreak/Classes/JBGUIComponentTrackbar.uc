@@ -1,13 +1,13 @@
 //=============================================================================
-// JBGUIEditSlider
+// JBGUIComponentTrackbar
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIEditSlider.uc,v 1.1 2004/03/09 18:55:04 wormbo Exp $
+// $Id: JBGUIComponentTrackbar.uc,v 1.2 2004/03/26 20:42:16 tarquin Exp $
 //
 // User interface component: Combines a slider and an editbox with a label.
 //=============================================================================
 
 
-class JBGUIEditSlider extends GUIMultiComponent;
+class JBGUIComponentTrackbar extends GUIMultiComponent;
 
 
 //=============================================================================

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIRadioButton
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGUIRadioButton.uc,v 1.1 2004/03/26 20:42:18 tarquin Exp $
+// $Id: JBGUIRadioButton.uc,v 1.2 2004/03/28 16:12:46 tarquin Exp $
 //
 // A radio button. To be used by a JBGUIOptionGroup
 //=============================================================================
@@ -36,9 +36,8 @@ function bool InternalOnClick(GUIComponent Sender)
     return False; // clicking a checked button has no effect
 
   Super.InternalOnClick(Sender);
-  if( JBGUIOptionGroup(MenuOwner) != None )
-    JBGUIOptionGroup(MenuOwner).SetIndex(IndexInParent);
-  //log("*** JB GUI: friendly label of" @ IndexInParent @ "is:" @ FriendlyLabel.Caption);
+  if( JBGUIComponentOptions(MenuOwner) != None )
+    JBGUIComponentOptions(MenuOwner).SetIndex(IndexInParent);
 } 
 
 

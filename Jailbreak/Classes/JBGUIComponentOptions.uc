@@ -1,13 +1,13 @@
 //=============================================================================
-// JBGUIOptionGroup
+// JBGUIComponentOptions
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id$
+// $Id: JBGUIComponentOptions.uc,v 1.2.2.1 2004/04/04 00:50:17 mychaeel Exp $
 //
 // A group of radio button options
 //=============================================================================
 
 
-class JBGUIOptionGroup extends GUIMultiComponent;
+class JBGUIComponentOptions extends GUIMultiComponent;
   
   
 // ============================================================================
