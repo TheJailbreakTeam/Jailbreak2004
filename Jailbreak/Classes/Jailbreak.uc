@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.67.2.30 2004/06/01 17:13:21 mychaeel Exp $
+// $Id$
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1461,16 +1461,16 @@ state MatchInProgress {
   function RespawnPickups()
   {
     local Pickup thisPickup;
+    local xPickupBase thisPickupBase;
   
-    foreach DynamicActors(Class'Pickup', thisPickup) {
+    foreach DynamicActors(Class'Pickup', thisPickup)
       if (thisPickup.PickupBase != None &&
           thisPickup.PickupBase.bDelayedSpawn)
              thisPickup.GotoState('Sleeping');
         else thisPickup.GotoState('Pickup');
-    
-      if (thisPickup.PickupBase != None)
-        thisPickup.PickupBase.TurnOn();
-    }
+
+    foreach AllActors(Class'xPickupBase', thisPickupBase)
+      thisPickupBase.TurnOn();
   }
   
   
