@@ -876,7 +876,10 @@ function ReAssessStrategy()
   Strategy = 'Scorelimit';
   Tactics  = 'TacticsNormal';
 
-  if (ScoreLead != 0 && DeathMatch(Level.Game).RemainingTime > 0) {
+  if (ScoreLead != 0                             &&
+      DeathMatch(Level.Game).RemainingTime >   0 &&
+      DeathMatch(Level.Game).RemainingTime < 120) {
+
     if (ScoreLead > 0) { TagTeamWinning = TagTeamSelf;   TagTeamLosing = TagTeamEnemy; }
                   else { TagTeamWinning = TagTeamEnemy;  TagTeamLosing = TagTeamSelf;  }
   
