@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.12 2004/05/31 01:31:21 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.13 2004/05/31 02:09:32 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -887,16 +887,15 @@ simulated function bool UpdateEntry(out TEntry Entry)
   if (UnrealPlayer(Owner).bDisplayWinner ||
       UnrealPlayer(Owner).bDisplayLoser  ||
       JBGameReplicationInfo(GRI).bIsExecuting)
-    Entry.InfoGame = GetInfoScores(Entry.TagPlayer);
-  else
-    Entry.InfoGame = GetInfoOrders(Entry.TagPlayer);
+         Entry.InfoGame = GetInfoScores(Entry.TagPlayer);
+    else Entry.InfoGame = GetInfoOrders(Entry.TagPlayer);
 
   while (Right(Entry.InfoGame, 1) == " ")
     Entry.InfoGame = Left(Entry.InfoGame, Len(Entry.InfoGame) - 1);
 
   if (Level.NetMode != NM_Standalone && !TeamPlayerReplicationInfo.bBot) {
     Entry.InfoTime = FormatTime(GRI.ElapsedTime - TeamPlayerReplicationInfo.StartTime);
-    Entry.InfoNet = TeamPlayerReplicationInfo.Ping @ "ms";
+    Entry.InfoNet = (TeamPlayerReplicationInfo.Ping * 4) @ "ms";
   }
 
   HealthCurrent = Entry.TagPlayer.GetHealth(True);
