@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.48 2004/05/17 02:59:06 mychaeel Exp $
+// $Id$
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -58,6 +58,7 @@ var private float TimeUpdateWidescreen;       // last widescreen bar rendering
 var private float TimeUpdateBlackout;         // last blackout rendering
 var private float TimeUpdateLastMan;          // last time last man was shown
 
+var bool bChatMovedToTop;                     // external override to move chat
 var vector LocationChatScoreboard;            // location of chat on scoreboard
 var private float AlphaLocationChat;          // relative chat area position
 
@@ -249,7 +250,7 @@ simulated event PostRender(Canvas Canvas)
   ShowWidescreen(Canvas);
   ShowBlackout  (Canvas);
 
-  MoveChat(bShowScoreBoard);
+  MoveChat(bShowScoreBoard || bChatMovedToTop);
 
   if (JBCamera(PlayerOwner.ViewTarget) != None) {
     LinkActors();
