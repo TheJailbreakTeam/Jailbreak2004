@@ -1,14 +1,34 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.26 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.27 2004/03/09 01:22:11 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
 
 
 class JBBotTeam extends TeamAI
+  config
   notplaceable;
+
+
+// ============================================================================
+// Types
+// ============================================================================
+
+struct TExplanation
+{
+  var bool bIsShaded;                        // color shade for message blocks
+  var string Text;                           // text of message on screen
+};
+
+
+// ============================================================================
+// Configuration
+// ============================================================================
+
+var config bool bExplainToLog;               // write verbose log messages
+var config bool bExplainToScreen;            // write log messages on screen
 
 
 // ============================================================================
@@ -17,6 +37,11 @@ class JBBotTeam extends TeamAI
 
 var class<JBBotSquadArena> ClassSquadArena;  // bot squad for arena
 var class<JBBotSquadJail>  ClassSquadJail;   // bot squad for jail
+
+var private bool bIsExplanationInitialized;  // registered as screen overlay
+var private float TimeExplanation;           // time of last explanation
+var private string IndentExplanation;        // current explanation level
+var private array<TExplanation> ListExplanation;  // explanations on screen
 
 var private JBTagTeam TagTeamSelf;           // team tag of own team
 var private JBTagTeam TagTeamEnemy;          // team tag of enemy team
@@ -123,6 +148,7 @@ function name SetTactics(name Tactics)
 
   TimeTacticsSelected = Level.TimeSeconds;
 
+  Explain("setting tactics to" @ Tactics);
   return GetTactics();
 }
 
@@ -170,8 +196,10 @@ function bool GetTacticsAuto()
 
 function RequestReAssessment()
 {
-  if (TimerRate - TimerCounter > 0.5)
+  if (TimerRate - TimerCounter > 0.5) {
     SetTimer(RandRange(0.3, 0.5), False);
+    Explain("strategy will be reassessed in" @ TimerCounter @ "seconds");
+  }
 }
 
 
@@ -267,6 +295,8 @@ function PutOnFreelance(Bot Bot)
     Super.PutOnFreelance(Bot);
   else
     SquadFreelance.AddBot(Bot);
+
+  Explain("ordering" @ GetExplanationPlayer(Bot) @ "to freelance");
 }
 
 
@@ -280,20 +310,20 @@ function PutOnSquad(Bot Bot, GameObjective GameObjective)
 {
   if (IsObjectiveAttack(GameObjective)) {
     if (AttackSquad == None)
-      AttackSquad = AddSquadWithLeader(Bot, GameObjective);
-    else
-      AttackSquad.AddBot(Bot);
+           AttackSquad = AddSquadWithLeader(Bot, GameObjective);
+      else AttackSquad.AddBot(Bot);
+    Explain("ordering" @ GetExplanationPlayer(Bot) @ "to attack" @ GetExplanationObjective(GameObjective));
   }
 
   else if (IsObjectiveDefense(GameObjective)) {
     if (GameObjective.DefenseSquad == None)
-      GameObjective.DefenseSquad = AddSquadWithLeader(Bot, GameObjective);
-    else
-      GameObjective.DefenseSquad.AddBot(Bot);
+           GameObjective.DefenseSquad = AddSquadWithLeader(Bot, GameObjective);
+      else GameObjective.DefenseSquad.AddBot(Bot);
+    Explain("ordering" @ GetExplanationPlayer(Bot) @ "to defend" @ GetExplanationObjective(GameObjective));
   }
 
   else {
-    Log("Warning: Cannot order bot" @ Bot.PlayerReplicationInfo.PlayerName @
+    Log("Warning: Cannot order bot" @ GetExplanationPlayer(Bot) @
         "to attack or defend objective" @ GameObjective);
     PutOnFreelance(Bot);
   }
@@ -541,6 +571,8 @@ function float RatePlayers()
 {
   local int nDeathsByTeam[2];
   local int nKillsByTeam[2];
+  local float EfficiencyTeamSelf;
+  local float EfficiencyTeamEnemy;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local PlayerReplicationInfo PlayerReplicationInfo;
@@ -556,9 +588,14 @@ function float RatePlayers()
       nDeathsByTeam[PlayerReplicationInfo.Team.TeamIndex] += PlayerReplicationInfo.Deaths;
     }
 
-  CacheRatePlayers.Result =
-    CalcEfficiency(nKillsByTeam[     Team.TeamIndex], nDeathsByTeam[     Team.TeamIndex]) /
-    CalcEfficiency(nKillsByTeam[EnemyTeam.TeamIndex], nDeathsByTeam[EnemyTeam.TeamIndex]);
+  EfficiencyTeamSelf  = CalcEfficiency(nKillsByTeam[     Team.TeamIndex], nDeathsByTeam[     Team.TeamIndex]);
+  EfficiencyTeamEnemy = CalcEfficiency(nKillsByTeam[EnemyTeam.TeamIndex], nDeathsByTeam[EnemyTeam.TeamIndex]);
+
+  if (EfficiencyTeamEnemy > 0)
+         CacheRatePlayers.Result = EfficiencyTeamSelf / EfficiencyTeamEnemy;
+    else CacheRatePlayers.Result = 9999;  // theoretically infinite
+
+  Explain("efficiency rating for this team (kills/total):" @ CacheRatePlayers.Result);
 
   CacheRatePlayers.Time = Level.TimeSeconds;
   return CacheRatePlayers.Result;
@@ -774,6 +811,10 @@ function ReAssessStrategy()
   nRounds   = ScoreTeamSelf + ScoreTeamEnemy;
   ScoreLead = ScoreTeamSelf - ScoreTeamEnemy;
 
+  Explain("reassessing strategy:");
+  ExplainBlockStart();
+  Explain("enemy score:" @ ScoreTeamEnemy $ ", own score:" @ ScoreTeamSelf);
+
   Strategy = 'Scorelimit';
   Tactics  = 'TacticsNormal';
 
@@ -781,7 +822,12 @@ function ReAssessStrategy()
     nRoundsLeft = DeathMatch(Level.Game).RemainingTime / (DeathMatch(Level.Game).ElapsedTime / nRounds);
     if (nRoundsLeft < Abs(ScoreLead))
       Strategy = 'Timelimit';
+
+    Explain("played"     @ nRounds     @ "rounds in"      @ DeathMatch(Level.Game).ElapsedTime   @ "seconds");
+    Explain("estimating" @ nRoundsLeft @ "rounds left in" @ DeathMatch(Level.Game).RemainingTime @ "remaining seconds");
   }
+
+  Explain("following strategy" @ Strategy);
 
   switch (Strategy) {
     case 'Scorelimit':
@@ -794,6 +840,9 @@ function ReAssessStrategy()
       else if (ScoreLead < 0) Tactics = 'TacticsAggressive';
       break;
   }
+
+  Explain("selecting" @ Tactics @ "(current:" @ GetStateName() $ ")");
+  ExplainBlockEnd();
 
   GotoState(Tactics);
 }
@@ -832,10 +881,12 @@ function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander)
     case 'Follow':
     case 'Hold':
       TagPlayerBot.OrderNameFixed = OrderName;
+      Explain("setting orders" @ OrderName @ "for" @ GetExplanationPlayer(Bot));
       break;
 
     case 'Freelance':
       TagPlayerBot.OrderNameFixed = '';  // reset to team tactics
+      Explain("resetting orders to team tactics for" @ GetExplanationPlayer(Bot));
       break;
 
     case 'TacticsAuto':        SetTactics('Auto');        return;
@@ -955,6 +1006,9 @@ protected function DeployRestart()
   local JBTagObjective firstTagObjective;
   local JBTagObjective thisTagObjective;
 
+  Explain("starting bot deployment:");
+  ExplainBlockStart();
+
   firstTagObjective = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagObjective;
   for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
     thisTagObjective.nPlayersDeployed = 0;
@@ -984,6 +1038,11 @@ protected function DeployToObjective(GameObjective GameObjective, int nPlayers)
     if (TagObjective != None) {
       if (TagObjective.nPlayersDeployed == 0)
         TagObjective.nPlayersCurrent = CountPlayersAtObjective(TagObjective.GetObjective());
+
+      if (TagObjective.nPlayersDeployed == 0)
+             Explain("deploying" @ nPlayers @            "player(s) to" @ GetExplanationObjective(GameObjective));
+        else Explain("deploying" @ nPlayers @ "additional player(s) to" @ GetExplanationObjective(GameObjective));
+      
       TagObjective.nPlayersDeployed += nPlayers;
     }
   }
@@ -995,7 +1054,7 @@ protected function DeployToObjective(GameObjective GameObjective, int nPlayers)
 //
 // Distributes the given number of players on all objectives that need to be
 // defended and issues corresponding deployment orders. If more players are
-// specified than needed to man (or bot) all objectives, the objective with
+// specified than needed to man (or bot) all objectives, the objectives with
 // the smallest number of defenders are filled up.
 // ============================================================================
 
@@ -1012,15 +1071,17 @@ protected function DeployToDefense(int nPlayers)
   if (TimeDeployment != Level.TimeSeconds)
     DeployRestart();
 
+  Explain("deploying" @ nPlayers @ "player(s) to defense:");
+  ExplainBlockStart();
+
   while (nPlayers > 0) {
     ObjectiveDeploy = None;
 
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
         if (bSaturated)
-          nPlayersSuggested = 1;  // fill up objectives evenly
-        else
-          nPlayersSuggested = SuggestStrengthDefense(thisObjective);
+               nPlayersSuggested = 1;  // fill up objectives evenly
+          else nPlayersSuggested = SuggestStrengthDefense(thisObjective);
 
         if (nPlayersSuggested == 0)
           continue;
@@ -1042,6 +1103,8 @@ protected function DeployToDefense(int nPlayers)
     nPlayers -= 1;
     DeployToObjective(ObjectiveDeploy, 1);
   }
+
+  ExplainBlockEnd();
 }
 
 
@@ -1125,6 +1188,9 @@ protected function DeployExecute()
   if (TimeDeployment != Level.TimeSeconds)
     return;  // no deployment orders available
 
+  Explain("executing deployment orders:");
+  ExplainBlockStart();
+
   firstTagObjective = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagObjective;
 
   while (True) {
@@ -1159,15 +1225,17 @@ protected function DeployExecute()
 
   for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
     if (CanDeploy(thisController) &&
-        CanDeployToObjective(thisController, None) &&
-        Bot(thisController).Squad.SquadObjective != None) {
-
-      TagObjectiveBot = Class'JBTagObjective'.Static.FindFor(Bot(thisController).Squad.SquadObjective);
-      if (TagObjectiveBot != None)
-        TagObjectiveBot.nPlayersCurrent -= 1;
-
-      PutOnFreelance(Bot(thisController));
+        CanDeployToObjective(thisController, None)) {
+      if (Bot(thisController).Squad.SquadObjective != None) {
+        TagObjectiveBot = Class'JBTagObjective'.Static.FindFor(Bot(thisController).Squad.SquadObjective);
+        if (TagObjectiveBot != None)
+          TagObjectiveBot.nPlayersCurrent -= 1;
+  
+        PutOnFreelance(Bot(thisController));
+      }
     }
+
+  ExplainBlockEnd();
 }
 
 
@@ -1415,6 +1483,10 @@ state TacticsEvasive {
   {
     local SquadAI thisSquad;
 
+    Explain("reassessing orders for TacticsEvasive:");
+    ExplainBlockStart();
+    Explain("ordering all bots to evade enemies on sight");
+
     DeployRestart();
     DeployExecute();  // set all unbound bots on freelance
 
@@ -1466,21 +1538,31 @@ state TacticsDefensive {
     local int nPlayersJailed;
     local int nPlayersAttacking;
     local int nPlayersDefending;
+    local int nPlayersDefendingMax;
     local GameObjective thisObjective;
     local GameObjective ObjectiveAttack;
 
     nPlayersFree   = TagTeamSelf.CountPlayersFree();
     nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
+    ExplainHeader();
+    Explain("assessing defense:");
+    ExplainBlockStart();
+
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
-      if (IsObjectiveDefense(thisObjective))
-        nPlayersDefending += Max(2, SuggestStrengthDefense(thisObjective));
+      if (IsObjectiveDefense(thisObjective)) {
+        nPlayersDefending = Max(2, SuggestStrengthDefense(thisObjective));
+        nPlayersDefendingMax += nPlayersDefending;
+        Explain("should defend" @ GetExplanationObjective(thisObjective) @ "with" @ nPlayersDefending @ "player(s)");
+      }
 
     nPlayersDefending = Min(nPlayersDefending, nPlayersFree);
+    ExplainBlockEnd();
 
     if (nPlayersJailed > 0) {
       ObjectiveAttack = GetPriorityAttackObjective();
       nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
+      Explain("should attack" @ GetExplanationObjective(ObjectiveAttack) @ "with" @ nPlayersAttacking @ "player(s)");
     }
 
     if (nPlayersAttacking + nPlayersDefending > nPlayersFree)
@@ -1530,6 +1612,10 @@ auto state TacticsNormal {
     nPlayersFree   = TagTeamSelf.CountPlayersFree();
     nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
+    ExplainHeader();
+    Explain("assessing defense:");
+    ExplainBlockStart();
+
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
         nPlayersDefending = Max(1, SuggestStrengthDefense(thisObjective));
@@ -1537,19 +1623,31 @@ auto state TacticsNormal {
         if (nPlayersDefendingMin == 0 ||
             nPlayersDefendingMin > nPlayersDefending)
           nPlayersDefendingMin = nPlayersDefending;
+        Explain("should defend" @ GetExplanationObjective(thisObjective) @ "with" @ nPlayersDefending @ "player(s)");
       }
+
+    ExplainBlockEnd();
 
     if (nPlayersJailed > 0) {
       ObjectiveAttack = GetPriorityAttackObjective();
       nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
+      Explain("should attack" @ GetExplanationObjective(ObjectiveAttack) @ "with" @ nPlayersAttacking @ "player(s)");
     }
 
     nPlayersRequired = nPlayersAttacking + nPlayersDefendingMin;
 
     if (nPlayersRequired > nPlayersFree && nPlayersAttacking > 0) {
+      Explain("require"  @ nPlayersRequired @ "player(s) for all orders," @
+              "but only" @ nPlayersFree     @ "player(s) are free - concentrating defense");
+
       nPlayersDefending = Max(0, nPlayersFree - Abs(nPlayersDefendingMin - nPlayersAttacking) / 2.0 - 0.5);
-      if (nPlayersDefending <= nPlayersDefendingMin / 2)
+      
+      if (nPlayersDefending > 0 && nPlayersDefending <= nPlayersDefendingMin / 2) {
+        Explain("require"  @ nPlayersDefendingMin @ "player(s) minimally for defense," @
+                "but only" @ nPlayersDefending    @ "player(s) available - abandoning defense");
         nPlayersDefending = 0;  // no use defending
+      }
+
       nPlayersAttacking = Max(0, nPlayersFree - nPlayersDefending);
 
       for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
@@ -1562,6 +1660,9 @@ auto state TacticsNormal {
           }
         }
 
+      if (ObjectiveDefense != None)
+        Explain("defense most urgently needed at" @ GetExplanationObjective(ObjectiveDefense));
+
       DeployToObjective(ObjectiveAttack,  nPlayersAttacking);
       DeployToObjective(ObjectiveDefense, nPlayersDefending);
       DeployExecute();
@@ -1570,8 +1671,8 @@ auto state TacticsNormal {
     else {
       nPlayersDefending = Min(nPlayersFree - nPlayersAttacking, nPlayersDefendingMax);
 
-      if (nPlayersAttacking > 0)
-        nPlayersAttacking = nPlayersFree - nPlayersDefending;  // attack with full force
+      if (nPlayersAttacking > 0)  // attack with full force
+        nPlayersAttacking = nPlayersFree - nPlayersDefending;
 
       DeployToObjective(ObjectiveAttack, nPlayersAttacking);
       DeployToDefense(nPlayersDefending);
@@ -1618,6 +1719,10 @@ state TacticsAggressive {
     nPlayersFree   = TagTeamSelf.CountPlayersFree();
     nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
+    ExplainHeader();
+    Explain("assessing defense:");
+    ExplainBlockStart();
+
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
         nPlayersDefending = SuggestStrengthDefense(thisObjective);
@@ -1625,20 +1730,29 @@ state TacticsAggressive {
         if (nPlayersDefendingMin == 0 ||
             nPlayersDefendingMin > nPlayersDefending)
           nPlayersDefendingMin = nPlayersDefending;
+        Explain("should defend" @ GetExplanationObjective(thisObjective) @ "with" @ nPlayersDefending @ "player(s)");
       }
+
+    ExplainBlockEnd();
 
     if (nPlayersJailed > 0) {
       ObjectiveAttack = GetPriorityAttackObjective();
       nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
+      Explain("should attack" @ GetExplanationObjective(ObjectiveAttack) @ "with" @ nPlayersAttacking @ "player(s)");
     }
 
     if (nPlayersAttacking + nPlayersDefendingMax <= nPlayersFree) {
+      Explain("enough free players to fulfull all orders");
+      
       DeployToObjective(ObjectiveAttack, nPlayersAttacking);
       DeployToDefense(nPlayersDefendingMax);
       DeployExecute();  // rest go on freelance
     }
 
     else if (nPlayersAttacking + nPlayersDefendingMin / 2 <= nPlayersFree) {
+      Explain("require"  @ nPlayersDefendingMin             @ "player(s) for defense," @
+              "but only" @ nPlayersFree - nPlayersAttacking @ "player(s) available - concentrating defense");
+    
       nPlayersDefending = nPlayersFree - nPlayersAttacking;
 
       for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
@@ -1651,12 +1765,18 @@ state TacticsAggressive {
           }
         }
 
+      if (ObjectiveDefense != None)
+        Explain("defense most urgently needed at" @ GetExplanationObjective(ObjectiveDefense));
+
       DeployToObjective(ObjectiveAttack,  nPlayersAttacking);
       DeployToObjective(ObjectiveDefense, nPlayersDefending);
       DeployExecute();
     }
 
     else {
+      Explain("require"  @ nPlayersDefendingMin             @ "player(s) minimally for defense," @
+              "but only" @ nPlayersFree - nPlayersAttacking @ "player(s) available - abandoning defense");
+    
       DeployToObjective(ObjectiveAttack, nPlayersFree);
       DeployExecute();
     }
@@ -1691,19 +1811,267 @@ state TacticsSuicidal {
     nPlayersFree   = TagTeamSelf.CountPlayersFree();
     nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
+    ExplainHeader();
+
     if (nPlayersJailed == 0) {
+      Explain("nobody jailed, putting all players on freelance");
       DeployRestart();
       DeployExecute();  // all on freelance
     }
-
     else {
       ObjectiveAttack = GetPriorityAttackObjective();
+      Explain("attacking" @ GetExplanationObjective(ObjectiveAttack) @ "with full force");
       DeployToObjective(ObjectiveAttack, nPlayersFree);
       DeployExecute();
     }
   }
 
 } // state TacticsSuicidal
+
+
+// ============================================================================
+// Explain
+//
+// Used for debugging. Timestamps the given message and writes it to the log
+// or to the screen if so configured.
+// ============================================================================
+
+function Explain(string Text)
+{
+  local int iExplanation;
+
+  if (!bExplainToLog &&
+      !bExplainToScreen)
+    return;
+
+  if (TimeExplanation != Level.TimeSeconds)
+    IndentExplanation = "";
+
+  if (bExplainToScreen) {
+    if (!bIsExplanationInitialized) {
+      JBInterfaceHud(Level.GetLocalPlayerController().myHUD).RegisterOverlay(Self);
+      bIsExplanationInitialized = True;
+    }
+  
+    if (ListExplanation.Length > 100)
+      ListExplanation.Remove(1, ListExplanation.Length - 100);
+  
+    iExplanation = ListExplanation.Length;
+    ListExplanation.Insert(iExplanation, 1);
+    ListExplanation[iExplanation].Text = IndentExplanation $ Text;
+
+    if (iExplanation > 0)
+      if (TimeExplanation != Level.TimeSeconds)
+             ListExplanation[iExplanation].bIsShaded = !ListExplanation[iExplanation - 1].bIsShaded;
+        else ListExplanation[iExplanation].bIsShaded =  ListExplanation[iExplanation - 1].bIsShaded;
+  }
+
+  if (bExplainToLog) {
+    if (TimeExplanation != Level.TimeSeconds)
+      Log("---" @ Level.TimeSeconds, 'BotThoughts');
+    Log("Team" @ Team.TeamIndex $ ":" @ IndentExplanation $ Text, 'BotThoughts');
+  }
+
+  TimeExplanation = Level.TimeSeconds;
+}
+
+
+// ============================================================================
+// RenderOverlays
+//
+// Renders the current list of explanations on the screen.
+// ============================================================================
+
+function RenderOverlays(Canvas Canvas)
+{
+  local int iExplanation;
+  local int ClipXPrev;
+  local vector LocationText;
+  local vector LocationTextMin;
+  local Color ColorBase;
+  local Color ColorShaded;
+  
+  if (!bExplainToScreen)
+    return;
+  
+  ClipXPrev = Canvas.ClipX;
+  
+  switch (Team.TeamIndex) {
+    case 0:  ColorBase = Canvas.MakeColor(255, 0, 0);  LocationText.X = 0;  Canvas.ClipX /= 2;   break;
+    case 1:  ColorBase = Canvas.MakeColor(0, 0, 255);  LocationText.X = int(Canvas.ClipX /  2);  break;
+  }
+
+  LocationText   .Y = int(Canvas.ClipY * 0.80);
+  LocationTextMin.Y = int(Canvas.ClipY * 0.15);
+
+  Canvas.Style = ERenderStyle.STY_Alpha;
+  Canvas.Font = Font'DefaultFont';
+
+  Canvas.SetDrawColor(0, 0, 0, 128);
+  Canvas.SetPos(LocationText.X, LocationTextMin.Y);
+  Canvas.DrawRect(Texture'BlackTexture', Canvas.ClipX - LocationText.X, LocationText.Y - LocationTextMin.Y + 3);
+
+  for (iExplanation = ListExplanation.Length - 1; iExplanation >= 0; iExplanation--) {
+    LocationText.Y -= 6;
+    if (LocationText.Y < LocationTextMin.Y)
+      break;
+
+    if (ListExplanation[iExplanation].bIsShaded)
+           ColorShaded = ColorBase * 0.75;
+      else ColorShaded = ColorBase;
+  
+    Canvas.DrawColor = ColorShaded;
+    Canvas.SetPos(LocationText.X, LocationText.Y);
+    Canvas.DrawTextClipped(ListExplanation[iExplanation].Text);
+  }
+
+  Canvas.ClipX = ClipXPrev;
+}
+
+
+// ============================================================================
+// ExplainHeader
+//
+// Outputs the explanation header for the current tactics.
+// ============================================================================
+
+function ExplainHeader()
+{
+  local string ExplanationPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+
+  if (!bExplainToLog &&
+      !bExplainToScreen)
+    return;
+
+  Explain("reassessing orders for" @ GetStateName() $ ":");
+  ExplainBlockStart();
+
+  Explain("current team status:");
+  ExplainBlockStart();
+
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetTeam() == Team) {
+      ExplanationPlayer = GetExplanationPlayer(thisTagPlayer.GetController());
+           if (thisTagPlayer.IsInArena()) Explain("arena: " @ ExplanationPlayer @ "in" @ thisTagPlayer.GetArena().Tag);
+      else if (thisTagPlayer.IsInJail())  Explain("jailed:" @ ExplanationPlayer @ "in" @ thisTagPlayer.GetJail() .Tag);
+      else                                Explain("free:  " @ ExplanationPlayer @ GetExplanationOrders(thisTagPlayer.GetController()));
+    }
+  
+  ExplainBlockEnd();
+}
+
+
+// ============================================================================
+// ExplainBlockStart
+//
+// Starts an indented explanation block.
+// ============================================================================
+
+function ExplainBlockStart()
+{
+  IndentExplanation = IndentExplanation $ "  ";
+}
+
+
+// ============================================================================
+// ExplainBlockEnd
+//
+// Ends an indented explanation block.
+// ============================================================================
+
+function ExplainBlockEnd()
+{
+  if (Len(IndentExplanation) >= 2)
+    IndentExplanation = Left(IndentExplanation, Len(IndentExplanation) - 2);
+}
+
+
+// ============================================================================
+// GetExplanationObjective
+//
+// Returns a human-readable explanation for the given objective.
+// ============================================================================
+
+function string GetExplanationObjective(GameObjective GameObjective)
+{
+  local string Result;
+
+  if (!bExplainToLog &&
+      !bExplainToScreen)
+    return "(disabled)";
+
+  if (GameObjective == None)
+    return "freelancing";
+
+  if (GameObjective.ObjectiveName != GameObjective.Default.ObjectiveName)
+         Result = GameObjective.ObjectiveName;
+    else Result = "switch";
+  
+  if (GameObjective.Region.Zone.LocationName != GameObjective.Region.Zone.Default.LocationName)
+    Result = Result @ "in" @ GameObjective.Region.Zone.LocationName;
+  
+  if (GameObjective.DefenderTeamIndex == Team.TeamIndex)
+         Result = Result @ "(own base)";
+    else Result = Result @ "(enemy base)";
+
+  return Result;
+}
+
+
+// ============================================================================
+// GetExplanationPlayer
+//
+// Returns a human-readable explanation for the given player or bot.
+// ============================================================================
+
+function string GetExplanationPlayer(Controller Controller)
+{
+  if (!bExplainToLog &&
+      !bExplainToScreen)
+    return "(disabled)";
+
+  if (Controller.PlayerReplicationInfo != None)
+         if (PlayerController(Controller) != None) return Controller.PlayerReplicationInfo.PlayerName @ "(human)";
+    else if (Bot             (Controller) != None) return Controller.PlayerReplicationInfo.PlayerName @ "(bot)";
+  
+  return "unnamed" @ Controller.Class.Name;
+}
+
+
+// ============================================================================
+// GetExplanationOrders
+//
+// Returns a human-readable string explaining the given player's orders.
+// ============================================================================
+
+function string GetExplanationOrders(Controller Controller)
+{
+  local string Result;
+  local GameObjective GameObjective;
+  local JBTagPlayer TagPlayer;
+
+  if (!bExplainToLog &&
+      !bExplainToScreen)
+    return "(disabled)";
+
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+
+  if (Bot(Controller) != None && Bot(Controller).Squad != None)
+         GameObjective = Bot(Controller).Squad.SquadObjective;
+    else GameObjective = TagPlayer.GuessObjective();
+
+       if (IsObjectiveAttack (GameObjective)) Result = "attacking" @ GetExplanationObjective(GameObjective);
+  else if (IsObjectiveDefense(GameObjective)) Result = "defending" @ GetExplanationObjective(GameObjective);
+  else                                        Result = "freelancing";
+
+  if (TagPlayer.OrderNameFixed != '')
+    Result = Result @ "(fixed orders)";
+
+  return Result;
+}
 
 
 // ============================================================================
