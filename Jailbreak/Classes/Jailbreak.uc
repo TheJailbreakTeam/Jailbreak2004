@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.22 2003/01/19 23:57:22 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.23 2003/01/20 00:07:04 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -322,6 +322,23 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
   else {
     Super.BroadcastDeathMessage(ControllerKiller, ControllerVictim, DamageType);
     }
+  }
+
+
+// ============================================================================
+// CanSpectate
+//
+// Checks and returns whether the given player can spectate from the given new
+// view target. Only allows players to spectate other actual players.
+// ============================================================================
+
+function bool CanSpectate(PlayerController PlayerViewer, bool bOnlySpectator, Actor ViewTarget) {
+
+  if (Pawn(ViewTarget) != None &&
+      Class'JBTagPlayer'.Static.FindFor(Pawn(ViewTarget).PlayerReplicationInfo) == None)
+    return False;
+  
+  return Super.CanSpectate(PlayerViewer, bOnlySpectator, ViewTarget);
   }
 
 
