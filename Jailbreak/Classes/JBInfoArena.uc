@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.27 2004/03/29 00:01:07 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.28 2004/04/06 23:57:43 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -47,6 +47,7 @@ struct TDisplayPlayer
 
   var protected float TimeStart;
   var protected float TimeUpdate;
+  var protected float Health;
   var protected float HealthDisplayed;
   var protected string PlayerName;
 
@@ -923,7 +924,6 @@ simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplay
 
 simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer)
 {
-  local float HealthCurrent;
   local float HealthDelta;
   local float TimeDelta;
 
@@ -931,9 +931,9 @@ simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplay
 
   if (DisplayPlayer.TagPlayer != None &&
       DisplayPlayer.TagPlayer.GetArena() == Self)
-    HealthCurrent = DisplayPlayer.TagPlayer.GetHealth(True);
+    DisplayPlayer.Health = DisplayPlayer.TagPlayer.GetHealth(True);
 
-  HealthDelta = HealthCurrent - DisplayPlayer.HealthDisplayed;
+  HealthDelta = DisplayPlayer.Health - DisplayPlayer.HealthDisplayed;
 
   DisplayPlayer.HealthDisplayed += HealthDelta * FMin(1.0, TimeDelta * 2.0);
   DisplayPlayer.SpriteWidgetHealthBar.Scale = FClamp(DisplayPlayer.HealthDisplayed, 0.0, 100.0) / 100.0;
