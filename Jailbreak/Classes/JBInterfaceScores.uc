@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInterfaceScores.uc,v 1.6.2.2 2004/05/31 02:10:00 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -96,6 +96,9 @@ struct TEntry
   var TEntryPosition PositionPrevious;  // previous position; movement origin
   var TEntryPosition PositionCurrent;   // current position; movement target
   var TEntryPosition PositionPending;   // next target position when finished
+
+  var bool bOverrideColor;              // override main color
+  var Color ColorOverride;              // color to override main color with
 
   var JBTagPlayer TagPlayer;            // reference to player game info
 };
@@ -1308,6 +1311,44 @@ simulated function DrawTable(Canvas Canvas, out TTable Table)
 
 
 // ============================================================================
+// OverrideEntryColor
+//
+// Overrides the main color of a given entry. Alpha values are ignored. The
+// color override is effective until ResetEntryColor is called.
+// ============================================================================
+
+simulated function OverrideEntryColor(JBTagPlayer TagPlayerEntry, Color ColorOverride)
+{
+  local int iEntry;
+
+  for (iEntry = 0; iEntry < ListEntry.Length; iEntry++)
+    if (ListEntry[iEntry].TagPlayer == TagPlayerEntry) {
+      ListEntry[iEntry].bOverrideColor = True;
+      ListEntry[iEntry].ColorOverride = ColorOverride;
+      break;
+    }
+}
+
+
+// ============================================================================
+// ResetEntryColor
+//
+// Resets the main color of a given entry to its normal behavior.
+// ============================================================================
+
+simulated function ResetEntryColor(JBTagPlayer TagPlayerEntry)
+{
+  local int iEntry;
+
+  for (iEntry = 0; iEntry < ListEntry.Length; iEntry++)
+    if (ListEntry[iEntry].TagPlayer == TagPlayerEntry) {
+      ListEntry[iEntry].bOverrideColor = False;
+      break;
+    }
+}
+
+
+// ============================================================================
 // DrawEntry
 //
 // Draws the given entry at its current position in its current layout.
@@ -1336,7 +1377,10 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
 
   LayoutTable = Table[Entry.PositionCurrent.iTable].Layout;
 
-  Canvas.DrawColor   =        LayoutEntry.ColorMain;
+  if (Entry.bOverrideColor)
+         Canvas.DrawColor = Entry.ColorOverride;
+    else Canvas.DrawColor = LayoutEntry.ColorMain;
+
   Canvas.DrawColor.A = FClamp(LayoutEntry.ColorMain.A * (0.5 + 0.5 * Entry.FadeMain), 0, 255);
   Canvas.Font = FontObjectMain;
 
@@ -1397,7 +1441,10 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
   }
 
   if (Panorama != None && bIsMatchRunning && Entry.FadeMain > 0) {
-    Canvas.DrawColor   =        LayoutEntry.ColorMain;
+    if (Entry.bOverrideColor)
+           Canvas.DrawColor = Entry.ColorOverride;
+      else Canvas.DrawColor = LayoutEntry.ColorMain;
+
     Canvas.DrawColor.A = FClamp(LayoutEntry.ColorMain.A * Entry.FadeMain, 0, 255);
 
     if (iEntryOwner >= 0) {
