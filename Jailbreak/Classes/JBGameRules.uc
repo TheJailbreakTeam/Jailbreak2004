@@ -285,6 +285,26 @@ function NotifyExecutionEnd()
 
 
 // ============================================================================
+// CanBotAttackEnemy
+//
+// Called when a bot looks for a new enemy. Returning True means that the bot
+// is allowed to attack the given enemy; returning False prevents the bot from
+// attacking the enemy.
+// ============================================================================
+
+function bool CanBotAttackEnemy(Bot Bot, Pawn PawnEnemy)
+{
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
+  if (nextJBGameRules != None)
+    return nextJBGameRules.CanBotAttackEnemy(Bot, PawnEnemy);
+
+  return True;
+}
+
+
+// ============================================================================
 // GetNextJBGameRules
 //
 // Internal. Used to find the next JBGameRules actor in the GameRules chain.

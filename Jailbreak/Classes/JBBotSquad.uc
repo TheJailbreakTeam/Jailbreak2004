@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.15 2003/06/23 17:52:19 mychaeel Exp $
+// $Id$
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -103,7 +103,13 @@ function bool FindPathToObjective(Bot Bot, Actor ActorObjective)
 
 function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
 {
+  local JBGameRules firstJBGameRules;
   local JBTagPlayer TagPlayerEnemy;
+
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None &&
+     !firstJBGameRules.CanBotAttackEnemy(Bot, PawnEnemy))
+    return False;
 
   TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
 
