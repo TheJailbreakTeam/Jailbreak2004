@@ -1,11 +1,11 @@
 // ============================================================================
-// JBGUIPanelProtectionConfig
+// JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelProtectionConfig.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.1 2004/03/12 20:35:05 tarquin Exp $
 //
 // Option of protection mutator.
 // ============================================================================
-class JBGUIPanelProtectionConfig extends GUIPanel;
+class JBGUIPanelConfigProtection extends GUIPanel;
 
 
 // ============================================================================
