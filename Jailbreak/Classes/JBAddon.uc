@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBAddon.uc,v 1.6.2.1 2004/05/17 23:39:03 mychaeel Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -85,6 +85,18 @@ simulated event PostNetBeginPlay()
 // ============================================================================
 
 simulated function RenderOverlays(Canvas Canvas);
+
+
+// ============================================================================
+// PlayInfoGroup
+//
+// Returns the name to be used for this add-on in FillPlayInfo.
+// ============================================================================
+
+function string PlayInfoGroup()
+{
+  return Jailbreak(Level.Game).TextWebAdminPrefixAddon @ FriendlyName;
+}
 
 
 // ============================================================================
