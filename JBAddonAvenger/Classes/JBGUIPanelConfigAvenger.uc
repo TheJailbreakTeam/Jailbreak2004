@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigAvenger (formerly JBGUIPanelConfigBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBGUIPanelConfigAvenger.uc,v 1.1 2004/04/09 19:16:34 tarquin Exp $
 //
 // Options for the Avenger add-on.
 // ============================================================================
@@ -38,7 +38,7 @@ var private bool bInitialized;  // used to prevent saving config during initiali
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
-  local Object TestClass;
+  //local Object TestClass;
   local int i;
   
   Super.InitComponent(MyController, MyOwner);
@@ -56,6 +56,7 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 
   LoadINISettings();
 
+  // was trying to get all currently loaded combo classes
   // class list: xPlayer.defaults.ComboNameList
   /*
   foreach AllObjects(class'Object', TestClass) {
