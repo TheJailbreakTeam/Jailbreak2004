@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.16 2002/12/23 01:11:24 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.17 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -501,8 +501,6 @@ function bool ExecutionInit() {
   local int iTeamCaptured;
   
   if (IsInState('MatchInProgress')) {
-    iTeamCaptured = -1;
-    
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
       if (IsCaptured(Teams[iTeam])) {
         if (bFoundCaptured) {
@@ -515,7 +513,7 @@ function bool ExecutionInit() {
         iTeamCaptured = iTeam;
         }
   
-    if (iTeamCaptured < 0 || IsReleaseActive(Teams[iTeamCaptured]))
+    if (!bFoundCaptured || IsReleaseActive(Teams[iTeamCaptured]))
       return False;
   
     ExecutionCommit(Teams[iTeamCaptured]);
