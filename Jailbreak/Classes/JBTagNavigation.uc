@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagNavigation
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagNavigation.uc,v 1.3 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: JBTagNavigation.uc,v 1.4 2003/02/09 17:34:53 mychaeel Exp $
 //
 // Caches information about an actor used for navigational purposes.
 // ============================================================================
@@ -82,7 +82,9 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
   if (Default.Controller.FindPathToward(ActorTo) != None)
     Distance = Default.Controller.RouteDist;
   else
-    Distance = VSize(ActorFrom.Location - ActorTo.Location);  // fallback
+    Distance = VSize(ActorFrom.Location - ActorTo.Location);
+
+  Default.Controller.Pawn.SetPhysics(PHYS_None);  // may be set to falling
 
   iDistance = TagNavigationFrom.ListInfoDistance.Length;
   TagNavigationFrom.ListInfoDistance.Insert(iDistance, 1);
