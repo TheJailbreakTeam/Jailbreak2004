@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBGameRulesProtection.uc,v 1.2.2.5 2004/05/18 20:23:00 mychaeel Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -291,26 +291,25 @@ function Llamaize(Controller ControllerPlayer)
 // ============================================================================
 // CanBotAttackEnemy
 //
-// Called when a bot looks for a new enemy. Return false if the enemy is
-// protected. Return false if the bot is protected -- unless protection is
-// droppable and the bot has a superior weapon to the enemy.
+// Called when a bot looks for a new enemy. Return false if: a) the enemy is
+// protected, b) the bot is protected and protection prevents damage, 
+// c) the bot is protected and protection is droppable, but the bot has 
+// an inferior weapon.
 // ============================================================================
 
 function bool CanBotAttackEnemy(Bot Bot, Pawn PawnEnemy)
 {
   local JBGameRules nextJBGameRules;
   
-  if( IsProtected(Bot.Pawn) ) {
-    if( class'JBAddonProtection'.default.ProtectionType == 1 
-      && Bot.RateWeapon(Bot.Pawn.Weapon) >= Bot.RateWeapon(PawnEnemy.Weapon)) {
-      return True;
-    }
-    else {
-      return False;
-    }
-  }
-  
   if( IsProtected(PawnEnemy) )
+    return False;
+  
+  if( IsProtected(Bot.Pawn) && class'JBAddonProtection'.default.ProtectionType == 0 )
+    return False;
+    
+  if( IsProtected(Bot.Pawn) 
+    && class'JBAddonProtection'.default.ProtectionType == 1 
+    && Bot.RateWeapon(Bot.Pawn.Weapon) <= Bot.RateWeapon(PawnEnemy.Weapon) )
     return False;
   
   return super.CanBotAttackEnemy(Bot, PawnEnemy);
