@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.7 2004/03/18 20:08:52 tarquin Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.8 2004/03/26 20:44:10 tarquin Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -102,6 +102,7 @@ defaultproperties
     WinHeight =0.1
     WinWidth  =1.0
     Caption="Rewards for killing a Llama:"
+    TextColor = (R=255,G=255,B=255);
   End Object
   Controls(0)=GUILabel'LlamaKillRewardLabel'
   
