@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDecoSwitchPadlock
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBDecoSwitchPadlock.uc,v 1.1 2004/05/09 16:19:37 mychaeel Exp $
 //
 // Animated padlock for standard release switch.
 // ============================================================================
@@ -27,26 +27,27 @@ class JBDecoSwitchPadlock extends Decoration
 // Variables
 // ============================================================================
 
-var float TimeSway;
+var private float TimeAnimate;
 
 
 // ============================================================================
 // Tick
 //
-// Makes the padlock slightly sway back and forth.
+// Makes the padlock slightly pulse and sway back and forth.
 // ============================================================================
 
 event Tick(float TimeDelta)
 {
   local Rotator RotationSway;
   
-  TimeSway += TimeDelta;
+  TimeAnimate += TimeDelta;
   
   RotationSway = Rotation;
-  RotationSway.Roll  = Default.Rotation.Roll  + 4096 * Sin(TimeSway * 0.6);
-  RotationSway.Pitch = Default.Rotation.Pitch + 4096 * Sin(TimeSway * 0.9);
-
+  RotationSway.Roll  = Default.Rotation.Roll  + 4096 * Sin(TimeAnimate * 0.6);
+  RotationSway.Pitch = Default.Rotation.Pitch + 4096 * Sin(TimeAnimate * 0.9);
   SetRotation(RotationSway);
+
+  SetDrawScale(Default.DrawScale * (1.0 + 0.1 * Sin(TimeAnimate * 3.0)));
 }
 
 
@@ -126,14 +127,15 @@ defaultproperties
 {
   DrawType                  = DT_Mesh;
   Mesh                      = SkeletalMesh'Padlock';
-  Style                     = STY_Alpha;
-  AmbientGlow               = 16;
   LODBias                   = 1024.0;
+  Style                     = STY_Alpha;
+  AmbientGlow               = 32;
 
   Physics                   = PHYS_Rotating;
   Rotation                  = (Pitch=32768,Roll=32768);
   RotationRate              = (Yaw=4800);
   bFixedRotationDir         = True;
+  Location                  = (Z=8.0);
   
   bStatic                   = False;
   bBlockActors              = False;

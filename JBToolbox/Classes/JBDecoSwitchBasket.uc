@@ -12,18 +12,10 @@ class JBDecoSwitchBasket extends Decoration
 
 
 // ============================================================================
-// Properties
-// ============================================================================
-
-var() Material MaterialSkinRed;
-var() Material MaterialSkinBlue;
-
-
-// ============================================================================
 // Variables
 // ============================================================================
 
-var Emitter Emitter;
+var JBEmitterBasket Emitter;
 
 
 // ============================================================================
@@ -35,11 +27,7 @@ var Emitter Emitter;
 simulated event PostBeginPlay()
 {
   Emitter = Spawn(Class'JBEmitterBasket', Self, , Location + PrePivot, Rotation);
-  
-  switch (GameObjective(Owner).DefenderTeamIndex) {
-    case 0:  Emitter.Skins[0] = MaterialSkinRed;   break;
-    case 1:  Emitter.Skins[0] = MaterialSkinBlue;  break;
-  }
+  Emitter.SetDefendingTeam(GameObjective(Owner).DefenderTeamIndex);
 }
 
 
@@ -93,7 +81,4 @@ defaultproperties
   bBlockPlayers             = False;
   bCollideActors            = False;
   bCollideWorld             = False;
-
-  MaterialSkinRed           = Shader'XGameShaders.BRShaders.BombIconRS';
-  MaterialSkinBlue          = Shader'XGameShaders.BRShaders.BombIconBS';
 }
