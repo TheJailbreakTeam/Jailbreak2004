@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.5 2004/03/12 20:16:23 tarquin Exp $
+// $Id: JBAddon.uc,v 1.6 2004/03/18 20:02:44 tarquin Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -85,6 +85,24 @@ simulated event PostNetBeginPlay()
 // ============================================================================
 
 simulated function RenderOverlays(Canvas Canvas);
+
+
+// ============================================================================
+// GetServerDetails
+//
+// Puts Jailbreak add-ons into a separate list so that Jailbreak servers show
+// up in the server browser even if Standard Servers Only is checked.
+// ============================================================================
+
+function GetServerDetails(out GameInfo.ServerResponseLine ServerState)
+{
+  local int iServerInfo;
+
+  iServerInfo = ServerState.ServerInfo.Length;
+  ServerState.ServerInfo.Insert(iServerInfo, 1);
+  ServerState.ServerInfo[iServerInfo].Key = "AddOn";
+  ServerState.ServerInfo[iServerInfo].Value = GetHumanReadableName();
+}
 
 
 // ============================================================================
