@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.35 2004/05/04 13:03:52 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.36 2004/05/04 15:15:38 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -415,13 +415,16 @@ function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator)
 // Returns the number of living players currently fighting in this arena.
 // ============================================================================
 
-function int CountPlayers()
+simulated function int CountPlayers()
 {
   local int nPlayers;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
-  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  if (Level.Game != None)
+         firstTagPlayer = JBGameReplicationInfo(Level.Game                      .GameReplicationInfo).firstTagPlayer;
+    else firstTagPlayer = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo).firstTagPlayer;
+
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArena() == Self &&
         thisTagPlayer.GetPawn() != None)
