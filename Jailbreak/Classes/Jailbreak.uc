@@ -1280,8 +1280,10 @@ state MatchInProgress {
     if (TagPlayer.TimeRestart > Level.TimeSeconds)
       return;
 
-    Super.RestartPlayer(Controller);
-    TagPlayer.NotifyRestarted();
+    Global.RestartPlayer(Controller);
+
+    if (TagPlayer != None)
+      TagPlayer.NotifyRestarted();
 
     if (Controller != None) {
       JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
