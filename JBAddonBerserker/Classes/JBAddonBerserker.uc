@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonBerserker.uc,v 1.3 2004/03/12 20:57:54 tarquin Exp $
+// $Id: JBAddonBerserker.uc,v 1.4 2004/03/18 20:06:49 tarquin Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -47,7 +47,7 @@ function PostBeginPlay()
 // ============================================================================
 defaultproperties
 {
-    Build = "2003-07-24 19:41";
+    Build = "%%%%-%%-%% %%:%%";
     BerserkTimeMultiplier=50
     MaxBerserkTime=30
     FriendlyName="Berserker"
