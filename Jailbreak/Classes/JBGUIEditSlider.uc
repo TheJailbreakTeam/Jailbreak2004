@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIEditSlider
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIEditSlider.uc,v 1.1 2004/03/09 15:39:13 wormbo Exp $
+// $Id: JBGUIEditSlider.uc,v 1.1 2004/03/09 18:55:04 wormbo Exp $
 //
 // User interface component: Combines a slider and an editbox with a label.
 //=============================================================================
@@ -30,6 +30,7 @@ var(Menu) color LabelColor;             // Color for the label
 var(Menu) float CaptionWidth;
 var(Menu) float EditBoxWidth;
 var(Menu) float SliderWidth;
+var(Menu) float LeftIndent; // left indent of label, relative to parent
 
 
 //=============================================================================
@@ -47,19 +48,12 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   MyEditBox = JBGUIComponentEdit(Controls[2]);
   OnPreDraw = InternalOnPreDraw;
   
+  // label
   MyLabel.Caption   = Caption;
   MyLabel.TextFont  = LabelFont;
   MyLabel.TextColor = LabelColor;
-  MyLabel.WinWidth  = CaptionWidth;
-  if ( CaptionWidth == -1 && SliderWidth == -1 && EditboxWidth == -1 )
-    MyLabel.WinWidth = 0.3;
-  else if ( CaptionWidth == -1 && EditBoxWidth != -1 )
-    MyLabel.WinWidth = 1 - SliderWidth - EditBoxWidth;
-  else if ( CaptionWidth == -1 && EditBoxWidth == -1 )
-    MyLabel.WinWidth = 0.5 * (1 - SliderWidth);
-  else
-    MyLabel.WinWidth = CaptionWidth;
-  
+
+  // slider
   MySlider.OnChange          = InternalOnChange;
   MySlider.OnValueChanged    = InternalOnValueChanged;
   MySlider.Hint              = Hint;
@@ -67,16 +61,8 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   MySlider.SetSliderRange(MinValue, MaxValue);
   MySlider.SetIntSlider(bIntegerOnly);
   MySlider.SetValue(Value, True);
-  MySlider.WinLeft = CaptionWidth;
-  if ( CaptionWidth == -1 && SliderWidth == -1 && EditboxWidth == -1 )
-    MySlider.WinWidth = 0.4;
-  else if ( SliderWidth == -1 && EditBoxWidth != -1 )
-    MySlider.WinWidth = 1 - CaptionWidth - EditBoxWidth;
-  else if ( SliderWidth == -1 && EditBoxWidth == -1 )
-    MySlider.WinWidth = 0.5 * (1 - CaptionWidth);
-  else
-    MySlider.WinWidth = SliderWidth;
   
+  // editbox
   if ( bIntegerOnly )
     MyEditBox.SetIntEdit(MinValue >= 0 && MaxValue >= 0);
   else
@@ -84,19 +70,61 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   MyEditBox.SetNumericRange(MinValue, MaxValue);
   MyEditBox.SetSpinButtons(bSpinButtons);
   MyEditBox.SetValue(Value);
-  if ( CaptionWidth == -1 && SliderWidth == -1 && EditboxWidth == -1 )
-    MyEditBox.WinWidth = 0.3;
-  else if ( SliderWidth != -1 && EditBoxWidth == -1 )
-    MyEditBox.WinWidth = 1 - CaptionWidth - SliderWidth;
-  else if ( SliderWidth == -1 && EditBoxWidth == -1 )
-    MyEditBox.WinWidth = 0.5 * (1 - CaptionWidth);
-  else
-    MyEditBox.WinWidth = EditBoxWidth;
-  MyEditBox.WinLeft = 1 - MyEditBox.WinWidth;
   MyEditBox.OnChange          = InternalOnChange;
   MyEditBox.Hint              = Hint;
   MyEditBox.FriendlyLabels[0] = MyLabel;
   MyEditBox.OnEnterPressed    = InternalOnEnterPressed;
+  
+  // layout
+  MyLabel.WinWidth    = CaptionWidth;
+  MySlider.WinWidth   = SliderWidth;
+  MyEditBox.WinWidth  = EditboxWidth;
+  
+  switch (
+    int( CaptionWidth == -1 ) +
+    int( SliderWidth  == -1 ) +
+    int( EditboxWidth == -1 ) ) {
+    case 3:
+      // all defaults
+      MyLabel.WinWidth    = 0.3;
+      MySlider.WinWidth   = 0.4;
+      MyEditBox.WinWidth  = 0.3;
+      break;
+    case 2:
+      // two defaults, one measurement
+      if( CaptionWidth != -1 ) {
+        MySlider.WinWidth   = 0.5 * ( 1 - CaptionWidth);
+        MyEditBox.WinWidth  = 0.5 * ( 1 - CaptionWidth);
+      }
+      if( SliderWidth != -1 ) {
+        MyLabel.WinWidth   = 0.5 * ( 1 - SliderWidth);
+        MyEditBox.WinWidth  = 0.5 * ( 1 - SliderWidth);
+      }
+      if( EditboxWidth != -1 ) {
+        MyLabel.WinWidth   = 0.5 * ( 1 - EditboxWidth);
+        MySlider.WinWidth   = 0.5 * ( 1 - EditboxWidth);
+      }
+      break;
+    case 1:
+      // one default, two measurements
+      if( CaptionWidth == -1 ) {
+        MyLabel.WinWidth   = 1 - SliderWidth - EditboxWidth;
+      }
+      if( SliderWidth == -1 ) {
+        MySlider.WinWidth   = 1 - CaptionWidth - EditboxWidth;
+      }
+      if( EditboxWidth == -1 ) {
+        MyEditBox.WinWidth  = 1 - CaptionWidth - SliderWidth;
+      }
+    break;
+    // case 0: covered before switch statement
+  }
+  MySlider.WinLeft  = MyLabel.WinWidth;
+  MyEditBox.WinLeft = 1 - MyEditBox.WinWidth;
+  
+  // tweak for indent
+  MyLabel.WinLeft   = LeftIndent / WinWidth;
+  MyLabel.WinWidth  -= LeftIndent / WinWidth;
 }
 
 
