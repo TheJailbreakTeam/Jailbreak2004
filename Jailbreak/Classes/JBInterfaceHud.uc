@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.35.2.13 2004/05/24 14:50:31 mychaeel Exp $
+// $Id$
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1007,9 +1007,14 @@ simulated function Tick(float TimeDelta)
 simulated function HackSpeechMenu()
 {
   local byte KeySubmenuOrder;
+  local PlayerController PlayerControllerLocal;
   local ExtendedConsole Console;
 
-  Console = ExtendedConsole(Level.GetLocalPlayerController().Player.Console);
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+  if (PlayerControllerLocal == None)
+    return;
+
+  Console = ExtendedConsole(PlayerControllerLocal.Player.Console);
 
   if (Console.IsInState('SpeechMenuVisible')) {
     if (Console.SMState != SpeechMenuState || !bSpeechMenuVisible) {

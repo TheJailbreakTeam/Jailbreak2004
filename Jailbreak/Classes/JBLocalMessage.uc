@@ -258,7 +258,8 @@ static function string ReplaceTextArena(string TextTemplate,
 
   PlayerLocal = PlayerReplicationInfo1.Level.GetLocalPlayerController();
 
-  if (PlayerLocal.PlayerReplicationInfo.Team == PlayerReplicationInfo1.Team) {
+  if (PlayerLocal == None ||
+      PlayerLocal.PlayerReplicationInfo.Team == PlayerReplicationInfo1.Team) {
     PlayerReplicationInfoTeammate = PlayerReplicationInfo1;
     PlayerReplicationInfoEnemy    = PlayerReplicationInfo2;
   } else {
@@ -288,11 +289,14 @@ static function string ReplaceTextArena(string TextTemplate,
 static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo1,
                           optional PlayerReplicationInfo PlayerReplicationInfo2)
 {
-  local PlayerReplicationInfo PlayerReplicationInfoLocal;
+  local PlayerController PlayerLocal;
 
-  PlayerReplicationInfoLocal = PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo;
-  return (PlayerReplicationInfo1 == PlayerReplicationInfoLocal ||
-          PlayerReplicationInfo2 == PlayerReplicationInfoLocal);
+  PlayerLocal = PlayerReplicationInfo1.Level.GetLocalPlayerController();
+  if (PlayerLocal == None)
+    return False;
+
+  return (PlayerReplicationInfo1 == PlayerLocal.PlayerReplicationInfo ||
+          PlayerReplicationInfo2 == PlayerLocal.PlayerReplicationInfo);
 }
 
 
