@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.29 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.30 2004/03/05 15:18:27 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -15,7 +15,9 @@ class JBInterfaceHud extends HudBTeamDeathMatch
 // Imports
 // ============================================================================
 
-#exec texture import file=Textures\SpriteWidgetHud.dds mips=on alpha=on lodset=LODSET_Interface
+#exec texture import file=Textures\SpriteWidgetHud.dds     mips=on alpha=on lodset=LODSET_Interface
+#exec texture import file=Textures\ArenaNotifierSlider.dds mips=on alpha=on lodset=LODSET_Interface uclampmode=TC_Clamp vclampmode=TC_Clamp
+#exec texture import file=Textures\ArenaNotifierMask.dds   mips=on alpha=on lodset=LODSET_Interface uclampmode=TC_Clamp vclampmode=TC_Clamp
 
 
 // ============================================================================
@@ -29,6 +31,8 @@ var localized string TextMenuEntryTactics;    // tactics entry in order menu
 var localized string TextMenuTitleTactics;    // title for tactics submenu
 var localized string TextOrderName[6];        // selections in tactics submenu
 var localized string TextTactics[5];          // tactics names for widget
+
+var localized string TextArenaNotifier;       // arena notifier slider
 
 
 // ============================================================================
@@ -46,6 +50,7 @@ var private transient JBTagPlayer TagPlayerOwner;  // player state for owner
 var private float TimeUpdateLocationChat;     // last chat area movement
 var private float TimeUpdateCompass;          // last compass rendering
 var private float TimeUpdateDisposition;      // last disposition rendering
+var private float TimeUpdateArenaNotifier;    // last arena notifier rendering
 var private float TimeUpdateTactics;          // last tactics rendering
 var private float TimeUpdateWidescreen;       // last widescreen bar rendering
 
@@ -69,9 +74,15 @@ var Color ColorTactics[5];                    // colors for the tactics blob
 var private float TacticsInterpolated;        // currently displayed tactics
 var private Font FontObjectTactics;           // dynamically loaded font object
 
+var string FontArenaNotifier;                 // name of font for arena slider
+var vector LocationTextArenaNotifier;         // location of notifier text
+var vector SizeTextArenaNotifier;             // relative size of notifier text
+var private Font FontObjectArenaNotifier;     // dynamically loaded font object
+
 var SpriteWidget SpriteWidgetCompass[2];      // compass circles
 var SpriteWidget SpriteWidgetCompassDot;      // compass dot showing releases
 var SpriteWidget SpriteWidgetHandcuffs[2];    // handcuff icons in circles
+var SpriteWidget SpriteWidgetArenaNotifier;   // arena notifier slider
 
 var SpriteWidget SpriteWidgetTacticsCircle;   // tactics circle
 var SpriteWidget SpriteWidgetTacticsBlob;     // colored and pulsing blob
@@ -640,6 +651,66 @@ simulated function ShowCompass(Canvas Canvas)
 
 
 // ============================================================================
+// ShowArenaNotifier
+//
+// Draws the arena notifier.
+// ============================================================================
+
+simulated function ShowArenaNotifier(Canvas Canvas)
+{
+  local bool bShowArenaNotifier;
+  local float TimeDelta;
+  local ColorModifier ColorModifierArenaNotifier;
+  local TexScaler TexScalerArenaNotifier;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+
+  if (TimeUpdateArenaNotifier > 0.0)
+    TimeDelta = Level.TimeSeconds - TimeUpdateArenaNotifier;
+  TimeUpdateArenaNotifier = Level.TimeSeconds;
+
+  firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.IsInArena())
+      bShowArenaNotifier = True;
+
+  ColorModifierArenaNotifier = ColorModifier(SpriteWidgetArenaNotifier.WidgetTexture);
+  ColorModifierArenaNotifier.Color.A = SpriteWidgetArenaNotifier.Tints[TeamIndex].A;
+
+  TexScalerArenaNotifier = TexScaler(Combiner(Shader(ColorModifierArenaNotifier.Material).Diffuse).Material1);
+
+  if (bShowArenaNotifier)
+         TexScalerArenaNotifier.VOffset = FClamp(TexScalerArenaNotifier.VOffset - 256.0 * TimeDelta, 0.0, 128.0);
+    else TexScalerArenaNotifier.VOffset = FClamp(TexScalerArenaNotifier.VOffset + 256.0 * TimeDelta, 0.0, 128.0);
+
+  if (TexScalerArenaNotifier.VOffset < 128.0) {
+    DrawSpriteWidget(Canvas, SpriteWidgetArenaNotifier);
+  
+    if (FontObjectArenaNotifier == None)
+      FontObjectArenaNotifier = Font(DynamicLoadObject(FontArenaNotifier, Class'Font'));
+  
+    Canvas.DrawColor = WhiteColor;
+    Canvas.DrawColor.A = FClamp((32.0 - TexScalerArenaNotifier.VOffset) * 8.0, 0, 255);
+  
+    if (Canvas.DrawColor.A > 0) {
+      Canvas.Font = FontObjectArenaNotifier;
+      Canvas.FontScaleX = SizeTextArenaNotifier.X * HudScale * HudCanvasScale * Canvas.ClipX / 640;
+      Canvas.FontScaleY = SizeTextArenaNotifier.Y * HudScale * HudCanvasScale * Canvas.ClipY / 480;
+    
+      Canvas.DrawScreenText(
+        TextArenaNotifier,
+        HudCanvasScale * (LocationTextArenaNotifier.X - 0.5) + 0.5,
+        HudCanvasScale * (LocationTextArenaNotifier.Y - 0.5) + 0.5,
+        DP_UpperMiddle);
+    
+      Canvas.FontScaleX = Canvas.Default.FontScaleX;
+      Canvas.FontScaleY = Canvas.Default.FontScaleY;
+    }
+  }
+}
+
+
+// ============================================================================
 // ShowBuild
 //
 // Draws information about build time and date and the local player.
@@ -681,7 +752,6 @@ simulated function SetDisplayAdrenaline(bool bDisplay)
     Adrenaline[3] .WidgetTexture = Default.Adrenaline[3] .WidgetTexture;
     Adrenaline[4] .WidgetTexture = Default.Adrenaline[4] .WidgetTexture;
   }
-
   else {
     AdrenalineCount.Tints[0].A = 0;
     AdrenalineCount.Tints[1].A = 0;
@@ -720,6 +790,7 @@ simulated function ShowTeamScorePassA(Canvas Canvas)
     DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
     DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
 
+    ShowArenaNotifier(Canvas);
     ShowTactics(Canvas);
     ShowCompass(Canvas);
     ShowDisposition(Canvas);
@@ -977,6 +1048,11 @@ defaultproperties
   TextOrderName[4] = "Defensive";
   TextOrderName[5] = "Evasive";
 
+  FontArenaNotifier = "UT2003Fonts.jFontMedium";
+  TextArenaNotifier = "arena match";
+  LocationTextArenaNotifier = (X=0.500,Y=0.096);
+  SizeTextArenaNotifier     = (X=0.420,Y=0.420);
+
   LocationChatScoreboard = (X=0.050,Y=0.300);
 
   LocationTextTactics = (X=0.155,Y=0.028);
@@ -996,11 +1072,31 @@ defaultproperties
   ColorTactics[3] = (R=255,G=192,B=128,A=192);
   ColorTactics[4] = (R=255,G=192,B=000,A=192);
 
+  Begin Object Class=TexScaler Name=TexScalerArenaNotifierSlider
+    Material = Texture'ArenaNotifierSlider';
+  End Object
+  
+  Begin Object Class=Combiner Name=CombinerArenaNotifierMain
+    AlphaOperation = AO_Multiply;
+    Material1 = TexScaler'TexScalerArenaNotifierSlider';
+    Material2 = Texture'ArenaNotifierMask';
+  End Object
+  
+  Begin Object Class=Shader Name=ShaderArenaNotifierMain
+    Diffuse = Combiner'CombinerArenaNotifierMain';
+    Opacity = Combiner'CombinerArenaNotifierMain';
+  End Object
+
+  Begin Object Class=ColorModifier Name=ColorModifierArenaNotifierMain
+    Material = Shader'ShaderArenaNotifierMain';
+  End Object
+
   SpriteWidgetCompass[0]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-2,OffsetY=6,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
   SpriteWidgetCompass[1]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=2,OffsetY=6,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
   SpriteWidgetCompassDot     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=304,Y1=352,X2=336,Y2=384),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,RenderStyle=STY_Alpha);
   SpriteWidgetHandcuffs[0]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=064,Y1=400,X2=160,Y2=507),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-29,OffsetY=23,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=51),Tints[1]=(R=255,G=255,B=255,A=51));
   SpriteWidgetHandcuffs[1]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=064,Y1=400,X1=160,Y2=507),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=29,OffsetY=23,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=51),Tints[1]=(R=255,G=255,B=255,A=51));
+  SpriteWidgetArenaNotifier  = (WidgetTexture=ColorModifier'ColorModifierArenaNotifierMain',TextureCoords=(X1=0,Y1=0,X2=256,Y2=256),TextureScale=0.3,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0.0,OffsetY=-48,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=222),Tints[1]=(R=43,G=71,B=112,A=232));
 
   SpriteWidgetTacticsBlob    = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=810,Y1=200,X2=1023,Y2=413),TextureScale=0.20,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=-15,OffsetY=-28,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255))
   SpriteWidgetTacticsCircle  = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=000,OffsetY=000,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
