@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.11 2003/03/22 18:27:31 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.12 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -499,3 +499,252 @@ function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, 
 
   Super.NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
   }
+
+
+// ============================================================================
+// StartEvasive
+// StopEvasive
+//
+// Start or stop evasive squad tactics. Works only on squads that are already
+// freelancing.
+// ============================================================================
+
+function StartEvasive() { if (GetOrders() == 'Freelance' && !IsEvasive()) GotoState('Evasive'); }
+function StopEvasive()  { if (                               IsEvasive()) GotoState('');        }
+
+
+// ============================================================================
+// IsEvasive
+//
+// Checks and returns whether this squad is currently trying to be evasive.
+// ============================================================================
+
+function bool IsEvasive() {
+
+  return IsInState('Evasive');
+  }
+
+
+// ============================================================================
+// state Evasive
+//
+// Bots try to avoid enemy encounters and only react aggressively when they're
+// cornered by enemies.
+// ============================================================================
+
+state Evasive {
+
+  // ================================================================
+  // BeginState
+  //
+  // Puts this squad on freelance, and sets the aggressiveness of
+  // all bots in this squad to low.
+  // ================================================================
+
+  event BeginState() {
+  
+    local Bot thisBot;
+    
+    bFreelance       = True;
+    bFreelanceAttack = False;
+    bFreelanceDefend = False;
+    
+    SquadObjective = None;
+
+    if (CountEnemies() == 0)
+      for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
+        thisBot.Aggressiveness = -10.0;  // retreat instead of starting fight
+    }
+
+
+  // ================================================================
+  // CheckSquadObjectives
+  //
+  // Tries to find nearby cover for the given bot if the bot is
+  // aware of an enemy. If no cover is found, makes the bot attack
+  // the enemy normally.
+  // ================================================================
+
+  function bool CheckSquadObjectives(Bot Bot) {
+
+    local int iNavigationPoint;
+    local float RatingNavigationPointBest;
+    local float RatingNavigationPointCurrent;
+    local Bot thisBot;
+    local NavigationPoint NavigationPointBest;
+    local NavigationPoint NavigationPointCurrent;
+    local NavigationPoint NavigationPointStart;
+    local array<NavigationPoint> ListNavigationPointCover;
+    local array<NavigationPoint> ListNavigationPointChecked;
+
+    if (Bot.Enemy == None ||
+       !Bot.EnemyVisible()) {
+      Bot.LoseEnemy();
+      return Super.CheckSquadObjectives(Bot);
+      }
+
+    NavigationPointStart = NavigationPoint(Bot.MoveTarget);
+    if (NavigationPointStart == None)
+      return Super.CheckSquadObjectives(Bot);
+
+    if (IsInCover(NavigationPoint(Bot.RouteGoal), Bot.Enemy.Location))
+      return Bot.SetRouteToGoal(Bot.RouteGoal);
+
+    FindCover(NavigationPointStart,
+              Bot.Pawn.Location,
+              Bot.Enemy.Location,
+              ListNavigationPointCover,
+              ListNavigationPointChecked);
+
+    if (ListNavigationPointCover.Length == 0) {
+      if (Bot.Enemy.Controller != None &&
+          Bot.Enemy.Controller.CanSee(Bot.Pawn))
+        for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
+          thisBot.Aggressiveness = Bot.BaseAggressiveness;
+
+      return Super.CheckSquadObjectives(Bot);
+      }
+  
+    for (iNavigationPoint = 0; iNavigationPoint < ListNavigationPointCover.Length; iNavigationPoint++) {
+      NavigationPointCurrent = ListNavigationPointCover[iNavigationPoint];
+
+      // the closer to the approaching bot and the farther from the acquired enemy, the better
+      RatingNavigationPointCurrent = VSize(Bot.Enemy.Location - NavigationPointCurrent.Location) /
+                                     VSize(Bot.Pawn .Location - NavigationPointCurrent.Location);
+
+      if (NavigationPointBest == None || RatingNavigationPointCurrent > RatingNavigationPointBest) {
+        NavigationPointBest = NavigationPointCurrent;
+        RatingNavigationPointBest = RatingNavigationPointCurrent;
+        }
+      }
+  
+    Bot.SetRouteToGoal(NavigationPointBest);
+    Bot.SetAttractionState();
+    
+    return True;
+    }
+
+
+  // ================================================================
+  // FindCover
+  //
+  // Searches the path network starting from the given point to find
+  // points that provide cover from the given enemy's position.
+  // ================================================================
+
+  function FindCover(NavigationPoint NavigationPointStart,
+                     vector LocationOrigin, vector LocationEnemy,
+                     out array<NavigationPoint> ListNavigationPointCover,
+                     out array<NavigationPoint> ListNavigationPointChecked) {
+
+    local int iReachSpec;
+    local int iNavigationPoint;
+    local float DistanceStart;
+    local float DistanceTarget;
+    local NavigationPoint NavigationPointTarget;
+    
+    DistanceStart = VSize(NavigationPointStart.Location - LocationOrigin);
+    if (DistanceStart > 4096.0)
+      return;
+
+    for (iReachSpec = 0; iReachSpec < NavigationPointStart.PathList.Length; iReachSpec++) {
+      NavigationPointTarget = NavigationPointStart.PathList[iReachSpec].End;
+
+      for (iNavigationPoint = 0; iNavigationPoint < ListNavigationPointChecked.Length; iNavigationPoint++)
+        if (ListNavigationPointChecked[iNavigationPoint] == NavigationPointTarget)
+          return;
+
+      DistanceTarget = VSize(NavigationPointTarget.Location - LocationOrigin);
+      if (DistanceTarget <= DistanceStart)
+        continue;  // spread search outwards only
+
+      ListNavigationPointChecked[ListNavigationPointChecked.Length] = NavigationPointTarget;
+
+      if (Door(NavigationPointTarget) != None &&
+         !Door(NavigationPointTarget).bDoorOpen)
+        continue;  // do not run against closed doors
+
+      if (Jailbreak(Level.Game).ContainsActorJail(NavigationPointTarget))
+        continue;  // do not run into jail
+
+      if (IsInCover(NavigationPointTarget, LocationEnemy))
+        ListNavigationPointCover[ListNavigationPointCover.Length] = NavigationPointTarget;
+      else
+        FindCover(NavigationPointTarget, LocationOrigin, LocationEnemy, ListNavigationPointCover, ListNavigationPointChecked);
+      }
+    }
+
+
+  // ================================================================
+  // IsInCover
+  //
+  // Checks whether the given NavigationPoint provides cover from
+  // the given enemy location.
+  // ================================================================
+
+  function bool IsInCover(NavigationPoint NavigationPoint, vector LocationEnemy) {
+
+    if (Door(NavigationPoint) != None &&
+       !Door(NavigationPoint).bDoorOpen)
+      return False;
+
+    if (JumpPad(NavigationPoint) != None)
+      NavigationPoint = NavigationPoint(JumpPad(NavigationPoint).JumpTarget);
+
+    if (NavigationPoint == None)
+      return False;
+
+    return !FastTrace(NavigationPoint.Location, LocationEnemy);
+    }
+
+
+  // ================================================================
+  // MustKeepEnemy
+  //
+  // Tells bots never to keep an enemy in evasive mode.
+  // ================================================================
+  
+  function bool MustKeepEnemy(Pawn PawnEnemy) {
+
+    return False;
+    }
+
+
+  // ================================================================
+  // LostEnemy
+  //
+  // If this squad is not aware of any enemies anymore, reset its
+  // aggressiveness to a very low value.
+  // ================================================================
+
+  function bool LostEnemy(Bot Bot) {
+  
+    local bool bResult;
+    local Bot thisBot;
+    
+    bResult = Super.LostEnemy(Bot);
+    
+    if (CountEnemies() == 0)
+      for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
+        thisBot.Aggressiveness = -10.0;
+
+    return bResult;
+    }
+
+
+  // ================================================================
+  // EndState
+  //
+  // Resets the aggressiveness of all bots in this squad. The squad
+  // remains on freelance.
+  // ================================================================
+
+  event EndState() {
+
+    local Bot thisBot;
+    
+    for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
+      thisBot.Aggressiveness = thisBot.BaseAggressiveness;  
+    }
+
+  } // state Evasive
