@@ -314,9 +314,14 @@ simulated function CheckLastMan()
   local int nPlayersJailed;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
+  local JBTagPlayer TagPlayerOwner;
   
-  if (PawnOwner                       == None ||
-      PawnOwner.PlayerReplicationInfo == None)
+  if (PlayerOwner                       == None ||
+      PlayerOwner.PlayerReplicationInfo == None)
+    return;
+  
+  TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PlayerOwner.PlayerReplicationInfo);
+  if (TagPlayerOwner == None)
     return;
   
   if (!TagPlayerOwner.IsFree()) {
@@ -328,7 +333,7 @@ simulated function CheckLastMan()
   
     firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetTeam() == PawnOwner.PlayerReplicationInfo.Team) {
+      if (thisTagPlayer.GetTeam() == PlayerOwner.PlayerReplicationInfo.Team) {
              if (thisTagPlayer.IsFree())   nPlayersFree   += 1;
         else if (thisTagPlayer.IsInJail()) nPlayersJailed += 1;
       }
