@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesCelebration.uc,v 1.7 2004/06/01 21:30:33 wormbo Exp $
+// $Id: JBGameRulesCelebration.uc,v 1.8 2004/06/02 09:48:25 wormbo Exp $
 //
 // The JBGameRules class for the Celebration Screen used to get Jailbreak
 // notifications.
@@ -180,7 +180,8 @@ simulated event PostNetReceive()
       && CelebrationInteraction.PlayerMesh == None ) {
     CelebrationInteraction.SetupPlayerMesh(LastKillerInfo);
   }
-  else if ( CelebrationInteraction.CaptureMessage == "" && LastKillerInfo.PRI != None && CapturedTeam != None )
+  else if ( CelebrationInteraction != None && CelebrationInteraction.CaptureMessage == ""
+      && LastKillerInfo.PRI != None && CapturedTeam != None )
     CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetCapturedMessage(
         LastKillerInfo.PRI, CapturedTeam, NextCaptureMessage);
   
