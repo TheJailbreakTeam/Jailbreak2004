@@ -47,6 +47,8 @@ var private array<Actor> ListActorOverlay;    // list of registered overlays
 var private transient JBTagClient TagClientOwner;  // client bridge head
 var private transient JBTagPlayer TagPlayerOwner;  // player state for owner
 
+var private bool bHasGameEnded;               // previously detected game end
+
 var private float TimeUpdateLocationChat;     // last chat area movement
 var private float TimeUpdateCompass;          // last compass rendering
 var private float TimeUpdateDisposition;      // last disposition rendering
@@ -215,14 +217,21 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 // ============================================================================
 // PostRender
 //
-// Displays the overlays of the JBCamera actor the player is viewing from, if
-// applicable; otherwise renders the normal display. Synchronizes client time
-// with the server. Also moves chat area back to its normal position if it had
-// previously been moved away by the scoreboard.
+// Displays the scoreboard when the game has ended. Renders overlays for the
+// JBCamera actor the player is viewing from, if applicable; otherwise renders
+// the normal display. Synchronizes client time with the server. Moves chat
+// area to accommodate the visibility state of the scoreboard.
 // ============================================================================
 
 simulated event PostRender(Canvas Canvas)
 {
+  if (UnrealPlayer(Owner).bDisplayWinner ||
+      UnrealPlayer(Owner).bDisplayLoser) {
+    if (!bHasGameEnded)
+      bShowScoreBoard = True;
+    bHasGameEnded = True;
+  }
+
   ShowWidescreen(Canvas);
   MoveChat(bShowScoreBoard);
 
