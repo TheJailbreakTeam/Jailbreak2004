@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.84 2004/05/14 19:00:37 wormbo Exp $
+// $Id: Jailbreak.uc,v 1.85 2004/05/17 02:59:06 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -23,7 +23,9 @@ var() const editconst string Build;
 // ============================================================================
 
 var config string Addons;
+
 var config bool bEnableJailFights;
+var config bool bEnableScreens;
 var config bool bEnableSpectatorDeathCam;
 
 var config string WebScoreboardClass;
@@ -1725,8 +1727,11 @@ defaultproperties
   WebScoreboardPath  = "/scoreboard";
 
   Addons = "JBAddonAvenger.JBAddonAvenger,JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
+
   bEnableJailFights        = True;
+  bEnableScreens           = True;
   bEnableSpectatorDeathCam = True;
+
   GoalScore                = 5;
 
   Acronym                  = "JB";
