@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.9 2002/11/24 18:58:53 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.10 2002/11/24 20:27:52 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -108,7 +108,7 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
   local JBInfoArena Arena;
   local JBReplicationInfoPlayer InfoPlayer;
 
-  if (Controller != None)
+  if (Controller != None && Controller.PreviousPawnClass != None)  // not first spawn
     InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
 
   if (InfoPlayer == None)
