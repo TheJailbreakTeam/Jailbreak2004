@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTag.uc,v 1.9 2004/05/25 12:32:46 mychaeel Exp $
+// $Id: JBTag.uc,v 1.10 2004/05/30 19:47:22 mychaeel Exp $
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -45,7 +45,7 @@ class JBTag extends Inventory
 // ============================================================================
 // Subclass Template
 //
-// Replace the following terms in the following code by existing sybols:
+// Replace the following terms in the following code by existing symbols:
 //
 //   JBTagCustom      Your custom subclass of JBTag.
 //   KeeperClass      Class of actors that keep items of your JBTag subclass.
@@ -79,10 +79,8 @@ protected simulated function InternalSetNext(JBTag TagNext) {
 
 replication
 {
-  reliable if (Role == ROLE_Authority && Keeper != None)
-    Keeper;
-
   reliable if (Role == ROLE_Authority)
+    Keeper,
     bIsRegisteredOnServer;
 }
 
@@ -92,6 +90,7 @@ replication
 // ============================================================================
 
 var protected Actor Keeper;              // replicated keeper actor
+var protected Actor KeeperLocal;         // local copy of keeper reference
 
 var private bool bIsRegisteredOnServer;  // registered on the server
 var private bool bIsRegisteredOnClient;  // registered on this client
@@ -249,6 +248,9 @@ function Unregister()
   UnregisterFromList();
   UnregisterFromInventory();
 
+  Keeper = None;
+  SetOwner(None);
+
   bIsRegisteredOnServer = False;  // triggers PostNetReceive on clients
 }
 
@@ -283,8 +285,10 @@ private simulated function JBTag RegisterInInventory()
   if (Keeper == None)
     return Self;
 
-  Inventory = Keeper.Inventory;
-  Keeper.Inventory = Self;
+  KeeperLocal = Keeper;
+
+  Inventory = KeeperLocal.Inventory;
+  KeeperLocal.Inventory = Self;
 
   return Self;
 }
@@ -313,23 +317,22 @@ private simulated function UnregisterFromList()
 // UnregisterFromInventory
 //
 // Removes this item from its keeper actor's inventory and resets the keeper
-// actor reference. Note that the Keeper variable is not replicated to clients
-// when reset to the server.
+// actor reference.
 // ============================================================================
 
 private simulated function UnregisterFromInventory()
 {
   local Inventory thisInventory;
 
-  if (Keeper != None)
-    if (Keeper.Inventory == Self)
-      Keeper.Inventory = Inventory;
+  if (KeeperLocal != None)
+    if (KeeperLocal.Inventory == Self)
+      KeeperLocal.Inventory = Inventory;
     else
-      for (thisInventory = Keeper.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
+      for (thisInventory = KeeperLocal.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
         if (thisInventory.Inventory == Self)
           thisInventory.Inventory = Inventory;
 
-  Keeper = None;
+  KeeperLocal = None;
 }
 
 
