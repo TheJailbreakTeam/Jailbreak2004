@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.64 2004/01/01 20:26:43 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.65 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -72,8 +72,9 @@ event InitGame(string Options, out string Error)
   if (HasOption(Options, "Addon"))
     OptionAddon = ParseOption(Options, "Addon");
   else
-    OptionAddon = "JBAddonProtection.JBAddonProtection," $
-                  "JBAddonLlama.JBAddonLlama";
+    OptionAddon = "JBAddonCelebration.JBAddonCelebration,"
+                $ "JBAddonLlama.JBAddonLlama,"
+                $ "JBAddonProtection.JBAddonProtection";
 
   while (OptionAddon != "") {
     iCharSeparator = InStr(OptionAddon, ",");

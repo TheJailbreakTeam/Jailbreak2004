@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.1 2003/06/25 19:01:45 mychaeel Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -303,6 +303,8 @@ function bool GUIButtonDownloadAddons_Click(GUIComponent GUIComponentClicked)
 
 defaultproperties
 {
+  LastAddons = "JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
+
   WinLeft   = 0.000;
   WinWidth  = 1.000;
   WinHeight = 0.770;
