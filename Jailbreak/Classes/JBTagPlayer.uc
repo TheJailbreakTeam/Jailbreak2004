@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.21 2003/02/17 21:18:20 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.22 2003/02/17 22:55:18 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -374,12 +374,14 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 // ============================================================================
 // NotifyJailOpening
 //
-// Called when the doors of the jail this player is in start opening.
+// Called when the doors of the jail this player is in start opening. Resets
+// the player's health.
 // ============================================================================
 
 function NotifyJailOpening() {
 
-  // this space intentionally left blank
+  if (GetController().Pawn != None)
+    GetController().Pawn.Health = GetController().Pawn.Default.Health;
   }
 
 
