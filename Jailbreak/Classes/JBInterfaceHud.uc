@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHUD
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHUD.uc,v 1.2 2002/12/23 02:08:38 mychaeel Exp $
+// $Id: JBInterfaceHUD.uc,v 1.3 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -9,6 +9,13 @@
 
 class JBInterfaceHUD extends HudBTeamDeathMatch
   notplaceable;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\IconDot.tga mips=on alpha=on
 
 
 // ============================================================================
@@ -200,9 +207,9 @@ simulated function ShowCompass(Canvas Canvas) {
                            OffsetY - 0.0405 * Cos(AngleDot), DP_UpperMiddle);
     Canvas.CurX -= 12 * Canvas.ClipX * HUDScale * ScaleDot / 1600;
     Canvas.CurY -= 12 * Canvas.ClipX * HUDScale * ScaleDot / 1600;
-    Canvas.DrawTile(Material'InterfaceContent.Hud.SkinA',
+    Canvas.DrawRect(Texture'IconDot',
       24 * Canvas.ClipX * HUDScale * ScaleDot / 1600,
-      24 * Canvas.ClipX * HUDScale * ScaleDot / 1600, 838, 238, 144, 144);
+      24 * Canvas.ClipX * HUDScale * ScaleDot / 1600);
     }
   }
 
