@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.6.2.5 2004/05/12 09:17:52 wormbo Exp $
+// $Id: JBAddonProtection.uc,v 1.6.2.6 2004/05/19 15:49:41 mychaeel Exp $
 //
 // This add-on protects players released from jail.
 // ============================================================================
@@ -25,10 +25,11 @@ const DEFAULT_LLAMAIZE_CAMPERS= True;
 // ============================================================================
 
 var() const editconst string Build;
-var() config float ProtectionTime;
-var() config byte ProtectionType;
-var() config bool bProtectArenaWinner;
-var() config bool bLlamaizeCampers;
+var() config float ProtectionTime;      // how long protection lasts for
+var() config byte ProtectionType;       // 0: can't damage while protected
+                                        // 1: protection drops when damage done
+var() config bool bProtectArenaWinner;  // protect the arena winner
+var() config bool bLlamaizeCampers;     // if killing damage to protectee
 
 var PlayerReplicationInfo LastRestartedPRI;
 var localized string caption_ProtectionType;
