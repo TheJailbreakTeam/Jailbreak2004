@@ -87,12 +87,12 @@ static function ResetConfiguration()
 
 defaultproperties
 {
-  Build = "2003-07-24 19:41";
+  Build = "%%%%-%%-%% %%:%%";
   PowerTimeMultiplier = 100;
   PowerTimeMaximum    = 25;
   PowerComboIndex     = 1;
   FriendlyName        = "Arena Avenger"
-  Description="The arena winner is mad... he's out to get his revenge on those who imprisonned him with the help of a power-up!"
+  Description="The arena winner is mad... he's out to get his revenge on those who imprisoned him with the help of a power-up!"
   ConfigMenuClassName="JBAddonAvenger.JBGUIPanelConfigAvenger"
     
   ComboClasses(0)=class'XGame.ComboSpeed'
