@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHUD
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInterfaceHUD.uc,v 1.1 2002/12/23 01:11:24 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -220,6 +220,28 @@ simulated function ShowCompass(Canvas Canvas) {
 
 
 // ============================================================================
+// ShowBuild
+//
+// Draws information about build time and date and the local player.
+// ============================================================================
+
+simulated function ShowBuild(Canvas Canvas) {
+
+  local vector SizeText;
+
+  Canvas.Font = GetConsoleFont(Canvas);
+  Canvas.DrawColor = WhiteColor;
+
+  Canvas.TextSize("X", SizeText.X, SizeText.Y);
+  SizeText.Y = int(SizeText.Y * 1.1);
+  
+  Canvas.CurX = 8;  Canvas.CurY = 8;                   Canvas.DrawText(PlayerOwner.PlayerReplicationInfo.PlayerName);
+  Canvas.CurX = 8;  Canvas.CurY = 8 + SizeText.Y;      Canvas.DrawText("Jailbreak 2003, %%%%-%%-%% %%:%%");
+  Canvas.CurX = 8;  Canvas.CurY = 8 + SizeText.Y * 2;  Canvas.DrawText("Not for release or distribution");
+  }
+
+
+// ============================================================================
 // ShowTeamScorePassA
 //
 // Draws team status and compass.
@@ -253,6 +275,7 @@ simulated function ShowTeamScorePassA(Canvas Canvas) {
   ShowTeamStatus(Canvas, JBReplicationInfoTeam(InfoGame.Teams[1]));
 
   ShowCompass(Canvas);
+  ShowBuild(Canvas);
   }
 
 
