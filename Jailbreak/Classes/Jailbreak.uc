@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.102 2004/05/30 17:48:39 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.103 2004/05/30 18:21:07 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1098,7 +1098,8 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
     TagPlayerKiller = Class'JBTagPlayer'.Static.FindFor(ControllerKiller.PlayerReplicationInfo);
   TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
 
-  if (TagPlayerVictim.IsInJail() &&
+  if (TagPlayerVictim != None &&
+      TagPlayerVictim.IsInJail() &&
       (TagPlayerKiller == None ||
        TagPlayerKiller.IsInJail())) {
 
