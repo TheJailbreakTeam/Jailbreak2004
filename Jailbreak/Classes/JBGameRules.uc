@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.7 2004/04/06 12:35:09 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.8 2004/04/14 15:21:16 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -72,16 +72,18 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 //
 // Called to check whether a jailed player can be sent to the given arena. If
 // this function returns False during the arena countdown for a player already
-// scheduled for a fight in the given arena, the match will be cancelled.
+// scheduled for a fight in the given arena, the match will be cancelled. The
+// bForceSendToArena out parameter can be set to allow even players who are
+// not in jail to be sent to the arena.
 // ============================================================================
 
-function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena)
+function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena, out byte bForceSendToArena)
 {
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
-    return nextJBGameRules.CanSendToArena(TagPlayer, Arena);
+    return nextJBGameRules.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
 
   return True;
 }

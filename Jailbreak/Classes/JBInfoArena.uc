@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.34 2004/04/22 09:51:11 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.35 2004/05/04 13:03:52 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -216,6 +216,7 @@ function bool ContainsActor(Actor Actor)
 
 function bool CanFight(Controller ControllerCandidate)
 {
+  local byte bForceSendToArena;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer TagPlayer;
 
@@ -223,20 +224,20 @@ function bool CanFight(Controller ControllerCandidate)
   if (TagPlayer == None)
     return False;
 
-  if (!TagPlayer.IsInJail() ||
-       TagPlayer.IsInArena())
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None &&
+     !firstJBGameRules.CanSendToArena(TagPlayer, Self, bForceSendToArena))
+    return False;
+
+  if ( TagPlayer.IsInArena() ||
+     (!TagPlayer.IsInJail() && !bool(bForceSendToArena)))
     return False;
 
   if (TagPlayer.GetArenaPending() != None &&
       TagPlayer.GetArenaPending() != Self)
     return False;
 
-  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
-  if (firstJBGameRules == None ||
-      firstJBGameRules.CanSendToArena(TagPlayer, Self))
-    return True;
-
-  return False;
+  return True;
 }
 
 
