@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.16 2003/03/22 19:24:10 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.17 2003/03/23 07:22:07 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -376,6 +376,28 @@ function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
   if (TagPlayer.GetArenaRequest() == Self)
     TagPlayer.SetArenaRequest(None);
+  }
+
+
+// ============================================================================
+// CountPlayers
+//
+// Returns the number of living players currently fighting in this arena.
+// ============================================================================
+
+function int CountPlayers() {
+
+  local int nPlayers;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetArena() == Self &&
+        thisTagPlayer.GetController().Pawn != None)
+      nPlayers += 1;
+
+  return nPlayers;
   }
 
 
@@ -1045,7 +1067,8 @@ state MatchRunning {
     
     if (FindWinner() != None)
       GotoState('MatchFinished');
-    else if (TimeCountdownTie <= 0.0)
+
+    else if (CountPlayers() == 0 || TimeCountdownTie <= 0.0)
       MatchTie();
     }
 
