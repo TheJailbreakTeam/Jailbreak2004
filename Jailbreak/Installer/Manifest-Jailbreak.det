@@ -1,5 +1,5 @@
 [Setup]
-LocalProduct=Jailbreak 2004a
+LocalProduct=Jailbreak 2004b
 ReadMe=Help\Jailbreak.txt
 SetupWindowTitle=Jailbreak Setup
 AutoplayWindowTitle=Jailbreak Options
