@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.3 2002/11/24 18:14:03 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.4 2002/11/24 20:29:18 mychaeel Exp $
 //
 // Localized messages for generic Jailbreak announcements.
 // ============================================================================
@@ -93,7 +93,7 @@ static function string StaticReplaceText(string TextTemplate, string TextPlaceho
     TextOutput = TextOutput $ Left(TextTemplate, OffsetPlaceholder);
     TextOutput = TextOutput $ TextReplacement;
     
-    TextTemplate = Mid(TextTemplate, OffsetPlaceholder + Len(TextReplacement));
+    TextTemplate = Mid(TextTemplate, OffsetPlaceholder + Len(TextPlaceholder));
     }
 
   TextOutput = TextOutput $ TextTemplate;
@@ -179,8 +179,6 @@ static function string GetString(optional int Switch,
                                  optional PlayerReplicationInfo PlayerReplicationInfo1, 
                                  optional PlayerReplicationInfo PlayerReplicationInfo2,
                                  optional Object ObjectOptional) {
-
-  local string TextTemplate;
 
   switch (Switch) {
     case 100:  return Default.TextTeamCaptured[TeamInfo(ObjectOptional).TeamIndex];
