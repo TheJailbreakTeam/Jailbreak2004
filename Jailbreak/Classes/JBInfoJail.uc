@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.23 2003/02/26 20:01:30 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.24 2003/03/16 12:02:56 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -109,7 +109,11 @@ function FindReleases(name TagMover, out array<Mover> ListMover) {
       continue;  // mover already listed
 
     ListMover[iMover] = thisMover;
+    
+    FindReleases(thisMover.Event,        ListMover);
     FindReleases(thisMover.OpeningEvent, ListMover);
+    FindReleases(thisMover.OpenedEvent,  ListMover);
+    FindReleases(thisMover.ClosingEvent, ListMover);
     }
   }
 
