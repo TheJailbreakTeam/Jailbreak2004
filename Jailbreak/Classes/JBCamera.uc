@@ -1,13 +1,14 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.18 2003/03/16 16:14:31 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.19 2003/06/01 14:41:51 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
 
 
-class JBCamera extends Keypoint;
+class JBCamera extends Keypoint
+  placeable;
 
 
 // ============================================================================
