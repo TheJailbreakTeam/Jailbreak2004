@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.43.2.4 2004/05/18 20:02:13 mychaeel Exp $
+// $Id$
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -788,6 +788,9 @@ private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferr
 
   TimeRestart = Level.TimeSeconds;
   Level.Game.RestartPlayer(Controller);
+
+  if (Controller.Pawn == None)
+    return;  // try again later
 
   Restart = Restart_Jail;
   TagRestart = '';

@@ -1085,6 +1085,27 @@ function RestartTeam(TeamInfo Team)
 
 
 // ============================================================================
+// GetDefaultPlayerClass
+//
+// Unlike the inherited method, returns the default Pawn class for the given
+// controller rather than the DefaultPlayerClassName class. Serves only to
+// avoid log messages that say that abstract Pawn cannot be spawned.
+// ============================================================================
+
+function Class<Pawn> GetDefaultPlayerClass(Controller Controller)
+{
+  local Class<Pawn> ClassPawn;
+  
+  ClassPawn = Super.GetDefaultPlayerClass(Controller);
+
+  if (ClassPawn == Class'Pawn' && Controller.PawnClass != None)
+    return Controller.PawnClass;
+
+  return ClassPawn;
+}
+
+
+// ============================================================================
 // IsReleaseActive
 //
 // Checks whether a release is active for the given team.
