@@ -182,21 +182,21 @@ function bool ContainsActor(Actor Actor)
 {
   if (Pickup(Actor) != None)
     if (TagAttachPickups == 'Auto')
-      return Actor.Region.ZoneNumber == Region.ZoneNumber;
-    else
-      return Actor.Tag == TagAttachPickups;
+           return Actor.Region.ZoneNumber == Region.ZoneNumber;
+      else return Actor.Tag == TagAttachPickups;
 
   if (NavigationPoint(Actor) != None)
     if (TagAttachStarts == 'Auto')
-      return Actor.Region.ZoneNumber == Region.ZoneNumber;
-    else
-      return Actor.Tag == TagAttachStarts;
+           return Actor.Region.ZoneNumber == Region.ZoneNumber;
+      else return Actor.Tag == TagAttachStarts;
+
+  if (JBCameraArena(Actor) != None)
+    return JBCameraArena(Actor).Arena == Self;
 
   if (JBCamera(Actor) != None)
     if (TagAttachCameras == 'Auto')
-      return Actor.Region.ZoneNumber == Region.ZoneNumber;
-    else
-      return Actor.Tag == TagAttachCameras;
+           return Actor.Region.ZoneNumber == Region.ZoneNumber;
+      else return Actor.Tag == TagAttachCameras;
 
   if (Controller(Actor) != None &&
       Controller(Actor).PlayerReplicationInfo != None)
