@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.8 2004/05/24 10:29:13 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.9 2004/05/31 11:14:57 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -165,7 +165,14 @@ simulated function PostBeginPlay()
 
 simulated event Destroyed()
 {
-  JailbreakHUD.UnregisterOverlay(Self);
+  if ( JailbreakHUD != None ) {
+    if ( HUDCanvasScale != 0 && JailbreakHUD.HUDCanvasScale != HUDCanvasScale ) {
+      JailbreakHUD.HUDCanvasScale = HUDCanvasScale;
+      JailbreakHUD.SaveConfig();
+    }
+    JailbreakHUD.UnregisterOverlay(Self);
+  }
+  
   if ( bCameraEffectsEnabled ) {
     if ( CameraOverlay != None )
       RemoveCameraEffect(CameraOverlay);
