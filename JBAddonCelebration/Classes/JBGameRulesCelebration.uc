@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesCelebration.uc,v 1.3 2004/05/11 08:47:58 wormbo Exp $
+// $Id: JBGameRulesCelebration.uc,v 1.4 2004/05/18 18:31:26 wormbo Exp $
 //
 // The JBGameRules class for the Celebration Screen used to get Jailbreak
 // notifications.
@@ -103,21 +103,27 @@ function BeginPlay()
 //=============================================================================
 // ScoreKill
 //
-// Remember the last killer and killed player.
+// Remember the last killer and killed player for kills or suicides in freedom.
 //=============================================================================
 
 function ScoreKill(Controller Killer, Controller Killed)
 {
   local int TeamNum;
+  local JBTagPlayer TagKilled;
   
   if ( Killed != None ) {
-    if ( Killed.PlayerReplicationInfo != None && Killed.PlayerReplicationInfo.Team != None )
-      TeamNum = Killed.PlayerReplicationInfo.Team.TeamIndex;
-    LastKilled[TeamNum] = class'JBTagPlayer'.static.FindFor(Killed.PlayerReplicationInfo);
-    if ( Killer != None )
-      LastKiller[TeamNum] = class'JBTagPlayer'.static.FindFor(Killer.PlayerReplicationInfo);
-    else
-      LastKiller[TeamNum] = LastKilled[TeamNum];
+    TagKilled = class'JBTagPlayer'.static.FindFor(Killed.PlayerReplicationInfo);
+    
+    if ( TagKilled.IsFree() ) {
+      if ( Killed.PlayerReplicationInfo != None && Killed.PlayerReplicationInfo.Team != None )
+        TeamNum = Killed.PlayerReplicationInfo.Team.TeamIndex;
+      
+      LastKilled[TeamNum] = TagKilled;
+      if ( Killer != None )
+        LastKiller[TeamNum] = class'JBTagPlayer'.static.FindFor(Killer.PlayerReplicationInfo);
+      else
+        LastKiller[TeamNum] = TagKilled;
+    }
   }
   Super.ScoreKill(Killer, Killed);
 }
