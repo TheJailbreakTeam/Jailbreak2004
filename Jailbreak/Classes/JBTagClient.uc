@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.4 2004/03/28 22:45:38 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained.
@@ -78,7 +78,6 @@ function ExecArenaCam()
 {
   local bool bFoundArenaCurrent;
   local JBCamera CameraCurrent;
-  local JBCamera thisCamera;
   local JBInfoArena ArenaCurrent;
   local JBInfoArena firstArena;
   local JBInfoArena thisArena;
