@@ -1,21 +1,63 @@
 // ============================================================================
 // JBxEmitterProtectionRed
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBxEmitterProtectionRed.uc,v 1.1 2003/06/27 11:14:32 crokx Exp $
+// $Id: JBxEmitterProtectionRed.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
 //
 // The red protection effect.
 // ============================================================================
+
+
 class JBxEmitterProtectionRed extends xEmitter;
 
 
 // ============================================================================
-// Default properties
+// Replication
 // ============================================================================
+
+replication
+{
+  reliable if (Role == ROLE_Authority)
+    mRegenRep;
+}
+
+
+// ============================================================================
+// Variables
+// ============================================================================
+
+var bool mRegenRep;
+
+
+// ============================================================================
+// PostNetReceive
+//
+// Sets the local mRegen variable to the value of the replicated mRegenRep
+// variable.
+// ============================================================================
+
+simulated event PostNetReceive()
+{
+  mRegen = mRegenRep;
+}
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
 defaultproperties
 {
-    bNetTemporary=false
-    bReplicateMovement=false
-    bTrailerSameRotation=true
+    RemoteRole=ROLE_SimulatedProxy
+    bNetTemporary=False
+    bNetNotify=True
+
+    Physics=PHYS_Trailer
+    bTrailerSameRotation=True
+    bReplicateMovement=False
+
+    LifeSpan=60.0
+    mRegen=True
+    mRegenRep=True
     mAirResistance=0.0
     mAttenKa=0.5
     mAttenFunc=ATF_ExpInOut
@@ -25,7 +67,7 @@ defaultproperties
     mMaxParticles=10
     mMeshNodes(0)=StaticMesh'XEffects.TeleRing'
     mParticleType=PT_Mesh
-    mPosRelative=true
+    mPosRelative=True
     mRegenRange(0)=3.0
     mRegenRange(1)=3.0
     mSizeRange(0)=0.6
@@ -33,8 +75,6 @@ defaultproperties
     mSpeedRange(0)=6.0
     mSpeedRange(1)=12.0
     mStartParticles=0
-    Physics=PHYS_Trailer
-    RemoteRole=ROLE_SimulatedProxy
     Skins(0)=Shader'xGameShaders.BRShaders.BombIconRS'
     Style=STY_Additive
 }
