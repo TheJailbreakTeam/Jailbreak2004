@@ -237,7 +237,8 @@ simulated event PostRender(Canvas Canvas)
   }
 
   if (ViewTargetPrev != PlayerOwner.ViewTarget) {
-    Blackout();
+    if (ViewTargetPrev != None)
+      Blackout();
     ViewTargetPrev = PlayerOwner.ViewTarget;
   }
 
