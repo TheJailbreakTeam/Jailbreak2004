@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoPlayer.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: JBReplicationInfoPlayer.uc,v 1.2 2002/11/24 09:04:18 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -224,6 +224,22 @@ function JailLeft(JBInfoJail JailPrev) {
 
 
 // ============================================================================
+// RestartPlayer
+//
+// Restarts the player, making sure everything is properly cleaned up before
+// doing so.
+// ============================================================================
+
+private function RestartPlayer() {
+
+  if (Controller(Owner).Pawn != None)
+    Controller(Owner).Pawn.Destroy();
+  
+  Level.Game.RestartPlayer(Controller(Owner));
+  }
+
+
+// ============================================================================
 // RestartFreedom
 //
 // Restarts this player in freedom.
@@ -237,7 +253,7 @@ function RestartFreedom() {
   ArenaPending = None;
   ArenaRequest = None;
   
-  Level.Game.RestartPlayer(Controller(Owner));
+  RestartPlayer();
 
   Restart = Restart_Jail;
   }
@@ -257,7 +273,7 @@ function RestartJail() {
   ArenaPending = None;
   ArenaRequest = None;
   
-  Level.Game.RestartPlayer(Controller(Owner));
+  RestartPlayer();
   }
 
 
@@ -275,7 +291,7 @@ function RestartArena(JBInfoArena NewArenaRestart) {
   ArenaPending = None;
   ArenaRequest = None;
   
-  Level.Game.RestartPlayer(Controller(Owner));
+  RestartPlayer();
   
   Arena = ArenaRestart;
   ArenaRestart = None;
