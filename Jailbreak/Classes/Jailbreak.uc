@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.107 2004/05/30 23:41:18 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.108 2004/05/31 19:28:32 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -249,12 +249,14 @@ static event string GetDescriptionText(string Property)
 // ============================================================================
 // GetServerDetails
 //
-// Adds the Jailbreak build number to server details.
+// Adds the Jailbreak build number and web scoreboard URL to server details.
 // ============================================================================
 
 function GetServerDetails(out ServerResponseLine ServerState)
 {
   local int iServerInfo;
+  local string WebScoreboardAddress;
+  local WebApplication WebApplicationScoreboard;
 
   Super.GetServerDetails(ServerState);
 
@@ -262,6 +264,22 @@ function GetServerDetails(out ServerResponseLine ServerState)
   ServerState.ServerInfo.Insert(iServerInfo, 1);
   ServerState.ServerInfo[iServerInfo].Key = "Build";
   ServerState.ServerInfo[iServerInfo].Value = Build;
+
+  foreach AllObjects(Class'WebApplication', WebApplicationScoreboard)
+    if (string(WebApplicationScoreboard.Class) ~= WebScoreboardClass)
+      break;
+
+  if (WebApplicationScoreboard != None) {
+    WebScoreboardAddress = Mid(WebApplicationScoreboard.WebServer.ServerURL, 7);
+    if (Right(WebScoreboardAddress, 3) == ":80")
+      WebScoreboardAddress = Left(WebScoreboardAddress, Len(WebScoreboardAddress) - 3);
+    WebScoreboardAddress = WebScoreboardAddress $ WebScoreboardPath;
+  
+    iServerInfo = ServerState.ServerInfo.Length;
+    ServerState.ServerInfo.Insert(iServerInfo, 1);
+    ServerState.ServerInfo[iServerInfo].Key = "WebScoreboard";
+    ServerState.ServerInfo[iServerInfo].Value = WebScoreboardAddress;
+  }
 }
 
 
