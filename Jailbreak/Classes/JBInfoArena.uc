@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.3 2002/11/24 13:22:21 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.4 2002/11/24 16:55:31 mychaeel Exp $
 //
 // Holds information about an arena.
 // ============================================================================
@@ -170,7 +170,7 @@ function bool CanStart() {
   local int iInfoPlayer;
   local int nCandidates;
   local int TeamPlayer;
-  local array<byte> bTeamFound;
+  local array<byte> bFoundByTeam;
   local JBReplicationInfoGame InfoGame;
   local JBReplicationInfoPlayer InfoPlayer;
   
@@ -183,9 +183,9 @@ function bool CanStart() {
       return False;
     
     TeamPlayer = InfoPlayer.GetPlayerReplicationInfo().Team.TeamIndex;
-    if (bTeamFound[TeamPlayer] != 0)
+    if (bFoundByTeam[TeamPlayer] != 0)
       return False;
-    bTeamFound[TeamPlayer] = 1;
+    bFoundByTeam[TeamPlayer] = 1;
     
     nCandidates++;
     }
