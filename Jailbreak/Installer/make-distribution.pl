@@ -5,7 +5,7 @@
 #  make-distribution-int.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id: make-distribution.pl,v 1.1.2.1 2004/04/24 22:35:23 mychaeel Exp $
+#  $Id: make-distribution.pl,v 1.1.2.2 2004/04/25 00:22:17 mychaeel Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -512,6 +512,7 @@ open MANIFEST, '>', "$dirGame/System/Manifest-$product.ini"
 print MANIFEST "[Setup]\n";
 print MANIFEST "Product=$product\n";
 print MANIFEST "Version=$version\n";
+print MANIFEST "Language=int\n";
 print MANIFEST "Archive=$product.$UT200xExt\n";
 print MANIFEST "SrcPath=.\n";
 print MANIFEST "MasterPath=..\n";
@@ -528,7 +529,11 @@ print MANIFEST "Product=$UT200x\n";
 print MANIFEST "Version=$UT200xVersion\n";
 
 print MANIFEST "[GroupSetup]\n";
-print MANIFEST "Copy=(Src=System\\Manifest.*,Flags=3)\n";
+print MANIFEST "Copy=(Src=System\\Manifest.ini,Flags=3)\n";
+
+foreach my $ext qw(int det est frt itt kot smt tmt) {
+  print MANIFEST "Copy=(Src=System\\Manifest.$ext,Master=System\\Manifest.int,Flags=3)\n";
+}
 
 
 ###########################################################
@@ -645,6 +650,7 @@ if (%keys) {
   print MANIFEST "[GroupKeys]\n";
   print MANIFEST "Optional=True\n";
   print MANIFEST "Visible=True\n";
+  print MANIFEST "Selected=False\n";
   
   foreach my $key (sort keys %keys) {
     print MANIFEST "Ini=System\\User.ini,Engine.Input.$key=$keys{$key}\n";
