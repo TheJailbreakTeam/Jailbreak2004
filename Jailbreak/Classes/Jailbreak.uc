@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.106 2004/05/30 22:04:24 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.107 2004/05/30 23:41:18 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -78,9 +78,7 @@ var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 // ============================================================================
 // InitGame
 //
-// Initializes the game and interprets Jailbreak-specific parameters. Destroys
-// any WebServer actors left over from the previous match; fixes inability to
-// contact web admin interface after a level change.
+// Initializes the game and interprets Jailbreak-specific parameters.
 // ============================================================================
 
 event InitGame(string Options, out string Error)
@@ -92,18 +90,11 @@ event InitGame(string Options, out string Error)
   local string NameAddon;
   local WebServer thisWebServer;
 
-  foreach AllObjects(Class'WebServer', thisWebServer)
-    if (thisWebServer.Outer != Outer) {
-      Log("Destroying left-over WebServer actor" @ thisWebServer);
-      thisWebServer.Destroy();
-    }
-
   Super.InitGame(Options, Error);
 
   if (HasOption(Options, "Addon"))
-    OptionAddon = ParseOption(Options, "Addon");
-  else
-    OptionAddon = Addons;
+         OptionAddon = ParseOption(Options, "Addon");
+    else OptionAddon = Addons;
 
   while (OptionAddon != "") {
     iCharSeparator = InStr(OptionAddon, ",");
