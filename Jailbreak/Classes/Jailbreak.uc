@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: Jailbreak.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -230,6 +230,27 @@ function RestartTeam(byte Team) {
 
 
 // ============================================================================
+// IsReleaseActive
+//
+// Checks whether a release is active for the given team.
+// ============================================================================
+
+function bool IsReleaseActive(byte Team) {
+
+  local int iInfoJail;
+  local JBReplicationInfoGame InfoGame;
+  
+  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
+
+  for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
+    if (InfoGame.ListInfoJail[iInfoJail].IsReleaseActive(Team))
+      return True;
+  
+  return False;
+  }
+
+
+// ============================================================================
 // ExecutionInit
 //
 // Checks how many teams are captured. If none, fails. If more than one,
@@ -258,7 +279,7 @@ function bool ExecutionInit() {
           return False;
           }
   
-    if (TeamCaptured < 0)
+    if (TeamCaptured < 0 || IsReleaseActive(TeamCaptured))
       return False;
   
     GotoState('Executing');
