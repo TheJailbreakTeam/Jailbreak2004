@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.5 2003/03/16 14:09:35 will Exp $
+// $Id: JBMonsterSpawner.uc,v 1.6 2003/03/23 06:48:34 mychaeel Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -14,12 +14,12 @@ Class JBMonsterSpawner Extends Actor
 // ============================================================================
 Var() ENum EMonsterType
 {
-	Pupae,
-	RazorFly,
+	SkaarjPupae,
+	Razorfly,
 	Manta,
 	Krall,
 	EliteKrall,
-	GasBag,
+	Gasbag,
 	Brute,
 	Skaarj,
 	Behemoth,
@@ -63,7 +63,8 @@ Function PostBeginPlay()
 		MonsterClass = Class<xPawn>(DynamicLoadObject("Skaarjpack." $ String(GetEnum(Enum'EMonsterType', MonsterType)), Class'class'));
 	Else
 		{
-		If (DynamicLoadObject(CustomMonster, Class'class', True) == None);
+		MonsterClass = Class<xPawn>(DynamicLoadObject(CustomMonster, Class'class', True));
+		If (MonsterClass == None);
 			MonsterClass = Class<xPawn>(DynamicLoadObject("Skaarjpack.Krall", Class'class', True));
 		}
 
@@ -253,6 +254,7 @@ State MonsterAttack
 // ============================================================================
 DefaultProperties
 {
+	MonsterType=SkaarjPupae
 	bHidden=True
 	bDirectional=True
 	bHiddenEd=False
