@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.8 2003/02/23 11:39:09 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.9 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -71,7 +71,8 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
   TagPlayerBot   = Class'JBTagPlayer'.Static.FindFor(Bot      .PlayerReplicationInfo);
   TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
 
-  if (TagPlayerBot.GetJail() != TagPlayerEnemy.GetJail())
+  if (TagPlayerEnemy == None ||
+      TagPlayerEnemy.GetJail() != TagPlayerBot.GetJail())
     return False;
 
   if (IsPlayerFighting(ControllerEnemy)) {
