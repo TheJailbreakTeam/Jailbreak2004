@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPageClientOptions
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIPageClientOptions.uc,v 1.1.2.1 2004/05/17 17:29:00 mychaeel Exp $
+// $Id: JBGUIPageClientOptions.uc,v 1.1.2.2 2004/05/25 12:51:59 mychaeel Exp $
 //
 // Dialog box for Jailbreak's client-side settings. Hooks a button into the
 // mid-game menu.
@@ -162,7 +162,7 @@ function RestoreDefaults()
   
   nVoicePacks = co_VoicePack.ItemCount();
   for (iVoicePack = 0; iVoicePack < nVoicePacks; iVoicePack++)
-    if (co_VoicePack.MyComboBox.List.GetExtraAtIndex(iVoicePack) ~= "JBVoiceGrrrl.Echo")
+    if (co_VoicePack.MyComboBox.List.GetExtraAtIndex(iVoicePack) ~= "JBVoiceGrrrl.Classic")
       co_VoicePack.Find(co_VoicePack.GetItem(iVoicePack), True);
   
   ch_EnableScreens.Checked(True);

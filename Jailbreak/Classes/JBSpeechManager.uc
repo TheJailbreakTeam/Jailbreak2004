@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBSpeechManager.uc,v 1.2.2.2 2004/05/25 12:51:05 mychaeel Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -381,5 +381,5 @@ event Destroyed()
 
 defaultproperties
 {
-  VoicePack = "JBVoiceGrrrl.Echo";
+  VoicePack = "JBVoiceGrrrl.Classic";
 }
