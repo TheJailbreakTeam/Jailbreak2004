@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.9 2004/05/23 15:10:48 mychaeel Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.10 2004/07/25 15:43:57 mychaeel Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -82,7 +82,8 @@ function DisableObjective(Pawn PawnInstigator)
   local JBGameObjectiveSwitch ObjectiveSwitch;
   local JBInfoJail thisJail;
   
-  if (PawnInstigator                            == None ||
+  if (bDisabled                                         ||
+      PawnInstigator                            == None ||
       PawnInstigator.PlayerReplicationInfo      == None ||
       PawnInstigator.PlayerReplicationInfo.Team == None ||
       PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex)
