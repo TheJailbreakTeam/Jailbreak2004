@@ -190,10 +190,16 @@ simulated function vector CalcLocation(vector LocationWorld);
 simulated function bool IsIconDisplayed(JBTagPlayer TagPlayer) {
 
   local int iTeam;
+  local TeamInfo Team;
   
-  if (TagPlayer.GetHealth(True) <= 0) return False;
+  if (TagPlayer.GetHealth(True) <= 0)
+    return False;
   
-  iTeam = TagPlayer.GetTeam().TeamIndex;
+  Team = TagPlayer.GetTeam();
+  if (Team == None)
+    return False;
+  
+  iTeam = Team.TeamIndex;
   if (iTeam == 0 && !bShowTeamRed)  return False;
   if (iTeam == 1 && !bShowTeamBlue) return False;
 
