@@ -1,13 +1,14 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInteractionKeys.uc,v 1.7 2004/05/24 15:32:22 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
 
 
-class JBInteractionKeys extends Interaction;
+class JBInteractionKeys extends Interaction
+  config;
 
 
 // ============================================================================
@@ -48,6 +49,13 @@ struct TDialog
   var private GUIFont GUIFontText;           // loaded font for text
   var private GUIFont GUIFontClose;          // loaded font for closing hint
 };
+
+
+// ============================================================================
+// Configuration
+// ============================================================================
+
+var config string AutoBoundKeys;             // last known auto-bound keys
 
 
 // ============================================================================
@@ -149,8 +157,31 @@ event Initialized()
       if (Bindings[iBinding].bIsBoundAuto)
         Log("Temporarily bound" @ GetKeyForCommand(Bindings[iBinding].Alias) @ "to '" $ Bindings[iBinding].Alias $ "'");
 
-    bVisible = True;
+    bVisible = (GetAutoBoundKeys() != AutoBoundKeys);
   }
+}
+
+
+// ============================================================================
+// GetAutoBoundKeys
+//
+// Returns a string containing a list of current auto key bindings.
+// ============================================================================
+
+function string GetAutoBoundKeys()
+{
+  local int iBinding;
+  local string AutoBoundKeys;
+
+  for (iBinding = 0; iBinding < Bindings.Length; iBinding++)
+    if (Bindings[iBinding].bIsBoundAuto)
+           AutoBoundKeys = AutoBoundKeys $ GetEnum(Enum'EInputKey', Bindings[iBinding].iKeyAuto) $ ",";
+      else AutoBoundKeys = AutoBoundKeys $ "None,";
+
+  if (Len(AutoBoundKeys) > 0)
+    AutoBoundKeys = Left(AutoBoundKeys, Len(AutoBoundKeys) - 1);
+
+  return AutoBoundKeys;
 }
 
 
@@ -164,6 +195,8 @@ event Initialized()
 
 event bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float Delta)
 {
+  local bool bPressedAltFire;
+  local bool bPressedFire;
   local int iBinding;
   local string Alias;
   local string Key;
@@ -194,10 +227,18 @@ event bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float 
   }
   
   if (bVisible && TimeFadeoutDialog == 0.0) {
-    Key   = PlayerController.ConsoleCommand("KeyName"    @ InputKey);
-    Alias = PlayerController.ConsoleCommand("KeyBinding" @      Key);
+    Key   =      PlayerController.ConsoleCommand("KeyName"    @ InputKey);
+    Alias = Caps(PlayerController.ConsoleCommand("KeyBinding" @      Key));
 
-    if (InStr(Caps(Alias), "FIRE") >= 0) {
+    bPressedAltFire = (InStr(Alias, "ALTFIRE") >= 0);
+    bPressedFire    = (InStr(Alias,    "FIRE") >= 0 && !bPressedAltFire);
+
+    if (bPressedAltFire)
+           AutoBoundKeys = GetAutoBoundKeys();
+      else AutoBoundKeys = "";
+    SaveConfig();
+
+    if (bPressedAltFire || bPressedFire) {
       TimeFadeoutDialog = PlayerController.Level.TimeSeconds;
       return True;
     }
@@ -477,7 +518,7 @@ defaultproperties
   TextDialogTopP    = "Jailbreak has temporarily bound the following keys for you:";
   TextDialogBottomS = "Use the key binder to permanently bind a key to this function.";
   TextDialogBottomP = "Use the key binder to permanently bind keys to these functions.";
-  TextDialogClose   = "Press FIRE to close";
+  TextDialogClose   = "Press FIRE to close, ALT-FIRE to close permanently";
   
   TextDescription[0] = "Sets team tactics to a more aggressive stance.";
   TextDescription[1] = "Sets team tactics to a more defensive stance.";
