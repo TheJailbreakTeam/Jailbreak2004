@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.9 2003/01/02 16:44:29 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.10 2003/01/03 15:54:13 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -298,7 +298,7 @@ function RestartFreedom() {
   JailPrev = Jail;       // would be picked up automatically by Timer too,
   Jail = None;           // but not before the player gets a new Pawn,
   if (JailPrev != None)  // so handle the release from jail here already
-    JailLeft(Jail);
+    JailLeft(JailPrev);
   
   RestartPlayer();
 
