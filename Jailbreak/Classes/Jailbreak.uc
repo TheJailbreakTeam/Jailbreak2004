@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.74 2004/04/22 13:48:13 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.75 2004/04/24 14:55:37 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -477,6 +477,19 @@ function ReAssessTeam(TeamInfo Team)
       return;
 
   JBBotTeam(UnrealTeamInfo(Team).AI).SetTactics('Auto');
+}
+
+
+// ============================================================================
+// GetDefenderNum
+//
+// Hack fix to make VehicleTeam work in ASVehicleFactory. The other actors
+// which use GetDefenderTeam still work too.
+// ============================================================================
+
+function int GetDefenderNum()
+{
+  return 1;
 }
 
 
