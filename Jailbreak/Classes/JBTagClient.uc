@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTagClient.uc,v 1.4.2.5 2004/05/17 20:07:19 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained.
@@ -23,7 +23,9 @@ replication
     ExecArenaCam,
     ExecViewTeam,
     ExecViewSelf,
-    ServerSynchronizeTime;
+    ServerSynchronizeTime,
+    ServerSwitchToPrevCamera,
+    ServerSwitchToNextCamera;
 
   reliable if (Role == ROLE_Authority)
     ClientSynchronizeTime;
@@ -201,6 +203,17 @@ function ExecViewSelf()
   if (Level.Game.IsInState('MatchInProgress') || JBCamera(PlayerController(Keeper).ViewTarget) == None)
     Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
 }
+
+
+// ============================================================================
+// ServerSwitchToPrevCamera
+// ServerSwitchToNextCamera
+//
+// Switches the player to the previous or next camera. Used for replication.
+// ============================================================================
+
+function ServerSwitchToPrevCamera(JBCamera Camera, optional bool bManual) { Camera.SwitchToPrev(PlayerController(Keeper), bManual); }
+function ServerSwitchToNextCamera(JBCamera Camera, optional bool bManual) { Camera.SwitchToPrev(PlayerController(Keeper), bManual); }
 
 
 // ============================================================================
