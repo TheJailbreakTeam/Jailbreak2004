@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.1 2003/01/11 22:17:46 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.2 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained.
@@ -16,14 +16,14 @@ class JBTagClient extends JBTag
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role < ROLE_Authority)
     ExecTeamTactics, ServerSynchronizeTime;
 
   reliable if (Role == ROLE_Authority)
     ClientSynchronizeTime;
-  }
+}
 
 
 // ============================================================================
@@ -53,16 +53,16 @@ static function JBTagClient SpawnFor(PlayerController Keeper) {
 // for the enemy team.
 // ============================================================================
 
-function ExecTeamTactics(name Tactics, optional TeamInfo Team) {
-
+function ExecTeamTactics(name Tactics, optional TeamInfo Team)
+{
   if (Team == None)
     Team = GetPlayerReplicationInfo().Team;
-  
+
   if (Team != None &&
       (GetPlayerReplicationInfo().bAdmin ||
        GetPlayerReplicationInfo().Team == Team))
     JBBotTeam(UnrealTeamInfo(Team).AI).SetTactics(Tactics);
-  }
+}
 
 
 // ============================================================================
@@ -73,8 +73,8 @@ function ExecTeamTactics(name Tactics, optional TeamInfo Team) {
 // function to find out whether it has happened already.
 // ============================================================================
 
-simulated function SynchronizeTime() {
-
+simulated function SynchronizeTime()
+{
   if (TimeSynchronization != 0.0)
     return;
 
@@ -82,7 +82,7 @@ simulated function SynchronizeTime() {
   bTimeSynchronized = False;
 
   ServerSynchronizeTime();
-  }
+}
 
 
 // ============================================================================
@@ -92,10 +92,10 @@ simulated function SynchronizeTime() {
 // server time.
 // ============================================================================
 
-simulated function bool IsTimeSynchronized() {
-
+simulated function bool IsTimeSynchronized()
+{
   return bTimeSynchronized;
-  }
+}
 
 
 // ============================================================================
@@ -106,10 +106,10 @@ simulated function bool IsTimeSynchronized() {
 // current notion of the game time.
 // ============================================================================
 
-private function ServerSynchronizeTime() {
-
+private function ServerSynchronizeTime()
+{
   ClientSynchronizeTime(Level.TimeSeconds);
-  }
+}
 
 
 // ============================================================================
@@ -120,14 +120,14 @@ private function ServerSynchronizeTime() {
 // and stores it for further requests by calling GetServerTime.
 // ============================================================================
 
-private simulated function ClientSynchronizeTime(float TimeServer) {
-
+private simulated function ClientSynchronizeTime(float TimeServer)
+{
   // take half of the round-trip time into account
   TimeOffsetServer = TimeServer - Level.TimeSeconds + (Level.TimeSeconds - TimeSynchronization) / 2;
 
   TimeSynchronization = 0.0;
   bTimeSynchronized = True;
-  }
+}
 
 
 // ============================================================================
@@ -137,10 +137,10 @@ private simulated function ClientSynchronizeTime(float TimeServer) {
 // clients idea of the server's current time in game.
 // ============================================================================
 
-simulated function float GetServerTime() {
-
+simulated function float GetServerTime()
+{
   return Level.TimeSeconds + TimeOffsetServer;
-  }
+}
 
 
 // ============================================================================
@@ -157,7 +157,7 @@ function PlayerReplicationInfo GetPlayerReplicationInfo() {
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   RemoteRole = ROLE_SimulatedProxy;
-  }
+}

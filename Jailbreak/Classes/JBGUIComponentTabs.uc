@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIComponentTabs
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIComponentTabs.uc,v 1.1 2003/06/25 19:01:45 mychaeel Exp $
+// $Id: JBGUIComponentTabs.uc,v 1.2 2003/08/10 11:30:27 mychaeel Exp $
 //
 // User interface component: Has a column of tabs on the left side, each
 // containing an instance of a specified component class such as a checkbox.
@@ -68,7 +68,7 @@ delegate OnTabInit(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionT
 
   GUIMenuOptionTab.bSquare = True;
   GUIMenuOptionTab.CaptionWidth = 0.9;
-  }
+}
 
 
 // ============================================================================
@@ -77,13 +77,13 @@ delegate OnTabInit(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionT
 // Initializes the component and registers several delegates.
 // ============================================================================
 
-function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwner) {
-
+function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwner)
+{
   Super.InitComponent(GUIController, GUIComponentOwner);
-  
+
   OnPreDraw = PreDraw;
   OnDraw    = Draw;
-  }
+}
 
 
 // ============================================================================
@@ -93,8 +93,8 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
 // open, opens the first one.
 // ============================================================================
 
-event bool FocusFirst(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops) {
-
+event bool FocusFirst(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops)
+{
   if (MenuState == MSAT_Disabled || !bVisible)
     return False;
 
@@ -102,7 +102,7 @@ event bool FocusFirst(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops
     iTabOpen = 0;
 
   return GetCurrentTabComponent().FocusFirst(Self, False);
-  }
+}
 
 
 // ============================================================================
@@ -112,8 +112,8 @@ event bool FocusFirst(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops
 // currently active tab if none exists.
 // ============================================================================
 
-event bool FocusLast(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops) {
-
+event bool FocusLast(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops)
+{
   local int iControl;
 
   if (MenuState == MSAT_Disabled || !bVisible)
@@ -124,7 +124,7 @@ event bool FocusLast(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops)
       return True;
 
   return FocusFirst(Self, bIgnoreMultiTabStops);  // focus on tab
-  }
+}
 
 
 // ============================================================================
@@ -135,25 +135,25 @@ event bool FocusLast(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops)
 // component otherwise.
 // ============================================================================
 
-event bool PrevControl(GUIComponent GUIComponentSender) {
-
+event bool PrevControl(GUIComponent GUIComponentSender)
+{
   local int iControl;
   local int iControlCurrent;
-  
+
   iControlCurrent = FindComponentIndex(GUIComponentSender);
-  
+
   if (iControlCurrent < nTabs)
     if (MenuOwner != None)
       return MenuOwner.PrevControl(Self);
     else
       return FocusLast(Self, False);
-  
+
   for (iControl = iControlCurrent - 1; iControl >= nTabs; iControl--)
     if (Controls[iControl].FocusLast(Self, False))
       return True;
 
   return FocusFirst(Self, False);
-  }
+}
 
 
 // ============================================================================
@@ -163,11 +163,11 @@ event bool PrevControl(GUIComponent GUIComponentSender) {
 // the component if none exists.
 // ============================================================================
 
-event bool NextControl(GUIComponent GUIComponentSender) {
-
+event bool NextControl(GUIComponent GUIComponentSender)
+{
   local int iControl;
   local int iControlCurrent;
-  
+
   iControlCurrent = FindComponentIndex(GUIComponentSender);
 
   for (iControl = Max(nTabs, iControlCurrent + 1); iControl < Controls.Length; iControl++)
@@ -176,9 +176,9 @@ event bool NextControl(GUIComponent GUIComponentSender) {
 
   if (MenuOwner != None)
     return MenuOwner.NextControl(Self);
-  
+
   return FocusFirst(Self, True);
-  }
+}
 
 
 // ============================================================================
@@ -187,18 +187,18 @@ event bool NextControl(GUIComponent GUIComponentSender) {
 // Opens the previous tab and optionally sets the focus to the tab button.
 // ============================================================================
 
-function PrevTab(optional bool bSetFocus) {
-
+function PrevTab(optional bool bSetFocus)
+{
   if (iTabOpen < 0)
     return;
-  
+
   iTabOpen -= 1;
   if (iTabOpen < 0)
     iTabOpen = nTabs - 1;
 
   if (bSetFocus)
     GetCurrentTabComponent().SetFocus(None);
-  }
+}
 
 
 // ============================================================================
@@ -207,18 +207,18 @@ function PrevTab(optional bool bSetFocus) {
 // Opens the next tab and optionally sets the focus to the tab button.
 // ============================================================================
 
-function NextTab(optional bool bSetFocus) {
-
+function NextTab(optional bool bSetFocus)
+{
   if (iTabOpen < 0)
     return;
-  
+
   iTabOpen += 1;
   if (iTabOpen >= nTabs)
     iTabOpen = 0;
 
   if (bSetFocus)
     GetCurrentTabComponent().SetFocus(None);
-  }
+}
 
 
 // ============================================================================
@@ -227,14 +227,14 @@ function NextTab(optional bool bSetFocus) {
 // Adjusts the placement of all tab components.
 // ============================================================================
 
-function bool PreDraw(Canvas Canvas) {
-
+function bool PreDraw(Canvas Canvas)
+{
   local int iTab;
   local int iTabFocused;
 
   for (iTab = 0; iTab < nTabs; iTab++)
     PlaceTab(GUIMenuOption(Controls[iTab]), iTab);
-  
+
   iTabFocused = FindComponentIndex(FocusedControl);
   if (iTabFocused >= 0 && iTabFocused < nTabs)
     iTabOpen = iTabFocused;
@@ -248,10 +248,10 @@ function bool PreDraw(Canvas Canvas) {
       PlayerOwner().PlayOwnedSound(Controller.EditSound, SLOT_Interface, 1.0);
 
     iTabOpenPrev = iTabOpen;
-    }
-  
-  return False;  // execute standard code
   }
+
+  return False;  // execute standard code
+}
 
 
 // ============================================================================
@@ -260,10 +260,10 @@ function bool PreDraw(Canvas Canvas) {
 // Draws the tabs and the panel background.
 // ============================================================================
 
-function bool Draw(Canvas Canvas) {
-
+function bool Draw(Canvas Canvas)
+{
   local int iTab;
-  
+
   for (iTab = 0; iTab < nTabs; iTab++)
     if (iTab == iTabOpen)
       DrawTab(Canvas, iTab, MSAT_Focused);
@@ -273,7 +273,7 @@ function bool Draw(Canvas Canvas) {
   DrawPanel(Canvas, iTabOpen);
 
   return False;  // execute standard code
-  }
+}
 
 
 // ============================================================================
@@ -283,14 +283,14 @@ function bool Draw(Canvas Canvas) {
 // parameters.
 // ============================================================================
 
-function CalcTabMetrics(int iTab, optional out vector LocationTab, optional out vector SizeTab) {
-
+function CalcTabMetrics(int iTab, optional out vector LocationTab, optional out vector SizeTab)
+{
   LocationTab.X = int(ActualLeft());
   LocationTab.Y = int(ActualTop() + iTab * (TabHeight + TabSpacing) * ActualHeight());
-  
+
   SizeTab.X = int(TabWidth  * ActualWidth());
   SizeTab.Y = int(TabHeight * ActualHeight());
-  }
+}
 
 
 // ============================================================================
@@ -300,8 +300,8 @@ function CalcTabMetrics(int iTab, optional out vector LocationTab, optional out 
 // behavior of DrawTileStretched using only the left half of the material.
 // ============================================================================
 
-function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab) {
-
+function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab)
+{
   local vector LocationTab;
   local vector SizeTab;
   local Material Material;
@@ -310,7 +310,7 @@ function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab) {
     case EMenuState.MSAT_Blurry:   Material = Texture'GUITabFocused';  Canvas.SetDrawColor(255, 255, 255,  40);  break;
     case EMenuState.MSAT_Watched:  Material = Texture'GUITabWatched';  Canvas.SetDrawColor(255, 255, 255, 255);  break;
     case EMenuState.MSAT_Focused:  Material = Texture'GUITabFocused';  Canvas.SetDrawColor(255, 255, 255, 160);  break;
-    }
+  }
 
   if (Material == None)
     return;
@@ -320,7 +320,7 @@ function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab) {
   Canvas.Style = EMenuRenderStyle.MSTY_Alpha;
   Canvas.SetPos(LocationTab.X, LocationTab.Y);
   Canvas.DrawTileStretched(Material, SizeTab.X, SizeTab.Y);
-  }
+}
 
 
 // ============================================================================
@@ -329,18 +329,18 @@ function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab) {
 // Draws the background panel.
 // ============================================================================
 
-function DrawPanel(Canvas Canvas, int iTab) {
-
+function DrawPanel(Canvas Canvas, int iTab)
+{
   local vector LocationPanel;
   local vector LocationTab;
   local vector SizePanel;
   local vector SizeTab;
 
   CalcTabMetrics(iTab, LocationTab, SizeTab);
-  
+
   LocationPanel.X = int(LocationTab.X + SizeTab.X);
   LocationPanel.Y = int(ActualTop());
-  
+
   SizePanel.X = int(ActualWidth() + ActualLeft() - LocationPanel.X);
   SizePanel.Y = int(ActualHeight());
 
@@ -350,19 +350,19 @@ function DrawPanel(Canvas Canvas, int iTab) {
   if (iTab == 0) {
     Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
     Canvas.DrawTileStretched(Texture'GUIPanelTopRight', SizePanel.X, SizeTab.Y);
-    }
+  }
 
   else {
     Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
     Canvas.DrawTileStretched(Texture'GUIPanelTop', SizePanel.X, LocationTab.Y - LocationPanel.Y);
-    
+
     Canvas.SetPos(LocationPanel.X, LocationTab.Y);
     Canvas.DrawTileStretched(Texture'GUIPanelRight', SizePanel.X, SizeTab.Y);
-    }
+  }
 
   Canvas.SetPos(LocationPanel.X, LocationTab.Y + SizeTab.Y);
   Canvas.DrawTileStretched(Texture'GUIPanelBottom', SizePanel.X, LocationPanel.Y + SizePanel.Y - Canvas.CurY);
-  }
+}
 
 
 // ============================================================================
@@ -373,8 +373,8 @@ function DrawPanel(Canvas Canvas, int iTab) {
 // object reference unique to the tab that can be used to identify it later.
 // ============================================================================
 
-function GUIMenuOption AddTab(string TextCaption, optional string TextHint) {
-
+function GUIMenuOption AddTab(string TextCaption, optional string TextHint)
+{
   local int iTabAdded;
   local GUIMenuOption GUIMenuOptionTab;
 
@@ -400,9 +400,9 @@ function GUIMenuOption AddTab(string TextCaption, optional string TextHint) {
 
   Controls.Insert(iTabAdded, 1);
   Controls[iTabAdded] = GUIMenuOptionTab;
-  
+
   return GUIMenuOptionTab;
-  }
+}
 
 
 // ============================================================================
@@ -412,13 +412,13 @@ function GUIMenuOption AddTab(string TextCaption, optional string TextHint) {
 // reference to it.
 // ============================================================================
 
-function GUIComponent AddComponent(GUIComponent GUIComponent) {
-
+function GUIComponent AddComponent(GUIComponent GUIComponent)
+{
   Controls[Controls.Length] = GUIComponent;
   GUIComponent.InitComponent(Controller, Self);
 
   return GUIComponent;
-  }
+}
 
 
 // ============================================================================
@@ -429,13 +429,13 @@ function GUIComponent AddComponent(GUIComponent GUIComponent) {
 // being opened).
 // ============================================================================
 
-function bool GUIMenuOptionTab_LabelClick(GUIComponent GUIComponentSender) {
-
+function bool GUIMenuOptionTab_LabelClick(GUIComponent GUIComponentSender)
+{
   if (GUILabel(GUIComponentSender) != None)
     GUIComponentSender.MenuOwner.SetFocus(None);
 
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -445,8 +445,8 @@ function bool GUIMenuOptionTab_LabelClick(GUIComponent GUIComponentSender) {
 // focused. Switches to another tab when the up or down arrow is pressed.
 // ============================================================================
 
-function bool GUIMenuOptionTab_ComponentKeyEvent(out byte Key, out byte State, float Delta) {
-
+function bool GUIMenuOptionTab_ComponentKeyEvent(out byte Key, out byte State, float Delta)
+{
   local GUIMenuOption GUIMenuOptionTab;
 
        if (State == 1 && Key == Controller.EInputKey.IK_Up)   { PrevTab(True);  return True; }
@@ -454,7 +454,7 @@ function bool GUIMenuOptionTab_ComponentKeyEvent(out byte Key, out byte State, f
 
   GUIMenuOptionTab = GetTabComponent(iTabOpen);
   return GUIMenuOptionTab.OnKeyEvent(Key, State, Delta);
-  }
+}
 
 
 // ============================================================================
@@ -463,19 +463,19 @@ function bool GUIMenuOptionTab_ComponentKeyEvent(out byte Key, out byte State, f
 // Updates the position and size of the given tab button component.
 // ============================================================================
 
-function PlaceTab(GUIMenuOption GUIMenuOptionTab, int iTab) {
-
+function PlaceTab(GUIMenuOption GUIMenuOptionTab, int iTab)
+{
   GUIMenuOptionTab.bBoundToParent = True;
   GUIMenuOptionTab.bScaleToParent = True;
-  
+
   GUIMenuOptionTab.WinTop    = FMax(0.0, iTab * (TabHeight + TabSpacing));
   GUIMenuOptionTab.WinLeft   = 0.0;
   GUIMenuOptionTab.WinWidth  = TabComponentWidth * TabWidth * WinWidth;
   GUIMenuOptionTab.WinHeight = TabComponentHeight;
-  
+
   GUIMenuOptionTab.WinTop  += (TabHeight       - TabComponentHeight)            / 2;
   GUIMenuOptionTab.WinLeft += (TabWidth * (1.0 - TabComponentWidth) * WinWidth) / 2;
-  }
+}
 
 
 // ============================================================================
@@ -484,13 +484,13 @@ function PlaceTab(GUIMenuOption GUIMenuOptionTab, int iTab) {
 // Returns the tab button component corresponding to the given tab index.
 // ============================================================================
 
-function GUIMenuOption GetTabComponent(int iTab) {
-
+function GUIMenuOption GetTabComponent(int iTab)
+{
   if (iTab < 0 || iTab >= nTabs)
     return None;
 
   return GUIMenuOption(Controls[iTab]);
-  }
+}
 
 
 // ============================================================================
@@ -499,17 +499,17 @@ function GUIMenuOption GetTabComponent(int iTab) {
 // Returns the tab index corresponding to the given tab button component.
 // ============================================================================
 
-function int GetTabIndex(GUIMenuOption GUIMenuOptionTab) {
-
+function int GetTabIndex(GUIMenuOption GUIMenuOptionTab)
+{
   local int iTab;
-  
+
   iTab = FindComponentIndex(GUIMenuOptionTab);
 
   if (iTab < 0 || iTab >= nTabs)
     return -1;
 
   return iTab;
-  }
+}
 
 
 // ============================================================================
@@ -528,16 +528,16 @@ function int           GetCurrentTabIndex()     { return                 iTabOpe
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   iTabOpen     = -1;
   iTabOpenPrev = -1;
 
   TabWidth   = 0.330;
   TabHeight  = 0.080;
   TabSpacing = 0.020;
-  
+
   TabComponentClass  = Class'moCheckBox';
   TabComponentWidth  = 0.850;
   TabComponentHeight = 0.040;
-  }
+}

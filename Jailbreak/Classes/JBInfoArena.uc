@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.22 2003/07/19 22:02:25 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.23 2003/12/28 20:25:00 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -24,20 +24,20 @@ class JBInfoArena extends Info
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role == ROLE_Authority)
     TimeStart, TimeCountdownStart, TimeCountdownTie,
     PlayerReplicationInfoRed, PlayerReplicationInfoBlue;
-  }
+}
 
 
 // ============================================================================
 // Types
 // ============================================================================
 
-struct TDisplayPlayer {
-
+struct TDisplayPlayer
+{
   var protected PlayerReplicationInfo PlayerReplicationInfo;
   var protected PlayerReplicationInfo PlayerReplicationInfoPrev;
   var protected JBTagPlayer TagPlayer;
@@ -47,7 +47,7 @@ struct TDisplayPlayer {
   var protected float HealthDisplayed;
   var protected string PlayerNameDisplayed;
   var protected string PlayerNameOriginal;
-  
+
   var Color ColorName;
   var vector LocationName;
   var EDrawPivot DrawPivotName;
@@ -59,7 +59,7 @@ struct TDisplayPlayer {
   var HudBase.SpriteWidget SpriteWidgetHealthFill;
   var HudBase.SpriteWidget SpriteWidgetHealthTint;
   var HudBase.SpriteWidget SpriteWidgetHealthFrame;
-  };
+};
 
 
 // ============================================================================
@@ -115,22 +115,22 @@ var private Font FontObjectNames;                  // loaded font object
 // Spawns and sets up event probes for TagRequest and TagExclude.
 // ============================================================================
 
-event PostBeginPlay() {
-
+event PostBeginPlay()
+{
   if (TagRequest != '' &&
       TagRequest != 'None') {
     ProbeEventRequest = Spawn(Class'JBProbeEvent', Self, TagRequest);
     ProbeEventRequest.OnTrigger   = TriggerRequest;
     ProbeEventRequest.OnUnTrigger = UnTriggerRequest;
-    }
-  
+  }
+
   if (TagExclude != '' &&
       TagExclude != 'None') {
     ProbeEventExclude = Spawn(Class'JBProbeEvent', Self, TagExclude);
     ProbeEventExclude.OnTrigger   = TriggerExclude;
     ProbeEventExclude.OnUnTrigger = UnTriggerExclude;
-    }
   }
+}
 
 
 // ============================================================================
@@ -139,11 +139,11 @@ event PostBeginPlay() {
 // Destroys the event probes if they're present.
 // ============================================================================
 
-event Destroyed() {
-
+event Destroyed()
+{
   if (ProbeEventRequest != None) ProbeEventRequest.Destroy();
   if (ProbeEventExclude != None) ProbeEventExclude.Destroy();
-  }
+}
 
 
 // ============================================================================
@@ -155,20 +155,20 @@ event Destroyed() {
 // this arena by means of the TagAttachPickups and TagAttachStarts properties.
 // ============================================================================
 
-function bool ContainsActor(Actor Actor) {
-
+function bool ContainsActor(Actor Actor)
+{
   if (Pickup(Actor) != None)
     if (TagAttachPickups == 'Auto')
       return Actor.Region.ZoneNumber == Region.ZoneNumber;
     else
       return Actor.Tag == TagAttachPickups;
-  
+
   if (NavigationPoint(Actor) != None)
     if (TagAttachStarts == 'Auto')
       return Actor.Region.ZoneNumber == Region.ZoneNumber;
     else
       return Actor.Tag == TagAttachStarts;
-  
+
   if (Controller(Actor) != None &&
       Controller(Actor).PlayerReplicationInfo != None)
     return Class'JBTagPlayer'.Static.FindFor(Controller(Actor).PlayerReplicationInfo).GetArena() == Self;
@@ -176,9 +176,9 @@ function bool ContainsActor(Actor Actor) {
   if (Pawn(Actor) != None &&
       Pawn(Actor).PlayerReplicationInfo != None)
     return Class'JBTagPlayer'.Static.FindFor(Pawn(Actor).PlayerReplicationInfo).GetArena() == Self;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -188,8 +188,8 @@ function bool ContainsActor(Actor Actor) {
 // arena. Explicit requests or exclusions aren't checked here.
 // ============================================================================
 
-function bool CanFight(Controller ControllerCandidate) {
-
+function bool CanFight(Controller ControllerCandidate)
+{
   local JBGameRules firstJBGameRules;
   local JBTagPlayer TagPlayer;
 
@@ -200,18 +200,18 @@ function bool CanFight(Controller ControllerCandidate) {
   if (!TagPlayer.IsInJail() ||
        TagPlayer.IsInArena())
     return False;
-  
+
   if (TagPlayer.GetArenaPending() != None &&
       TagPlayer.GetArenaPending() != Self)
     return False;
-  
+
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules == None ||
       firstJBGameRules.CanSendToArena(TagPlayer, Self))
     return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -221,17 +221,17 @@ function bool CanFight(Controller ControllerCandidate) {
 // they are ready to fight and in opposing teams.
 // ============================================================================
 
-function bool CanStart() {
-
+function bool CanStart()
+{
   local byte bFoundCandidate[2];
   local int nCandidates;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local TeamInfo TeamPlayer;
-  
+
   if (!Level.Game.IsInState('MatchInProgress'))
     return False;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArenaPending() == Self && CanFight(thisTagPlayer.GetController())) {
@@ -240,13 +240,13 @@ function bool CanStart() {
         return False;
       bFoundCandidate[TeamPlayer.TeamIndex] = 1;
       nCandidates++;
-      }
+    }
 
   if (nCandidates < 2)
     return False;
-  
+
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -255,16 +255,16 @@ function bool CanStart() {
 // Checks whether the given player is excluded from arena matches.
 // ============================================================================
 
-function bool IsExcluded(Controller ControllerCandidate) {
-
+function bool IsExcluded(Controller ControllerCandidate)
+{
   local int iController;
-  
+
   for (iController = 0; iController < ListControllerExclude.Length; iController++)
     if (ListControllerExclude[iController] == ControllerCandidate)
       return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -274,23 +274,23 @@ function bool IsExcluded(Controller ControllerCandidate) {
 // currently pending for this player, cancels it.
 // ============================================================================
 
-function ExcludeAdd(Controller ControllerCandidate) {
-
+function ExcludeAdd(Controller ControllerCandidate)
+{
   local JBTagPlayer TagPlayerCandidate;
 
   if (IsExcluded(ControllerCandidate))
     return;
-  
+
   TagPlayerCandidate = Class'JBTagPlayer'.Static.FindFor(ControllerCandidate.PlayerReplicationInfo);
 
-  if (TagPlayerCandidate.GetArenaRequest() == Self)  
+  if (TagPlayerCandidate.GetArenaRequest() == Self)
     TagPlayerCandidate.SetArenaRequest(None);
-  
+
   if (TagPlayerCandidate.GetArenaPending() == Self)
     MatchCancel();
 
   ListControllerExclude[ListControllerExclude.Length] = ControllerCandidate;
-  }
+}
 
 
 // ============================================================================
@@ -299,14 +299,14 @@ function ExcludeAdd(Controller ControllerCandidate) {
 // Removes the given player from the exclusion list.
 // ============================================================================
 
-function ExcludeRemove(Controller ControllerCandidate) {
-
+function ExcludeRemove(Controller ControllerCandidate)
+{
   local int iController;
-  
+
   for (iController = ListControllerExclude.Length - 1; iController >= 0; iController--)
     if (ListControllerExclude[iController] == ControllerCandidate)
       ListControllerExclude.Remove(iController, 1);
-  }
+}
 
 
 // ============================================================================
@@ -316,11 +316,11 @@ function ExcludeRemove(Controller ControllerCandidate) {
 // instigator to the exclusion list.
 // ============================================================================
 
-function TriggerExclude(Actor ActorOther, Pawn PawnInstigator) {
-
+function TriggerExclude(Actor ActorOther, Pawn PawnInstigator)
+{
   if (PawnInstigator.Controller != None)
     ExcludeAdd(PawnInstigator.Controller);
-  }
+}
 
 
 // ============================================================================
@@ -330,11 +330,11 @@ function TriggerExclude(Actor ActorOther, Pawn PawnInstigator) {
 // the instigator from the exclusion list.
 // ============================================================================
 
-function UnTriggerExclude(Actor ActorOther, Pawn PawnInstigator) {
-
+function UnTriggerExclude(Actor ActorOther, Pawn PawnInstigator)
+{
   if (PawnInstigator.Controller != None)
     ExcludeRemove(PawnInstigator.Controller);
-  }
+}
 
 
 // ============================================================================
@@ -344,8 +344,8 @@ function UnTriggerExclude(Actor ActorOther, Pawn PawnInstigator) {
 // arena request for the instigator, provided he or she isn't excluded already.
 // ============================================================================
 
-function TriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
-
+function TriggerRequest(Actor ActorOther, Pawn PawnInstigator)
+{
   local JBTagPlayer TagPlayer;
 
   if (PawnInstigator.Controller == None)
@@ -355,11 +355,11 @@ function TriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
     Log("Warning:" @ PawnInstigator.PlayerReplicationInfo.PlayerName @ "requests an arena match," @
         "but has been excluded from matches in" @ Self @ "before.");
     return;
-    }
+  }
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
   TagPlayer.SetArenaRequest(Self);
-  }
+}
 
 
 // ============================================================================
@@ -369,8 +369,8 @@ function TriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
 // the instigator's arena request for this arena.
 // ============================================================================
 
-function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
-
+function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator)
+{
   local JBTagPlayer TagPlayer;
 
   if (PawnInstigator.Controller == None)
@@ -379,7 +379,7 @@ function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
   if (TagPlayer.GetArenaRequest() == Self)
     TagPlayer.SetArenaRequest(None);
-  }
+}
 
 
 // ============================================================================
@@ -388,12 +388,12 @@ function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
 // Returns the number of living players currently fighting in this arena.
 // ============================================================================
 
-function int CountPlayers() {
-
+function int CountPlayers()
+{
   local int nPlayers;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArena() == Self &&
@@ -401,7 +401,7 @@ function int CountPlayers() {
       nPlayers += 1;
 
   return nPlayers;
-  }
+}
 
 
 // ============================================================================
@@ -413,8 +413,8 @@ function int CountPlayers() {
 // called only in state Waiting.
 // ============================================================================
 
-function bool MatchInit(Controller ControllerCombatantRed, Controller ControllerCombatantBlue) {
-
+function bool MatchInit(Controller ControllerCombatantRed, Controller ControllerCombatantBlue)
+{
   local bool bCanFightRed;
   local bool bCanFightBlue;
 
@@ -425,34 +425,34 @@ function bool MatchInit(Controller ControllerCombatantRed, Controller Controller
           ControllerCombatantRed.PlayerReplicationInfo.PlayerName @ "and" @
           ControllerCombatantBlue.PlayerReplicationInfo.PlayerName @ "are in the same team");
       return False;
-      }
-  
+    }
+
     bCanFightRed  = CanFight(ControllerCombatantRed);
     bCanFightBlue = CanFight(ControllerCombatantBlue);
-  
+
     if (!bCanFightRed || !bCanFightBlue) {
       if (!bCanFightRed)
         Log("Warning:" @ ControllerCombatantRed.PlayerReplicationInfo.PlayerName @ "(red) can't fight in" @ Self);
       if (!bCanFightBlue);
         Log("Warning:" @ ControllerCombatantBlue.PlayerReplicationInfo.PlayerName @ "(blue) can't fight in" @ Self);
       return False;
-      }
-    
+    }
+
     PlayerReplicationInfoRed  = ControllerCombatantRed.PlayerReplicationInfo;
     PlayerReplicationInfoBlue = ControllerCombatantBlue.PlayerReplicationInfo;
-    
+
     Class'JBTagPlayer'.Static.FindFor(PlayerReplicationInfoRed ).SetArenaPending(Self);
     Class'JBTagPlayer'.Static.FindFor(PlayerReplicationInfoBlue).SetArenaPending(Self);
-    
+
     GotoState('MatchCountdown');
     return True;
-    }
+  }
 
   else {
     Log("Warning: Can't start match in" @ Self @ "because arena is in state" @ GetStateName());
     return False;
-    }
   }
+}
 
 
 // ============================================================================
@@ -462,8 +462,8 @@ function bool MatchInit(Controller ControllerCombatantRed, Controller Controller
 // only in state MatchCountdown.
 // ============================================================================
 
-function MatchCancel() {
-
+function MatchCancel()
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
@@ -476,12 +476,12 @@ function MatchCancel() {
     TriggerEvent(EventTied, Self, None);
     BroadcastLocalizedMessage(MessageClass, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     GotoState('Waiting');
-    }
-  
+  }
+
   else {
     Log("Warning: Can't cancel match in" @ Self @ "because arena is in state" @ GetStateName());
-    }
   }
+}
 
 
 // ============================================================================
@@ -491,8 +491,8 @@ function MatchCancel() {
 // whether the match was started. Can be called only in state MatchCountdown.
 // ============================================================================
 
-function bool MatchStart() {
-
+function bool MatchStart()
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
@@ -504,20 +504,20 @@ function bool MatchStart() {
           thisTagPlayer.RestartInArena(Self);
 
       Prepare();
-  
+
       TriggerEvent(EventStart, Self, None);
       BroadcastLocalizedMessage(MessageClass, 400, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       GotoState('MatchRunning');
-      
+
       return True;
-      }
     }
-  
+  }
+
   else {
     Log("Warning: Can't start match in" @ Self @ "because arena is in state" @ GetStateName());
     return False;
-    }
   }
+}
 
 
 // ============================================================================
@@ -528,8 +528,8 @@ function bool MatchStart() {
 // all pickups associated to this arena.
 // ============================================================================
 
-function Prepare() {
-
+function Prepare()
+{
   local Pickup thisPickup;
 
   foreach DynamicActors(Class'Pickup', thisPickup)
@@ -537,8 +537,8 @@ function Prepare() {
       if (thisPickup.PickupBase != None)
         thisPickup.PickupBase.TurnOn();
       thisPickup.GotoState('Pickup');
-      }
-  }
+    }
+}
 
 
 // ============================================================================
@@ -548,8 +548,8 @@ function Prepare() {
 // them back to jail. Can only be called in state MatchRunning.
 // ============================================================================
 
-function MatchTie() {
-
+function MatchTie()
+{
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
@@ -567,12 +567,12 @@ function MatchTie() {
     TriggerEvent(EventTied, Self, None);
     BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     GotoState('Waiting');
-    }
-  
+  }
+
   else {
     Log("Warning: Can't tie match in" @ Self @ "because arena is in state" @ GetStateName());
-    }
   }
+}
 
 
 // ============================================================================
@@ -583,8 +583,8 @@ function MatchTie() {
 // MatchFinished.
 // ============================================================================
 
-function MatchFinish() {
-
+function MatchFinish()
+{
   local Controller ControllerWinner;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
@@ -605,17 +605,17 @@ function MatchFinish() {
           TriggerEvent(EventWonBlue, Self, ControllerWinner.Pawn);
           BroadcastLocalizedMessage(MessageClass, 430, PlayerReplicationInfoBlue, PlayerReplicationInfoRed, Self);
           break;
-        }
+      }
 
       TagPlayerWinner = Class'JBTagPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo);
       TagPlayerWinner.RestartInFreedom();
-      }
-    
+    }
+
     else {
       TriggerEvent(EventTied, Self, None);
       BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
-      }
-    
+    }
+
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self &&
@@ -627,12 +627,12 @@ function MatchFinish() {
       firstJBGameRules.NotifyArenaEnd(Self, TagPlayerWinner);
 
     GotoState('Waiting');
-    }
-  
+  }
+
   else {
     Log("Warning: Can't clean up after match in" @ Self @ "because arena is in state" @ GetStateName());
-    }
   }
+}
 
 
 // ============================================================================
@@ -643,15 +643,15 @@ function MatchFinish() {
 // selects the last player present in the arena.
 // ============================================================================
 
-function Controller FindWinner() {
-
+function Controller FindWinner()
+{
   local Controller ControllerWinner;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchRunning') ||
       IsInState('MatchFinished')) {
-    
+
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self &&
@@ -662,13 +662,13 @@ function Controller FindWinner() {
           return None;
 
     return ControllerWinner;
-    }
-  
+  }
+
   else {
     Log("Warning: Can't find winner in" @ Self @ "because arena is in state" @ GetStateName());
     return None;
-    }
   }
+}
 
 
 // ============================================================================
@@ -677,8 +677,8 @@ function Controller FindWinner() {
 // Draws an arena time countdown on the screen.
 // ============================================================================
 
-simulated function RenderOverlaysFor(Canvas Canvas, HudBase HudBase, JBTagPlayer TagPlayer) {
-
+simulated function RenderOverlaysFor(Canvas Canvas, HudBase HudBase, JBTagPlayer TagPlayer)
+{
   DisplayPlayerLeft .PlayerReplicationInfo = PlayerReplicationInfoRed;
   DisplayPlayerRight.PlayerReplicationInfo = PlayerReplicationInfoBlue;
 
@@ -686,7 +686,7 @@ simulated function RenderOverlaysFor(Canvas Canvas, HudBase HudBase, JBTagPlayer
   ShowPlayer(Canvas, HudBase, DisplayPlayerRight);
 
   ShowCountdown(Canvas, HudBase);
-  }
+}
 
 
 // ============================================================================
@@ -695,10 +695,10 @@ simulated function RenderOverlaysFor(Canvas Canvas, HudBase HudBase, JBTagPlayer
 // Draws the arena tie countdown on the screen.
 // ============================================================================
 
-simulated function ShowCountdown(Canvas Canvas, HudBase HudBase) {
-
+simulated function ShowCountdown(Canvas Canvas, HudBase HudBase)
+{
   NumericWidgetCountdown.Value = TimeCountdownTie;
-  
+
   if (NumericWidgetCountdown.Value > 99)
     NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale * 2/3;
   else
@@ -706,7 +706,7 @@ simulated function ShowCountdown(Canvas Canvas, HudBase HudBase) {
 
   HudBase.DrawSpriteWidget(Canvas, SpriteWidgetCountdown);
   HudBase.DrawNumericWidget(Canvas, NumericWidgetCountdown, HudBDeathMatch(HudBase).DigitsBig);
-  }
+}
 
 
 // ============================================================================
@@ -715,26 +715,26 @@ simulated function ShowCountdown(Canvas Canvas, HudBase HudBase) {
 // Draws player name and health status of one player on the screen.
 // ============================================================================
 
-simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
-
+simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer)
+{
   if (DisplayPlayer.PlayerReplicationInfo !=
       DisplayPlayer.PlayerReplicationInfoPrev) {
     DisplayPlayer.PlayerReplicationInfoPrev = DisplayPlayer.PlayerReplicationInfo;
     DisplayPlayer.TagPlayer = Class'JBTagPlayer'.Static.FindFor(DisplayPlayer.PlayerReplicationInfo);
-    }
+  }
 
   if (DisplayPlayer.TimeStart != TimeStart) {
     DisplayPlayer.TimeStart = TimeStart;
     DisplayPlayer.TimeUpdate = Level.TimeSeconds;
 
     DisplayPlayer.HealthDisplayed = 0.0;
-    }
+  }
 
   ShowPlayerName  (Canvas, HudBase, DisplayPlayer);
   ShowPlayerHealth(Canvas, HudBase, DisplayPlayer);
 
   DisplayPlayer.TimeUpdate = Level.TimeSeconds;
-  }
+}
 
 
 // ============================================================================
@@ -743,8 +743,8 @@ simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer
 // Displays the name of one player on the screen, including its background.
 // ============================================================================
 
-simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
-
+simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer)
+{
   local int nCharTotal;
   local int nCharRemoved;
   local vector SizeText;
@@ -769,7 +769,7 @@ simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPl
 
     SizeTextMax.X = Abs(DisplayPlayer.LocationName.X) - 0.040;
     SizeTextMax.X *= HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipX;
-  
+
     nCharTotal = Len(DisplayPlayer.PlayerNameOriginal);
 
     while (nCharRemoved < nCharTotal) {
@@ -781,8 +781,8 @@ simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPl
       DisplayPlayer.PlayerNameDisplayed =
         Left(DisplayPlayer.PlayerNameOriginal, (nCharTotal - nCharRemoved + 1) / 2) $ "..." $
         Mid (DisplayPlayer.PlayerNameOriginal, (nCharTotal - nCharRemoved + 1) / 2 + nCharRemoved);
-      }
     }
+  }
 
   Canvas.DrawColor = DisplayPlayer.ColorName;
   Canvas.DrawScreenText(
@@ -793,7 +793,7 @@ simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPl
 
   Canvas.FontScaleX = Canvas.Default.FontScaleX;
   Canvas.FontScaleY = Canvas.Default.FontScaleY;
-  }
+}
 
 
 // ============================================================================
@@ -802,8 +802,8 @@ simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPl
 // Shows the team symbol for one player.
 // ============================================================================
 
-simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
-
+simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer)
+{
   local int iTeam;
 
   iTeam = DisplayPlayer.PlayerReplicationInfo.Team.TeamIndex;
@@ -812,9 +812,9 @@ simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplay
   DisplayPlayer.SpriteWidgetSymbol.TextureCoords = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].TextureCoords;
   DisplayPlayer.SpriteWidgetSymbol.Tints[0]      = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].Tints[0];
   DisplayPlayer.SpriteWidgetSymbol.Tints[1]      = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].Tints[1];
-  
+
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetSymbol);
-  }
+}
 
 
 // ============================================================================
@@ -823,8 +823,8 @@ simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplay
 // Displays the health bar of one player on the screen.
 // ============================================================================
 
-simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
-
+simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer)
+{
   local float HealthCurrent;
   local float HealthDelta;
   local float TimeDelta;
@@ -843,7 +843,7 @@ simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplay
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthFill);
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthTint);
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthFrame);
-  }
+}
 
 
 // ============================================================================
@@ -860,10 +860,10 @@ auto state Waiting {
   // Fires the EventWaiting event.
   // ================================================================
 
-  event BeginState() {
-  
+  event BeginState()
+  {
     TriggerEvent(EventWaiting, Self, None);
-    }
+  }
 
 
   // ================================================================
@@ -871,24 +871,24 @@ auto state Waiting {
   //
   // Selects two players from opposing teams and initiates a match.
   // ================================================================
-  
-  event Trigger(Actor ActorOther, Pawn PawnInstigator) {
-  
+
+  event Trigger(Actor ActorOther, Pawn PawnInstigator)
+  {
     local bool bStarted;
-  
+
     if (Tag == TagRequest) TriggerRequest(ActorOther, PawnInstigator);
     if (Tag == TagExclude) TriggerExclude(ActorOther, PawnInstigator);
-  
+
     if (TagRequest == ''     ||
         TagRequest == 'Auto' ||
         TagRequest == 'None')
       bStarted = MatchInitRandom();
     else
       bStarted = MatchInitRequested();
-    
+
     if (!bStarted)
       TriggerEvent(EventWaiting, Self, None);
-    }
+  }
 
 
   // ================================================================
@@ -898,8 +898,8 @@ auto state Waiting {
   // arena match for them. Returns whether a match was started.
   // ================================================================
 
-  function bool MatchInitRandom() {
-  
+  function bool MatchInitRandom()
+  {
     local int iTagPlayer;
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
@@ -918,11 +918,11 @@ auto state Waiting {
 
       TeamCandidate = TagPlayerCandidate.GetTeam();
       TagPlayerCandidateByTeam[TeamCandidate.TeamIndex] = TagPlayerCandidate;
-      
+
       for (iTagPlayer = ListTagPlayerCandidate.Length - 1; iTagPlayer >= 0; iTagPlayer--)
         if (ListTagPlayerCandidate[iTagPlayer].GetTeam() == TeamCandidate)
           ListTagPlayerCandidate.Remove(iTagPlayer, 1);
-      }
+    }
 
     if (TagPlayerCandidateByTeam[0] != None &&
         TagPlayerCandidateByTeam[1] != None)
@@ -930,8 +930,8 @@ auto state Waiting {
                        TagPlayerCandidateByTeam[1].GetController());
 
     return False;
-    }
-  
+  }
+
 
   // ================================================================
   // MatchInitRequested
@@ -941,13 +941,13 @@ auto state Waiting {
   // precedence over others. Returns whether a match was started.
   // ================================================================
 
-  function bool MatchInitRequested() {
-  
+  function bool MatchInitRequested()
+  {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBTagPlayer TagPlayerCandidateByTeam[2];
     local TeamInfo TeamPlayer;
-    
+
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
       TeamPlayer = thisTagPlayer.GetTeam();
@@ -956,7 +956,7 @@ auto state Waiting {
         if (TagPlayerCandidateByTeam[TeamPlayer.TeamIndex] == None ||
             TagPlayerCandidateByTeam[TeamPlayer.TeamIndex].GetArenaRequestTime() > thisTagPlayer.GetArenaRequestTime())
           TagPlayerCandidateByTeam[TeamPlayer.TeamIndex] = thisTagPlayer;
-      }
+    }
 
     if (TagPlayerCandidateByTeam[0] != None &&
         TagPlayerCandidateByTeam[1] != None)
@@ -964,9 +964,9 @@ auto state Waiting {
                        TagPlayerCandidateByTeam[1].GetController());
 
     return False;
-    }
+  }
 
-  } // state Waiting
+} // state Waiting
 
 
 // ============================================================================
@@ -985,8 +985,8 @@ state MatchCountdown {
   // the countdown.
   // ================================================================
 
-  private function BroadcastCountdown(int nSeconds) {
-  
+  private function BroadcastCountdown(int nSeconds)
+  {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
 
@@ -1002,7 +1002,7 @@ state MatchCountdown {
           PlayerReplicationInfoRed,
           PlayerReplicationInfoBlue,
           Self);
-    }
+  }
 
 
   // ================================================================
@@ -1012,15 +1012,15 @@ state MatchCountdown {
   // the countdown.
   // ================================================================
 
-  event BeginState() {
-  
+  event BeginState()
+  {
     TimeStart = Level.TimeSeconds + 3.0;
 
     TimeCountdownStart = 3.0;
     BroadcastCountdown(TimeCountdownStart + 0.5);
-    
+
     SetTimer(1.0, True);
-    }
+  }
 
 
   // ================================================================
@@ -1031,17 +1031,17 @@ state MatchCountdown {
   // countdown has finished, starts the match.
   // ================================================================
 
-  event Timer() {
-  
+  event Timer()
+  {
     TimeCountdownStart -= 1.0;
-    
+
     if (TimeCountdownStart <= 0.0)
       MatchStart();
     else if (CanStart())
       BroadcastCountdown(TimeCountdownStart + 0.5);
     else
       MatchCancel();
-    }
+  }
 
 
   // ================================================================
@@ -1050,12 +1050,12 @@ state MatchCountdown {
   // Stops the timer.
   // ================================================================
 
-  event EndState() {
-  
+  event EndState()
+  {
     SetTimer(0.0, False);
-    }
+  }
 
-  } // state MatchCountdown
+} // state MatchCountdown
 
 
 // ============================================================================
@@ -1074,8 +1074,8 @@ state MatchRunning {
   // the countdown.
   // ================================================================
 
-  event BeginState() {
-  
+  event BeginState()
+  {
     local JBGameRules firstJBGameRules;
 
     firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
@@ -1084,7 +1084,7 @@ state MatchRunning {
 
     TimeCountdownTie = MaxCombatTime;
     SetTimer(1.0, True);
-    }
+  }
 
 
   // ================================================================
@@ -1095,30 +1095,30 @@ state MatchRunning {
   // match when it reaches zero.
   // ================================================================
 
-  event Timer() {
-  
+  event Timer()
+  {
     TimeCountdownTie -= 1.0;
-    
+
     if (FindWinner() != None)
       GotoState('MatchFinished');
 
     else if (CountPlayers() == 0 || TimeCountdownTie <= 0.0)
       MatchTie();
-    }
+  }
 
-  
+
   // ================================================================
   // EndState
   //
   // Stops the timer.
   // ================================================================
 
-  event EndState() {
-  
+  event EndState()
+  {
     SetTimer(0.0, False);
-    }
+  }
 
-  } // state MatchRunning
+} // state MatchRunning
 
 
 // ============================================================================
@@ -1133,7 +1133,7 @@ state MatchFinished {
     Sleep(3.0);
     MatchFinish();
 
-  } // state MatchFinished
+} // state MatchFinished
 
 
 // ============================================================================
@@ -1154,8 +1154,8 @@ simulated function float GetCountdownTie() {
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   MessageClass = Class'JBLocalMessage';
 
   EventStart   = ArenaStart;
@@ -1163,21 +1163,21 @@ defaultproperties {
   EventWonRed  = ArenaWonRed;
   EventWonBlue = ArenaWonBlue;
   EventWaiting = ArenaWaiting;
-  
+
   MaxCombatTime = 60.0;
-  
+
   TagAttachStarts  = Auto;
   TagAttachPickups = Auto;
-  
+
   SpriteWidgetCountdown = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   NumericWidgetCountdown = (TextureScale=0.15,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=140,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
-  
+
   FontNames = "UT2003Fonts.jFontMedium";
   ScaleFontNames = 0.56;
   DisplayPlayerLeft  = (ColorName=(R=255,G=255,B=255,A=255),LocationName=(X=-0.169,Y=0.037),DrawPivotName=DP_MiddleLeft,SpriteWidgetNameFill=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=016,X1=382,Y2=109),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=200),Tints[1]=(R=048,G=075,B=120,A=200)),SpriteWidgetNameTint=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=128,X1=382,Y2=211),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=100),Tints[1]=(R=037,G=066,B=102,A=150)),SpriteWidgetNameFrame=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=240,X1=382,Y2=333),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetSymbol=(TextureScale=0.065,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-405,OffsetY=150,RenderStyle=STY_Alpha),SpriteWidgetHealthFill=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=454,X2=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,ScaleMode=SM_Left,Scale=0.7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255)),SpriteWidgetHealthTint=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=454,X2=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150)),SpriteWidgetHealthFrame=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=415,X2=836,Y2=453),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)));
   DisplayPlayerRight = (ColorName=(R=255,G=255,B=255,A=255),LocationName=(X=0.169,Y=0.037),DrawPivotName=DP_MiddleRight,SpriteWidgetNameFill=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=016,X2=382,Y2=109),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=200),Tints[1]=(R=048,G=075,B=120,A=200)),SpriteWidgetNameTint=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=128,X2=382,Y2=211),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=100),Tints[1]=(R=037,G=066,B=102,A=150)),SpriteWidgetNameFrame=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=240,X2=382,Y2=333),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetSymbol=(TextureScale=0.065,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=405,OffsetY=150,RenderStyle=STY_Alpha),SpriteWidgetHealthFill=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=454,X1=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,ScaleMode=SM_Right,Scale=0.7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255)),SpriteWidgetHealthTint=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=454,X1=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150)),SpriteWidgetHealthFrame=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=415,X1=836,Y2=453),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)));
-  
+
   Texture = Texture'JBInfoArena';
   RemoteRole = ROLE_SimulatedProxy;
   bAlwaysRelevant = True;
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.26 2003/07/19 22:02:25 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.27 2003/12/19 13:36:54 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -39,15 +39,15 @@ var() name TagAttachZones;              // tag of attached zones
 // Types
 // ============================================================================
 
-struct TInfoRelease {
-
+struct TInfoRelease
+{
   var bool bIsActive;                   // release is currently active
   var bool bIsOpening;                  // release doors are opening
   var float TimeActivation;             // time of release activation
   var float TimeReset;                  // time of release switch reset
   var Controller ControllerInstigator;  // player activating the release
   var array<Mover> ListMover;           // movers opening for this event
-  };
+};
 
 
 // ============================================================================
@@ -69,8 +69,8 @@ var private array<NavigationPoint> ListNavigationPointExit;  // exit points
 // opened by release events.
 // ============================================================================
 
-event PostBeginPlay() {
-
+event PostBeginPlay()
+{
   local Volume thisVolume;
 
   if (TagAttachVolumes != '' &&
@@ -80,7 +80,7 @@ event PostBeginPlay() {
 
   FindReleases(EventReleaseRed,  InfoReleaseByTeam[0].ListMover);
   FindReleases(EventReleaseBlue, InfoReleaseByTeam[1].ListMover);
-  }
+}
 
 
 // ============================================================================
@@ -91,8 +91,8 @@ event PostBeginPlay() {
 // found mover's OpeningEvent and adds them too.
 // ============================================================================
 
-function FindReleases(name TagMover, out array<Mover> ListMover) {
-
+function FindReleases(name TagMover, out array<Mover> ListMover)
+{
   local int iMover;
   local Mover thisMover;
 
@@ -109,13 +109,13 @@ function FindReleases(name TagMover, out array<Mover> ListMover) {
       continue;  // mover already listed
 
     ListMover[iMover] = thisMover;
-    
+
     FindReleases(thisMover.Event,        ListMover);
     FindReleases(thisMover.OpeningEvent, ListMover);
     FindReleases(thisMover.OpenedEvent,  ListMover);
     FindReleases(thisMover.ClosingEvent, ListMover);
-    }
   }
+}
 
 
 // ============================================================================
@@ -127,8 +127,8 @@ function FindReleases(name TagMover, out array<Mover> ListMover) {
 // multiple times.
 // ============================================================================
 
-function array<NavigationPoint> FindExits() {
-
+function array<NavigationPoint> FindExits()
+{
   local int iReachSpec;
   local NavigationPoint thisNavigationPoint;
 
@@ -141,9 +141,9 @@ function array<NavigationPoint> FindExits() {
           if (!Jailbreak(Level.Game).ContainsActorArena(thisNavigationPoint.PathList[iReachSpec].End) &&
               !Jailbreak(Level.Game).ContainsActorJail (thisNavigationPoint.PathList[iReachSpec].End))
             ListNavigationPointExit[ListNavigationPointExit.Length] = thisNavigationPoint.PathList[iReachSpec].End;
-  
+
   return ListNavigationPointExit;
-  }
+}
 
 
 // ============================================================================
@@ -152,18 +152,18 @@ function array<NavigationPoint> FindExits() {
 // Checks whether this jail can release players of the given team.
 // ============================================================================
 
-function bool CanReleaseTeam(TeamInfo Team) {
-
+function bool CanReleaseTeam(TeamInfo Team)
+{
   local Actor thisActor;
-  
+
   if (GetEventRelease(Team) == '')
     return False;
-  
+
   foreach DynamicActors(Class'Actor', thisActor, GetEventRelease(Team))
     return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -173,19 +173,19 @@ function bool CanReleaseTeam(TeamInfo Team) {
 // given team.
 // ============================================================================
 
-function bool CanReleaseBy(Controller Controller, TeamInfo Team) {
-
+function bool CanReleaseBy(Controller Controller, TeamInfo Team)
+{
   local JBTagPlayer TagPlayer;
-  
+
   if (Controller                       == None ||
       Controller.PlayerReplicationInfo == None)
     return False;
-  
+
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-  
+
   return (TagPlayer != None &&
           TagPlayer.IsFree());
-  }
+}
 
 
 // ============================================================================
@@ -195,13 +195,13 @@ function bool CanReleaseBy(Controller Controller, TeamInfo Team) {
 // given team index.
 // ============================================================================
 
-function name GetEventRelease(TeamInfo Team) {
-
+function name GetEventRelease(TeamInfo Team)
+{
   switch (Team.TeamIndex) {
     case 0:  return EventReleaseRed;
     case 1:  return EventReleaseBlue;
-    }
   }
+}
 
 
 // ============================================================================
@@ -211,20 +211,20 @@ function name GetEventRelease(TeamInfo Team) {
 // team are currently fully open.
 // ============================================================================
 
-function bool IsReleaseOpen(TeamInfo Team) {
-
+function bool IsReleaseOpen(TeamInfo Team)
+{
   local int iMover;
   local TInfoRelease InfoRelease;
-  
+
   InfoRelease = InfoReleaseByTeam[Team.TeamIndex];
-  
+
   for (iMover = 0; iMover < InfoRelease.ListMover.Length; iMover++)
     if (!InfoRelease.ListMover[iMover].bClosed &&
         !InfoRelease.ListMover[iMover].bInterpolating)
       return True;  // neither closed nor interpolating, thus open
 
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -234,19 +234,19 @@ function bool IsReleaseOpen(TeamInfo Team) {
 // team are fully closed.
 // ============================================================================
 
-function bool IsReleaseClosed(TeamInfo Team) {
-
+function bool IsReleaseClosed(TeamInfo Team)
+{
   local int iMover;
   local TInfoRelease InfoRelease;
-  
+
   InfoRelease = InfoReleaseByTeam[Team.TeamIndex];
-  
+
   for (iMover = 0; iMover < InfoRelease.ListMover.Length; iMover++)
     if (!InfoRelease.ListMover[iMover].bClosed)
       return False;
-  
+
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -258,28 +258,28 @@ function bool IsReleaseClosed(TeamInfo Team) {
 // Use the IsInJail function in JBTagPlayer to check the latter.
 // ============================================================================
 
-function bool ContainsActor(Actor Actor) {
-
+function bool ContainsActor(Actor Actor)
+{
   local int iVolume;
 
   if (Actor == None)
     return False;
-  
+
   if (TagAttachZones == 'Auto') {
     if (Actor.Region.ZoneNumber == Region.ZoneNumber)
       return True;
-    }
+  }
   else {
     if (Actor.Region.Zone.Tag == TagAttachZones)
       return True;
-    }
+  }
 
   for (iVolume = 0; iVolume < ListVolume.Length; iVolume++)
     if (ListVolume[iVolume].Encompasses(Actor))
       return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -288,20 +288,20 @@ function bool ContainsActor(Actor Actor) {
 // Counts the number of players of the given team that are in this jail.
 // ============================================================================
 
-function int CountPlayers(TeamInfo Team) {
-
+function int CountPlayers(TeamInfo Team)
+{
   local int nPlayersJailed;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetTeam() == Team &&
         thisTagPlayer.GetJail() == Self)
       nPlayersJailed++;
-  
+
   return nPlayersJailed;
-  }
+}
 
 
 // ============================================================================
@@ -310,19 +310,19 @@ function int CountPlayers(TeamInfo Team) {
 // Counts the total number of players that are in this jail.
 // ============================================================================
 
-function int CountPlayersTotal() {
-
+function int CountPlayersTotal()
+{
   local int nPlayersJailed;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetJail() == Self)
       nPlayersJailed++;
-  
+
   return nPlayersJailed;
-  }
+}
 
 
 // ============================================================================
@@ -332,8 +332,8 @@ function int CountPlayersTotal() {
 // only in state Waiting and logs a warning otherwise.
 // ============================================================================
 
-function Release(TeamInfo Team, optional Controller ControllerInstigator) {
-
+function Release(TeamInfo Team, optional Controller ControllerInstigator)
+{
   if (IsInState('Waiting')) {
     if (InfoReleaseByTeam[Team.TeamIndex].bIsActive)
       return;
@@ -343,7 +343,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
       Log("Warning:" @ ControllerInstigator.PlayerReplicationInfo.PlayerName @ "on team" @
           ControllerInstigator.PlayerReplicationInfo.Team.TeamIndex @ "attempted to release team" @ Team.TeamIndex);
       return;
-      }
+    }
 
     if (CanReleaseTeam(Team)) {
       if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
@@ -352,29 +352,29 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
             BroadcastLocalizedMessage(MessageClass, 200, ControllerInstigator.PlayerReplicationInfo, , Team);
           JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
           JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
-          }
+        }
 
         TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
-        }
-      
+      }
+
       InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
       InfoReleaseByTeam[Team.TeamIndex].bIsOpening     = True;
       InfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
       InfoReleaseByTeam[Team.TeamIndex].TimeReset      = 0.0;  // disabled
       InfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = ControllerInstigator;
-      
+
       NotifyJailOpening(Team);
-      }
+    }
 
     else {
       CancelRelease(Team);
-      }
-    }
-  
-  else {
-    Log("Warning: Release for" @ Self @ "should not be called in state" @ GetStateName());
     }
   }
+
+  else {
+    Log("Warning: Release for" @ Self @ "should not be called in state" @ GetStateName());
+  }
+}
 
 
 // ============================================================================
@@ -387,29 +387,29 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
 // had closed.
 // ============================================================================
 
-function CancelRelease(TeamInfo Team) {
-
+function CancelRelease(TeamInfo Team)
+{
   if (InfoReleaseByTeam[Team.TeamIndex].bIsActive) {
     if (InfoReleaseByTeam[Team.TeamIndex].bIsOpening)
       NotifyJailOpened(Team);
-  
+
     InfoReleaseByTeam[Team.TeamIndex].bIsActive  = False;
     InfoReleaseByTeam[Team.TeamIndex].bIsOpening = False;
     InfoReleaseByTeam[Team.TeamIndex].TimeReset  = 0.0;  // disable
-    
+
     NotifyJailClosed(Team);
     ResetObjectives(Team);
-    }
-  
+  }
+
   else {
     InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
     InfoReleaseByTeam[Team.TeamIndex].bIsOpening     = False;
     InfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
     InfoReleaseByTeam[Team.TeamIndex].TimeReset      = Level.TimeSeconds + 2.0;
-    }
+  }
 
   InfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = None;
-  }
+}
 
 
 // ============================================================================
@@ -420,8 +420,8 @@ function CancelRelease(TeamInfo Team) {
 // release and communicates the event to all inmates.
 // ============================================================================
 
-function NotifyJailOpening(TeamInfo Team) {
-
+function NotifyJailOpening(TeamInfo Team)
+{
   local GameObjective firstObjective;
   local GameObjective thisObjective;
   local JBGameRules firstJBGameRules;
@@ -443,7 +443,7 @@ function NotifyJailOpening(TeamInfo Team) {
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
     firstJBGameRules.NotifyJailOpening(Self);
-  }
+}
 
 
 // ============================================================================
@@ -453,8 +453,8 @@ function NotifyJailOpening(TeamInfo Team) {
 // event to all inmates.
 // ============================================================================
 
-function NotifyJailOpened(TeamInfo Team) {
-
+function NotifyJailOpened(TeamInfo Team)
+{
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
@@ -468,7 +468,7 @@ function NotifyJailOpened(TeamInfo Team) {
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
     firstJBGameRules.NotifyJailOpened(Self);
-  }
+}
 
 
 // ============================================================================
@@ -478,13 +478,13 @@ function NotifyJailOpened(TeamInfo Team) {
 // jail doors are currently open, notifies the player about it.
 // ============================================================================
 
-function NotifyJailEntered(JBTagPlayer TagPlayer) {
-
+function NotifyJailEntered(JBTagPlayer TagPlayer)
+{
   local int iTeam;
   local JBGameRules firstJBGameRules;
-  
+
   iTeam = TagPlayer.GetTeam().TeamIndex;
-  
+
   if (InfoReleaseByTeam[iTeam].bIsActive &&
       InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
 
@@ -492,12 +492,12 @@ function NotifyJailEntered(JBTagPlayer TagPlayer) {
 
     if (!InfoReleaseByTeam[iTeam].bIsOpening)
       TagPlayer.NotifyJailOpened();
-    }
+  }
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
     firstJBGameRules.NotifyPlayerJailed(TagPlayer);
-  }
+}
 
 
 // ============================================================================
@@ -506,14 +506,14 @@ function NotifyJailEntered(JBTagPlayer TagPlayer) {
 // Called when a player left this jail for an arena or for freedom.
 // ============================================================================
 
-function NotifyJailLeft(JBTagPlayer TagPlayer) {
-
+function NotifyJailLeft(JBTagPlayer TagPlayer)
+{
   local JBGameRules firstJBGameRules;
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
     firstJBGameRules.NotifyPlayerReleased(TagPlayer, Self);
-  }
+}
 
 
 // ============================================================================
@@ -522,8 +522,8 @@ function NotifyJailLeft(JBTagPlayer TagPlayer) {
 // Called when this jail is closed. Communicates that event to all inmates.
 // ============================================================================
 
-function NotifyJailClosed(TeamInfo Team) {
-
+function NotifyJailClosed(TeamInfo Team)
+{
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
@@ -537,7 +537,7 @@ function NotifyJailClosed(TeamInfo Team) {
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
     firstJBGameRules.NotifyJailClosed(Self);
-  }
+}
 
 
 // ============================================================================
@@ -547,8 +547,8 @@ function NotifyJailClosed(TeamInfo Team) {
 // the release for another jail listening to the same event is still active.
 // ============================================================================
 
-function ResetObjectives(TeamInfo Team) {
-
+function ResetObjectives(TeamInfo Team)
+{
   local GameObjective firstObjective;
   local GameObjective thisObjective;
   local JBInfoJail firstJail;
@@ -567,7 +567,7 @@ function ResetObjectives(TeamInfo Team) {
         thisObjective.DefenderTeamIndex != Team.TeamIndex &&
         thisObjective.bDisabled)
       thisObjective.Reset();
-  }
+}
 
 
 // ============================================================================
@@ -576,15 +576,15 @@ function ResetObjectives(TeamInfo Team) {
 // Executes the given player. Used for fallback execution.
 // ============================================================================
 
-function ExecutePlayer(Controller Controller) {
-
+function ExecutePlayer(Controller Controller)
+{
   if (Controller.Pawn == None)
     return;
 
   Class'LavaDeath'.Default.bHighDetail = False;
   Controller.Pawn.Died(None, Class'FellLava', vect(0,0,0));
   Class'LavaDeath'.Default.bHighDetail = True;
-  }
+}
 
 
 // ============================================================================
@@ -594,13 +594,13 @@ function ExecutePlayer(Controller Controller) {
 // logs a warning otherwise.
 // ============================================================================
 
-function ExecutionInit() {
-
+function ExecutionInit()
+{
   if (IsInState('Waiting'))
     GotoState('ExecutionStarting');
   else
     Log("Warning: Called ExecutionInit for" @ Self @ "in state" @ GetStateName());
-  }
+}
 
 
 // ============================================================================
@@ -611,8 +611,8 @@ function ExecutionInit() {
 // ExecutionRunning and ExecutionFallback.
 // ============================================================================
 
-function ExecutionEnd() {
-
+function ExecutionEnd()
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
@@ -623,17 +623,17 @@ function ExecutionEnd() {
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetJail() == Self)
         ExecutePlayer(thisTagPlayer.GetController());
-    
+
     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionEnd, True))
       TriggerEvent(EventExecutionEnd, Self, None);
-    
+
     GotoState('Waiting');
-    }
-  
+  }
+
   else {
     Log("Warning: Called ExecutionEnd for" @ Self @ "in state" @ GetStateName());
-    }
   }
+}
 
 
 // ============================================================================
@@ -650,10 +650,10 @@ auto state Waiting {
   // Starts the timer.
   // ================================================================
 
-  event BeginState() {
-  
+  event BeginState()
+  {
     SetTimer(0.2, True);
-    }
+  }
 
 
   // ================================================================
@@ -665,8 +665,8 @@ auto state Waiting {
   // player's team.
   // ================================================================
 
-  event Trigger(Actor ActorOther, Pawn PawnInstigator) {
-
+  event Trigger(Actor ActorOther, Pawn PawnInstigator)
+  {
     local Controller ControllerInstigator;
     local GameObjective firstObjective;
     local GameObjective thisObjective;
@@ -680,7 +680,7 @@ auto state Waiting {
       TeamRelease = TeamGame(Level.Game).OtherTeam(TeamGame(Level.Game).Teams[ObjectiveRelease.DefenderTeamIndex]);
     else if (PawnInstigator != None)
       TeamRelease = PawnInstigator.GetTeam();
-    
+
     if (TeamRelease != None) {
       if (Trigger(ActorOther) != None) {
         firstObjective = UnrealTeamInfo(TeamRelease).AI.Objectives;
@@ -689,22 +689,22 @@ auto state Waiting {
               JBGameObjective(thisObjective) != None &&
               JBGameObjective(thisObjective).TriggerRelease == ActorOther)
             ObjectiveRelease = thisObjective;
-        }
-  
+      }
+
       if (PawnInstigator != None)
         ControllerInstigator = PawnInstigator.Controller;
-  
+
       firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
       if (CanReleaseBy(ControllerInstigator, TeamRelease) &&
           (firstJBGameRules == None ||
            firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease))) {
         Release(TeamRelease, ControllerInstigator);
         return;
-        }
       }
+    }
 
     CancelRelease(TeamRelease);
-    }
+  }
 
 
   // ================================================================
@@ -715,29 +715,29 @@ auto state Waiting {
   // release information.
   // ================================================================
 
-  event Timer() {
-  
+  event Timer()
+  {
     local int iTeam;
     local TeamInfo Team;
-    
+
     for (iTeam = 0; iTeam < ArrayCount(InfoReleaseByTeam); iTeam++) {
       Team = TeamGame(Level.Game).Teams[iTeam];
-      
+
       if (!InfoReleaseByTeam[iTeam].bIsActive)
         continue;
-      
+
       if (InfoReleaseByTeam[iTeam].bIsOpening) {
         if (IsReleaseOpen(Team)) {
           InfoReleaseByTeam[iTeam].bIsOpening = False;
           NotifyJailOpened(Team);
-          }
         }
-      
+      }
+
       else if (IsReleaseClosed(Team)) {
         if (InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
           InfoReleaseByTeam[iTeam].TimeReset = Level.TimeSeconds + 0.5;
           NotifyJailClosed(Team);
-          }
+        }
 
         else if (InfoReleaseByTeam[iTeam].TimeReset < Level.TimeSeconds) {
           InfoReleaseByTeam[iTeam].bIsActive  = False;
@@ -746,10 +746,10 @@ auto state Waiting {
           InfoReleaseByTeam[iTeam].TimeReset      = 0.0;
           InfoReleaseByTeam[iTeam].ControllerInstigator = None;
           ResetObjectives(Team);
-          }
         }
       }
     }
+  }
 
 
   // ================================================================
@@ -758,18 +758,18 @@ auto state Waiting {
   // Cancels all ongoing releases and stops the timer.
   // ================================================================
 
-  event EndState() {
-  
+  event EndState()
+  {
     local int iTeam;
-  
+
     for (iTeam = 0; iTeam < ArrayCount(InfoReleaseByTeam); iTeam++)
       if (InfoReleaseByTeam[iTeam].bIsActive)
         CancelRelease(TeamGame(Level.Game).Teams[iTeam]);
 
     SetTimer(0.0, False);
-    }
+  }
 
-  } // state Waiting
+} // state Waiting
 
 
 // ============================================================================
@@ -784,11 +784,11 @@ state ExecutionStarting {
   Begin:
     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionInit, True))
       TriggerEvent(EventExecutionInit, Self, None);
-  
+
     Sleep(ExecutionDelayCommit);
     GotoState('ExecutionRunning');
 
-  } // state ExecutionStarting
+} // state ExecutionStarting
 
 
 // ============================================================================
@@ -803,11 +803,11 @@ state ExecutionRunning {
   Begin:
     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionCommit, True))
       TriggerEvent(EventExecutionCommit, Self, None);
-  
+
     Sleep(ExecutionDelayFallback);
     GotoState('ExecutionFallback');
-  
-  } // state ExecutionRunning
+
+} // state ExecutionRunning
 
 
 // ============================================================================
@@ -823,11 +823,11 @@ state ExecutionFallback {
   //
   // Starts the timer.
   // ================================================================
-  
-  event BeginState() {
-  
+
+  event BeginState()
+  {
     SetTimer(1.0, True);
-    }
+  }
 
 
   // ================================================================
@@ -837,16 +837,16 @@ state ExecutionFallback {
   // it finds.
   // ================================================================
 
-  event Timer() {
-  
+  event Timer()
+  {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
-  
+
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.IsInJail())
         ExecutePlayer(thisTagPlayer.GetController());
-    }
+  }
 
 
   // ================================================================
@@ -855,12 +855,12 @@ state ExecutionFallback {
   // Stops the timer.
   // ================================================================
 
-  event EndState() {
-  
+  event EndState()
+  {
     SetTimer(0.0, False);
-    }
+  }
 
-  } // state ExecutionFallback
+} // state ExecutionFallback
 
 
 // ============================================================================
@@ -880,17 +880,17 @@ function float GetReleaseTime(TeamInfo Team) {
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   MessageClass = Class'JBLocalMessage';
 
   ExecutionDelayCommit   = 1.0;
   ExecutionDelayFallback = 2.0;
-  
+
   TagAttachZones   = Auto;
   TagAttachVolumes = None;
-  
+
   Texture = Texture'JBInfoJail';
   bAlwaysRelevant = True;
   RemoteRole = ROLE_SimulatedProxy;
-  }
+}

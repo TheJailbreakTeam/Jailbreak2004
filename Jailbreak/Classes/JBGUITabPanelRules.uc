@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIPanelRules.uc,v 1.1 2003/06/16 21:37:55 mychaeel Exp $
+// $Id: JBGUITabPanelRules.uc,v 1.2 2003/06/25 19:01:46 mychaeel Exp $
 //
 // User interface panel for Jailbreak game rules.
 // ============================================================================
@@ -40,8 +40,8 @@ var moCheckBox moCheckBoxJailFights;
 // Sets the caption of the Goal Score widget. Hides the Max Lives widget.
 // ============================================================================
 
-function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwner) {
-
+function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwner)
+{
   local GUIImage GUIImageTop;
   local GUIImage GUIImageLeft;
   local GUIImage GUIImageRight;
@@ -65,10 +65,10 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   MyFriendlyFire.FriendlyLabel.WinTop = 0.600;
 
   MyBrightSkins.WinTop = 0.844;
-  
+
   moCheckBoxJailFights = moCheckBox(Controls[14]);
   moCheckBoxJailFights.Checked(bLastJailFights);
-  }
+}
 
 
 // ============================================================================
@@ -77,13 +77,13 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
 // Adds the Add-Ons panel and hooks into the game type change event.
 // ============================================================================
 
-function InitPanel() {
-
+function InitPanel()
+{
   Super.InitPanel();
 
   AddPanelAddons();
   HookChangeGameType();
-  }
+}
 
 
 // ============================================================================
@@ -93,10 +93,10 @@ function InitPanel() {
 // corresponding tab.
 // ============================================================================
 
-function bool GUIButtonConfigureAddons_Click(GUIComponent GUIComponentClicked) {
-
+function bool GUIButtonConfigureAddons_Click(GUIComponent GUIComponentClicked)
+{
   return GUITabControl(MenuOwner).ActivateTab(GUITabPanelAddons.MyButton, True);
-  }
+}
 
 
 // ============================================================================
@@ -105,18 +105,18 @@ function bool GUIButtonConfigureAddons_Click(GUIComponent GUIComponentClicked) {
 // Saves the current settings and constructs the parameter string.
 // ============================================================================
 
-function string Play() {
-
+function string Play()
+{
   local string Parameters;
-  
+
   bLastJailFights = moCheckBoxJailFights.IsChecked();
 
   Parameters = Super.Play();
   Parameters = Parameters $ "?JailFights=" $ bLastJailFights;
   Parameters = Parameters $ JBGUITabPanelAddons(GUITabPanelAddons).Play();
-  
+
   return Parameters;
-  }
+}
 
 
 // ============================================================================
@@ -125,15 +125,15 @@ function string Play() {
 // Adds the Jailbreak Add-Ons tab directly following the Game Rules tab.
 // ============================================================================
 
-function AddPanelAddons() {
-
+function AddPanelAddons()
+{
   GUITabPanelAddons = GUITabControl(MenuOwner).AddTab(
     TextCaptionAddons, "Jailbreak.JBGUITabPanelAddons", , TextHintAddons);
-  
+
   GUITabControl(MenuOwner).TabStack.Remove(GUITabControl(MenuOwner).TabStack.Length - 1, 1);
   GUITabControl(MenuOwner).TabStack.Insert(2, 1);
   GUITabControl(MenuOwner).TabStack[2] = GUITabPanelAddons.MyButton;
-  }
+}
 
 
 // ============================================================================
@@ -142,11 +142,11 @@ function AddPanelAddons() {
 // Removes the previously added Jailbreak Add-Ons tab.
 // ============================================================================
 
-function RemovePanelAddons() {
-
+function RemovePanelAddons()
+{
   if (GUITabPanelAddons != None)
     GUITabControl(MenuOwner).RemoveTab(TextCaptionAddons);
-  }
+}
 
 
 // ============================================================================
@@ -156,8 +156,8 @@ function RemovePanelAddons() {
 // notified when the user changes the game type away from Jailbreak.
 // ============================================================================
 
-function HookChangeGameType() {
-
+function HookChangeGameType()
+{
   local GUITabPanel GUITabPanelMain;
 
   GUITabPanelMain = GUITabControl(MenuOwner).TabStack[0].MyPanel;
@@ -165,13 +165,13 @@ function HookChangeGameType() {
   if (Tab_InstantActionMain(GUITabPanelMain) != None) {
     OnChangeGameType = Tab_InstantActionMain(GUITabPanelMain).OnChangeGameType;
     Tab_InstantActionMain(GUITabPanelMain).OnChangeGameType = ChangeGameType;
-    }
+  }
 
   else if (Tab_MultiplayerHostMain(GUITabPanelMain) != None) {
     OnChangeGameType = Tab_MultiplayerHostMain(GUITabPanelMain).OnChangeGameType;
     Tab_MultiplayerHostMain(GUITabPanelMain).OnChangeGameType = ChangeGameType;
-    }
   }
+}
 
 
 // ============================================================================
@@ -181,8 +181,8 @@ function HookChangeGameType() {
 // and calls it.
 // ============================================================================
 
-function UnhookChangeGameType() {
-
+function UnhookChangeGameType()
+{
   local GUITabPanel GUITabPanelMain;
 
   GUITabPanelMain = GUITabControl(MenuOwner).TabStack[0].MyPanel;
@@ -193,7 +193,7 @@ function UnhookChangeGameType() {
     Tab_MultiplayerHostMain(GUITabPanelMain).OnChangeGameType = OnChangeGameType;
 
   OnChangeGameType();
-  }
+}
 
 
 // ============================================================================
@@ -213,19 +213,19 @@ delegate OnChangeGameType();
 // additional Jailbreak Mutators tab panel.
 // ============================================================================
 
-function ChangeGameType() {
-
+function ChangeGameType()
+{
   RemovePanelAddons();
   UnhookChangeGameType();
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   TextCaptionGoalScore = "Capture Limit";
   TextCaptionAddons = "Add-Ons";
   TextHintAddons = "Select and configure any Jailbreak add-ons to use...";
@@ -259,4 +259,4 @@ defaultproperties {
 
   Controls[14] = moCheckBox'moCheckBoxJailFightsDef';
   Controls[15] = GUIButton'GUIButtonConfigureAddonsDef';
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInteractionPanorama.uc,v 1.1 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Provides a special interactive adjustment mode for the scoreboard overlook
 // map. Use the SetupPanorama console command to enter this mode.
@@ -48,8 +48,8 @@ var private string TextStatus;             // status text at bottom of screen
 // references for later unhiding. Puts the player in ghost spectator mode.
 // ============================================================================
 
-event Initialized() {
-
+event Initialized()
+{
   local Actor thisActor;
   local JBPanorama Panorama;
 
@@ -60,31 +60,31 @@ event Initialized() {
 
   bPlayersOnlyPrev = Level.bPlayersOnly;
   Level.bPlayersOnly = True;
-  
+
   foreach Level.AllActors(Class'Actor', thisActor)
     if (Pawn(thisActor) != None) {
       thisActor.bHidden = True;
       ListActorHidden[ListActorHidden.Length] = thisActor;
-      }
+    }
 
   PawnPlayerPrev = ViewportOwner.Actor.Pawn;
   FOVAnglePrev   = ViewportOwner.Actor.FOVAngle;
 
   ViewportOwner.Actor.UnPossess();
   ViewportOwner.Actor.bCollideWorld = False;
-  
+
   Panorama = FindPanorama();
 
   if (Panorama == None) {
     ViewportOwner.Actor.FOVAngle = 90.0;
-    }
-  
+  }
+
   else {
     ViewportOwner.Actor.SetLocation(Panorama.Location);
     ViewportOwner.Actor.SetRotation(Panorama.Rotation);
     ViewportOwner.Actor.FOVAngle = Panorama.FieldOfView;
-    }
   }
+}
 
 
 // ============================================================================
@@ -93,10 +93,10 @@ event Initialized() {
 // Cleans up before level change.
 // ============================================================================
 
-event NotifyLevelChange() {
-
+event NotifyLevelChange()
+{
   Cleanup();
-  }
+}
 
 
 // ============================================================================
@@ -107,10 +107,10 @@ event NotifyLevelChange() {
 // into his or her old body and resets the bPlayersOnly flag.
 // ============================================================================
 
-function Cleanup() {
-
+function Cleanup()
+{
   local int iActorHidden;
-  
+
   ViewportOwner.Actor.myHUD.bHideHud = bHideHudPrev;
   Level.bPlayersOnly = bPlayersOnlyPrev;
 
@@ -124,7 +124,7 @@ function Cleanup() {
   ViewportOwner.Actor.FOVAngle = FOVAnglePrev;
 
   Master.RemoveInteraction(Self);
-  }
+}
 
 
 // ============================================================================
@@ -133,8 +133,8 @@ function Cleanup() {
 // Gets this level's JBPanorama actor. Returns None if none exists.
 // ============================================================================
 
-function JBPanorama FindPanorama() {
-
+function JBPanorama FindPanorama()
+{
   local JBPanorama thisPanorama;
 
   if (JBInterfaceScores(ViewportOwner.Actor.myHUD.ScoreBoard) != None)
@@ -144,7 +144,7 @@ function JBPanorama FindPanorama() {
     return thisPanorama;
 
   return None;
-  }
+}
 
 
 // ============================================================================
@@ -154,8 +154,8 @@ function JBPanorama FindPanorama() {
 // Creates such an actor if none exists yet. Returns a reference to it.
 // ============================================================================
 
-function JBPanorama PlacePanorama() {
-
+function JBPanorama PlacePanorama()
+{
   local vector LocationViewpoint;
   local rotator RotationViewpoint;
   local Actor ActorViewpoint;
@@ -173,12 +173,12 @@ function JBPanorama PlacePanorama() {
   Panorama.FieldOfView = ViewportOwner.Actor.FOVAngle;
 
   Panorama.Prepare();
-  
+
   if (JBInterfaceScores(ViewportOwner.Actor.myHUD.ScoreBoard) != None)
     JBInterfaceScores(ViewportOwner.Actor.myHUD.ScoreBoard).Panorama = Panorama;
 
   return Panorama;
-  }
+}
 
 
 // ============================================================================
@@ -187,13 +187,13 @@ function JBPanorama PlacePanorama() {
 // Copies a JBPanorama actor with the current settings to the clipboard.
 // ============================================================================
 
-function CopyPanorama() {
-
+function CopyPanorama()
+{
   local JBPanorama Panorama;
-  
+
   Panorama = PlacePanorama();
   Panorama.CopyToClipboard();
-  }
+}
 
 
 // ============================================================================
@@ -202,8 +202,8 @@ function CopyPanorama() {
 // Intercepts special key events used by this interaction.
 // ============================================================================
 
-function bool KeyEvent( out EInputKey InputKey, out EInputAction InputAction, float Delta) {
-
+function bool KeyEvent( out EInputKey InputKey, out EInputAction InputAction, float Delta)
+{
   if (InputKey == IK_Shift)
     if (InputAction == IST_Press)
       bPressedShift = True;
@@ -215,7 +215,7 @@ function bool KeyEvent( out EInputKey InputKey, out EInputAction InputAction, fl
       case IK_H:
         bShowInstructions = !bShowInstructions;
         return True;
-      
+
       case IK_GreyPlus:
         ViewportOwner.Actor.FOVAngle -= 1.0;
         if (ViewportOwner.Actor.FOVAngle < 1.0)
@@ -244,11 +244,11 @@ function bool KeyEvent( out EInputKey InputKey, out EInputAction InputAction, fl
       case IK_X:
         Cleanup();
         return True;
-      }
     }
+  }
 
   return Super.KeyEvent(InputKey, InputAction, Delta);
-  }
+}
 
 
 // ============================================================================
@@ -257,8 +257,8 @@ function bool KeyEvent( out EInputKey InputKey, out EInputAction InputAction, fl
 // Draws a crosshair and instructions on the screen.
 // ============================================================================
 
-event PostRender(Canvas Canvas) {
-
+event PostRender(Canvas Canvas)
+{
   local int iLineInstructions;
   local vector LocationInstructions;
   local vector LocationStatus;
@@ -269,35 +269,35 @@ event PostRender(Canvas Canvas) {
   if (bTakeScreenshot) {
     ConsoleCommand("shot");
     bTakeScreenshot = False;
-    }
+  }
 
   else {
     Canvas.Style = 5;  // ERenderStyle.STY_Alpha;
-  
+
     Canvas.SetDrawColor(255, 255, 255, 64);
     Canvas.SetPos(0, Canvas.ClipY / 2);
     Canvas.DrawRect(Texture'WhiteTexture', Canvas.ClipX, 1);
     Canvas.SetPos(Canvas.ClipX / 2, 0);
     Canvas.DrawRect(Texture'WhiteTexture', 1, Canvas.ClipY);
-    
+
     Canvas.SetDrawColor(255, 255, 255);
     Canvas.Font = Canvas.TinyFont;
     Canvas.TextSize("X", SizeCharacter.X, SizeCharacter.Y);
-    
+
     LocationInstructions.X = Canvas.ClipX * 0.030;
     LocationInstructions.Y = Canvas.ClipY * 0.040;
-    
+
     if (bShowInstructions) {
       for (iLineInstructions = 0; iLineInstructions < ArrayCount(TextInstructions); iLineInstructions++) {
         Canvas.SetPos(LocationInstructions.X, LocationInstructions.Y + iLineInstructions * SizeCharacter.Y);
         Canvas.DrawText(TextInstructions[iLineInstructions]);
-        }
       }
-    
+    }
+
     else {
       Canvas.SetPos(LocationInstructions.X, LocationInstructions.Y);
       Canvas.DrawText(TextInstructionsHidden);
-      }
+    }
 
     TextZoom = "Field of View:" @ int(ViewportOwner.Actor.FOVAngle) $ "°";
 
@@ -313,17 +313,17 @@ event PostRender(Canvas Canvas) {
 
       Canvas.SetPos(LocationStatus.X, LocationStatus.Y);
       Canvas.DrawText(TextStatus);
-      }
     }
   }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   bShowInstructions = True;
 
   TextInstructionsHidden = "Press Shift+H to show instructions.";
@@ -351,4 +351,4 @@ defaultproperties {
 
   bVisible      = True;
   bRequiresTick = True;
-  }
+}

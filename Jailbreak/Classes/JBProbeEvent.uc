@@ -1,7 +1,7 @@
 // ============================================================================
 // JBProbeEvent
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBProbeEvent.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: JBProbeEvent.uc,v 1.2 2003/08/26 21:09:21 mychaeel Exp $
 //
 // Forwards handling of an event with a given Tag to another class.
 // ============================================================================
@@ -25,10 +25,10 @@ delegate OnUnTrigger(Actor ActorOther, Pawn PawnInstigator);
 // Forwards triggering event to the delegate.
 // ============================================================================
 
-event Trigger(Actor ActorOther, Pawn PawnInstigator) {
-
+event Trigger(Actor ActorOther, Pawn PawnInstigator)
+{
   OnTrigger(ActorOther, PawnInstigator);
-  }
+}
 
 
 // ============================================================================
@@ -37,17 +37,17 @@ event Trigger(Actor ActorOther, Pawn PawnInstigator) {
 // Forwards untriggering event to the delegate.
 // ============================================================================
 
-event UnTrigger(Actor ActorOther, Pawn PawnInstigator) {
-
+event UnTrigger(Actor ActorOther, Pawn PawnInstigator)
+{
   OnUnTrigger(ActorOther, PawnInstigator);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   bHidden = True;
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagNavigation
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagNavigation.uc,v 1.5 2003/06/29 10:14:00 mychaeel Exp $
+// $Id: JBTagNavigation.uc,v 1.6 2003/06/29 11:03:36 mychaeel Exp $
 //
 // Caches information about an actor used for navigational purposes.
 // ============================================================================
@@ -15,11 +15,11 @@ class JBTagNavigation extends JBTag
 // Types
 // ============================================================================
 
-struct TInfoDistance {
-
+struct TInfoDistance
+{
   var NavigationPoint NavigationPointTo;  // target navigation point
   var float Distance;                     // distance to that navigation point
-  };
+};
 
 
 // ============================================================================
@@ -48,8 +48,8 @@ static function JBTagNavigation SpawnFor(Actor Keeper) {
 // subsequent calls.
 // ============================================================================
 
-static function float CalcDistance(NavigationPoint NavigationPointFrom, NavigationPoint NavigationPointTo) {
-
+static function float CalcDistance(NavigationPoint NavigationPointFrom, NavigationPoint NavigationPointTo)
+{
   local int iDistance;
   local float Distance;
   local Actor ActorFrom;
@@ -65,7 +65,7 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
     return -1.0;  // error
 
   TagNavigationFrom = SpawnFor(NavigationPointFrom);  // retrieves existing tag
-  
+
   for (iDistance = 0; iDistance < TagNavigationFrom.ListInfoDistance.Length; iDistance++)
     if (TagNavigationFrom.ListInfoDistance[iDistance].NavigationPointTo == NavigationPointTo)
       return TagNavigationFrom.ListInfoDistance[iDistance].Distance;
@@ -91,9 +91,9 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
   TagNavigationFrom.ListInfoDistance.Insert(iDistance, 1);
   TagNavigationFrom.ListInfoDistance[iDistance].NavigationPointTo = NavigationPointTo;
   TagNavigationFrom.ListInfoDistance[iDistance].Distance = Distance;
-  
+
   return Distance;
-  }
+}
 
 
 // ============================================================================
@@ -103,8 +103,8 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
 // existing controller and pawn first before spawning a new one.
 // ============================================================================
 
-private function Controller GetController() {
-
+private function Controller GetController()
+{
   local JBTagNavigation thisTagNavigation;
 
   if (Controller != None)
@@ -114,10 +114,10 @@ private function Controller GetController() {
     if (thisTagNavigation.Controller != None) {
       Controller = thisTagNavigation.Controller;
       return Controller;
-      }
-  
+    }
+
   Controller = Spawn(Class'ScriptedTriggerController');
   Controller.Possess(Spawn(Class'JBScout'));
 
   return Controller;
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.27 2003/06/29 14:19:28 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.28 2003/07/15 07:57:07 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -89,13 +89,13 @@ var SpriteWidget SpriteWidgetTacticsAuto;     // auto tactics display
 // frame. If the actor is already registered, moves it to the end of the list.
 // ============================================================================
 
-simulated function RegisterOverlay(Actor ActorOverlay) {
-
+simulated function RegisterOverlay(Actor ActorOverlay)
+{
   UnregisterOverlay(ActorOverlay);
-  
+
   if (ActorOverlay != None)
     ListActorOverlay[ListActorOverlay.Length] = ActorOverlay;
-  }
+}
 
 
 // ============================================================================
@@ -104,15 +104,15 @@ simulated function RegisterOverlay(Actor ActorOverlay) {
 // Unregisters a previously registered overlay actor.
 // ============================================================================
 
-simulated function UnregisterOverlay(Actor ActorOverlay) {
-
+simulated function UnregisterOverlay(Actor ActorOverlay)
+{
   local int iActorOverlay;
-  
+
   for (iActorOverlay = ListActorOverlay.Length - 1; iActorOverlay >= 0; iActorOverlay--)
     if (ListActorOverlay[iActorOverlay] == None ||
         ListActorOverlay[iActorOverlay] == ActorOverlay)
       ListActorOverlay.Remove(iActorOverlay, 1);
-  }
+}
 
 
 // ============================================================================
@@ -121,11 +121,11 @@ simulated function UnregisterOverlay(Actor ActorOverlay) {
 // Adds the sprite widget material to the global list of precached materials.
 // ============================================================================
 
-simulated function UpdatePrecacheMaterials() {
-
+simulated function UpdatePrecacheMaterials()
+{
   Level.AddPrecacheMaterial(Material'SpriteWidgetHud');
   Super.UpdatePrecacheMaterials();
-  }
+}
 
 
 // ============================================================================
@@ -134,12 +134,12 @@ simulated function UpdatePrecacheMaterials() {
 // Calculates and adjusts the draw offset of the team scores.
 // ============================================================================
 
-simulated function TeamScoreOffset() {
-
+simulated function TeamScoreOffset()
+{
                                    ScoreTeam[1].OffsetX = 180;
   if     (ScoreTeam[1].Value  < 0) ScoreTeam[1].OffsetX += 90;
   if (Abs(ScoreTeam[1].Value) > 9) ScoreTeam[1].OffsetX += 90;
-  }
+}
 
 
 // ============================================================================
@@ -149,30 +149,30 @@ simulated function TeamScoreOffset() {
 // position depending on the current scaling factors.
 // ============================================================================
 
-simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pivot) {
-
+simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pivot)
+{
   local float OffsetPixelX;
   local float OffsetPixelY;
-  
+
   switch (Pivot) {
     case DP_UpperLeft:
     case DP_UpperMiddle:
     case DP_UpperRight:
       OffsetPixelY = 0;
       break;
-    
+
     case DP_MiddleLeft:
     case DP_MiddleMiddle:
     case DP_MiddleRight:
       OffsetPixelY = Canvas.ClipY / 2.0;
       break;
-    
+
     case DP_LowerLeft:
     case DP_LowerMiddle:
     case DP_LowerRight:
       OffsetPixelY = Canvas.ClipY;
       break;
-    }
+  }
 
   switch (Pivot) {
     case DP_UpperLeft:
@@ -180,25 +180,25 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
     case DP_LowerLeft:
       OffsetPixelX = 0;
       break;
-    
+
     case DP_UpperMiddle:
     case DP_MiddleMiddle:
     case DP_LowerMiddle:
       OffsetPixelX = Canvas.ClipX / 2.0;
       break;
-    
+
     case DP_UpperRight:
     case DP_MiddleRight:
     case DP_LowerRight:
       OffsetPixelX = Canvas.ClipX;
       break;
-    }
+  }
 
   OffsetPixelX += Canvas.ClipX * X * HudScale;
   OffsetPixelY += Canvas.ClipY * Y * HudScale;
-  
+
   Canvas.SetPos(OffsetPixelX, OffsetPixelY);
-  }
+}
 
 
 // ============================================================================
@@ -210,8 +210,8 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 // previously been moved away by the scoreboard.
 // ============================================================================
 
-simulated event PostRender(Canvas Canvas) {
-
+simulated event PostRender(Canvas Canvas)
+{
   ShowWidescreen(Canvas);
   MoveChat(bShowScoreBoard);
 
@@ -230,8 +230,8 @@ simulated event PostRender(Canvas Canvas) {
 
     if (PlayerConsole != None && PlayerConsole.bTyping)
       DrawTypingPrompt(Canvas, PlayerConsole.TypedStr);
-    }
-  
+  }
+
   else {
     Super.PostRender(Canvas);
 
@@ -239,11 +239,11 @@ simulated event PostRender(Canvas Canvas) {
       DisplayMessages(Canvas);
     else
       DrawOverlays(Canvas);
-    }
+  }
 
   if (Level.LevelAction == LEVACT_None)  // skip precaching
     SynchronizeTime();
-  }
+}
 
 
 // ============================================================================
@@ -252,8 +252,8 @@ simulated event PostRender(Canvas Canvas) {
 // Initializes the TagPlayerOwner and TagClientOwner references.
 // ============================================================================
 
-simulated function LinkActors() {
-
+simulated function LinkActors()
+{
   Super.LinkActors();
 
   if (PawnOwner != None)
@@ -261,7 +261,7 @@ simulated function LinkActors() {
 
   if (TagClientOwner == None && PlayerOwner != None)
     TagClientOwner = Class'JBTagClient'.Static.FindFor(PlayerOwner);
-  }
+}
 
 
 // ============================================================================
@@ -271,27 +271,27 @@ simulated function LinkActors() {
 // position on the scoreboard or back.
 // ============================================================================
 
-simulated function MoveChat(bool bIsScoreboardDisplayed) {
-
+simulated function MoveChat(bool bIsScoreboardDisplayed)
+{
   local float TimeDelta;
   local vector LocationChatDelta;
   local vector LocationChatNormal;
   local vector LocationChatInterpolated;
-  
+
   TimeDelta = Level.TimeSeconds - TimeUpdateLocationChat;
   TimeUpdateLocationChat = Level.TimeSeconds;
-  
+
   if (bIsScoreboardDisplayed) {
     if (AlphaLocationChat == 1.0)
       return;
     AlphaLocationChat = FMin(1.0, AlphaLocationChat + 3.0 * TimeDelta);
-    }
+  }
 
   else {
     if (AlphaLocationChat == 0.0)
       return;
     AlphaLocationChat = FMax(0.0, AlphaLocationChat - 3.0 * TimeDelta);
-    }
+  }
 
   LocationChatNormal.X = Default.ConsoleMessagePosX;
   LocationChatNormal.Y = Default.ConsoleMessagePosY;
@@ -300,10 +300,10 @@ simulated function MoveChat(bool bIsScoreboardDisplayed) {
   LocationChatInterpolated =
     LocationChatNormal + AlphaLocationChat * LocationChatDelta +
     LocationChatDelta cross vect(0.0, 0.0, 0.1) * (0.25 - Square(AlphaLocationChat - 0.5));
-  
+
   ConsoleMessagePosX = LocationChatInterpolated.X;
   ConsoleMessagePosY = LocationChatInterpolated.Y;
-  }
+}
 
 
 // ============================================================================
@@ -312,14 +312,14 @@ simulated function MoveChat(bool bIsScoreboardDisplayed) {
 // Synchronizes the client with the server's actual game time.
 // ============================================================================
 
-simulated function SynchronizeTime() {
-
+simulated function SynchronizeTime()
+{
   if (TagClientOwner == None ||
       TagClientOwner.IsTimeSynchronized())
     return;
 
   TagClientOwner.SynchronizeTime();
-  }
+}
 
 
 // ============================================================================
@@ -328,14 +328,14 @@ simulated function SynchronizeTime() {
 // Renders all overlay actors on the screen.
 // ============================================================================
 
-simulated function DrawOverlays(Canvas Canvas) {
-
+simulated function DrawOverlays(Canvas Canvas)
+{
   local int iActorOverlay;
 
   for (iActorOverlay = 0; iActorOverlay < ListActorOverlay.Length; iActorOverlay++)
     if (ListActorOverlay[iActorOverlay] != None)
       ListActorOverlay[iActorOverlay].RenderOverlays(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -346,8 +346,8 @@ simulated function DrawOverlays(Canvas Canvas) {
 // by temporarily modifying the default values of the scoreboard class here.
 // ============================================================================
 
-simulated function DrawSpectatingHud(Canvas Canvas) {
-
+simulated function DrawSpectatingHud(Canvas Canvas)
+{
   local string TextPlayerRestartPrev;
 
   TextPlayerRestartPrev = Class'ScoreboardDeathMatch'.Default.Restart;
@@ -361,7 +361,7 @@ simulated function DrawSpectatingHud(Canvas Canvas) {
   Super.DrawSpectatingHud(Canvas);
 
   Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerRestartPrev;
-  }
+}
 
 
 // ============================================================================
@@ -383,27 +383,27 @@ simulated function ShowPersonalScore(Canvas Canvas);
 // Updates the size of and draws the widescreen bars.
 // ============================================================================
 
-simulated function ShowWidescreen(Canvas Canvas) {
-
+simulated function ShowWidescreen(Canvas Canvas)
+{
   local int HeightBars;
   local float TimeDelta;
-  
+
   TimeDelta = Level.TimeSeconds - TimeUpdateWidescreen;
   TimeUpdateWidescreen = Level.TimeSeconds;
-  
+
   if (bWidescreen)
     RatioWidescreen = FMin(1.0, RatioWidescreen + TimeDelta);
   else
     RatioWidescreen = FMax(0.0, RatioWidescreen - TimeDelta);
-  
+
   HeightBars = RatioWidescreen * Max(0, Canvas.ClipY - Canvas.ClipX / (16.0 / 9.0)) / 2;
-  
+
   Canvas.Style = ERenderStyle.STY_Alpha;
   Canvas.DrawColor.A = 255 * RatioWidescreen;
-  
+
   Canvas.SetPos(0, 0);             Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX,  HeightBars);
   Canvas.SetPos(0, Canvas.ClipY);  Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX, -HeightBars);
-  }
+}
 
 
 // ============================================================================
@@ -412,8 +412,8 @@ simulated function ShowWidescreen(Canvas Canvas) {
 // Updates and displays the team tactics widget.
 // ============================================================================
 
-simulated function ShowTactics(Canvas Canvas) {
-
+simulated function ShowTactics(Canvas Canvas)
+{
   local float AlphaTactics;
   local float TacticsSelected;
   local float TimeDelta;
@@ -435,7 +435,7 @@ simulated function ShowTactics(Canvas Canvas) {
     case 'Normal':      TacticsSelected = 2.0;  break;
     case 'Aggressive':  TacticsSelected = 3.0;  break;
     case 'Suicidal':    TacticsSelected = 4.0;  break;
-    }
+  }
 
   if (TacticsSelected > TacticsInterpolated)
     TacticsInterpolated = FMin(TacticsSelected, TacticsInterpolated + TimeDelta * 4.0);
@@ -443,17 +443,17 @@ simulated function ShowTactics(Canvas Canvas) {
     TacticsInterpolated = FMax(TacticsSelected, TacticsInterpolated - TimeDelta * 4.0);
 
   AlphaTactics = TacticsInterpolated - int(TacticsInterpolated);
-  
+
   if (AlphaTactics == 0.0)
     SpriteWidgetTacticsBlob.Tints[TeamIndex] = ColorTactics[int(TacticsInterpolated)];
   else {
     SpriteWidgetTacticsBlob.Tints[TeamIndex] =
-      ColorTactics[int(TacticsInterpolated)    ]   * (1.0 - AlphaTactics) + 
+      ColorTactics[int(TacticsInterpolated)    ]   * (1.0 - AlphaTactics) +
       ColorTactics[int(TacticsInterpolated) + 1]   *        AlphaTactics;
     SpriteWidgetTacticsBlob.Tints[TeamIndex].A =
-      ColorTactics[int(TacticsInterpolated)    ].A * (1.0 - AlphaTactics) + 
+      ColorTactics[int(TacticsInterpolated)    ].A * (1.0 - AlphaTactics) +
       ColorTactics[int(TacticsInterpolated) + 1].A *        AlphaTactics;
-    }
+  }
 
   if (TacticsInterpolated < 1.0 ||
       TacticsInterpolated > 3.0)
@@ -480,7 +480,7 @@ simulated function ShowTactics(Canvas Canvas) {
   ShowTacticsIcon(Canvas, int(TacticsInterpolated), AlphaTactics);
   if (AlphaTactics > 0.0)
     ShowTacticsIcon(Canvas, int(TacticsInterpolated) + 1, AlphaTactics - 1.0);
-  }
+}
 
 
 // ============================================================================
@@ -491,17 +491,17 @@ simulated function ShowTactics(Canvas Canvas) {
 // normal position, positive values mean that it is below.
 // ============================================================================
 
-simulated function ShowTacticsIcon(Canvas Canvas, int iTactics, float Alpha) {
-
+simulated function ShowTacticsIcon(Canvas Canvas, int iTactics, float Alpha)
+{
   local vector LocationTextTacticsScreen;
 
   SpriteWidgetTacticsIcon[iTactics].Tints[TeamIndex].A = 255 - 255 * Abs(Alpha);
   SpriteWidgetTacticsIcon[iTactics].PosY = SizeIconTactics.Y * Alpha;
   DrawSpriteWidget(Canvas, SpriteWidgetTacticsIcon[iTactics]);
-  
+
   LocationTextTacticsScreen.X = HudScale *  LocationTextTactics.X;
   LocationTextTacticsScreen.Y = HudScale * (LocationTextTactics.Y + SizeIconTactics.Y * Alpha / 2.0);
-  
+
   Canvas.Font = FontObjectTactics;
   Canvas.FontScaleX = SizeTextTactics.X * HudScale * HudCanvasScale * Canvas.ClipX / 640;
   Canvas.FontScaleY = SizeTextTactics.Y * HudScale * HudCanvasScale * Canvas.ClipY / 480;
@@ -514,7 +514,7 @@ simulated function ShowTacticsIcon(Canvas Canvas, int iTactics, float Alpha) {
 
   Canvas.FontScaleX = Canvas.Default.FontScaleX;
   Canvas.FontScaleY = Canvas.Default.FontScaleY;
-  }
+}
 
 
 // ============================================================================
@@ -523,8 +523,8 @@ simulated function ShowTacticsIcon(Canvas Canvas, int iTactics, float Alpha) {
 // Updates and displays the player disposition for both teams.
 // ============================================================================
 
-simulated function ShowDisposition(Canvas Canvas) {
-
+simulated function ShowDisposition(Canvas Canvas)
+{
   local float TimeDelta;
 
   if (DispositionTeamRed                       == None &&
@@ -532,25 +532,25 @@ simulated function ShowDisposition(Canvas Canvas) {
       PlayerOwner.GameReplicationInfo.Teams[0] != None) {
     DispositionTeamRed = new Class'JBDispositionTeam';
     DispositionTeamRed.Initialize(PlayerOwner.GameReplicationInfo.Teams[0]);
-    }
+  }
 
   if (DispositionTeamBlue                      == None &&
       PlayerOwner.GameReplicationInfo          != None &&
       PlayerOwner.GameReplicationInfo.Teams[1] != None) {
     DispositionTeamBlue = new Class'JBDispositionTeam';
     DispositionTeamBlue.Initialize(PlayerOwner.GameReplicationInfo.Teams[1]);
-    }
+  }
 
   if (TimeUpdateDisposition > 0.0)
     TimeDelta = Level.TimeSeconds - TimeUpdateDisposition;
   TimeUpdateDisposition = Level.TimeSeconds;
-  
+
   DispositionTeamRed .Update(TimeDelta);
   DispositionTeamBlue.Update(TimeDelta);
-  
+
   DispositionTeamRed .Draw(Canvas);
   DispositionTeamBlue.Draw(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -559,8 +559,8 @@ simulated function ShowDisposition(Canvas Canvas) {
 // Displays the compass dots.
 // ============================================================================
 
-simulated function ShowCompass(Canvas Canvas) {
-
+simulated function ShowCompass(Canvas Canvas)
+{
   local int nPlayersReleasable;
   local float AngleDot;
   local float DeltaAlphaCompass;
@@ -569,15 +569,15 @@ simulated function ShowCompass(Canvas Canvas) {
   local GameObjective Objective;
   local JBTagObjective firstTagObjective;
   local JBTagObjective thisTagObjective;
-  
+
   TimeDelta = Level.TimeSeconds - TimeUpdateCompass;
   TimeUpdateCompass = Level.TimeSeconds;
-  
+
   if (PawnOwner != None)
     LocationOwner = PawnOwner.Location;
   else
     LocationOwner = PlayerOwner.Location;
-  
+
   if (TagPlayerOwner != None) {
     DeltaAlphaCompass = 1.0;
     if (PawnOwnerCompass == PawnOwner)
@@ -589,15 +589,15 @@ simulated function ShowCompass(Canvas Canvas) {
       AlphaCompass = FMax(0.0, AlphaCompass - DeltaAlphaCompass);
 
     PawnOwnerCompass = PawnOwner;
-    }
-  
+  }
+
   if (AlphaCompass == 0.0)
     return;
-  
+
   firstTagObjective = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagObjective;
   for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
     Objective = thisTagObjective.GetObjective();
-    
+
     switch (Objective.DefenderTeamIndex) {
       case 0:
         SpriteWidgetCompassDot.Tints[TeamIndex] = RedColor;
@@ -610,7 +610,7 @@ simulated function ShowCompass(Canvas Canvas) {
         SpriteWidgetCompassDot.PosX = 0.034;
         SpriteWidgetCompassDot.PosY = 0.048;
         break;
-      }
+    }
 
     nPlayersReleasable = thisTagObjective.CountPlayersReleasable(True);
 
@@ -618,25 +618,25 @@ simulated function ShowCompass(Canvas Canvas) {
       thisTagObjective.ScaleDot -= 0.5 * nPlayersReleasable * TimeDelta;
       if (thisTagObjective.ScaleDot < 1.0)
         thisTagObjective.ScaleDot = (thisTagObjective.ScaleDot % 0.5) + 1.0;
-      }
+    }
 
     else if (thisTagObjective.ScaleDot != 1.0) {
       thisTagObjective.ScaleDot -= 0.5 * TimeDelta;
       if (thisTagObjective.ScaleDot < 1.0)
         thisTagObjective.ScaleDot = 1.0;
-      }
+    }
 
     AngleDot = ((rotator(Objective.Location - LocationOwner).Yaw - PlayerOwner.Rotation.Yaw) & 65535) * Pi / 32768;
     SpriteWidgetCompassDot.PosX = (SpriteWidgetCompassDot.PosX + 0.0305 * Sin(AngleDot)) * HudScale + 0.5;
     SpriteWidgetCompassDot.PosY = (SpriteWidgetCompassDot.PosY - 0.0405 * Cos(AngleDot)) * HudScale;
-    
+
     SpriteWidgetCompassDot.Tints[TeamIndex] = SpriteWidgetCompassDot.Tints[TeamIndex] * (1.0 / thisTagObjective.ScaleDot);
     SpriteWidgetCompassDot.Tints[TeamIndex].A = 255 * AlphaCompass;
     SpriteWidgetCompassDot.TextureScale = Default.SpriteWidgetCompassDot.TextureScale * thisTagObjective.ScaleDot;
-    
+
     DrawSpriteWidget(Canvas, SpriteWidgetCompassDot);
-    }
   }
+}
 
 
 // ============================================================================
@@ -645,17 +645,17 @@ simulated function ShowCompass(Canvas Canvas) {
 // Draws information about build time and date and the local player.
 // ============================================================================
 
-simulated function ShowBuild(Canvas Canvas) {
-
+simulated function ShowBuild(Canvas Canvas)
+{
   Canvas.Font = GetConsoleFont(Canvas);
 
   Canvas.DrawColor = WhiteColor;
   Canvas.DrawColor.A = 64;
-  
+
   Canvas.DrawScreenText(
     PlayerOwner.PlayerReplicationInfo.PlayerName $ ", Jailbreak 2003, build" @ Class'Jailbreak'.Default.Build,
     0.5, HudCanvasScale * 0.44 + 0.5, DP_LowerMiddle);
-  }
+}
 
 
 // ============================================================================
@@ -665,8 +665,8 @@ simulated function ShowBuild(Canvas Canvas) {
 // a less ugly way to make this happen than that.
 // ============================================================================
 
-simulated function SetDisplayAdrenaline(bool bDisplay) {
-
+simulated function SetDisplayAdrenaline(bool bDisplay)
+{
   if (bDisplay == (AdrenalineIcon.WidgetTexture != None))
     return;
 
@@ -680,7 +680,7 @@ simulated function SetDisplayAdrenaline(bool bDisplay) {
     Adrenaline[2] .WidgetTexture = Default.Adrenaline[2] .WidgetTexture;
     Adrenaline[3] .WidgetTexture = Default.Adrenaline[3] .WidgetTexture;
     Adrenaline[4] .WidgetTexture = Default.Adrenaline[4] .WidgetTexture;
-    }
+  }
 
   else {
     AdrenalineCount.Tints[0].A = 0;
@@ -692,8 +692,8 @@ simulated function SetDisplayAdrenaline(bool bDisplay) {
     Adrenaline[2] .WidgetTexture = None;
     Adrenaline[3] .WidgetTexture = None;
     Adrenaline[4] .WidgetTexture = None;
-    }
   }
+}
 
 
 // ============================================================================
@@ -702,31 +702,31 @@ simulated function SetDisplayAdrenaline(bool bDisplay) {
 // Draws team status and compass.
 // ============================================================================
 
-simulated function ShowTeamScorePassA(Canvas Canvas) {
-
+simulated function ShowTeamScorePassA(Canvas Canvas)
+{
   if (TagPlayerOwner != None &&
       TagPlayerOwner.IsInArena()) {
 
     SetDisplayAdrenaline(False);
     TagPlayerOwner.GetArena().RenderOverlaysFor(Canvas, Self, TagPlayerOwner);
-    }
+  }
 
   else {
     SetDisplayAdrenaline(True);
     Super.ShowTeamScorePassA(Canvas);
-  
+
     DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
     DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
     DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
     DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
-    
+
     ShowTactics(Canvas);
     ShowCompass(Canvas);
     ShowDisposition(Canvas);
-    }
+  }
 
   ShowBuild(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -735,14 +735,14 @@ simulated function ShowTeamScorePassA(Canvas Canvas) {
 // Only draws team scores if not in arena.
 // ============================================================================
 
-simulated function ShowTeamScorePassC(Canvas Canvas) {
-
+simulated function ShowTeamScorePassC(Canvas Canvas)
+{
   if (TagPlayerOwner != None &&
       TagPlayerOwner.IsInArena())
     return;
 
   Super.ShowTeamScorePassC(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -751,12 +751,12 @@ simulated function ShowTeamScorePassC(Canvas Canvas) {
 // Makes sure that no message overlaps the player icons at the screen top.
 // ============================================================================
 
-simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas) {
-
+simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas)
+{
   Super.LayoutMessage(Message, Canvas);
-  
+
   Message.PosY = FMax(Message.PosY, 0.16 * HudScale);
-  }
+}
 
 
 // ============================================================================
@@ -765,10 +765,10 @@ simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas)
 // Returns the JBTagClient actor for the local player.
 // ============================================================================
 
-simulated function JBTagClient GetTagClientOwner() {
-
+simulated function JBTagClient GetTagClientOwner()
+{
   return Class'JBTagClient'.Static.FindFor(PlayerOwner);
-  }
+}
 
 
 // ============================================================================
@@ -777,12 +777,12 @@ simulated function JBTagClient GetTagClientOwner() {
 // Monitors the speech menu in order to hack into it.
 // ============================================================================
 
-simulated function Tick(float TimeDelta) {
-
+simulated function Tick(float TimeDelta)
+{
   HackSpeechMenu();  // hack into the speech menu
 
   Super.Tick(TimeDelta);
-  }
+}
 
 
 // ============================================================================
@@ -793,8 +793,8 @@ simulated function Tick(float TimeDelta) {
 // current state.
 // ============================================================================
 
-simulated function HackSpeechMenu() {
-
+simulated function HackSpeechMenu()
+{
   local byte KeySubmenuOrder;
   local ExtendedConsole Console;
 
@@ -811,7 +811,7 @@ simulated function HackSpeechMenu() {
         Console.SMAcceptSound = None;  // disable opening sound
         Console.KeyEvent(EInputKey(KeySubmenuOrder), IST_Press, 0.0);
         Console.SMAcceptSound = Console.Default.SMAcceptSound;
-        }
+      }
 
       ResetSpeechMenu(Console);
 
@@ -820,29 +820,29 @@ simulated function HackSpeechMenu() {
           bSpeechMenuVisibleTactics = False;
           SetupSpeechMenuOrders(Console);
           break;
-        
+
         case SMS_PlayerSelect:
           bSpeechMenuVisibleTactics = (Console.SMIndex == 1337);
           if (bSpeechMenuVisibleTactics)
             SetupSpeechMenuTactics(Console);
           break;
-        
+
         default:
           bSpeechMenuVisibleTactics = False;
           break;
-        }
-    
+      }
+
       bSpeechMenuVisible = True;
       SpeechMenuState = Console.SMState;
-      }
     }
+  }
 
   else if (bSpeechMenuVisible) {
     ResetSpeechMenu(Console);
     bSpeechMenuVisible        = False;
     bSpeechMenuVisibleTactics = False;
-    }
   }
+}
 
 
 // ============================================================================
@@ -852,13 +852,13 @@ simulated function HackSpeechMenu() {
 // tactics submenu was displayed.
 // ============================================================================
 
-private simulated function ResetSpeechMenu(ExtendedConsole Console) {
-
+private simulated function ResetSpeechMenu(ExtendedConsole Console)
+{
   local int iStateName;
 
   for (iStateName = 0; iStateName < ArrayCount(Console.SMStateName); iStateName++)
     Console.SMStateName[iStateName] = Console.Default.SMStateName[iStateName];
-  }
+}
 
 
 // ============================================================================
@@ -867,13 +867,13 @@ private simulated function ResetSpeechMenu(ExtendedConsole Console) {
 // Adds a team tactics menu item to the orders submenu of the speech menu.
 // ============================================================================
 
-private simulated function SetupSpeechMenuOrders(ExtendedConsole Console) {
-
+private simulated function SetupSpeechMenuOrders(ExtendedConsole Console)
+{
   Console.SMNameArray [Console.SMArraySize] = TextMenuEntryTactics;
   Console.SMIndexArray[Console.SMArraySize] = 1337;
 
   Console.SMArraySize += 1;
-  }
+}
 
 
 // ============================================================================
@@ -882,8 +882,8 @@ private simulated function SetupSpeechMenuOrders(ExtendedConsole Console) {
 // Sets up the tactics submenu of the speech menu.
 // ============================================================================
 
-private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
-
+private simulated function SetupSpeechMenuTactics(ExtendedConsole Console)
+{
   local int iOrderNameTactics;
   local JBGameReplicationInfo InfoGame;
   local JBTagTeam TagTeam;
@@ -897,7 +897,7 @@ private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
   for (iOrderNameTactics = 0; iOrderNameTactics < Console.SMArraySize; iOrderNameTactics++) {
     Console.SMNameArray [iOrderNameTactics] = TextOrderName[iOrderNameTactics];
     Console.SMIndexArray[iOrderNameTactics] = InfoGame.OrderNameTactics[iOrderNameTactics].iOrderName;
-    }
+  }
 
   TagTeam = Class'JBTagTeam'.Static.FindFor(PawnOwner.PlayerReplicationInfo.Team);
 
@@ -910,9 +910,9 @@ private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
       case 'Normal':      Console.HighlightRow = 3;  break;
       case 'Defensive':   Console.HighlightRow = 4;  break;
       case 'Evasive':     Console.HighlightRow = 5;  break;
-      }
     }
   }
+}
 
 
 // ============================================================================
@@ -922,15 +922,15 @@ private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
 // Replicated to the server via ExecTeamTactics in JBTagPlayer.
 // ============================================================================
 
-simulated exec function TeamTactics(string TextTactics, optional string TextTeam) {
-
+simulated exec function TeamTactics(string TextTactics, optional string TextTeam)
+{
   local name Tactics;
   local TeamInfo Team;
 
        if (TextTeam == "")                          Team = None;
   else if (TextTeam ~= Left("red",  Len(TextTeam))) Team = PlayerOwner.GameReplicationInfo.Teams[0];
   else if (TextTeam ~= Left("blue", Len(TextTeam))) Team = PlayerOwner.GameReplicationInfo.Teams[1];
-  
+
        if (TextTactics ~= Left("auto",       Len(TextTactics))) Tactics = 'Auto';
   else if (TextTactics ~= Left("up",         Len(TextTactics))) Tactics = 'MoreAggressive';
   else if (TextTactics ~= Left("down",       Len(TextTactics))) Tactics = 'MoreDefensive';
@@ -941,7 +941,7 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
   else if (TextTactics ~= Left("suicidal",   Len(TextTactics))) Tactics = 'Suicidal';
 
   GetTagClientOwner().ExecTeamTactics(Tactics, Team);
-  }
+}
 
 
 // ============================================================================
@@ -951,19 +951,19 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
 // a JBInteractionSetupPanorama interaction and lets it handle the rest.
 // ============================================================================
 
-exec function SetupPanorama() {
-
+exec function SetupPanorama()
+{
   if (Level.NetMode == NM_Standalone)
     PlayerOwner.Player.InteractionMaster.AddInteraction("Jailbreak.JBInteractionPanorama", PlayerOwner.Player);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   TextPlayerKilled   = "You were killed.";
   TextPlayerExecuted = "You have been executed."
 
@@ -1028,4 +1028,4 @@ defaultproperties {
   RTeamHud[2]    = (OffsetX=95);
   TeamSymbols[0] = (OffsetX=-600,OffsetY=90,PosY=0.014,TextureScale=0.075);
   TeamSymbols[1] = (OffsetX=600,OffsetY=90,PosY=0.014,TextureScale=0.075);
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.2 2003/07/15 09:05:59 mychaeel Exp $
+// $Id: JBAddon.uc,v 1.3 2003/07/19 10:12:20 mychaeel Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -35,10 +35,10 @@ var JBGameReplicationInfo JBGameReplicationInfo;
 // Disallows this add-on unless it is run for a Jailbreak game.
 // ============================================================================
 
-function bool MutatorIsAllowed() {
-
+function bool MutatorIsAllowed()
+{
   return (Jailbreak(Level.Game) != None);
-  }
+}
 
 
 // ============================================================================
@@ -49,8 +49,8 @@ function bool MutatorIsAllowed() {
 // addon as an overlay actor if bIsOverlay is set.
 // ============================================================================
 
-simulated function InitAddon() {
-
+simulated function InitAddon()
+{
   local PlayerController PlayerControllerLocal;
 
   PlayerControllerLocal = Level.GetLocalPlayerController();
@@ -60,7 +60,7 @@ simulated function InitAddon() {
   if (Level.Game != None)
          JBGameReplicationInfo = JBGameReplicationInfo(Level.Game.GameReplicationInfo);
     else JBGameReplicationInfo = JBGameReplicationInfo(PlayerControllerLocal.GameReplicationInfo);
-  }
+}
 
 
 // ============================================================================
@@ -70,11 +70,11 @@ simulated function InitAddon() {
 // by the game type PostBeginPlay event itself.
 // ============================================================================
 
-simulated event PostNetBeginPlay() {
-
+simulated event PostNetBeginPlay()
+{
   if (Role < ROLE_Authority)
     InitAddon();
-  }
+}
 
 
 // ============================================================================
@@ -93,14 +93,14 @@ simulated function RenderOverlays(Canvas Canvas);
 // Automatically unregisters this actor if bIsOverlay is set to True.
 // ============================================================================
 
-simulated event Destroyed() {
-
+simulated event Destroyed()
+{
   local PlayerController PlayerControllerLocal;
-  
+
   PlayerControllerLocal = Level.GetLocalPlayerController();
   if (bIsOverlay && PlayerControllerLocal != None)
     JBInterfaceHud(PlayerControllerLocal.myHud).UnregisterOverlay(Self);
 
   if (Role == ROLE_Authority)
     Super.Destroyed();
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.24 2003/06/15 14:32:14 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.25 2003/06/15 21:42:08 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -51,14 +51,14 @@ var private transient TCacheRatePlayers             CacheRatePlayers;
 // Initializes the JBTagPlayer references.
 // ============================================================================
 
-function MatchStarting() {
-
+function MatchStarting()
+{
   TagTeamSelf  = Class'JBTagTeam'.Static.FindFor(     Team);
   TagTeamEnemy = Class'JBTagTeam'.Static.FindFor(EnemyTeam);
 
   TagTeam[     Team.TeamIndex] = TagTeamSelf;
   TagTeam[EnemyTeam.TeamIndex] = TagTeamEnemy;
-  }
+}
 
 
 // ============================================================================
@@ -80,8 +80,8 @@ function MatchStarting() {
 //
 // ============================================================================
 
-function name SetTactics(name Tactics) {
-
+function name SetTactics(name Tactics)
+{
   if (TimeTacticsSelected == Level.TimeSeconds)
     return GetTactics();  // set tactics only once per tick
 
@@ -99,7 +99,7 @@ function name SetTactics(name Tactics) {
         case 'Defensive':   return SetTactics('Normal');
         case 'Normal':      return SetTactics('Aggressive');
         case 'Aggressive':  return SetTactics('Suicidal');
-        }
+      }
       break;
 
     case 'MoreDefensive':
@@ -108,7 +108,7 @@ function name SetTactics(name Tactics) {
         case 'Normal':      return SetTactics('Defensive');
         case 'Aggressive':  return SetTactics('Normal');
         case 'Suicidal':    return SetTactics('Aggressive');
-        }
+      }
       break;
 
     case 'Evasive':     GotoState('TacticsEvasive');     break;
@@ -116,15 +116,15 @@ function name SetTactics(name Tactics) {
     case 'Normal':      GotoState('TacticsNormal');      break;
     case 'Aggressive':  GotoState('TacticsAggressive');  break;
     case 'Suicidal':    GotoState('TacticsSuicidal');    break;
-    
+
     default:
       Log("Warning: Invalid tactics" @ Tactics @ "selected for team" @ Team.TeamIndex);
-    }
+  }
 
   TimeTacticsSelected = Level.TimeSeconds;
 
   return GetTactics();
-  }
+}
 
 
 // ============================================================================
@@ -133,18 +133,18 @@ function name SetTactics(name Tactics) {
 // Returns the name of the currently selected team tactics.
 // ============================================================================
 
-function name GetTactics() {
-
+function name GetTactics()
+{
   switch (GetStateName()) {
     case 'TacticsEvasive':     return 'Evasive';
     case 'TacticsDefensive':   return 'Defensive';
     case 'TacticsNormal':      return 'Normal';
     case 'TacticsAggressive':  return 'Aggressive';
     case 'TacticsSuicidal':    return 'Suicidal';
-    }
-  
-  return 'Invalid';
   }
+
+  return 'Invalid';
+}
 
 
 // ============================================================================
@@ -154,10 +154,10 @@ function name GetTactics() {
 // selected automatically.
 // ============================================================================
 
-function bool GetTacticsAuto() {
-
+function bool GetTacticsAuto()
+{
   return bTacticsAuto;
-  }
+}
 
 
 // ============================================================================
@@ -168,11 +168,11 @@ function bool GetTacticsAuto() {
 // execution within the next half second.
 // ============================================================================
 
-function RequestReAssessment() {
-
+function RequestReAssessment()
+{
   if (TimerRate - TimerCounter > 0.5)
     SetTimer(RandRange(0.3, 0.5), False);
-  }
+}
 
 
 // ============================================================================
@@ -183,16 +183,16 @@ function RequestReAssessment() {
 // teams always at the same time.
 // ============================================================================
 
-event Timer() {
-
+event Timer()
+{
   if (Level.Game.IsInState('MatchInProgress')) {
     if (bTacticsAuto)
       ReAssessStrategy();
     ReAssessOrders();
-    }
-    
-  SetTimer(RandRange(4.0, 6.0), False);
   }
+
+  SetTimer(RandRange(4.0, 6.0), False);
+}
 
 
 // ============================================================================
@@ -203,8 +203,8 @@ event Timer() {
 // JBGameObjective actor and sets it up for this team.
 // ============================================================================
 
-function SetObjectiveLists() {
-
+function SetObjectiveLists()
+{
   local GameObjective thisObjective;
   local JBGameObjective Objective;
   local JBInfoJail thisJail;
@@ -218,7 +218,7 @@ function SetObjectiveLists() {
       if (thisJail.Tag == thisTrigger.Event &&
           thisJail.CanReleaseTeam(Team))
         break;
-    
+
     if (thisJail == None)
       continue;
 
@@ -228,10 +228,10 @@ function SetObjectiveLists() {
     Objective.StartTeam         = EnemyTeam.TeamIndex;
     Objective.Event             = thisJail.Tag;
     Objective.FindDefenseScripts(thisTrigger.Tag);
-    }
+  }
 
   Super.SetObjectiveLists();
-  }
+}
 
 
 // ============================================================================
@@ -241,10 +241,10 @@ function SetObjectiveLists() {
 // Jailbreak squads always keep their objectives, but bots change squads.
 // ============================================================================
 
-function FindNewObjectiveFor(SquadAI Squad, bool bForceUpdate) {
-
+function FindNewObjectiveFor(SquadAI Squad, bool bForceUpdate)
+{
   RequestReAssessment();
-  }
+}
 
 
 // ============================================================================
@@ -254,20 +254,20 @@ function FindNewObjectiveFor(SquadAI Squad, bool bForceUpdate) {
 // new players. Creates a new freelance squad if none is found.
 // ============================================================================
 
-function PutOnFreelance(Bot Bot) {
-
+function PutOnFreelance(Bot Bot)
+{
   local SquadAI SquadFreelance;
-  
+
   for (SquadFreelance = Squads; SquadFreelance != None; SquadFreelance = SquadFreelance.NextSquad)
     if (SquadFreelance.bFreelance &&
         SquadFreelance.MaxSquadSize > SquadFreelance.GetSize())
       break;
-  
+
   if (SquadFreelance == None)
     Super.PutOnFreelance(Bot);
   else
     SquadFreelance.AddBot(Bot);
-  }
+}
 
 
 // ============================================================================
@@ -276,28 +276,28 @@ function PutOnFreelance(Bot Bot) {
 // Puts the given bot on the squad attacking or defending the given objective.
 // ============================================================================
 
-function PutOnSquad(Bot Bot, GameObjective GameObjective) {
-
+function PutOnSquad(Bot Bot, GameObjective GameObjective)
+{
   if (IsObjectiveAttack(GameObjective)) {
     if (AttackSquad == None)
       AttackSquad = AddSquadWithLeader(Bot, GameObjective);
     else
       AttackSquad.AddBot(Bot);
-    }
-  
+  }
+
   else if (IsObjectiveDefense(GameObjective)) {
     if (GameObjective.DefenseSquad == None)
       GameObjective.DefenseSquad = AddSquadWithLeader(Bot, GameObjective);
     else
       GameObjective.DefenseSquad.AddBot(Bot);
-    }
-  
+  }
+
   else {
     Log("Warning: Cannot order bot" @ Bot.PlayerReplicationInfo.PlayerName @
         "to attack or defend objective" @ GameObjective);
     PutOnFreelance(Bot);
-    }
   }
+}
 
 
 // ============================================================================
@@ -306,8 +306,8 @@ function PutOnSquad(Bot Bot, GameObjective GameObjective) {
 // Creates an arena squad for the given bot and adds the bot to it.
 // ============================================================================
 
-function PutOnSquadArena(Bot Bot) {
-
+function PutOnSquadArena(Bot Bot)
+{
   local JBBotSquadArena SquadArena;
 
   SquadArena = Spawn(ClassSquadArena);
@@ -315,7 +315,7 @@ function PutOnSquadArena(Bot Bot) {
 
   SquadArena.NextSquad = Squads;
   Squads = SquadArena;
-  }
+}
 
 
 // ============================================================================
@@ -324,8 +324,8 @@ function PutOnSquadArena(Bot Bot) {
 // Creates a jail squad for the given bot and adds the bot to it.
 // ============================================================================
 
-function PutOnSquadJail(Bot Bot) {
-
+function PutOnSquadJail(Bot Bot)
+{
   local JBBotSquadJail SquadJail;
 
   SquadJail = Spawn(ClassSquadJail);
@@ -333,7 +333,7 @@ function PutOnSquadJail(Bot Bot) {
 
   SquadJail.NextSquad = Squads;
   Squads = SquadJail;
-  }
+}
 
 
 // ============================================================================
@@ -346,13 +346,13 @@ function PutOnSquadJail(Bot Bot) {
 // squad was found and ordered.
 // ============================================================================
 
-function bool SendSquadTo(NavigationPoint NavigationPoint, optional Controller ControllerHunted) {
-
+function bool SendSquadTo(NavigationPoint NavigationPoint, optional Controller ControllerHunted)
+{
   local float Distance;
   local float DistanceClosest;
   local SquadAI thisSquad;
   local JBBotSquad SquadSelected;
-  
+
   if (ControllerHunted != None)
     for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
       if (JBBotSquad(thisSquad) != None &&
@@ -371,14 +371,14 @@ function bool SendSquadTo(NavigationPoint NavigationPoint, optional Controller C
         if (JBBotSquad(thisSquad).CanHuntBetterThan(SquadSelected, ControllerHunted) || Distance < DistanceClosest) {
           SquadSelected = JBBotSquad(thisSquad);
           DistanceClosest = Distance;
-          }
         }
+      }
 
   if (SquadSelected != None)
     return SquadSelected.Hunt(ControllerHunted, NavigationPoint);
 
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -387,11 +387,11 @@ function bool SendSquadTo(NavigationPoint NavigationPoint, optional Controller C
 // Returns whether the given objective is to be attacked by this team.
 // ============================================================================
 
-function bool IsObjectiveAttack(GameObjective GameObjective) {
-
+function bool IsObjectiveAttack(GameObjective GameObjective)
+{
   return (GameObjective != None &&
           GameObjective.DefenderTeamIndex != Team.TeamIndex);
-  }
+}
 
 
 // ============================================================================
@@ -400,11 +400,11 @@ function bool IsObjectiveAttack(GameObjective GameObjective) {
 // Returns whether the given objective is to be defended by this team.
 // ============================================================================
 
-function bool IsObjectiveDefense(GameObjective GameObjective) {
-
+function bool IsObjectiveDefense(GameObjective GameObjective)
+{
   return (GameObjective != None &&
           GameObjective.DefenderTeamIndex == Team.TeamIndex);
-  }
+}
 
 
 // ============================================================================
@@ -413,16 +413,16 @@ function bool IsObjectiveDefense(GameObjective GameObjective) {
 // Returns the number of objectives.
 // ============================================================================
 
-function int CountObjectives() {
-
+function int CountObjectives()
+{
   local GameObjective thisObjective;
 
   if (nObjectives == 0)
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       nObjectives++;
-  
+
   return nObjectives;
-  }
+}
 
 
 // ============================================================================
@@ -432,8 +432,8 @@ function int CountObjectives() {
 // Takes human players into consideration.
 // ============================================================================
 
-function int CountPlayersAtObjective(GameObjective GameObjective) {
-
+function int CountPlayersAtObjective(GameObjective GameObjective)
+{
   local int nPlayersAtObjective;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
@@ -452,14 +452,14 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
         nPlayersAtObjective += 1;
       else
         nPlayersAtObjective += SquadControlled.GetSize();
-      }
+    }
 
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
     if (thisSquad.SquadObjective == GameObjective)
       nPlayersAtObjective += thisSquad.GetSize();
 
   return nPlayersAtObjective;
-  }
+}
 
 
 // ============================================================================
@@ -469,16 +469,16 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
 // attacking the given objective. Works for both teams.
 // ============================================================================
 
-function int CountPlayersReleasable(GameObjective GameObjective) {
-
+function int CountPlayersReleasable(GameObjective GameObjective)
+{
   local JBTagObjective TagObjective;
 
   TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
   if (TagObjective != None)
     return TagObjective.CountPlayersReleasable();
-  
+
   return 0;
-  }
+}
 
 
 // ============================================================================
@@ -488,8 +488,8 @@ function int CountPlayersReleasable(GameObjective GameObjective) {
 // objective or actor. Expensive, so use sparingly.
 // ============================================================================
 
-static function float CalcDistance(Controller Controller, Actor ActorTarget) {
-
+static function float CalcDistance(Controller Controller, Actor ActorTarget)
+{
   if (Default.CacheCalcDistance.Time == Controller.Level.TimeSeconds &&
       Default.CacheCalcDistance.Controller  == Controller &&
       Default.CacheCalcDistance.ActorTarget == ActorTarget)
@@ -501,17 +501,17 @@ static function float CalcDistance(Controller Controller, Actor ActorTarget) {
   Default.CacheCalcDistance.Time = Controller.Level.TimeSeconds;
   Default.CacheCalcDistance.Controller  = Controller;
   Default.CacheCalcDistance.ActorTarget = ActorTarget;
-  
+
   if (JBGameObjective(ActorTarget) != None)
     ActorTarget = JBGameObjective(ActorTarget).TriggerRelease;
-  
+
   if (Controller.FindPathToward(ActorTarget) != None)
     Default.CacheCalcDistance.Result = Controller.RouteDist;
   else
     Default.CacheCalcDistance.Result = VSize(ActorTarget.Location - Controller.Pawn.Location);
-  
+
   return Default.CacheCalcDistance.Result;
-  }
+}
 
 
 // ============================================================================
@@ -521,13 +521,13 @@ static function float CalcDistance(Controller Controller, Actor ActorTarget) {
 // kills and deaths.
 // ============================================================================
 
-static function float CalcEfficiency(int nKills, int nDeaths) {
-
+static function float CalcEfficiency(int nKills, int nDeaths)
+{
   if (nKills + nDeaths == 0)
     return 0.5;  // average efficiency
-  
+
   return nKills / (nKills + nDeaths);
-  }
+}
 
 
 // ============================================================================
@@ -537,8 +537,8 @@ static function float CalcEfficiency(int nKills, int nDeaths) {
 // players on the enemy team. Results are cached within a tick.
 // ============================================================================
 
-function float RatePlayers() {
-
+function float RatePlayers()
+{
   local int nDeathsByTeam[2];
   local int nKillsByTeam[2];
   local JBTagPlayer firstTagPlayer;
@@ -547,22 +547,22 @@ function float RatePlayers() {
 
   if (CacheRatePlayers.Time == Level.TimeSeconds)
     return CacheRatePlayers.Result;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree()) {
       PlayerReplicationInfo = thisTagPlayer.GetPlayerReplicationInfo();
       nKillsByTeam [PlayerReplicationInfo.Team.TeamIndex] += PlayerReplicationInfo.Kills;
       nDeathsByTeam[PlayerReplicationInfo.Team.TeamIndex] += PlayerReplicationInfo.Deaths;
-      }
+    }
 
   CacheRatePlayers.Result =
     CalcEfficiency(nKillsByTeam[     Team.TeamIndex], nDeathsByTeam[     Team.TeamIndex]) /
     CalcEfficiency(nKillsByTeam[EnemyTeam.TeamIndex], nDeathsByTeam[EnemyTeam.TeamIndex]);
-  
+
   CacheRatePlayers.Time = Level.TimeSeconds;
   return CacheRatePlayers.Result;
-  }
+}
 
 
 // ============================================================================
@@ -572,17 +572,17 @@ function float RatePlayers() {
 // squad of this team.
 // ============================================================================
 
-function bool IsEnemyAcquired(Controller Controller) {
-
+function bool IsEnemyAcquired(Controller Controller)
+{
   local SquadAI thisSquad;
 
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
     if (JBBotSquad(thisSquad) != None &&
         JBBotSquad(thisSquad).IsEnemyAcquired(Controller))
       return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -592,8 +592,8 @@ function bool IsEnemyAcquired(Controller Controller) {
 // squad of this team defending or attacking the given objective.
 // ============================================================================
 
-function bool IsEnemyAcquiredAtObjective(Controller Controller, GameObjective GameObjective) {
-
+function bool IsEnemyAcquiredAtObjective(Controller Controller, GameObjective GameObjective)
+{
   local SquadAI thisSquad;
 
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
@@ -601,9 +601,9 @@ function bool IsEnemyAcquiredAtObjective(Controller Controller, GameObjective Ga
         JBBotSquad(thisSquad) != None &&
         JBBotSquad(thisSquad).IsEnemyAcquired(Controller))
       return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -614,8 +614,8 @@ function bool IsEnemyAcquiredAtObjective(Controller Controller, GameObjective Ga
 // Results are cached within a tick.
 // ============================================================================
 
-function int CountEnemiesAccounted() {
-
+function int CountEnemiesAccounted()
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
@@ -628,10 +628,10 @@ function int CountEnemiesAccounted() {
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree() && IsEnemyAcquired(thisTagPlayer.GetController()))
       CacheCountEnemiesAccounted.Result += 1;
-  
+
   CacheCountEnemiesAccounted.Time = Level.TimeSeconds;
   return CacheCountEnemiesAccounted.Result;
-  }
+}
 
 
 // ============================================================================
@@ -641,17 +641,17 @@ function int CountEnemiesAccounted() {
 // Results are cached within a tick.
 // ============================================================================
 
-function int CountEnemiesUnaccounted() {
-
+function int CountEnemiesUnaccounted()
+{
   if (CacheCountEnemiesUnaccounted.Time == Level.TimeSeconds)
     return CacheCountEnemiesUnaccounted.Result;
-  
+
   CacheCountEnemiesUnaccounted.Result =
     TagTeamEnemy.CountPlayersFree() - CountEnemiesAccounted();
-  
+
   CacheCountEnemiesUnaccounted.Time = Level.TimeSeconds;
   return CacheCountEnemiesUnaccounted.Result;
-  }
+}
 
 
 // ============================================================================
@@ -661,26 +661,26 @@ function int CountEnemiesUnaccounted() {
 // objective with.
 // ============================================================================
 
-function int EstimateStrengthAttack(GameObjective GameObjective) {
-
+function int EstimateStrengthAttack(GameObjective GameObjective)
+{
   local bool bEnemiesReleasable;
   local int nEnemiesAttacking;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   bEnemiesReleasable = CountPlayersReleasable(GameObjective) > 0;
   if (bEnemiesReleasable)
     nEnemiesAttacking += CountEnemiesUnaccounted();  // worst case
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree() &&
         (IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), GameObjective) ||
          (bEnemiesReleasable && IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), None))))
       nEnemiesAttacking++;
-  
+
   return nEnemiesAttacking;
-  }
+}
 
 
 // ============================================================================
@@ -690,23 +690,23 @@ function int EstimateStrengthAttack(GameObjective GameObjective) {
 // objective with.
 // ============================================================================
 
-function int EstimateStrengthDefense(GameObjective GameObjective) {
-
+function int EstimateStrengthDefense(GameObjective GameObjective)
+{
   local int nEnemiesDefending;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.IsFree() &&
         IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), GameObjective))
       nEnemiesDefending++;
-  
+
   if (CountPlayersReleasable(GameObjective) > 0)
     nEnemiesDefending += CountEnemiesUnaccounted();  // worst case
-  
+
   return nEnemiesDefending;
-  }
+}
 
 
 // ============================================================================
@@ -716,8 +716,8 @@ function int EstimateStrengthDefense(GameObjective GameObjective) {
 // objective. Excess players may be drawn off to other objectives.
 // ============================================================================
 
-function int SuggestStrengthAttack(GameObjective GameObjective) {
-
+function int SuggestStrengthAttack(GameObjective GameObjective)
+{
   local int nPlayersDefending;
 
   if (GameObjective == None ||
@@ -729,7 +729,7 @@ function int SuggestStrengthAttack(GameObjective GameObjective) {
     return Max(nPlayersDefending / FClamp(RatePlayers(), 0.5, 1.0) + 0.9, 1);
 
   return 0;
-  }
+}
 
 
 // ============================================================================
@@ -739,16 +739,16 @@ function int SuggestStrengthAttack(GameObjective GameObjective) {
 // objective. Excess players may be drawn off to other objectives.
 // ============================================================================
 
-function int SuggestStrengthDefense(GameObjective GameObjective) {
-
+function int SuggestStrengthDefense(GameObjective GameObjective)
+{
   local int nPlayersAttacking;
 
   nPlayersAttacking = EstimateStrengthAttack(GameObjective);
   if (nPlayersAttacking > 0)
     return Max(nPlayersAttacking / FClamp(RatePlayers(), 0.5, 1.0) + 0.9, 1);
-  
+
   return 0;
-  }
+}
 
 
 // ============================================================================
@@ -758,8 +758,8 @@ function int SuggestStrengthDefense(GameObjective GameObjective) {
 // tactics and, if so, changes the tactics and reorders bots.
 // ============================================================================
 
-function ReAssessStrategy() {
-
+function ReAssessStrategy()
+{
   local int nRounds;
   local int nRoundsLeft;
   local int ScoreLead;
@@ -767,7 +767,7 @@ function ReAssessStrategy() {
   local int ScoreTeamSelf;
   local name Strategy;
   local name Tactics;
-  
+
   ScoreTeamEnemy = TeamGame(Level.Game).OtherTeam(Team).Score;
   ScoreTeamSelf  = Team.Score;
 
@@ -781,22 +781,22 @@ function ReAssessStrategy() {
     nRoundsLeft = DeathMatch(Level.Game).RemainingTime / (DeathMatch(Level.Game).ElapsedTime / nRounds);
     if (nRoundsLeft < Abs(ScoreLead))
       Strategy = 'Timelimit';
-    }
+  }
 
   switch (Strategy) {
     case 'Scorelimit':
            if (ScoreLead > 1) Tactics = 'TacticsDefensive';
       else if (ScoreLead < 0) Tactics = 'TacticsAggressive';
       break;
-  
+
     case 'Timelimit':
            if (ScoreLead > 0) Tactics = 'TacticsEvasive';
       else if (ScoreLead < 0) Tactics = 'TacticsAggressive';
       break;
-    }
+  }
 
   GotoState(Tactics);
-  }
+}
 
 
 // ============================================================================
@@ -807,10 +807,10 @@ function ReAssessStrategy() {
 // issues a warning to the log; actual implementations in Tactics states.
 // ============================================================================
 
-function ReAssessOrders() {
-
+function ReAssessOrders()
+{
   Log("Warning: ReAssessOrders for team" @ Team.TeamIndex @ "should not be called in default state");
-  }
+}
 
 
 // ============================================================================
@@ -820,8 +820,8 @@ function ReAssessOrders() {
 // is selected from the custom team tactics submenu in the speech menu.
 // ============================================================================
 
-function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander) {
-
+function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander)
+{
   local JBTagPlayer TagPlayerBot;
 
   TagPlayerBot = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
@@ -844,13 +844,13 @@ function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander) {
     case 'TacticsNormal':      SetTactics('Normal');      return;
     case 'TacticsDefensive':   SetTactics('Defensive');   return;
     case 'TacticsEvasive':     SetTactics('Evasive');     return;
-    }
+  }
 
   if (TagPlayerBot.IsFree()) {
     Super.SetOrders(Bot, OrderName, ControllerCommander);
     RequestReAssessment();
-    }
   }
+}
 
 
 // ============================================================================
@@ -860,8 +860,8 @@ function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander) {
 // the bot on freelance and requests reassessment of all team orders.
 // ============================================================================
 
-function SetBotOrders(Bot Bot, RosterEntry RosterEntry) {
-
+function SetBotOrders(Bot Bot, RosterEntry RosterEntry)
+{
   local JBTagPlayer TagPlayerBot;
 
   TagPlayerBot = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
@@ -870,7 +870,7 @@ function SetBotOrders(Bot Bot, RosterEntry RosterEntry) {
 
   PutOnFreelance(Bot);
   RequestReAssessment();
-  }
+}
 
 
 // ============================================================================
@@ -880,8 +880,8 @@ function SetBotOrders(Bot Bot, RosterEntry RosterEntry) {
 // those orders. Otherwise clears the fixed orders and sets team orders.
 // ============================================================================
 
-function ResumeBotOrders(Bot Bot) {
-
+function ResumeBotOrders(Bot Bot)
+{
   local JBTagPlayer TagPlayerBot;
 
   TagPlayerBot = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
@@ -893,7 +893,7 @@ function ResumeBotOrders(Bot Bot) {
     SetOrders(Bot, TagPlayerBot.OrderNameFixed, None);
   else
     SetBotOrders(Bot, None);  // team tactics
-  }
+}
 
 
 // ============================================================================
@@ -903,19 +903,19 @@ function ResumeBotOrders(Bot Bot) {
 // requests reassessment of orders.
 // ============================================================================
 
-function ResetOrders() {
-
+function ResetOrders()
+{
   local Controller thisController;
   local SquadAI thisSquad;
-  
+
   for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
     if (Bot(thisController) != None && thisController.PlayerReplicationInfo.Team == Team)
       PutOnFreelance(Bot(thisController));
-  
+
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
     if (JBBotSquad(thisSquad) != None)
       JBBotSquad(thisSquad).ClearEnemies();
-  }
+}
 
 
 // ============================================================================
@@ -924,20 +924,20 @@ function ResetOrders() {
 // Returns the number of players currently deployed to the given objective.
 // ============================================================================
 
-protected function int CountPlayersDeployed(GameObjective GameObjective) {
-
+protected function int CountPlayersDeployed(GameObjective GameObjective)
+{
   local JBTagObjective TagObjective;
 
   if (TimeDeployment != Level.TimeSeconds)
     return 0;
-  
+
   TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
 
   if (TagObjective != None)
     return TagObjective.nPlayersDeployed;
-  
+
   return 0;
-  }
+}
 
 
 // ============================================================================
@@ -947,8 +947,8 @@ protected function int CountPlayersDeployed(GameObjective GameObjective) {
 // DeployToDefense on the first deployment order within a tick.
 // ============================================================================
 
-protected function DeployRestart() {
-
+protected function DeployRestart()
+{
   local JBTagObjective firstTagObjective;
   local JBTagObjective thisTagObjective;
 
@@ -957,7 +957,7 @@ protected function DeployRestart() {
     thisTagObjective.nPlayersDeployed = 0;
 
   TimeDeployment = Level.TimeSeconds;
-  }
+}
 
 
 // ============================================================================
@@ -968,23 +968,23 @@ protected function DeployRestart() {
 // DeployExecute after all deployments have been recorded to commit the orders.
 // ============================================================================
 
-protected function DeployToObjective(GameObjective GameObjective, int nPlayers) {
-
+protected function DeployToObjective(GameObjective GameObjective, int nPlayers)
+{
   local JBTagObjective TagObjective;
-  
+
   if (TimeDeployment != Level.TimeSeconds)
     DeployRestart();
-  
+
   if (GameObjective != None && nPlayers > 0) {
     TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
-    
+
     if (TagObjective != None) {
       if (TagObjective.nPlayersDeployed == 0)
         TagObjective.nPlayersCurrent = CountPlayersAtObjective(TagObjective.GetObjective());
       TagObjective.nPlayersDeployed += nPlayers;
-      }
     }
   }
+}
 
 
 // ============================================================================
@@ -996,8 +996,8 @@ protected function DeployToObjective(GameObjective GameObjective, int nPlayers) 
 // the smallest number of defenders are filled up.
 // ============================================================================
 
-protected function DeployToDefense(int nPlayers) {
-
+protected function DeployToDefense(int nPlayers)
+{
   local bool bSaturated;
   local int nPlayersDeployed;
   local int nPlayersSuggested;
@@ -1011,7 +1011,7 @@ protected function DeployToDefense(int nPlayers) {
 
   while (nPlayers > 0) {
     ObjectiveDeploy = None;
-    
+
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
         if (bSaturated)
@@ -1024,33 +1024,33 @@ protected function DeployToDefense(int nPlayers) {
 
         nPlayersDeployed = CountPlayersDeployed(thisObjective);
         RatioPlayers = nPlayersDeployed / nPlayersSuggested;
-        
+
         if (ObjectiveDeploy == None || RatioPlayers < RatioPlayersDeploy) {
           ObjectiveDeploy = thisObjective;
           RatioPlayersDeploy = RatioPlayers;
-          }
         }
-    
+      }
+
     if (ObjectiveDeploy == None) {
       bSaturated = True;  // all suggested defenses are saturated,
       continue;           // continue distributing surplus defenders
-      }
-    
+    }
+
     nPlayers -= 1;
     DeployToObjective(ObjectiveDeploy, 1);
-    }
   }
+}
 
 
 // ============================================================================
 // CanDeploy
 //
-// Checks and returns whether the given controller is a bot on this team and 
+// Checks and returns whether the given controller is a bot on this team and
 // can be drawn off from its current objective.
 // ============================================================================
 
-protected function bool CanDeploy(Controller Controller) {
-
+protected function bool CanDeploy(Controller Controller)
+{
   local Controller ControllerLeader;
   local JBTagObjective TagObjective;
 
@@ -1066,14 +1066,14 @@ protected function bool CanDeploy(Controller Controller) {
 
   if (Bot(Controller).Squad.SquadObjective != None)
     TagObjective = Class'JBTagObjective'.Static.FindFor(Bot(Controller).Squad.SquadObjective);
-  
+
   if (TagObjective == None ||
       TagObjective.nPlayersDeployed == 0 ||
       TagObjective.nPlayersDeployed < TagObjective.nPlayersCurrent)
     return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -1083,22 +1083,22 @@ protected function bool CanDeploy(Controller Controller) {
 // objective. Assumes that CanDeploy returns True for the given player.
 // ============================================================================
 
-protected function bool CanDeployToObjective(Controller Controller, GameObjective ObjectiveDeploy) {
-
+protected function bool CanDeployToObjective(Controller Controller, GameObjective ObjectiveDeploy)
+{
   local JBTagPlayer TagPlayer;
-  
+
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-  
+
   if (TagPlayer != None)
     switch (TagPlayer.OrderNameFixed) {
       case 'Attack':  return IsObjectiveAttack (ObjectiveDeploy);
       case 'Defend':  return IsObjectiveDefense(ObjectiveDeploy);
       case 'Follow':  return PlayerController(Bot(Controller).Squad.SquadLeader) == None;
       case 'Hold':    return HoldSpot(Bot(Controller).GoalScript) == None;
-      }
-  
+    }
+
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -1108,8 +1108,8 @@ protected function bool CanDeployToObjective(Controller Controller, GameObjectiv
 // Players left without deployment are put on the freelance squad.
 // ============================================================================
 
-protected function DeployExecute() {
-
+protected function DeployExecute()
+{
   local float DistanceObjective;
   local float DistanceObjectiveDeploy;
   local Bot BotDeploy;
@@ -1122,11 +1122,11 @@ protected function DeployExecute() {
   if (TimeDeployment != Level.TimeSeconds)
     return;  // no deployment orders available
 
-  firstTagObjective = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagObjective;        
+  firstTagObjective = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagObjective;
 
   while (True) {
     BotDeploy = None;
-  
+
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
       if (CanDeploy(thisController))
         for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
@@ -1140,9 +1140,9 @@ protected function DeployExecute() {
               BotDeploy = Bot(thisController);
               TagObjectiveDeploy = thisTagObjective;
               DistanceObjectiveDeploy = DistanceObjective;
-              }
             }
-    
+          }
+
     if (BotDeploy == None)
       break;  // no more bots to deploy to objectives
 
@@ -1152,7 +1152,7 @@ protected function DeployExecute() {
     TagObjectiveDeploy.nPlayersCurrent += 1;
 
     PutOnSquad(BotDeploy, TagObjectiveDeploy.GetObjective());
-    }
+  }
 
   for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
     if (CanDeploy(thisController) &&
@@ -1164,8 +1164,8 @@ protected function DeployExecute() {
         TagObjectiveBot.nPlayersCurrent -= 1;
 
       PutOnFreelance(Bot(thisController));
-      }
-  }
+    }
+}
 
 
 // ============================================================================
@@ -1176,8 +1176,8 @@ protected function DeployExecute() {
 // selects the objective that currently has the smallest number of them.
 // ============================================================================
 
-function GameObjective GetLeastDefendedObjective() {
-
+function GameObjective GetLeastDefendedObjective()
+{
   local int nPlayersCurrent;
   local int nPlayersCurrentMin;
   local int nPlayersSuggested;
@@ -1185,7 +1185,7 @@ function GameObjective GetLeastDefendedObjective() {
   local float RatioPlayersSelected;
   local GameObjective thisObjective;
   local GameObjective ObjectiveSelected;
-  
+
   for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
     if (IsObjectiveDefense(thisObjective)) {
       nPlayersSuggested = SuggestStrengthDefense(thisObjective);
@@ -1195,9 +1195,9 @@ function GameObjective GetLeastDefendedObjective() {
         if (ObjectiveSelected == None || RatioPlayers < RatioPlayersSelected) {
           ObjectiveSelected = thisObjective;
           RatioPlayersSelected = RatioPlayers;
-          }
         }
       }
+    }
 
   if (ObjectiveSelected == None)
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
@@ -1206,11 +1206,11 @@ function GameObjective GetLeastDefendedObjective() {
         if (ObjectiveSelected == None || nPlayersCurrent < nPlayersCurrentMin) {
           ObjectiveSelected = thisObjective;
           nPlayersCurrentMin = nPlayersCurrent;
-          }
         }
+      }
 
   return ObjectiveSelected;
-  }
+}
 
 
 // ============================================================================
@@ -1222,8 +1222,8 @@ function GameObjective GetLeastDefendedObjective() {
 // objective that currently has the smallest number of them.
 // ============================================================================
 
-function GameObjective GetPriorityAttackObjective() {
-
+function GameObjective GetPriorityAttackObjective()
+{
   local int nPlayersCurrent;
   local int nPlayersCurrentMin;
   local int nPlayersReleasable;
@@ -1232,7 +1232,7 @@ function GameObjective GetPriorityAttackObjective() {
   local int nPlayersSuggestedMin;
   local GameObjective thisObjective;
   local GameObjective ObjectiveSelected;
-  
+
   for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
     if (IsObjectiveAttack(thisObjective)) {
       nPlayersSuggested = SuggestStrengthAttack(thisObjective);
@@ -1245,10 +1245,10 @@ function GameObjective GetPriorityAttackObjective() {
           nPlayersSuggestedMin  = nPlayersSuggested;
           nPlayersReleasableMax = nPlayersReleasable;
           ObjectiveSelected = thisObjective;
-          }
         }
       }
-  
+    }
+
   if (ObjectiveSelected == None)
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveAttack(thisObjective)) {
@@ -1256,11 +1256,11 @@ function GameObjective GetPriorityAttackObjective() {
         if (ObjectiveSelected == None || nPlayersCurrent < nPlayersCurrentMin) {
           ObjectiveSelected = thisObjective;
           nPlayersCurrentMin = nPlayersCurrent;
-          }
         }
-  
+      }
+
   return ObjectiveSelected;
-  }
+}
 
 
 // ============================================================================
@@ -1271,10 +1271,10 @@ function GameObjective GetPriorityAttackObjective() {
 // redistributed to different squads.
 // ============================================================================
 
-function GameObjective GetPriorityFreelanceObjective() {
-
+function GameObjective GetPriorityFreelanceObjective()
+{
   return None;
-  }
+}
 
 
 // ============================================================================
@@ -1285,8 +1285,8 @@ function GameObjective GetPriorityFreelanceObjective() {
 // resume their fixed orders if they have any.
 // ============================================================================
 
-function NotifySpawn(Controller ControllerSpawned) {
-
+function NotifySpawn(Controller ControllerSpawned)
+{
   local NavigationPoint NavigationPointGuessed;
   local JBTagPlayer TagPlayer;
 
@@ -1298,19 +1298,19 @@ function NotifySpawn(Controller ControllerSpawned) {
     if (TagPlayer.GetTeam() == Team) {
       if (Bot(ControllerSpawned) != None)
         ResumeBotOrders(Bot(ControllerSpawned));
-      }
+    }
 
     else {
       NavigationPointGuessed = TagPlayer.GuessLocation(TagTeam[TagPlayer.GetTeam().TeamIndex].FindPlayerStarts());
       if (NavigationPointGuessed != None)
         SendSquadTo(NavigationPointGuessed, ControllerSpawned);
-      }
-    }
-  
-  else {
-    TagPlayer.RecordLocation(None);
     }
   }
+
+  else {
+    TagPlayer.RecordLocation(None);
+  }
+}
 
 
 // ============================================================================
@@ -1320,18 +1320,18 @@ function NotifySpawn(Controller ControllerSpawned) {
 // objective where the release was probably caused from by the given enemy.
 // ============================================================================
 
-function NotifyReleaseTeam(name EventRelease, TeamInfo TeamReleased, Controller ControllerInstigator) {
-
+function NotifyReleaseTeam(name EventRelease, TeamInfo TeamReleased, Controller ControllerInstigator)
+{
   local GameObjective thisObjective;
   local NavigationPoint NavigationPointGuessed;
   local array<NavigationPoint> ListNavigationPointSwitch;
   local JBTagPlayer TagPlayerInstigator;
-  
+
   if (ControllerInstigator == None ||
       Team == TeamReleased ||
       Team == ControllerInstigator.PlayerReplicationInfo.Team)
     return;
-  
+
   TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(ControllerInstigator.PlayerReplicationInfo);
   if (TagPlayerInstigator == None)
     return;
@@ -1339,12 +1339,12 @@ function NotifyReleaseTeam(name EventRelease, TeamInfo TeamReleased, Controller 
   for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
     if (IsObjectiveDefense(thisObjective) && thisObjective.Event == EventRelease)
       ListNavigationPointSwitch[ListNavigationPointSwitch.Length] = thisObjective;
-  
+
   NavigationPointGuessed = TagPlayerInstigator.GuessLocation(ListNavigationPointSwitch);
-  
+
   if (NavigationPointGuessed != None)
     SendSquadTo(NavigationPointGuessed, ControllerInstigator);
-  }
+}
 
 
 // ============================================================================
@@ -1354,8 +1354,8 @@ function NotifyReleaseTeam(name EventRelease, TeamInfo TeamReleased, Controller 
 // squad to the location where the enemy player probably left the jail.
 // ============================================================================
 
-function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased) {
-
+function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased)
+{
   local int iNavigationPoint;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
@@ -1367,8 +1367,8 @@ function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased) {
   if (ControllerReleased.PlayerReplicationInfo.Team == Team) {
     if (Bot(ControllerReleased) != None && JBBotSquadJail(Bot(ControllerReleased).Squad) != None)
       ResumeBotOrders(Bot(ControllerReleased));
-    }
-  
+  }
+
   else {
     TagPlayerReleased = Class'JBTagPlayer'.Static.FindFor(ControllerReleased.PlayerReplicationInfo);
     if (TagPlayerReleased == None)
@@ -1381,14 +1381,14 @@ function NotifyReleasePlayer(name EventRelease, Controller ControllerReleased) {
         ListNavigationPointExitTotal.Insert(0, ListNavigationPointExitJail.Length);
         for (iNavigationPoint = 0; iNavigationPoint < ListNavigationPointExitJail.Length; iNavigationPoint++)
           ListNavigationPointExitTotal[iNavigationPoint] = ListNavigationPointExitJail[iNavigationPoint];
-        }
-  
+      }
+
     NavigationPointGuessed = TagPlayerReleased.GuessLocation(ListNavigationPointExitTotal);
-    
+
     if (NavigationPointGuessed != None)
       SendSquadTo(NavigationPointGuessed, ControllerReleased);
-    }
   }
+}
 
 
 // ============================================================================
@@ -1407,18 +1407,18 @@ state TacticsEvasive {
   // Puts all bots that aren't bound in fixed orders to freelance
   // squads and then sets those squads to evasive tactics.
   // ================================================================
-  
-  function ReAssessOrders() {
 
+  function ReAssessOrders()
+  {
     local SquadAI thisSquad;
-    
+
     DeployRestart();
     DeployExecute();  // set all unbound bots on freelance
 
     for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
       if (JBBotSquad(thisSquad) != None)
         JBBotSquad(thisSquad).StartEvasive();
-    }
+  }
 
 
   // ================================================================
@@ -1427,16 +1427,16 @@ state TacticsEvasive {
   // Resets all freelance squads to normal operation.
   // ================================================================
 
-  event EndState() {
-  
+  event EndState()
+  {
     local SquadAI thisSquad;
-    
+
     for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
       if (JBBotSquad(thisSquad) != None)
         JBBotSquad(thisSquad).StopEvasive();
-    }
+  }
 
-  } // state TacticsEvasive
+} // state TacticsEvasive
 
 
 // ============================================================================
@@ -1457,15 +1457,15 @@ state TacticsDefensive {
   // for every objective.
   // ================================================================
 
-  function ReAssessOrders() {
-
+  function ReAssessOrders()
+  {
     local int nPlayersFree;
     local int nPlayersJailed;
     local int nPlayersAttacking;
     local int nPlayersDefending;
     local GameObjective thisObjective;
     local GameObjective ObjectiveAttack;
-    
+
     nPlayersFree   = TagTeamSelf.CountPlayersFree();
     nPlayersJailed = TagTeamSelf.CountPlayersJailed();
 
@@ -1474,21 +1474,21 @@ state TacticsDefensive {
         nPlayersDefending += Max(2, SuggestStrengthDefense(thisObjective));
 
     nPlayersDefending = Min(nPlayersDefending, nPlayersFree);
-    
+
     if (nPlayersJailed > 0) {
       ObjectiveAttack = GetPriorityAttackObjective();
       nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
-      }
+    }
 
     if (nPlayersAttacking + nPlayersDefending > nPlayersFree)
       nPlayersAttacking = Max(0, nPlayersFree - nPlayersDefending);
-    
+
     DeployToObjective(ObjectiveAttack, nPlayersAttacking);
     DeployToDefense(nPlayersDefending);
     DeployExecute();
-    }
+  }
 
-  } // state TacticsDefensive
+} // state TacticsDefensive
 
 
 // ============================================================================
@@ -1509,8 +1509,8 @@ auto state TacticsNormal {
   // must be attacked.
   // ================================================================
 
-  function ReAssessOrders() {
-
+  function ReAssessOrders()
+  {
     local int nPlayersFree;
     local int nPlayersJailed;
     local int nPlayersAttacking;
@@ -1534,12 +1534,12 @@ auto state TacticsNormal {
         if (nPlayersDefendingMin == 0 ||
             nPlayersDefendingMin > nPlayersDefending)
           nPlayersDefendingMin = nPlayersDefending;
-        }
+      }
 
     if (nPlayersJailed > 0) {
       ObjectiveAttack = GetPriorityAttackObjective();
       nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
-      }
+    }
 
     nPlayersRequired = nPlayersAttacking + nPlayersDefendingMin;
 
@@ -1548,7 +1548,7 @@ auto state TacticsNormal {
       if (nPlayersDefending <= nPlayersDefendingMin / 2)
         nPlayersDefending = 0;  // no use defending
       nPlayersAttacking = Max(0, nPlayersFree - nPlayersDefending);
-      
+
       for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
         if (IsObjectiveDefense(thisObjective)) {
           nPlayersReleasable = CountPlayersReleasable(thisObjective);
@@ -1556,14 +1556,14 @@ auto state TacticsNormal {
               nPlayersDefendingMin >= SuggestStrengthDefense(thisObjective)) {
             ObjectiveDefense = thisObjective;
             nPlayersReleasableMax = nPlayersReleasable;
-            }
           }
+        }
 
       DeployToObjective(ObjectiveAttack,  nPlayersAttacking);
       DeployToObjective(ObjectiveDefense, nPlayersDefending);
       DeployExecute();
-      }
-    
+    }
+
     else {
       nPlayersDefending = Min(nPlayersFree - nPlayersAttacking, nPlayersDefendingMax);
 
@@ -1573,10 +1573,10 @@ auto state TacticsNormal {
       DeployToObjective(ObjectiveAttack, nPlayersAttacking);
       DeployToDefense(nPlayersDefending);
       DeployExecute();  // rest goes on freelance
-      }
     }
+  }
 
-  } // state TacticsNormal
+} // state TacticsNormal
 
 
 // ============================================================================
@@ -1597,9 +1597,9 @@ state TacticsAggressive {
   // of all other objectives. If there are not enough bots even for
   // that, abandons defense altogether.
   // ================================================================
-  
-  function ReAssessOrders() {
 
+  function ReAssessOrders()
+  {
     local int nPlayersFree;
     local int nPlayersJailed;
     local int nPlayersAttacking;
@@ -1622,19 +1622,19 @@ state TacticsAggressive {
         if (nPlayersDefendingMin == 0 ||
             nPlayersDefendingMin > nPlayersDefending)
           nPlayersDefendingMin = nPlayersDefending;
-        }
-    
+      }
+
     if (nPlayersJailed > 0) {
       ObjectiveAttack = GetPriorityAttackObjective();
       nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
-      }
+    }
 
     if (nPlayersAttacking + nPlayersDefendingMax <= nPlayersFree) {
       DeployToObjective(ObjectiveAttack, nPlayersAttacking);
       DeployToDefense(nPlayersDefendingMax);
       DeployExecute();  // rest go on freelance
-      }
-      
+    }
+
     else if (nPlayersAttacking + nPlayersDefendingMin / 2 <= nPlayersFree) {
       nPlayersDefending = nPlayersFree - nPlayersAttacking;
 
@@ -1645,21 +1645,21 @@ state TacticsAggressive {
               nPlayersDefendingMin >= SuggestStrengthDefense(thisObjective)) {
             ObjectiveDefense = thisObjective;
             nPlayersReleasableMax = nPlayersReleasable;
-            }
           }
-      
+        }
+
       DeployToObjective(ObjectiveAttack,  nPlayersAttacking);
       DeployToObjective(ObjectiveDefense, nPlayersDefending);
       DeployExecute();
-      }
+    }
 
     else {
       DeployToObjective(ObjectiveAttack, nPlayersFree);
       DeployExecute();
-      }
     }
+  }
 
-  } // state TacticsAggressive
+} // state TacticsAggressive
 
 
 // ============================================================================
@@ -1679,40 +1679,40 @@ state TacticsSuicidal {
   // Otherwise sets all free players to freelance.
   // ================================================================
 
-  function ReAssessOrders() {
-  
+  function ReAssessOrders()
+  {
     local int nPlayersFree;
     local int nPlayersJailed;
     local GameObjective ObjectiveAttack;
-    
+
     nPlayersFree   = TagTeamSelf.CountPlayersFree();
     nPlayersJailed = TagTeamSelf.CountPlayersJailed();
-    
+
     if (nPlayersJailed == 0) {
       DeployRestart();
       DeployExecute();  // all on freelance
-      }
-      
+    }
+
     else {
       ObjectiveAttack = GetPriorityAttackObjective();
       DeployToObjective(ObjectiveAttack, nPlayersFree);
       DeployExecute();
-      }
     }
+  }
 
-  } // state TacticsSuicidal
+} // state TacticsSuicidal
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   bTacticsAuto = True;
 
   ClassSquadArena = Class'JBBotSquadArena';
   ClassSquadJail  = Class'JBBotSquadJail';
 
   SquadType = Class'JBBotSquad';
-  }
+}

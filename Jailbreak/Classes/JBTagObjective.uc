@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagObjective.uc,v 1.7 2003/02/26 20:01:30 mychaeel Exp $
+// $Id: JBTagObjective.uc,v 1.8 2003/03/16 12:02:56 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -15,11 +15,11 @@ class JBTagObjective extends JBTag
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role == ROLE_Authority)
     nPlayersReleasable;
-  }
+}
 
 
 // ============================================================================
@@ -62,12 +62,12 @@ protected simulated function InternalSetNext(JBTag TagNext) {
 // Replicates a reference to the objective and starts the timer.
 // ============================================================================
 
-function Register() {
-
+function Register()
+{
   Super.Register();
 
   SetTimer(0.1, True);
-  }
+}
 
 
 // ============================================================================
@@ -77,10 +77,10 @@ function Register() {
 // objective and stores the values in nPlayersReleasable.
 // ============================================================================
 
-event Timer() {
-
+event Timer()
+{
   CountPlayersReleasable();
-  }
+}
 
 
 // ============================================================================
@@ -91,16 +91,16 @@ event Timer() {
 // value.
 // ============================================================================
 
-simulated function int CountPlayersReleasable(optional bool bCached) {
-
+simulated function int CountPlayersReleasable(optional bool bCached)
+{
   local JBInfoJail JailPlayer;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local TeamInfo TeamPlayer;
-  
+
   if (Role < ROLE_Authority || bCached || TimeCountPlayersReleasable == Level.TimeSeconds)
     return nPlayersReleasable;
-  
+
   nPlayersReleasable = 0;
 
   firstTagPlayer = JBGameReplicationInfo(GetGameReplicationInfo()).firstTagPlayer;
@@ -114,12 +114,12 @@ simulated function int CountPlayersReleasable(optional bool bCached) {
           JailPlayer.Tag == GetObjective().Event &&
           JailPlayer.CanReleaseTeam(TeamPlayer))
         nPlayersReleasable += 1;
-      }
     }
+  }
 
   TimeCountPlayersReleasable = Level.TimeSeconds;
   return nPlayersReleasable;
-  }
+}
 
 
 // ============================================================================
@@ -134,7 +134,7 @@ simulated function GameObjective GetObjective() {
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   RemoteRole = ROLE_SimulatedProxy;
-  }
+}

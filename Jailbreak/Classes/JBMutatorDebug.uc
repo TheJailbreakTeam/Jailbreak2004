@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.4 2003/07/19 22:02:25 mychaeel Exp $
+// $Id: JBMutatorDebug.uc,v 1.5 2003/07/20 08:30:53 mychaeel Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -24,10 +24,10 @@ var JBGameRulesDebug JBGameRulesDebug;
 // Allows using this mutator only with Jailbreak games.
 // ============================================================================
 
-function bool MutatorIsAllowed() {
-
+function bool MutatorIsAllowed()
+{
   return (Jailbreak(Level.Game) != None);
-  }
+}
 
 
 // ============================================================================
@@ -36,8 +36,8 @@ function bool MutatorIsAllowed() {
 // Registers a JBGameRules actor with the game.
 // ============================================================================
 
-event PostBeginPlay() {
-
+event PostBeginPlay()
+{
   Log("Jailbreak Debugging: Debugging functions are available");
 
   JBGameRulesDebug = Spawn(Class'JBGameRulesDebug');
@@ -45,7 +45,7 @@ event PostBeginPlay() {
   if (Level.Game.GameRulesModifiers == None)
          Level.Game.GameRulesModifiers            = JBGameRulesDebug;
     else Level.Game.GameRulesModifiers.AddGameRules(JBGameRulesDebug);
-  }
+}
 
 
 // ============================================================================
@@ -64,32 +64,32 @@ event PostBeginPlay() {
 //
 // ============================================================================
 
-function Mutate(string TextMutate, PlayerController Sender) {
-
+function Mutate(string TextMutate, PlayerController Sender)
+{
   local string TextCommand;
   local string TextFlag;
   local string TextName;
   local string TextTeam;
   local Controller ControllerKilled;
-    
+
   Super.Mutate(TextMutate, Sender);
-  
+
   TextCommand = GetParam(TextMutate);
-  
+
   if (TextCommand ~= "SetSwitch") {
     TextFlag = GetParam(TextMutate);
     TextTeam = GetParam(TextMutate);
-    
+
     if (TextTeam ~= "Red"  || TextTeam == "") JBGameRulesDebug.ExecSetSwitch(0, TextFlag ~= "On");
     if (TextTeam ~= "Blue" || TextTeam == "") JBGameRulesDebug.ExecSetSwitch(1, TextFlag ~= "On");
-    }
+  }
 
   else if (TextCommand ~= "CanBeJailed") {
     TextFlag = GetParam(TextMutate);
     TextName = GetParam(TextMutate);
 
     JBGameRulesDebug.ExecCanBeJailed(TextName, TextFlag ~= "On");
-    }
+  }
 
   else if (TextCommand ~= "KillPlayer") {
     TextName = GetParam(TextMutate);
@@ -97,8 +97,8 @@ function Mutate(string TextMutate, PlayerController Sender) {
     ControllerKilled = JBGameRulesDebug.FindPlayer(TextName);
     if (ControllerKilled != None)
       ControllerKilled.Pawn.GibbedBy(Sender);
-    }
   }
+}
 
 
 // ============================================================================
@@ -108,8 +108,8 @@ function Mutate(string TextMutate, PlayerController Sender) {
 // given string.
 // ============================================================================
 
-function string GetParam(out string TextParam) {
-
+function string GetParam(out string TextParam)
+{
   local int iCharSeparator;
   local string TextResult;
 
@@ -119,20 +119,20 @@ function string GetParam(out string TextParam) {
 
   TextResult = Left(TextParam, iCharSeparator);
   TextParam  = Mid (TextParam, iCharSeparator);
-  
+
   while (Left(TextParam, 1) == " ")
     TextParam = Mid(TextParam, 1);
-  
+
   return TextResult;
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   FriendlyName = "Jailbreak Debug";
   Description  = "Provides helper functions for debugging Jailbreak maps and code.";
-  }
+}

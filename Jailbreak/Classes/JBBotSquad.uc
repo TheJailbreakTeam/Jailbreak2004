@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.14 2003/06/14 18:36:14 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.15 2003/06/23 17:52:19 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -15,20 +15,20 @@ class JBBotSquad extends SquadAI
 // Types
 // ============================================================================
 
-struct TInfoEnemy {
-
+struct TInfoEnemy
+{
   var float TimeUpdate;         // time of last update
   var bool bIsApproaching;      // enemy was approaching objective when visible
   var bool bIsVisible;          // enemy was visible at last update
   var float DistanceObjective;  // distance of enemy to defended objective
-  };
+};
 
 
-struct TInfoHunt {
-
+struct TInfoHunt
+{
   var Controller Controller;            // hunted player
   var NavigationPoint NavigationPoint;  // last known location
-  };
+};
 
 
 // ============================================================================
@@ -56,10 +56,10 @@ var private transient TCacheCountEnemies CacheCountEnemies;
 // Records the time this squad was created at.
 // ============================================================================
 
-event PostBeginPlay() {
-
+event PostBeginPlay()
+{
   TimeInitialized = Level.TimeSeconds;
-  }
+}
 
 
 // ============================================================================
@@ -70,13 +70,13 @@ event PostBeginPlay() {
 // to prevent them from being stuck in camping mode in jail.
 // ============================================================================
 
-function Initialize(UnrealTeamInfo UnrealTeamInfo, GameObjective GameObjective, Controller ControllerLeader) {
-
+function Initialize(UnrealTeamInfo UnrealTeamInfo, GameObjective GameObjective, Controller ControllerLeader)
+{
   Team = UnrealTeamInfo;
 
   SetLeader(ControllerLeader);
   SetObjective(GameObjective, True);  // force reassessment
-  }
+}
 
 
 // ============================================================================
@@ -86,13 +86,13 @@ function Initialize(UnrealTeamInfo UnrealTeamInfo, GameObjective GameObjective, 
 // associated trigger instead.
 // ============================================================================
 
-function bool FindPathToObjective(Bot Bot, Actor ActorObjective) {
-
+function bool FindPathToObjective(Bot Bot, Actor ActorObjective)
+{
   if (JBGameObjective(ActorObjective) != None)
     ActorObjective = JBGameObjective(ActorObjective).TriggerRelease;
-  
+
   return Super.FindPathToObjective(Bot, ActorObjective);
-  }
+}
 
 
 // ============================================================================
@@ -101,10 +101,10 @@ function bool FindPathToObjective(Bot Bot, Actor ActorObjective) {
 // Only acquires free players as new enemies.
 // ============================================================================
 
-function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
-
+function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
+{
   local JBTagPlayer TagPlayerEnemy;
-  
+
   TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
 
   if (TagPlayerEnemy == None ||
@@ -112,7 +112,7 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
     return Super.SetEnemy(Bot, PawnEnemy);
 
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -122,17 +122,17 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
 // squad.
 // ============================================================================
 
-function bool IsEnemyAcquired(Controller Controller) {
-
+function bool IsEnemyAcquired(Controller Controller)
+{
   local int iEnemy;
-  
+
   for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
     if (Enemies[iEnemy] != None &&
         Enemies[iEnemy].Controller == Controller)
       return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -142,21 +142,21 @@ function bool IsEnemyAcquired(Controller Controller) {
 // Result is cached within a tick.
 // ============================================================================
 
-function int CountEnemies() {
-
+function int CountEnemies()
+{
   local int iEnemy;
-  
+
   if (CacheCountEnemies.Time == Level.TimeSeconds)
     return CacheCountEnemies.Result;
-  
+
   CacheCountEnemies.Result = 0;
   for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
     if (Enemies[iEnemy] != None)
       CacheCountEnemies.Result += 1;
-  
+
   CacheCountEnemies.Time = Level.TimeSeconds;
   return CacheCountEnemies.Result;
-  }
+}
 
 
 // ============================================================================
@@ -165,21 +165,21 @@ function int CountEnemies() {
 // Clears the list of enemies acquired by this squad.
 // ============================================================================
 
-function ClearEnemies() {
-
+function ClearEnemies()
+{
   local int iEnemy;
   local Bot thisBot;
-  
+
   TimeInitialized = Level.TimeSeconds;
-  
+
   for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
     Enemies[iEnemy] = None;
 
   for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
     thisBot.Enemy = None;
-  
+
   ClearHunt();
-  }
+}
 
 
 // ============================================================================
@@ -189,13 +189,13 @@ function ClearEnemies() {
 // players and bots in this squad. Bugfix for Epic's code prior to patch two.
 // ============================================================================
 
-function int GetSize() {
-
+function int GetSize()
+{
   if (LeaderPRI.bBot)
     return Size;
 
   return Size + 1;  // plus human leader
-  }
+}
 
 
 // ============================================================================
@@ -205,8 +205,8 @@ function int GetSize() {
 // the bot is currently following a scripted sequence, stops it.
 // ============================================================================
 
-function AddBot(Bot Bot) {
-
+function AddBot(Bot Bot)
+{
   Super.AddBot(Bot);
 
   Bot.FreeScript();
@@ -216,7 +216,7 @@ function AddBot(Bot Bot) {
     AddEnemy(Bot.Enemy);
 
   Retask(Bot);
-  }
+}
 
 
 // ============================================================================
@@ -226,8 +226,8 @@ function AddBot(Bot Bot) {
 // has acquired the same enemy.
 // ============================================================================
 
-function RemoveBot(Bot Bot) {
-
+function RemoveBot(Bot Bot)
+{
   local Bot thisBot;
 
   Super.RemoveBot(Bot);
@@ -236,11 +236,11 @@ function RemoveBot(Bot Bot) {
     for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
       if (thisBot.Enemy == Bot.Enemy)
         break;
-    
+
     if (thisBot == None)
       RemoveEnemy(Bot.Enemy);
-    }
   }
+}
 
 
 // ============================================================================
@@ -251,34 +251,34 @@ function RemoveBot(Bot Bot) {
 // the one this squad hunted for, resets the hunting order.
 // ============================================================================
 
-function bool AddEnemy(Pawn PawnEnemy) {
-
+function bool AddEnemy(Pawn PawnEnemy)
+{
   local bool bEnemyAdded;
   local int iEnemy;
   local float DistanceObjective;
-  
+
   bEnemyAdded = Super.AddEnemy(PawnEnemy);
-  
+
   if (bEnemyAdded) {
     if (GetOrders() == 'Defend') {
       for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
         if (Enemies[iEnemy] == PawnEnemy)
           break;
-      
+
       DistanceObjective = Class'JBBotTeam'.Static.CalcDistance(PawnEnemy.Controller, SquadObjective);
-      
+
       ListInfoEnemy[iEnemy].TimeUpdate        = Level.TimeSeconds;
       ListInfoEnemy[iEnemy].bIsApproaching    = False;
       ListInfoEnemy[iEnemy].bIsVisible        = True;
       ListInfoEnemy[iEnemy].DistanceObjective = DistanceObjective;
-      }
+    }
 
     if (PawnEnemy.Controller == InfoHunt.Controller)
       ClearHunt();  // found him, no more hunting needed
-    }
+  }
 
   return bEnemyAdded;
-  }
+}
 
 
 // ============================================================================
@@ -289,27 +289,27 @@ function bool AddEnemy(Pawn PawnEnemy) {
 // defended objective than the inquiring bot itself.
 // ============================================================================
 
-function float ModifyThreat(float Threat, Pawn PawnThreat, bool bThreatVisible, Bot Bot) {
-
+function float ModifyThreat(float Threat, Pawn PawnThreat, bool bThreatVisible, Bot Bot)
+{
   local int iEnemy;
   local float DistanceObjectiveBot;
-  
+
   if (GetOrders() == 'Defend') {
     for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
       if (Enemies[iEnemy] == PawnThreat)
         break;
-  
+
     if (ListInfoEnemy[iEnemy].bIsApproaching &&
        !ListInfoEnemy[iEnemy].bIsVisible)
       Threat += 0.3;
-    
+
     DistanceObjectiveBot = Class'JBBotTeam'.Static.CalcDistance(Bot, SquadObjective);
     if (DistanceObjectiveBot > ListInfoEnemy[iEnemy].DistanceObjective)
       Threat += 0.1;
-    }
-  
-  return Super.ModifyThreat(Threat, PawnThreat, bThreatVisible, Bot);
   }
+
+  return Super.ModifyThreat(Threat, PawnThreat, bThreatVisible, Bot);
+}
 
 
 // ============================================================================
@@ -319,8 +319,8 @@ function float ModifyThreat(float Threat, Pawn PawnThreat, bool bThreatVisible, 
 // defense and the enemy is approaching the defended objective.
 // ============================================================================
 
-function bool MustKeepEnemy(Pawn PawnEnemy) {
-
+function bool MustKeepEnemy(Pawn PawnEnemy)
+{
   local bool bIsVisible;
   local int iEnemy;
   local float DistanceObjective;
@@ -338,21 +338,21 @@ function bool MustKeepEnemy(Pawn PawnEnemy) {
         if (thisBot.Enemy == PawnEnemy &&
             thisBot.CanSee(PawnEnemy))
           bIsVisible = True;
-  
+
       if (bIsVisible || ListInfoEnemy[iEnemy].bIsVisible)  // came into view, went out of view, or is in view
         ListInfoEnemy[iEnemy].bIsApproaching = (DistanceObjective <= ListInfoEnemy[iEnemy].DistanceObjective);
 
       ListInfoEnemy[iEnemy].TimeUpdate        = Level.TimeSeconds;
       ListInfoEnemy[iEnemy].bIsVisible        = bIsVisible;
       ListInfoEnemy[iEnemy].DistanceObjective = DistanceObjective;
-      }
+    }
 
     if (ListInfoEnemy[iEnemy].bIsApproaching)
       return True;
-    }
+  }
 
   return Super.MustKeepEnemy(PawnEnemy);
-  }
+}
 
 
 // ============================================================================
@@ -362,22 +362,22 @@ function bool MustKeepEnemy(Pawn PawnEnemy) {
 // aborts the hunt if the leader has already reached it.
 // ============================================================================
 
-function bool CheckSquadObjectives(Bot Bot) {
-
+function bool CheckSquadObjectives(Bot Bot)
+{
   if (Bot.Pawn == None)
     return False;
 
   if (Super.CheckSquadObjectives(Bot))
     return True;
-  
+
   if (InfoHunt.NavigationPoint != None && Bot == SquadLeader)
     if (Bot.Pawn.ReachedDestination(InfoHunt.NavigationPoint))
       ClearHunt();
     else
       return FindPathToObjective(Bot, InfoHunt.NavigationPoint);
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -388,15 +388,15 @@ function bool CheckSquadObjectives(Bot Bot) {
 // actual ObjectiveName.
 // ============================================================================
 
-simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo) {
-
+simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo)
+{
   GetOrders();
 
   if (CurrentOrders == 'defend') return DefendString @ SquadObjective.ObjectiveName;
   if (CurrentOrders == 'attack') return AttackString @ SquadObjective.ObjectiveName;
 
   return Super.GetOrderStringFor(TeamPlayerReplicationInfo);
-  }
+}
 
 
 // ============================================================================
@@ -407,16 +407,16 @@ simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayer
 // whether the hunt could be started.
 // ============================================================================
 
-function bool Hunt(Controller Controller, NavigationPoint NavigationPoint) {
-
+function bool Hunt(Controller Controller, NavigationPoint NavigationPoint)
+{
   if (Bot(SquadLeader) == None)
     return False;
 
   InfoHunt.Controller      = Controller;
   InfoHunt.NavigationPoint = NavigationPoint;
-  
+
   return CheckSquadObjectives(Bot(SquadLeader));
-  }
+}
 
 
 // ============================================================================
@@ -426,13 +426,13 @@ function bool Hunt(Controller Controller, NavigationPoint NavigationPoint) {
 // player.
 // ============================================================================
 
-function bool CanHunt() {
-
+function bool CanHunt()
+{
   return (TimeInitialized < Level.TimeSeconds - 0.5 &&
           Bot(SquadLeader) != None &&
           GetOrders() == 'Freelance' &&
           CountEnemies() == 0);
-  }
+}
 
 
 // ============================================================================
@@ -442,8 +442,8 @@ function bool CanHunt() {
 // given enemy than the given squad.
 // ============================================================================
 
-function bool CanHuntBetterThan(JBBotSquad Squad, Controller Controller) {
-
+function bool CanHuntBetterThan(JBBotSquad Squad, Controller Controller)
+{
   if (Squad == None)
     return True;
 
@@ -451,7 +451,7 @@ function bool CanHuntBetterThan(JBBotSquad Squad, Controller Controller) {
           Squad.InfoHunt.Controller != Controller &&
           (InfoHunt.Controller == None ||
            InfoHunt.Controller == Controller));
-  }
+}
 
 
 // ============================================================================
@@ -461,13 +461,13 @@ function bool CanHuntBetterThan(JBBotSquad Squad, Controller Controller) {
 // or any player at all if none is specified.
 // ============================================================================
 
-function bool IsHunting(optional Controller Controller) {
-
+function bool IsHunting(optional Controller Controller)
+{
   if (Controller == None)
     return (InfoHunt.Controller != None);
   else
     return (InfoHunt.Controller == Controller);
-  }
+}
 
 
 // ============================================================================
@@ -476,14 +476,14 @@ function bool IsHunting(optional Controller Controller) {
 // Stops an ongoing hunt.
 // ============================================================================
 
-function ClearHunt() {
-
+function ClearHunt()
+{
   InfoHunt.Controller      = None;
   InfoHunt.NavigationPoint = None;
-  
+
   if (Bot(SquadLeader) != None)
     CheckSquadObjectives(Bot(SquadLeader));
-  }
+}
 
 
 // ============================================================================
@@ -492,13 +492,13 @@ function ClearHunt() {
 // If the killed player is the one this squad hunted for, ends the hunt.
 // ============================================================================
 
-function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim) {
-
+function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim)
+{
   if (ControllerVictim == InfoHunt.Controller)
     ClearHunt();
 
   Super.NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
-  }
+}
 
 
 // ============================================================================
@@ -519,10 +519,10 @@ function StopEvasive()  { if (                               IsEvasive()) GotoSt
 // Checks and returns whether this squad is currently trying to be evasive.
 // ============================================================================
 
-function bool IsEvasive() {
-
+function bool IsEvasive()
+{
   return IsInState('Evasive');
-  }
+}
 
 
 // ============================================================================
@@ -540,14 +540,14 @@ state Evasive {
   // Puts this squad on freelance.
   // ================================================================
 
-  event BeginState() {
-  
+  event BeginState()
+  {
     bFreelance       = True;
     bFreelanceAttack = False;
     bFreelanceDefend = False;
-    
+
     SquadObjective = None;
-    }
+  }
 
 
   // ================================================================
@@ -558,8 +558,8 @@ state Evasive {
   // the enemy normally.
   // ================================================================
 
-  function bool CheckSquadObjectives(Bot Bot) {
-
+  function bool CheckSquadObjectives(Bot Bot)
+  {
     local int iNavigationPoint;
     local float RatingNavigationPointBest;
     local float RatingNavigationPointCurrent;
@@ -573,7 +573,7 @@ state Evasive {
        !Bot.EnemyVisible()) {
       Bot.LoseEnemy();
       return Super.CheckSquadObjectives(Bot);
-      }
+    }
 
     NavigationPointStart = NavigationPoint(Bot.MoveTarget);
     if (NavigationPointStart == None)
@@ -590,7 +590,7 @@ state Evasive {
 
     if (ListNavigationPointCover.Length == 0)
       return Super.CheckSquadObjectives(Bot);
-  
+
     for (iNavigationPoint = 0; iNavigationPoint < ListNavigationPointCover.Length; iNavigationPoint++) {
       NavigationPointCurrent = ListNavigationPointCover[iNavigationPoint];
 
@@ -601,14 +601,14 @@ state Evasive {
       if (NavigationPointBest == None || RatingNavigationPointCurrent > RatingNavigationPointBest) {
         NavigationPointBest = NavigationPointCurrent;
         RatingNavigationPointBest = RatingNavigationPointCurrent;
-        }
       }
-  
+    }
+
     Bot.SetRouteToGoal(NavigationPointBest);
     Bot.SetAttractionState();
-    
+
     return True;
-    }
+  }
 
 
   // ================================================================
@@ -628,7 +628,7 @@ state Evasive {
     local float DistanceStart;
     local float DistanceTarget;
     local NavigationPoint NavigationPointTarget;
-    
+
     DistanceStart = VSize(NavigationPointStart.Location - LocationOrigin);
     if (DistanceStart > 4096.0)
       return;
@@ -657,8 +657,8 @@ state Evasive {
         ListNavigationPointCover[ListNavigationPointCover.Length] = NavigationPointTarget;
       else
         FindCover(NavigationPointTarget, LocationOrigin, LocationEnemy, ListNavigationPointCover, ListNavigationPointChecked);
-      }
     }
+  }
 
 
   // ================================================================
@@ -668,8 +668,8 @@ state Evasive {
   // the given enemy location.
   // ================================================================
 
-  function bool IsInCover(NavigationPoint NavigationPoint, vector LocationEnemy) {
-
+  function bool IsInCover(NavigationPoint NavigationPoint, vector LocationEnemy)
+  {
     if (Door(NavigationPoint) != None &&
        !Door(NavigationPoint).bDoorOpen)
       return False;
@@ -681,7 +681,7 @@ state Evasive {
       return False;
 
     return !FastTrace(NavigationPoint.Location, LocationEnemy);
-    }
+  }
 
 
   // ================================================================
@@ -689,10 +689,10 @@ state Evasive {
   //
   // Tells bots never to keep an enemy in evasive mode.
   // ================================================================
-  
-  function bool MustKeepEnemy(Pawn PawnEnemy) {
 
+  function bool MustKeepEnemy(Pawn PawnEnemy)
+  {
     return False;
-    }
+  }
 
-  } // state Evasive
+} // state Evasive

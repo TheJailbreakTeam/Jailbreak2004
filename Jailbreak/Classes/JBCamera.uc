@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.19 2003/06/01 14:41:51 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.20 2003/06/01 14:44:24 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -22,40 +22,40 @@ class JBCamera extends Keypoint
 // Types
 // ============================================================================
 
-enum EOverlayStyle {
-
+enum EOverlayStyle
+{
   OverlayStyle_ScaleDistort,
   OverlayStyle_ScaleProportional,
   OverlayStyle_Tile,
-  };
+};
 
 
-struct TInfoCaption {
-
+struct TInfoCaption
+{
   var() bool bBlinking;       // caption pulses
   var() Color Color;          // caption color and transparency
   var() string Font;          // caption font name
   var() string Text;          // caption text
   var() float Position;       // relative vertical position
-  
+
   var Font FontObject;        // loaded Font object
-  };
+};
 
 
-struct TInfoOverlay {
-
+struct TInfoOverlay
+{
   var() Material Material;    // material overlaid on screen
   var() Color Color;          // material color and transparency
   var() EOverlayStyle Style;  // material arrangement style
-  };
+};
 
 
-struct TInfoViewer {
-
+struct TInfoViewer
+{
   var PlayerController Controller;  // player viewing this camera
   var bool bBehindViewPrev;         // previous behind-view setting
   var Actor ViewTargetPrev;         // previous view target
-  };
+};
 
 
 // ============================================================================
@@ -88,14 +88,14 @@ var private MotionBlur CameraEffectMotionBlur;  // MotionBlur object in use
 // caption font object.
 // ============================================================================
 
-simulated event PostBeginPlay() {
-
+simulated event PostBeginPlay()
+{
   if (Role == ROLE_Authority)
     Disable('Tick');
 
   if (Level.NetMode != NM_DedicatedServer)
     Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
-  }
+}
 
 
 // ============================================================================
@@ -104,10 +104,10 @@ simulated event PostBeginPlay() {
 // Activates this camera for the instigator.
 // ============================================================================
 
-event Trigger(Actor ActorOther, Pawn PawnInstigator) {
-
+event Trigger(Actor ActorOther, Pawn PawnInstigator)
+{
   ActivateFor(PawnInstigator.Controller);
-  }
+}
 
 
 // ============================================================================
@@ -116,10 +116,10 @@ event Trigger(Actor ActorOther, Pawn PawnInstigator) {
 // Deactivates this camera for the instigator.
 // ============================================================================
 
-event UnTrigger(Actor ActorOther, Pawn PawnInstigator) {
-
+event UnTrigger(Actor ActorOther, Pawn PawnInstigator)
+{
   DeactivateFor(PawnInstigator.Controller);
-  }
+}
 
 
 // ============================================================================
@@ -129,19 +129,19 @@ event UnTrigger(Actor ActorOther, Pawn PawnInstigator) {
 // camera.
 // ============================================================================
 
-function bool IsViewer(Controller Controller) {
-
+function bool IsViewer(Controller Controller)
+{
   local int iInfoViewer;
 
   if (PlayerController(Controller) == None)
     return False;
-  
+
   for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++)
     if (ListInfoViewer[iInfoViewer].Controller == Controller)
       return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -153,8 +153,8 @@ function bool IsViewer(Controller Controller) {
 // Tick event.
 // ============================================================================
 
-function ActivateFor(Controller Controller) {
-
+function ActivateFor(Controller Controller)
+{
   local int iInfoViewer;
   local Actor ViewTargetPrev;
   local PlayerController ControllerPlayer;
@@ -178,18 +178,18 @@ function ActivateFor(Controller Controller) {
     ListInfoViewer[iInfoViewer].Controller      = ControllerPlayer;
     ListInfoViewer[iInfoViewer].bBehindViewPrev = ControllerPlayer.bBehindView;
     ListInfoViewer[iInfoViewer].ViewTargetPrev  = ViewTargetPrev;
-    }
+  }
 
   if (ControllerPlayer.ViewTarget != Self) {
     ControllerPlayer.SetViewTarget      (Self);
     ControllerPlayer.ClientSetViewTarget(Self);
-    }
+  }
 
   if (ControllerPlayer == Level.GetLocalPlayerController() && !bIsActiveLocal)
     ActivateForLocal();
 
   Enable('Tick');
-  }
+}
 
 
 // ============================================================================
@@ -200,8 +200,8 @@ function ActivateFor(Controller Controller) {
 // left for this camera.
 // ============================================================================
 
-function DeactivateFor(Controller Controller) {
-
+function DeactivateFor(Controller Controller)
+{
   local int iInfoViewer;
   local Actor ViewTargetPrev;
   local PlayerController ControllerPlayer;
@@ -227,16 +227,16 @@ function DeactivateFor(Controller Controller) {
     ControllerPlayer.ClientSetViewTarget(ViewTargetPrev);
     ControllerPlayer.bBehindView =       ListInfoViewer[iInfoViewer].bBehindViewPrev;
     ControllerPlayer.ClientSetBehindView(ListInfoViewer[iInfoViewer].bBehindViewPrev);
-    }
-  
+  }
+
   ListInfoViewer.Remove(iInfoViewer, 1);
-  
+
   if (ListInfoViewer.Length == 0) {
     if (bIsActiveLocal)
       DeactivateForLocal();
     Disable('Tick');
-    }
   }
+}
 
 
 // ============================================================================
@@ -245,11 +245,11 @@ function DeactivateFor(Controller Controller) {
 // Deactivates this camera for all of its viewers.
 // ============================================================================
 
-function DeactivateForAll() {
-
+function DeactivateForAll()
+{
   while (ListInfoViewer.Length > 0)
     DeactivateFor(ListInfoViewer[0].Controller);
-  }
+}
 
 
 // ============================================================================
@@ -259,11 +259,11 @@ function DeactivateForAll() {
 // call this function directly from outside.
 // ============================================================================
 
-protected simulated function ActivateForLocal() {
-
+protected simulated function ActivateForLocal()
+{
   local JBCamera thisCamera;
   local PlayerController ControllerPlayer;
-  
+
   foreach DynamicActors(Class'JBCamera', thisCamera)
     if (thisCamera.bIsActiveLocal)
       thisCamera.DeactivateForLocal();
@@ -279,11 +279,11 @@ protected simulated function ActivateForLocal() {
 
     ControllerPlayer.CameraEffects.Length = 0;
     ControllerPlayer.AddCameraEffect(CameraEffectMotionBlur);
-    }
+  }
 
   bIsActiveLocal = True;
   UpdateLocal();
-  }
+}
 
 
 // ============================================================================
@@ -293,8 +293,8 @@ protected simulated function ActivateForLocal() {
 // Don't call this function directly from outside.
 // ============================================================================
 
-protected simulated function DeactivateForLocal() {
-
+protected simulated function DeactivateForLocal()
+{
   local PlayerController ControllerPlayer;
 
   ControllerPlayer = Level.GetLocalPlayerController();
@@ -306,22 +306,22 @@ protected simulated function DeactivateForLocal() {
     Level.ObjectPool.FreeObject(CameraEffectMotionBlur);
   CameraEffectMotionBlur = None;
   ControllerPlayer.CameraEffects.Length = 0;
-  
+
   bIsActiveLocal = False;
-  }
+}
 
 
 // ============================================================================
 // UpdateLocal
 //
 // Called client-side every tick as long as this camera is activated for the
-// local player. 
+// local player.
 // ============================================================================
 
-protected simulated function UpdateLocal() {
-
+protected simulated function UpdateLocal()
+{
   Level.GetLocalPlayerController().bBehindView = False;
-  }
+}
 
 
 // ============================================================================
@@ -331,11 +331,11 @@ protected simulated function UpdateLocal() {
 // viewing from this camera and calls DeactivateFor for those that don't.
 // ============================================================================
 
-simulated event Tick(float TimeDelta) {
-
+simulated event Tick(float TimeDelta)
+{
   local bool bIsActiveLocalNew;
   local int iInfoViewer;
-  
+
   if (Role == ROLE_Authority)
     for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--)
       if (ListInfoViewer[iInfoViewer].Controller == None)
@@ -356,7 +356,7 @@ simulated event Tick(float TimeDelta) {
 
   if (bIsActiveLocal)
     UpdateLocal();
-  }
+}
 
 
 // ============================================================================
@@ -365,15 +365,15 @@ simulated event Tick(float TimeDelta) {
 // Renders the material overlay on the given Canvas.
 // ============================================================================
 
-simulated function RenderOverlayMaterial(Canvas Canvas) {
-
+simulated function RenderOverlayMaterial(Canvas Canvas)
+{
   local float RatioStretchTotal;
   local vector RatioStretch;
   local vector SizeOverlay;
 
   if (Overlay.Material == None)
     return;
-  
+
   Canvas.DrawColor = Overlay.Color;
 
   switch (Overlay.Style) {
@@ -387,7 +387,7 @@ simulated function RenderOverlayMaterial(Canvas Canvas) {
     case OverlayStyle_ScaleProportional:
       SizeOverlay.X = Overlay.Material.MaterialUSize();
       SizeOverlay.Y = Overlay.Material.MaterialVSize();
-    
+
       RatioStretch.X = Canvas.ClipX / SizeOverlay.X;
       RatioStretch.Y = Canvas.ClipY / SizeOverlay.Y;
       RatioStretchTotal = FMax(RatioStretch.X, RatioStretch.Y);
@@ -402,8 +402,8 @@ simulated function RenderOverlayMaterial(Canvas Canvas) {
       Canvas.SetPos(0, 0);
       Canvas.DrawTile(Overlay.Material, Canvas.ClipX, Canvas.ClipY, 0, 0, Canvas.ClipX, Canvas.ClipY);
       break;
-    }
   }
+}
 
 
 // ============================================================================
@@ -412,28 +412,28 @@ simulated function RenderOverlayMaterial(Canvas Canvas) {
 // Renders the caption text on the given Canvas.
 // ============================================================================
 
-simulated function RenderOverlayCaption(Canvas Canvas) {
-
+simulated function RenderOverlayCaption(Canvas Canvas)
+{
   local vector SizeCaption;
   local vector LocationCaption;
 
   if (Caption.Text == "" ||
       Caption.FontObject == None)
-    return;  
+    return;
 
   Canvas.Font = Caption.FontObject;
   Canvas.TextSize(Caption.Text, SizeCaption.X, SizeCaption.Y);
 
   LocationCaption.X = (Canvas.ClipX - SizeCaption.X) / 2.0;
   LocationCaption.Y = Canvas.ClipY * Caption.Position - SizeCaption.Y / 2.0;
-  
+
   Canvas.DrawColor = Caption.Color;
   if (Caption.bBlinking)
     Canvas.DrawColor.A -= Canvas.DrawColor.A * (Level.TimeSeconds % 0.7) / 1.4;
-  
+
   Canvas.SetPos(LocationCaption.X, LocationCaption.Y);
   Canvas.DrawText(Caption.Text);
-  }
+}
 
 
 // ============================================================================
@@ -442,19 +442,19 @@ simulated function RenderOverlayCaption(Canvas Canvas) {
 // Renders the overlay material on the user's screen.
 // ============================================================================
 
-simulated function RenderOverlays(Canvas Canvas) {
-
+simulated function RenderOverlays(Canvas Canvas)
+{
   RenderOverlayMaterial(Canvas);
   RenderOverlayCaption(Canvas);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   Caption = (bBlinking=True,Color=(R=255,G=255,B=255,A=255),Font="UT2003Fonts.FontEurostile12",Position=0.8);
   Overlay = (Color=(R=255,G=255,B=255,A=255),Style=OverlayStyle_ScaleProportional);
 
@@ -464,4 +464,4 @@ defaultproperties {
   bStatic = False;
   bDirectional = True;
   Velocity = (X=1.0);  // hack fix for undesired automatic scoreboard display
-  }
+}

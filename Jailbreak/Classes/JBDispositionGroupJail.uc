@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupJail.uc,v 1.4 2003/01/19 22:17:05 mychaeel Exp $
+// $Id: JBDispositionGroupJail.uc,v 1.5 2003/06/15 21:31:33 mychaeel Exp $
 //
 // Manages the icons of jailed players on a team, arranging them in the circle
 // displayed next to the team status widget.
@@ -15,11 +15,11 @@ class JBDispositionGroupJail extends JBDispositionGroup;
 // Types
 // ============================================================================
 
-struct TFormation {
-
+struct TFormation
+{
   var vector Location[6];  // formation locations of icons
   var float Scale;         // scale of icons within formation
-  };
+};
 
 
 // ============================================================================
@@ -28,7 +28,7 @@ struct TFormation {
 
 const LocationCenterX = 0.034;
 const LocationCenterY = 0.047;
-  
+
 
 // ============================================================================
 // Variables
@@ -52,13 +52,13 @@ var private Font FontObjectCounter;  // loaded font object
 // Loads the counter font.
 // ============================================================================
 
-function Initialize(JBDispositionTeam DispositionTeamOwner) {
-
+function Initialize(JBDispositionTeam DispositionTeamOwner)
+{
   if (FontCounter != "")
     FontObjectCounter = Font(DynamicLoadObject(FontCounter, Class'Font'));
 
   Super.Initialize(DispositionTeamOwner);
-  }
+}
 
 
 // ============================================================================
@@ -67,13 +67,13 @@ function Initialize(JBDispositionTeam DispositionTeamOwner) {
 // Players belong to this group when they are not free.
 // ============================================================================
 
-function bool BelongsToGroup(JBTagPlayer TagPlayer) {
-
+function bool BelongsToGroup(JBTagPlayer TagPlayer)
+{
   if (TagPlayer.IsFree())
     return False;
 
   return Super.BelongsToGroup(TagPlayer);
-  }
+}
 
 
 // ============================================================================
@@ -82,13 +82,13 @@ function bool BelongsToGroup(JBTagPlayer TagPlayer) {
 // Arranges all icons in the circle next to the team status widget.
 // ============================================================================
 
-function Setup() {
-
+function Setup()
+{
   local int iDisposition;
   local int iFormation;
   local float ScaleTarget;
   local vector LocationTarget;
-  
+
   iFormation = Min(ArrayCount(Formation), ListDispositionPlayer.Length) - 1;
 
   for (iDisposition = 0; iDisposition < ListDispositionPlayer.Length; iDisposition++) {
@@ -103,10 +103,10 @@ function Setup() {
 
     if (DispositionTeam.Team.TeamIndex != 0)
       LocationTarget.X = -LocationTarget.X;
-    
+
     ListDispositionPlayer[iDisposition].SetTarget(LocationTarget, ScaleTarget);
-    }
   }
+}
 
 
 // ============================================================================
@@ -115,15 +115,15 @@ function Setup() {
 // Moves icons and fades the counter in our out.
 // ============================================================================
 
-function Move(float TimeDelta) {
-
+function Move(float TimeDelta)
+{
   if (ListDispositionPlayer.Length >= ArrayCount(Formation))
     FadeCounter = FMin(1.0, FadeCounter + TimeDelta * 2.0);
   else
     FadeCounter = FMax(0.0, FadeCounter - TimeDelta * 2.0);
 
   Super.Move(TimeDelta);
-  }
+}
 
 
 // ============================================================================
@@ -132,8 +132,8 @@ function Move(float TimeDelta) {
 // Draws the number of players next to the icon if required.
 // ============================================================================
 
-function Draw(Canvas Canvas) {
-
+function Draw(Canvas Canvas)
+{
   local float ScaleCanvas;
   local float ScaleWidget;
   local vector LocationScreenCounter;
@@ -157,7 +157,7 @@ function Draw(Canvas Canvas) {
     if (DispositionTeam.Team.TeamIndex != 0)
       LocationScreenCounter.X = -LocationScreenCounter.X;
     LocationScreenCounter.X += 0.5;
-    
+
     Canvas.DrawScreenText(
       TextCounter,
       ScaleCanvas * (LocationScreenCounter.X - 0.5) + 0.5,
@@ -166,18 +166,18 @@ function Draw(Canvas Canvas) {
 
     Canvas.FontScaleX = Canvas.Default.FontScaleX;
     Canvas.FontScaleY = Canvas.Default.FontScaleY;
-    }
+  }
 
   Super.Draw(Canvas);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   FontCounter = "UT2003Fonts.FontEurostile37";
   ScaleCounter = 0.7;
   LocationCounter = (X=0.007,Y=0.014);
@@ -195,4 +195,4 @@ defaultproperties {
   AddIconForChange     = AddIconToEnd;
   RemoveIconForChange  = RemoveIconFromEnd;
   RemoveIconForFadeout = RemoveIconFromEnd;
-  }
+}

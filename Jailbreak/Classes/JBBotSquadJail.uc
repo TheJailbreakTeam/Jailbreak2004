@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.12 2003/06/15 17:26:42 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.13 2004/01/01 20:09:51 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -31,13 +31,13 @@ var float TimeStartFighting;  // delay bot engaging in jail fight
 // If the bot is currently following a scripted sequence, stops it.
 // ============================================================================
 
-function AddBot(Bot Bot) {
-
+function AddBot(Bot Bot)
+{
   Super.AddBot(Bot);
 
   Bot.FreeScript();
   TeamPlayerReplicationInfo(Bot.PlayerReplicationInfo).bHolding = False;
-  }
+}
 
 
 // ============================================================================
@@ -47,11 +47,11 @@ function AddBot(Bot Bot) {
 // to teamkill after a release during a jail fight.
 // ============================================================================
 
-function RemoveBot(Bot Bot) {
-
+function RemoveBot(Bot Bot)
+{
   StopFighting(Bot, True);
   Super.RemoveBot(Bot);
-  }
+}
 
 
 // ============================================================================
@@ -60,13 +60,13 @@ function RemoveBot(Bot Bot) {
 // If the killed bot is on this squad, makes it stop jail-fighting.
 // ============================================================================
 
-function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim) {
-
+function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim)
+{
   if (IsOnSquad(ControllerVictim))
     StopFighting(Bot(ControllerVictim));
 
   Super.NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
-  }
+}
 
 
 // ============================================================================
@@ -77,15 +77,15 @@ function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, 
 // as an enemy.
 // ============================================================================
 
-function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
-
+function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
+{
   local Controller ControllerEnemy;
   local JBTagPlayer TagPlayerBot;
   local JBTagPlayer TagPlayerEnemy;
-  
+
   if (!Jailbreak(Level.Game).bEnableJailFights)
     return False;
-  
+
   ControllerEnemy = PawnEnemy.Controller;
   if (ControllerEnemy == None)
     return False;
@@ -112,16 +112,16 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
         return False;
       StartFighting(Bot);
       return Super.SetEnemy(Bot, PawnEnemy);
-      }
-    
-    TimeStartFighting = 0.0;
     }
+
+    TimeStartFighting = 0.0;
+  }
 
   if (Bot.Enemy == None && IsPlayerFighting(Bot))
     StopFighting(Bot, True);
 
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -130,12 +130,12 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
 // Counts the number of fighting players in the given jail.
 // ============================================================================
 
-static function int CountPlayersFighting(JBInfoJail Jail) {
-
+static function int CountPlayersFighting(JBInfoJail Jail)
+{
   local int nPlayersFighting;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Jail.Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetJail() == Jail &&
@@ -143,7 +143,7 @@ static function int CountPlayersFighting(JBInfoJail Jail) {
       nPlayersFighting += 1;
 
   return nPlayersFighting;
-  }
+}
 
 
 // ============================================================================
@@ -153,8 +153,8 @@ static function int CountPlayersFighting(JBInfoJail Jail) {
 // in the lowest inventory slot.
 // ============================================================================
 
-static function Weapon GetPrimaryWeaponFor(Pawn Pawn) {
-
+static function Weapon GetPrimaryWeaponFor(Pawn Pawn)
+{
   local byte InventoryGroupSelected;
   local Inventory thisInventory;
   local Weapon WeaponSelected;
@@ -165,10 +165,10 @@ static function Weapon GetPrimaryWeaponFor(Pawn Pawn) {
        (WeaponSelected == None || InventoryGroupSelected > thisInventory.InventoryGroup)) {
      WeaponSelected = Weapon(thisInventory);
      InventoryGroupSelected = thisInventory.InventoryGroup;
-     }
+   }
 
   return WeaponSelected;
-  }
+}
 
 
 // ============================================================================
@@ -177,8 +177,8 @@ static function Weapon GetPrimaryWeaponFor(Pawn Pawn) {
 // Counts the number of weapons in the given player's inventory.
 // ============================================================================
 
-static function int CountWeaponsFor(Pawn Pawn) {
-
+static function int CountWeaponsFor(Pawn Pawn)
+{
   local int nWeapons;
   local Inventory thisInventory;
 
@@ -187,7 +187,7 @@ static function int CountWeaponsFor(Pawn Pawn) {
       nWeapons += 1;
 
   return nWeapons;
-  }
+}
 
 
 // ============================================================================
@@ -196,14 +196,14 @@ static function int CountWeaponsFor(Pawn Pawn) {
 // Checks whether the given player is currently eligible for fighing.
 // ============================================================================
 
-static function bool CanPlayerFight(Controller Controller) {
-
+static function bool CanPlayerFight(Controller Controller)
+{
   if (Controller      == None ||
       Controller.Pawn == None)
     return False;
 
   return (Bot(Controller) != None || IsPlayerFighting(Controller));
-  }
+}
 
 
 // ============================================================================
@@ -214,8 +214,8 @@ static function bool CanPlayerFight(Controller Controller) {
 // out by switching to a different weapon.
 // ============================================================================
 
-static function bool IsPlayerFighting(Controller Controller) {
-
+static function bool IsPlayerFighting(Controller Controller)
+{
   local Weapon WeaponPrimary;
 
   if (Controller      == None ||
@@ -229,7 +229,7 @@ static function bool IsPlayerFighting(Controller Controller) {
 
   return (WeaponPrimary == Controller.Pawn.Weapon ||
           WeaponPrimary == Controller.Pawn.PendingWeapon);
-  }
+}
 
 
 // ============================================================================
@@ -238,8 +238,8 @@ static function bool IsPlayerFighting(Controller Controller) {
 // Makes the given bot start jail-fighting with its primary weapon.
 // ============================================================================
 
-static function StartFighting(Bot Bot) {
-
+static function StartFighting(Bot Bot)
+{
   local JBInventoryJail InventoryJail;
 
   if (Bot      == None ||
@@ -251,13 +251,13 @@ static function StartFighting(Bot Bot) {
   if (InventoryJail == None) {
     InventoryJail = Bot.Pawn.Spawn(Class'JBInventoryJail');
     InventoryJail.GiveTo(Bot.Pawn);
-    }
+  }
 
   InventoryJail.WeaponRecommended = GetPrimaryWeaponFor(Bot.Pawn);
 
   Bot.Aggressiveness = 10.0;
   Bot.SwitchToBestWeapon();
-  }
+}
 
 
 // ============================================================================
@@ -267,8 +267,8 @@ static function StartFighting(Bot Bot) {
 // bot's weapon back to its previous weapon.
 // ============================================================================
 
-static function StopFighting(Bot Bot, optional bool bSwitchWeapon) {
-
+static function StopFighting(Bot Bot, optional bool bSwitchWeapon)
+{
   local JBInventoryJail InventoryJail;
 
   if (JBBotSquadJail(Bot.Squad) != None)
@@ -286,7 +286,7 @@ static function StopFighting(Bot Bot, optional bool bSwitchWeapon) {
 
   if (bSwitchWeapon)
     Bot.Pawn.SwitchToLastWeapon();
-  }
+}
 
 
 // ============================================================================
@@ -295,17 +295,17 @@ static function StopFighting(Bot Bot, optional bool bSwitchWeapon) {
 // Makes bots wander around unless they're currently engaged in a jail fight.
 // ============================================================================
 
-function bool AssignSquadResponsibility(Bot Bot) {
-
+function bool AssignSquadResponsibility(Bot Bot)
+{
   if (Bot.Enemy != None) {
     if (IsPlayerFighting(Bot.Enemy.Controller))
       return Super.AssignSquadResponsibility(Bot);
     StopFighting(Bot);
-    }
+  }
 
   Bot.WanderOrCamp(False);
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -315,17 +315,17 @@ function bool AssignSquadResponsibility(Bot Bot) {
 // in this squad, simply that they're jailed.
 // ============================================================================
 
-simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo) {
-
+simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo)
+{
   return TextJailed;
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   TextJailed = "jailed";
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBPanorama.uc,v 1.1 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: JBPanorama.uc,v 1.2 2003/06/30 20:59:00 mychaeel Exp $
 //
 // Marks the viewpoint for the panoramic map overview in the scoreboard.
 // ============================================================================
@@ -15,11 +15,11 @@ class JBPanorama extends Keypoint
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role == ROLE_Authority)
     RepLocation, RepRotation, TexturePanorama, FieldOfView;
-  }
+}
 
 
 // ============================================================================
@@ -61,10 +61,10 @@ var private Texture TexturePanoramaInitial;  // initial value for clipboard
 // Adds the panorama texture to the global list of precached materials.
 // ============================================================================
 
-simulated function UpdatePrecacheMaterials() {
-
+simulated function UpdatePrecacheMaterials()
+{
   Level.AddPrecacheMaterial(TexturePanorama);
-  }
+}
 
 
 // ============================================================================
@@ -75,11 +75,11 @@ simulated function UpdatePrecacheMaterials() {
 // the client already when PostNetBeginPlay is called.
 // ============================================================================
 
-event PostBeginPlay() {
-
+event PostBeginPlay()
+{
   RepLocation = Location;
   RepRotation = Rotation;
-  }
+}
 
 
 // ============================================================================
@@ -90,8 +90,8 @@ event PostBeginPlay() {
 // actor with the local player's scoreboard.
 // ============================================================================
 
-simulated event PostNetBeginPlay() {
-
+simulated event PostNetBeginPlay()
+{
   local PlayerController PlayerControllerLocal;
 
   TexturePanoramaInitial = TexturePanorama;
@@ -105,7 +105,7 @@ simulated event PostNetBeginPlay() {
   SetRotation(RepRotation);
 
   Prepare();
-  }
+}
 
 
 // ============================================================================
@@ -115,11 +115,11 @@ simulated event PostNetBeginPlay() {
 // and calculation operations.
 // ============================================================================
 
-simulated function Prepare() {
-
+simulated function Prepare()
+{
   PrepareCoords();
   PrepareMaterial();
-  }
+}
 
 
 // ============================================================================
@@ -128,8 +128,8 @@ simulated function Prepare() {
 // Prepares the panorama's coordinate system for location translations.
 // ============================================================================
 
-simulated protected function PrepareCoords() {
-
+simulated protected function PrepareCoords()
+{
   CoordsPanorama.Origin = Location;
 
   GetAxes(Rotation,
@@ -138,7 +138,7 @@ simulated protected function PrepareCoords() {
     CoordsPanorama.ZAxis);
 
   ScaleDepth = 1.0 / Tan(FieldOfView * Pi / 360.0);
-  }
+}
 
 
 // ============================================================================
@@ -148,29 +148,29 @@ simulated protected function PrepareCoords() {
 // has been specified, dynamically creates a screenshot.
 // ============================================================================
 
-simulated protected function PrepareMaterial() {
-
+simulated protected function PrepareMaterial()
+{
   if (TexturePanorama != None) {
     MaterialPanorama = TexturePanorama;
 
     SizeMaterialPanorama.X = TexturePanorama.USize;
     SizeMaterialPanorama.Y = TexturePanorama.VSize;
-    }
+  }
 
   else {
     SizeMaterialPanorama.X = 512;
     SizeMaterialPanorama.Y = 512;
-    
+
     if (ScriptedTexture(MaterialPanorama) == None) {
       MaterialPanorama = new Class'ScriptedTexture';
 
       ScriptedTexture(MaterialPanorama).SetSize(SizeMaterialPanorama.X, SizeMaterialPanorama.Y);
       ScriptedTexture(MaterialPanorama).Client = Self;
-      }
+    }
 
     ScriptedTexture(MaterialPanorama).Revision++;
-    }
   }
+}
 
 
 // ============================================================================
@@ -179,8 +179,8 @@ simulated protected function PrepareMaterial() {
 // Renders a panorama view of the map on the scripted texture.
 // ============================================================================
 
-simulated event RenderTexture(ScriptedTexture ScriptedTexture) {
-
+simulated event RenderTexture(ScriptedTexture ScriptedTexture)
+{
   ScriptedTexture.DrawPortal(
     0,
     0,
@@ -190,7 +190,7 @@ simulated event RenderTexture(ScriptedTexture ScriptedTexture) {
     Location,
     Rotation,
     FieldOfView);
-  }
+}
 
 
 // ============================================================================
@@ -199,18 +199,18 @@ simulated event RenderTexture(ScriptedTexture ScriptedTexture) {
 // Draws the current panorama view at the bottom middle of the screen.
 // ============================================================================
 
-simulated function Draw(Canvas Canvas) {
-
+simulated function Draw(Canvas Canvas)
+{
   local float ScaleMaterialPanorama;
   local vector SizeMaterialPanoramaScaled;
   local vector LocationMaterialPanorama;
-  
+
   ScaleMaterialPanorama = 256 / SizeMaterialPanorama.X * Canvas.ClipX / 640;
   SizeMaterialPanoramaScaled = SizeMaterialPanorama * ScaleMaterialPanorama;
-  
+
   LocationMaterialPanorama.X = (Canvas.ClipX - SizeMaterialPanoramaScaled.X) / 2;
   LocationMaterialPanorama.Y =  Canvas.ClipY - SizeMaterialPanoramaScaled.Y + SizeMaterialPanoramaScaled.X / 8;
-  
+
   if (TimeRenderFirst == 0.0)
     TimeRenderFirst = Level.TimeSeconds;
 
@@ -229,7 +229,7 @@ simulated function Draw(Canvas Canvas) {
 
   if (ScriptedTexture(MaterialPanorama) != None && Level.NetMode == NM_Standalone)
     DrawStatus(Canvas, TextPreview);
-  }
+}
 
 
 // ============================================================================
@@ -238,13 +238,13 @@ simulated function Draw(Canvas Canvas) {
 // Draws a pulsing status text at the bottom of the screen.
 // ============================================================================
 
-static function DrawStatus(Canvas Canvas, string TextStatus) {
-
+static function DrawStatus(Canvas Canvas, string TextStatus)
+{
   Canvas.SetDrawColor(255, 255, 255, 128 + 127 * Sin(Canvas.Viewport.Actor.Level.TimeSeconds * 6.0));
 
   Canvas.Font = Canvas.TinyFont;
   Canvas.DrawScreenText(TextStatus, 0.500, 1.000, DP_LowerMiddle);
-  }
+}
 
 
 // ============================================================================
@@ -256,8 +256,8 @@ static function DrawStatus(Canvas Canvas, string TextStatus) {
 // is zero, the X and Y components are undefined.
 // ============================================================================
 
-simulated function vector CalcLocation(Canvas Canvas, vector LocationWorld) {
-
+simulated function vector CalcLocation(Canvas Canvas, vector LocationWorld)
+{
   local float ScaleLateral;
   local vector LocationScreenOrigin;
   local vector LocationScreen;
@@ -281,7 +281,7 @@ simulated function vector CalcLocation(Canvas Canvas, vector LocationWorld) {
   LocationScreen += LocationScreenOrigin;
 
   return LocationScreen;
-  }
+}
 
 
 // ============================================================================
@@ -291,8 +291,8 @@ simulated function vector CalcLocation(Canvas Canvas, vector LocationWorld) {
 // it into a level in UnrealEd.
 // ============================================================================
 
-function CopyToClipboard() {
-
+function CopyToClipboard()
+{
   local string TextClipboard;
   local string TextTexture;
 
@@ -314,15 +314,15 @@ function CopyToClipboard() {
                   "End Map"                                        $ Chr(13) $ Chr(10);
 
   Level.GetLocalPlayerController().CopyToClipboard(TextClipboard);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   FieldOfView = 90.0;
 
   TextSetup   = "enter SetupPanorama at the console"
@@ -331,4 +331,4 @@ defaultproperties {
   bDirectional    = True;
   bStatic         = False;
   bAlwaysRelevant = True;
-  }
+}

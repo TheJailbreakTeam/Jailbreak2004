@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.63 2003/12/28 20:31:59 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.64 2004/01/01 20:26:43 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -60,8 +60,8 @@ var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 // Initializes the game and interprets Jailbreak-specific parameters.
 // ============================================================================
 
-event InitGame(string Options, out string Error) {
-
+event InitGame(string Options, out string Error)
+{
   local int iCharSeparator;
   local string OptionAddon;
   local string OptionJailFights;
@@ -74,7 +74,7 @@ event InitGame(string Options, out string Error) {
   else
     OptionAddon = "JBAddonProtection.JBAddonProtection," $
                   "JBAddonLlama.JBAddonLlama";
-  
+
   while (OptionAddon != "") {
     iCharSeparator = InStr(OptionAddon, ",");
     if (iCharSeparator < 0)
@@ -82,19 +82,19 @@ event InitGame(string Options, out string Error) {
 
     NameAddon = Left(OptionAddon, iCharSeparator);
     OptionAddon = Mid(OptionAddon, iCharSeparator + 1);
-    
+
     Log("Add Jailbreak add-on" @ NameAddon);
     AddMutator(NameAddon, True);
-    }
-  
+  }
+
   OptionJailFights = ParseOption(Options, "JailFights");
   if (OptionJailFights != "")
     bEnableJailFights = bool(OptionJailFights);
-  
+
   bForceRespawn    = True;
   bTeamScoreRounds = False;
   MaxLives         = 0;
-  }
+}
 
 
 // ============================================================================
@@ -106,16 +106,16 @@ event InitGame(string Options, out string Error) {
 // several times.
 // ============================================================================
 
-function AddMutator(string NameMutator, optional bool bUserAdded) {
-
+function AddMutator(string NameMutator, optional bool bUserAdded)
+{
   local Mutator thisMutator;
-  
+
   for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
     if (string(thisMutator.Class) ~= NameMutator)
       return;
 
   Super.AddMutator(NameMutator, bUserAdded);
-  }
+}
 
 
 // ============================================================================
@@ -124,12 +124,12 @@ function AddMutator(string NameMutator, optional bool bUserAdded) {
 // Adds Jailbreak-specific settings to the PlayInfo object.
 // ============================================================================
 
-static function FillPlayInfo(PlayInfo PlayInfo) {
-
+static function FillPlayInfo(PlayInfo PlayInfo)
+{
   Super.FillPlayInfo(PlayInfo);
-  
+
   PlayInfo.AddSetting("Game", "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
-  }
+}
 
 
 // ============================================================================
@@ -139,15 +139,15 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
 // Jailbreak games.
 // ============================================================================
 
-static event bool AcceptPlayInfoProperty(string Property) {
-
+static event bool AcceptPlayInfoProperty(string Property)
+{
   if (Property ~= "MaxLives"         ||
       Property ~= "bForceRespawn"    ||
       Property ~= "bTeamScoreRounds")
     return False;
 
   return Super.AcceptPlayInfoProperty(Property);
-  }
+}
 
 
 // ============================================================================
@@ -157,47 +157,47 @@ static event bool AcceptPlayInfoProperty(string Property) {
 // the web admin interface.
 // ============================================================================
 
-function ReadAddonsForWebAdmin() {
-
+function ReadAddonsForWebAdmin()
+{
   local int iClassAddon;
   local int iInfoAddon;
   local string NameClassAddon;
   local Class<JBAddon> ClassAddon;
   local Mutator thisMutator;
   local UTServerAdmin UTServerAdmin;
-  
+
   foreach AllObjects(Class'UTServerAdmin', UTServerAdmin)
     break;
-  
+
   if (UTServerAdmin == None)
     return;  // web admin not running
-  
+
   while (True) {
     NameClassAddon = GetNextInt("JBAddon", iClassAddon++);
     if (NameClassAddon == "")
       break;
-    
+
     ClassAddon = Class<JBAddon>(DynamicLoadObject(NameClassAddon, Class'Class', True));
     if (ClassAddon == None ||
         ClassAddon.Default.FriendlyName == Class'JBAddon'.Default.FriendlyName)
       continue;
-    
+
     iInfoAddon = UTServerAdmin.AllMutators.Length;
     UTServerAdmin.AllMutators.Length = UTServerAdmin.AllMutators.Length + 1;
-    
+
     UTServerAdmin.AllMutators[iInfoAddon].ClassName    = NameClassAddon;
     UTServerAdmin.AllMutators[iInfoAddon].FriendlyName = TextWebAdminPrefixAddon @ ClassAddon.Default.FriendlyName;
     UTServerAdmin.AllMutators[iInfoAddon].Description  =                           ClassAddon.Default.Description;
     UTServerAdmin.AllMutators[iInfoAddon].GroupName    =                           ClassAddon.Default.GroupName;
-    
+
     for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
       if (thisMutator.bUserAdded &&
           thisMutator.Class == ClassAddon)
         UTServerAdmin.AIncMutators.Add(string(iInfoAddon), NameClassAddon);
-    
+
     UTServerAdmin.AExcMutators.Add(string(iInfoAddon), NameClassAddon);
-    }
   }
+}
 
 
 // ============================================================================
@@ -206,30 +206,30 @@ function ReadAddonsForWebAdmin() {
 // Sets up the Jailbreak Web Scoreboard if the web server is running.
 // ============================================================================
 
-function SetupWebScoreboard() {
-
+function SetupWebScoreboard()
+{
   local int iWebApplication;
   local WebServer WebServer;
   local WebApplication WebApplicationScoreboard;
   local Class<WebApplication> ClassWebApplicationScoreboard;
-  
+
   foreach DynamicActors(Class'WebServer', WebServer)
     break;
-  
+
   if (WebServer == None)
     return;  // web server not running
-  
+
   for (iWebApplication = 0; iWebApplication < ArrayCount(WebServer.ApplicationObjects); iWebApplication++)
     if (WebServer.ApplicationObjects[iWebApplication] == None)
       break;
-  
+
   if (iWebApplication >= ArrayCount(WebServer.ApplicationObjects))
     return;  // no empty application slot found
-  
+
   ClassWebApplicationScoreboard = Class<WebApplication>(DynamicLoadObject(WebScoreboardClass, Class'Class', True));
   if (ClassWebApplicationScoreboard == None)
     return;
-  
+
   WebApplicationScoreboard = new(None) ClassWebApplicationScoreboard;
   WebApplicationScoreboard.Level     = Level;
   WebApplicationScoreboard.WebServer = WebServer;
@@ -238,7 +238,7 @@ function SetupWebScoreboard() {
 
   WebServer.ApplicationObjects[iWebApplication] = WebApplicationScoreboard;
   WebServer.ApplicationPaths  [iWebApplication] = WebScoreboardPath;
-  }
+}
 
 
 // ============================================================================
@@ -249,12 +249,12 @@ function SetupWebScoreboard() {
 // all already registered add-ons.
 // ============================================================================
 
-event PostBeginPlay() {
-
+event PostBeginPlay()
+{
   local Mutator thisMutator;
 
   Super.PostBeginPlay();
-  
+
   Class'JBTagTeam'.Static.SpawnFor(Teams[0]);
   Class'JBTagTeam'.Static.SpawnFor(Teams[1]);
 
@@ -264,7 +264,7 @@ event PostBeginPlay() {
   for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
     if (JBAddon(thisMutator) != None)
       JBAddon(thisMutator).InitAddon();
-  }
+}
 
 
 // ============================================================================
@@ -273,14 +273,14 @@ event PostBeginPlay() {
 // Gives every player new JBTagPlayer and JBTagClient actors.
 // ============================================================================
 
-event PlayerController Login(string Portal, string Options, out string Error) {
-
+event PlayerController Login(string Portal, string Options, out string Error)
+{
   local PlayerController PlayerLogin;
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer TagPlayerLogin;
-  
+
   PlayerLogin = Super.Login(Portal, Options, Error);
-  
+
   if (PlayerLogin                            != None &&
       PlayerLogin.PlayerReplicationInfo      != None &&
       PlayerLogin.PlayerReplicationInfo.Team != None) {
@@ -298,20 +298,20 @@ event PlayerController Login(string Portal, string Options, out string Error) {
         for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer.nextTag != None; thisTagPlayer = thisTagPlayer.nextTag)
           if (thisTagPlayer.nextTag == TagPlayerLogin)
             thisTagPlayer.nextTag = TagPlayerLogin.nextTag;
-      
+
       TagPlayerLogin.SetOwner(PlayerLogin.PlayerReplicationInfo);
       TagPlayerLogin.Register();
-      }
+    }
 
     else {
       Class'JBTagPlayer'.Static.SpawnFor(PlayerLogin.PlayerReplicationInfo);
-      }
     }
-  
-  Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
-  
-  return PlayerLogin;
   }
+
+  Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
+
+  return PlayerLogin;
+}
 
 
 // ============================================================================
@@ -321,25 +321,25 @@ event PlayerController Login(string Portal, string Options, out string Error) {
 // for the custom team tactics submenu of the speech menu.
 // ============================================================================
 
-function Bot SpawnBot(optional string NameBot) {
-
+function Bot SpawnBot(optional string NameBot)
+{
   local int iOrderNameTactics;
   local Bot BotSpawned;
   local JBGameReplicationInfo InfoGame;
-  
+
   BotSpawned = Super.SpawnBot(NameBot);
   if (BotSpawned == None)
     return None;
 
   Class'JBTagPlayer'.Static.SpawnFor(BotSpawned.PlayerReplicationInfo);
-  
+
   InfoGame = JBGameReplicationInfo(GameReplicationInfo);
   for (iOrderNameTactics = 0; iOrderNameTactics < ArrayCount(InfoGame.OrderNameTactics); iOrderNameTactics++)
     BotSpawned.OrderNames[InfoGame.OrderNameTactics[iOrderNameTactics].iOrderName] =
       InfoGame.OrderNameTactics[iOrderNameTactics].OrderName;
-  
+
   return BotSpawned;
-  }
+}
 
 
 // ============================================================================
@@ -348,11 +348,11 @@ function Bot SpawnBot(optional string NameBot) {
 // Only gives actual bots a team, as opposed to other scripted controllers.
 // ============================================================================
 
-function InitPlacedBot(Controller Controller, RosterEntry RosterEntry) {
-
+function InitPlacedBot(Controller Controller, RosterEntry RosterEntry)
+{
   if (Bot(Controller) != None)
     Super.InitPlacedBot(Controller, RosterEntry);
-  }
+}
 
 
 // ============================================================================
@@ -362,8 +362,8 @@ function InitPlacedBot(Controller Controller, RosterEntry RosterEntry) {
 // if one exists. Reassesses the leaving player's team.
 // ============================================================================
 
-function Logout(Controller ControllerExiting) {
-
+function Logout(Controller ControllerExiting)
+{
   local JBTagPlayer TagPlayerExiting;
 
   if (ControllerExiting.PlayerReplicationInfo != None)
@@ -377,14 +377,14 @@ function Logout(Controller ControllerExiting) {
 
     TagPlayerExiting.nextTag = firstTagPlayerInactive;
     firstTagPlayerInactive = TagPlayerExiting;
-    }
+  }
 
   else {
     Class'JBTagPlayer'.Static.DestroyFor(ControllerExiting.PlayerReplicationInfo);
-    }
+  }
 
   Super.Logout(ControllerExiting);
-  }
+}
 
 
 // ============================================================================
@@ -394,10 +394,10 @@ function Logout(Controller ControllerExiting) {
 // change if it is successful.
 // ============================================================================
 
-function bool ChangeTeam(Controller ControllerPlayer, int iTeam, bool bNewTeam) {
-
+function bool ChangeTeam(Controller ControllerPlayer, int iTeam, bool bNewTeam)
+{
   local TeamInfo TeamBefore;
-  
+
   if (ControllerPlayer.PlayerReplicationInfo != None)
     TeamBefore = ControllerPlayer.PlayerReplicationInfo.Team;
 
@@ -405,10 +405,10 @@ function bool ChangeTeam(Controller ControllerPlayer, int iTeam, bool bNewTeam) 
     ReAssessTeam(TeamBefore);
     ReAssessTeam(ControllerPlayer.PlayerReplicationInfo.Team);
     return True;
-    }
+  }
 
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -417,13 +417,13 @@ function bool ChangeTeam(Controller ControllerPlayer, int iTeam, bool bNewTeam) 
 // If all members of the given team are bots, sets its team tactics to auto.
 // ============================================================================
 
-function ReAssessTeam(TeamInfo Team) {
-
+function ReAssessTeam(TeamInfo Team)
+{
   local Controller thisController;
-  
+
   if (Team == None)
     return;
-  
+
   for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
     if (PlayerController(thisController)     != None &&
         thisController.PlayerReplicationInfo != None &&
@@ -431,7 +431,7 @@ function ReAssessTeam(TeamInfo Team) {
       return;
 
   JBBotTeam(UnrealTeamInfo(Team).AI).SetTactics('Auto');
-  }
+}
 
 
 // ============================================================================
@@ -441,16 +441,16 @@ function ReAssessTeam(TeamInfo Team) {
 // none is found.
 // ============================================================================
 
-function JBGameRules GetFirstJBGameRules() {
-
+function JBGameRules GetFirstJBGameRules()
+{
   local GameRules thisGameRules;
 
   for (thisGameRules = GameRulesModifiers; thisGameRules != None; thisGameRules = thisGameRules.NextGameRules)
     if (JBGameRules(thisGameRules) != None)
       return JBGameRules(thisGameRules);
-  
+
   return None;
-  }
+}
 
 
 // ============================================================================
@@ -460,15 +460,15 @@ function JBGameRules GetFirstJBGameRules() {
 // it to the RatePlayerStart function.
 // ============================================================================
 
-function NavigationPoint FindPlayerStart(Controller Controller, optional byte iTeam, optional string Teleporter) {
-
+function NavigationPoint FindPlayerStart(Controller Controller, optional byte iTeam, optional string Teleporter)
+{
   if (Controller == None)
     TagPlayerRestart = None;
   else
     TagPlayerRestart = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-  
+
   return Super.FindPlayerStart(Controller, iTeam, Teleporter);
-  }
+}
 
 
 // ============================================================================
@@ -478,8 +478,8 @@ function NavigationPoint FindPlayerStart(Controller Controller, optional byte iT
 // given player's scheduled respawn area.
 // ============================================================================
 
-function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Controller Controller) {
-
+function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Controller Controller)
+{
   if (TagPlayerRestart == None)
     if (ContainsActorJail (NavigationPoint) ||
         ContainsActorArena(NavigationPoint))
@@ -491,7 +491,7 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
     return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
   else
     return -20000000;
-  }
+}
 
 
 // ============================================================================
@@ -501,8 +501,8 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
 // restarted in jail.
 // ============================================================================
 
-function AddGameSpecificInventory(Pawn PawnPlayer) {
-
+function AddGameSpecificInventory(Pawn PawnPlayer)
+{
   local bool bAllowTransPrev;
   local JBTagPlayer TagPlayer;
 
@@ -513,9 +513,9 @@ function AddGameSpecificInventory(Pawn PawnPlayer) {
     bAllowTrans = False;
 
   Super.AddGameSpecificInventory(PawnPlayer);
-  
+
   bAllowTrans = bAllowTransPrev;
-  }
+}
 
 
 // ============================================================================
@@ -552,7 +552,7 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
   if (TagPlayerVictim.GetArena() != TagPlayerInstigator.GetArena()) {
     MomentumHit = vect(0,0,0);
     return 0;
-    }
+  }
 
   if (TagPlayerVictim.IsInJail() &&
       TagPlayerVictim.GetJail() == TagPlayerInstigator.GetJail())
@@ -564,7 +564,7 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
       return 0;
 
   return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
-  }
+}
 
 
 // ============================================================================
@@ -579,19 +579,19 @@ function Killed(Controller ControllerKiller, Controller ControllerVictim, Pawn P
                 Class<DamageType> ClassDamageType) {
 
   local JBTagPlayer TagPlayerVictim;
-  
+
   if (ControllerVictim != None)
     TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
 
   if (TagPlayerVictim != None)
     TagPlayerVictim.TimeRestart = Level.TimeSeconds + 2.0;
-  
+
   if (TagPlayerVictim != None &&
       TagPlayerVictim.IsInJail())
     KilledInJail(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
   else
     Super.Killed(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
-  }
+}
 
 
 // ============================================================================
@@ -611,7 +611,7 @@ function KilledInJail(Controller ControllerKiller, Controller ControllerVictim, 
 
   DiscardInventory(PawnVictim);
   NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
-  }
+}
 
 
 // ============================================================================
@@ -620,8 +620,8 @@ function KilledInJail(Controller ControllerKiller, Controller ControllerVictim, 
 // Translates kills into ScorePlayer calls according to Jailbreak rules.
 // ============================================================================
 
-function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
-
+function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
+{
   local float DistanceRelease;
   local float DistanceReleaseMin;
   local JBTagObjective firstTagObjective;
@@ -642,30 +642,30 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
   if (ControllerKiller == None ||
       ControllerKiller == ControllerVictim)
     ScorePlayer(ControllerVictim, 'Suicide');
-  
+
   else if (SameTeam(ControllerKiller, ControllerVictim))
     ScorePlayer(ControllerKiller, 'Teamkill');
 
   else {
     DistanceReleaseMin = -1.0;
-  
+
     firstTagObjective = JBGameReplicationInfo(GameReplicationInfo).firstTagObjective;
     for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
       DistanceRelease = VSize(thisTagObjective.GetObjective().Location - ControllerVictim.Pawn.Location);
       if (DistanceReleaseMin < 0.0 ||
           DistanceReleaseMin > DistanceRelease)
         DistanceReleaseMin = DistanceRelease;
-      }
-  
+    }
+
     if (DistanceRelease < 1024.0)
       ScorePlayer(ControllerKiller, 'Defense');
     else
       ScorePlayer(ControllerKiller, 'Attack');
-    
+
     ControllerKiller.PlayerReplicationInfo.Kills  += 1;
     ControllerVictim.PlayerReplicationInfo.Deaths += 1;
-    }
   }
+}
 
 
 // ============================================================================
@@ -674,15 +674,15 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
 // Performs bot skill adjustments as implemented in ScoreKill in DeathMatch.
 // ============================================================================
 
-function ScoreKillAdjust(Controller ControllerKiller, Controller ControllerVictim) {
-
+function ScoreKillAdjust(Controller ControllerKiller, Controller ControllerVictim)
+{
   if (bAdjustSkill) {
     if (AIController(ControllerKiller) != None && PlayerController(ControllerVictim) != None)
       AdjustSkill(AIController(ControllerKiller), PlayerController(ControllerVictim), True);
     if (AIController(ControllerVictim) != None && PlayerController(ControllerKiller) != None)
       AdjustSkill(AIController(ControllerVictim), PlayerController(ControllerKiller), False);
-    }
   }
+}
 
 
 // ============================================================================
@@ -691,14 +691,14 @@ function ScoreKillAdjust(Controller ControllerKiller, Controller ControllerVicti
 // Performs auto-taunts as implemented in ScoreKill in DeathMatch.
 // ============================================================================
 
-function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim) {
-
+function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim)
+{
   local bool bNoHumanOnly;
 
   if (bAllowTaunts &&
       ControllerKiller != None &&
       ControllerKiller != ControllerVictim &&
-      ControllerKiller.AutoTaunt() && 
+      ControllerKiller.AutoTaunt() &&
       ControllerKiller.PlayerReplicationInfo.VoiceType != None) {
 
     bNoHumanOnly = PlayerController(ControllerKiller) == None;
@@ -707,8 +707,8 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
       ControllerVictim.PlayerReplicationInfo, 'AutoTaunt',
       ControllerKiller.PlayerReplicationInfo.VoiceType.Static.PickRandomTauntFor(ControllerKiller, False, bNoHumanOnly),
       10, 'Global');
-    }
   }
+}
 
 
 // ============================================================================
@@ -717,8 +717,8 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
 // Adds points to the given player's score according to the given game event.
 // ============================================================================
 
-function ScorePlayer(Controller Controller, name Event) {
-
+function ScorePlayer(Controller Controller, name Event)
+{
   local JBTagPlayer TagPlayer;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
@@ -732,13 +732,13 @@ function ScorePlayer(Controller Controller, name Event) {
     case 'Defense':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  TagPlayer.ScorePartialDefense += 1;  break;
     case 'Release':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialRelease += 1;  break;
     case 'Capture':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
-    }
+  }
 
   switch (Event) {
     case 'Defense':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
     case 'Release':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
-    }
   }
+}
 
 
 // ============================================================================
@@ -748,8 +748,8 @@ function ScorePlayer(Controller Controller, name Event) {
 // jailed players of that team.
 // ============================================================================
 
-function BroadcastDeathMessage(Controller ControllerKiller, Controller ControllerVictim, Class<DamageType> DamageType) {
-
+function BroadcastDeathMessage(Controller ControllerKiller, Controller ControllerVictim, Class<DamageType> DamageType)
+{
   local int SwitchMessage;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
@@ -788,12 +788,12 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
           PlayerReplicationInfoKiller,
           PlayerReplicationInfoVictim,
           DamageType);
-    }
-  
+  }
+
   else {
     Super.BroadcastDeathMessage(ControllerKiller, ControllerVictim, DamageType);
-    }
   }
+}
 
 
 // ============================================================================
@@ -803,14 +803,14 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
 // view target. Only allows players to spectate other actual players.
 // ============================================================================
 
-function bool CanSpectate(PlayerController PlayerViewer, bool bOnlySpectator, Actor ViewTarget) {
-
+function bool CanSpectate(PlayerController PlayerViewer, bool bOnlySpectator, Actor ViewTarget)
+{
   if (Pawn(ViewTarget) != None &&
       Class'JBTagPlayer'.Static.FindFor(Pawn(ViewTarget).PlayerReplicationInfo) == None)
     return False;
-  
+
   return Super.CanSpectate(PlayerViewer, bOnlySpectator, ViewTarget);
-  }
+}
 
 
 // ============================================================================
@@ -821,24 +821,24 @@ function bool CanSpectate(PlayerController PlayerViewer, bool bOnlySpectator, Ac
 // are only fired once per tick.
 // ============================================================================
 
-function bool CanFireEvent(name EventFire, optional bool bFire) {
-
+function bool CanFireEvent(name EventFire, optional bool bFire)
+{
   local int iEventFired;
-  
+
   if (TimeEventFired < Level.TimeSeconds)
     ListEventFired.Length = 0;
-  
+
   for (iEventFired = 0; iEventFired < ListEventFired.Length; iEventFired++)
     if (ListEventFired[iEventFired] == EventFire)
       return False;
-  
+
   if (bFire) {
     ListEventFired[ListEventFired.Length] = EventFire;
     TimeEventFired = Level.TimeSeconds;
-    }
-  
-  return True;
   }
+
+  return True;
+}
 
 
 // ============================================================================
@@ -848,8 +848,8 @@ function bool CanFireEvent(name EventFire, optional bool bFire) {
 // actor (and optionally which of them).
 // ============================================================================
 
-function bool ContainsActorJail(Actor Actor, optional out JBInfoJail Jail) {
-
+function bool ContainsActorJail(Actor Actor, optional out JBInfoJail Jail)
+{
   local JBInfoJail firstJail;
 
   firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
@@ -858,7 +858,7 @@ function bool ContainsActorJail(Actor Actor, optional out JBInfoJail Jail) {
       return True;
 
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -868,17 +868,17 @@ function bool ContainsActorJail(Actor Actor, optional out JBInfoJail Jail) {
 // actor (and optionally which of them).
 // ============================================================================
 
-function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena) {
-
+function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena)
+{
   local JBInfoArena firstArena;
-  
+
   firstArena = JBGameReplicationInfo(GameReplicationInfo).firstArena;
   for (Arena = firstArena; Arena != None; Arena = Arena.nextArena)
     if (Arena.ContainsActor(Actor))
       return True;
 
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -887,10 +887,10 @@ function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena) {
 // Forwarded to CountPlayersJailed in JBTagTeam.
 // ============================================================================
 
-function int CountPlayersJailed(TeamInfo Team) {
-
+function int CountPlayersJailed(TeamInfo Team)
+{
   return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersJailed();
-  }
+}
 
 
 // ============================================================================
@@ -899,10 +899,10 @@ function int CountPlayersJailed(TeamInfo Team) {
 // Forwarded to CountPlayersTotal in JBTagTeam.
 // ============================================================================
 
-function int CountPlayersTotal(TeamInfo Team) {
-
+function int CountPlayersTotal(TeamInfo Team)
+{
   return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersTotal();
-  }
+}
 
 
 // ============================================================================
@@ -911,13 +911,13 @@ function int CountPlayersTotal(TeamInfo Team) {
 // Returns whether the given team has been captured.
 // ============================================================================
 
-function bool IsCaptured(TeamInfo Team) {
-
+function bool IsCaptured(TeamInfo Team)
+{
   if (CountPlayersTotal(Team) == 0)
     return False;
 
   return CountPlayersJailed(Team) == CountPlayersTotal(Team);
-  }
+}
 
 
 // ============================================================================
@@ -927,19 +927,19 @@ function bool IsCaptured(TeamInfo Team) {
 // The higher the returned value, the better.
 // ============================================================================
 
-function int RateCameraExecution(JBCamera CameraExecution, TeamInfo TeamExecuted) {
-
+function int RateCameraExecution(JBCamera CameraExecution, TeamInfo TeamExecuted)
+{
   local int nPlayersJailed;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
-  
+
   firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
     if (thisJail.Event == CameraExecution.Tag)
       nPlayersJailed += thisJail.CountPlayers(TeamExecuted);
-  
+
   return nPlayersJailed;
-  }
+}
 
 
 // ============================================================================
@@ -948,8 +948,8 @@ function int RateCameraExecution(JBCamera CameraExecution, TeamInfo TeamExecuted
 // Finds the execution camera with the best view on the execution sequence.
 // ============================================================================
 
-function JBCamera FindCameraExecution(TeamInfo TeamExecuted) {
-
+function JBCamera FindCameraExecution(TeamInfo TeamExecuted)
+{
   local int RatingCamera;
   local int RatingCameraSelected;
   local int RatingCameraTotal;
@@ -960,23 +960,23 @@ function JBCamera FindCameraExecution(TeamInfo TeamExecuted) {
     RatingCamera = RateCameraExecution(thisCamera, TeamExecuted);
     RatingCameraTotal += RatingCamera;
     ListRatingCamera[ListRatingCamera.Length] = RatingCamera;
-    }
-  
+  }
+
   if (RatingCameraTotal == 0)
     return None;
-  
+
   RatingCameraSelected = Rand(RatingCameraTotal);
   RatingCameraTotal = 0;
-  
+
   foreach DynamicActors(Class'JBCamera', thisCamera) {
     RatingCameraTotal += ListRatingCamera[0];
     if (RatingCameraSelected < RatingCameraTotal)
       return thisCamera;
     ListRatingCamera.Remove(0, 1);
-    }
-  
-  return None;
   }
+
+  return None;
+}
 
 
 // ============================================================================
@@ -985,18 +985,18 @@ function JBCamera FindCameraExecution(TeamInfo TeamExecuted) {
 // Restarts all players in freedom.
 // ============================================================================
 
-function RestartAll() {
-
+function RestartAll()
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer nextTagPlayer;
-  
+
   firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
     nextTagPlayer = thisTagPlayer.nextTag;
     thisTagPlayer.RestartInFreedom();
-    }
   }
+}
 
 
 // ============================================================================
@@ -1005,19 +1005,19 @@ function RestartAll() {
 // Restarts all players of the given team in freedom.
 // ============================================================================
 
-function RestartTeam(TeamInfo Team) {
-
+function RestartTeam(TeamInfo Team)
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer nextTagPlayer;
-  
+
   firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
     nextTagPlayer = thisTagPlayer.nextTag;
     if (thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.RestartInFreedom();
-    }
   }
+}
 
 
 // ============================================================================
@@ -1026,18 +1026,18 @@ function RestartTeam(TeamInfo Team) {
 // Checks whether a release is active for the given team.
 // ============================================================================
 
-function bool IsReleaseActive(TeamInfo Team) {
-
+function bool IsReleaseActive(TeamInfo Team)
+{
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
-  
+
   firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
     if (thisJail.IsReleaseActive(Team))
       return True;
-  
+
   return False;
-  }
+}
 
 
 // ============================================================================
@@ -1049,12 +1049,12 @@ function bool IsReleaseActive(TeamInfo Team) {
 // Can only be called in the default state.
 // ============================================================================
 
-function bool ExecutionInit() {
-
+function bool ExecutionInit()
+{
   local bool bFoundCaptured;
   local int iTeam;
   local int iTeamCaptured;
-  
+
   if (IsInState('MatchInProgress')) {
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
       if (IsCaptured(Teams[iTeam])) {
@@ -1063,24 +1063,24 @@ function bool ExecutionInit() {
           BroadcastLocalizedMessage(MessageClass, 300);
           JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, None);
           return False;
-          }
-      
+        }
+
         bFoundCaptured = True;
         iTeamCaptured = iTeam;
-        }
-  
+      }
+
     if (!bFoundCaptured || IsReleaseActive(Teams[iTeamCaptured]))
       return False;
-  
+
     ExecutionCommit(Teams[iTeamCaptured]);
     return True;
-    }
-  
+  }
+
   else {
     Log("Warning: Cannot initiate execution while in state" @ GetStateName());
     return False;
-    }
   }
+}
 
 
 // ============================================================================
@@ -1090,8 +1090,8 @@ function bool ExecutionInit() {
 // and announces the capture.
 // ============================================================================
 
-function ExecutionCommit(TeamInfo TeamExecuted) {
-
+function ExecutionCommit(TeamInfo TeamExecuted)
+{
   local Controller thisController;
   local JBCamera thisCamera;
   local JBInfoJail firstJail;
@@ -1101,10 +1101,10 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
 
   if (IsInState('MatchInProgress')) {
     GotoState('Executing');
-    
+
     BroadcastLocalizedMessage(MessageClass, 100, , , TeamExecuted);
     JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, TeamExecuted);
-    
+
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
       if (thisController.PlayerReplicationInfo != None &&
           thisController.PlayerReplicationInfo.Team != TeamExecuted)
@@ -1116,7 +1116,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
     CameraExecution = FindCameraExecution(TeamExecuted);
     if (CameraExecution == None)
       Log("Warning: No execution camera found");
-  
+
     if (bEnableSpectatorDeathCam && CameraExecution != None)
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (thisController.PlayerReplicationInfo != None &&
@@ -1126,7 +1126,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
     TeamCapturer = OtherTeam(TeamExecuted);
     TeamCapturer.Score += 1;
     RestartTeam(TeamCapturer);
-    
+
     firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionInit();
@@ -1134,12 +1134,12 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
     firstJBGameRules = GetFirstJBGameRules();
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyExecutionCommit(TeamExecuted);
-    }
-  
+  }
+
   else {
     Log("Warning: Cannot commit execution while in state" @ GetStateName());
-    }
   }
+}
 
 
 // ============================================================================
@@ -1149,8 +1149,8 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
 // Can only be called in state Executing.
 // ============================================================================
 
-function ExecutionEnd() {
-
+function ExecutionEnd()
+{
   local Controller thisController;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
@@ -1160,8 +1160,8 @@ function ExecutionEnd() {
     firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionEnd();
-  
-    firstJBGameRules = GetFirstJBGameRules();  
+
+    firstJBGameRules = GetFirstJBGameRules();
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyExecutionEnd();
 
@@ -1179,12 +1179,12 @@ function ExecutionEnd() {
       EndGame(None, "TeamScoreLimit");
     else if (bOverTime)
       EndGame(None, "TimeLimit");
-    }
-  
+  }
+
   else {
     Log("Warning: Cannot end execution while in state" @ GetStateName());
-    }
   }
+}
 
 
 // ============================================================================
@@ -1203,34 +1203,34 @@ state MatchInProgress {
   // client-side match time counters.
   // ================================================================
 
-  event BeginState() {
-
+  event BeginState()
+  {
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBGameReplicationInfo InfoGame;
     local JBGameRules firstJBGameRules;
-  
+
     if (bWaitingToStartMatch)
       Super.BeginState();
-    
+
     JBBotTeam(Teams[0].AI).ResetOrders();
     JBBotTeam(Teams[1].AI).ResetOrders();
-  
-    firstJBGameRules = GetFirstJBGameRules();  
+
+    firstJBGameRules = GetFirstJBGameRules();
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyRound();
-    
+
     InfoGame = JBGameReplicationInfo(Level.Game.GameReplicationInfo);
-    
+
     firstTagPlayer = InfoGame.firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       thisTagPlayer.NotifyRound();
     for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       thisTagPlayer.NotifyRound();
-    
+
     InfoGame.StartMatchTimer();
     InfoGame.SynchronizeMatchTimer(ElapsedTime);
-    }
+  }
 
 
   // ================================================================
@@ -1241,29 +1241,29 @@ state MatchInProgress {
   // and has passed, resets it and calls the ExecutionInit function.
   // Synchronizes the client match timers.
   // ================================================================
-  
-  event Timer() {
-  
+
+  event Timer()
+  {
     local int iTeam;
-  
+
     Super.Timer();
-    
+
     if (TimeExecution == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
         if (IsCaptured(Teams[iTeam]))
           TimeExecution = Level.TimeSeconds + 1.0;
-      }
-    
+    }
+
     else if (Level.TimeSeconds > TimeExecution) {
       TimeExecution = 0.0;
       ExecutionInit();
-      }
+    }
 
     if (ElapsedTime % 30 == 0 || DilationTimePrev != Level.TimeDilation) {
       DilationTimePrev = Level.TimeDilation;
       JBGameReplicationInfo(GameReplicationInfo).SynchronizeMatchTimer(ElapsedTime);
-      }
     }
+  }
 
 
   // ================================================================
@@ -1272,22 +1272,22 @@ state MatchInProgress {
   // Notifies both bot teams of the respawn.
   // ================================================================
 
-  function RestartPlayer(Controller Controller) {
-  
+  function RestartPlayer(Controller Controller)
+  {
     local JBTagPlayer TagPlayer;
-  
+
     TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
     if (TagPlayer.TimeRestart > Level.TimeSeconds)
       return;
-  
+
     Super.RestartPlayer(Controller);
     TagPlayer.NotifyRestarted();
 
     if (Controller != None) {
       JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
       JBBotTeam(Teams[1].AI).NotifySpawn(Controller);
-      }
     }
+  }
 
 
   // ================================================================
@@ -1296,16 +1296,16 @@ state MatchInProgress {
   // Interrupts the client-side match time counters.
   // ================================================================
 
-  event EndState() {
-  
+  event EndState()
+  {
     local JBGameReplicationInfo InfoGame;
-  
+
     InfoGame = JBGameReplicationInfo(GameReplicationInfo);
     InfoGame.StopMatchTimer();
     InfoGame.SynchronizeMatchTimer(ElapsedTime);
-    }
+  }
 
-  } // state MatchInProgress
+} // state MatchInProgress
 
 
 // ============================================================================
@@ -1327,10 +1327,10 @@ state Executing {
   // Sets the bIsExecuting flag in JBGameReplicationInfo.
   // ================================================================
 
-  event BeginState() {
-  
+  event BeginState()
+  {
     JBGameReplicationInfo(GameReplicationInfo).bIsExecuting = True;
-    }
+  }
 
 
   // ================================================================
@@ -1341,24 +1341,24 @@ state Executing {
   // has passed, resets TimeRestart and calls ExecutionEnd.
   // ================================================================
 
-  event Timer() {
-  
+  event Timer()
+  {
     local int iTeam;
     local int nPlayersJailed;
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
-    
+
     if (TimeRestart == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
         nPlayersJailed += CountPlayersJailed(Teams[iTeam]);
       if (nPlayersJailed == 0)
         TimeRestart = Level.TimeSeconds + 1.0;
-      }
+    }
 
     else if (Level.TimeSeconds > TimeRestart) {
       TimeRestart = 0.0;
       ExecutionEnd();
-      }
+    }
 
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -1366,7 +1366,7 @@ state Executing {
           thisTagPlayer.IsInJail() &&
           thisTagPlayer.GetPawn() == None)
         thisTagPlayer.RestartInFreedom();
-    }
+  }
 
 
   // ================================================================
@@ -1376,16 +1376,16 @@ state Executing {
   // ViewTarget to the currently selected execution camera.
   // ================================================================
 
-  function RestartPlayer(Controller Controller) {
-  
+  function RestartPlayer(Controller Controller)
+  {
     local JBTagPlayer TagPlayer;
-  
+
     if (CameraExecution != None)
       CameraExecution.ActivateFor(Controller);
 
     TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
     TagPlayer.NotifyRestarted();
-    }
+  }
 
 
   // ================================================================
@@ -1394,20 +1394,20 @@ state Executing {
   // Resets the bIsExecuting flag in JBGameReplicationInfo.
   // ================================================================
 
-  event EndState() {
-  
+  event EndState()
+  {
     JBGameReplicationInfo(GameReplicationInfo).bIsExecuting = False;
-    }
+  }
 
-  } // state Executing
+} // state Executing
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   Build = "%%%%-%%-%% %%:%%";
 
   TextWebAdminEnableJailFights = "Allow Jail Fights";
@@ -1427,12 +1427,12 @@ defaultproperties {
   HUDType                  = "Jailbreak.JBInterfaceHud";
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
   MapListType              = "Jailbreak.JBMapList";
-  
+
   MessageClass             = Class'JBLocalMessage';
   GameReplicationInfoClass = Class'JBGameReplicationInfo';
   TeamAIType[0]            = Class'JBBotTeam';
   TeamAIType[1]            = Class'JBBotTeam';
-  
+
   bSpawnInTeamArea = True;
   bScoreTeamKills = False;
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroup
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroup.uc,v 1.3 2003/02/26 20:01:30 mychaeel Exp $
+// $Id: JBDispositionGroup.uc,v 1.4 2003/06/15 21:31:33 mychaeel Exp $
 //
 // Manages the disposition of a group of players on a team. Takes care of
 // their visual arrangement of the icons on the screen and of drawing them.
@@ -29,11 +29,11 @@ var protected array<JBDispositionPlayer> ListDispositionPlayer;
 // Initializes this object.
 // ============================================================================
 
-function Initialize(JBDispositionTeam DispositionTeamOwner) {
-
+function Initialize(JBDispositionTeam DispositionTeamOwner)
+{
   DispositionTeam = DispositionTeamOwner;
   GameReplicationInfo = DispositionTeamOwner.Team.Level.GetLocalPlayerController().GameReplicationInfo;
-  }
+}
 
 
 // ============================================================================
@@ -67,18 +67,18 @@ delegate JBDispositionPlayer RemoveIconForFadeout();
 // group. Call this function before calling IsIconRequired and IsIconSurplus.
 // ============================================================================
 
-function Recount() {
-
+function Recount()
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   nPlayersRequired = 0;
-  
+
   firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (BelongsToGroup(thisTagPlayer))
       nPlayersRequired++;
-  }
+}
 
 
 // ============================================================================
@@ -87,10 +87,10 @@ function Recount() {
 // Checks and returns whether the given player belongs to this group.
 // ============================================================================
 
-function bool BelongsToGroup(JBTagPlayer TagPlayer) {
-
+function bool BelongsToGroup(JBTagPlayer TagPlayer)
+{
   return (TagPlayer.GetTeam() == DispositionTeam.Team);
-  }
+}
 
 
 // ============================================================================
@@ -109,13 +109,13 @@ function Setup();
 // Moves all icons in this group.
 // ============================================================================
 
-function Move(float TimeDelta) {
-
+function Move(float TimeDelta)
+{
   local int iDisposition;
-  
+
   for (iDisposition = 0; iDisposition < ListDispositionPlayer.Length; iDisposition++)
     ListDispositionPlayer[iDisposition].Move(TimeDelta);
-  }
+}
 
 
 // ============================================================================
@@ -124,13 +124,13 @@ function Move(float TimeDelta) {
 // Draws all icons in this group on the given canvas.
 // ============================================================================
 
-function Draw(Canvas Canvas) {
-
+function Draw(Canvas Canvas)
+{
   local int iDisposition;
-  
+
   for (iDisposition = 0; iDisposition < ListDispositionPlayer.Length; iDisposition++)
     ListDispositionPlayer[iDisposition].Draw(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -152,11 +152,11 @@ function bool IsIconSurplus()  { return (ListDispositionPlayer.Length > nPlayers
 // Adds the given icon to the start of the list.
 // ============================================================================
 
-protected function AddIconToStart(JBDispositionPlayer DispositionPlayer) {
-
+protected function AddIconToStart(JBDispositionPlayer DispositionPlayer)
+{
   ListDispositionPlayer.Insert(0, 1);
   ListDispositionPlayer[0] = DispositionPlayer;
-  }
+}
 
 
 // ============================================================================
@@ -165,10 +165,10 @@ protected function AddIconToStart(JBDispositionPlayer DispositionPlayer) {
 // Adds the given icon to the end of the list.
 // ============================================================================
 
-protected function AddIconToEnd(JBDispositionPlayer DispositionPlayer) {
-
+protected function AddIconToEnd(JBDispositionPlayer DispositionPlayer)
+{
   ListDispositionPlayer[ListDispositionPlayer.Length] = DispositionPlayer;
-  }
+}
 
 
 // ============================================================================
@@ -177,18 +177,18 @@ protected function AddIconToEnd(JBDispositionPlayer DispositionPlayer) {
 // Removes one icon from the start of the list and returns a reference to it.
 // ============================================================================
 
-protected function JBDispositionPlayer RemoveIconFromStart() {
-
+protected function JBDispositionPlayer RemoveIconFromStart()
+{
   local JBDispositionPlayer DispositionPlayer;
-  
+
   if (ListDispositionPlayer.Length == 0)
     return None;
-  
+
   DispositionPlayer = ListDispositionPlayer[0];
   ListDispositionPlayer.Remove(0, 1);
-  
+
   return DispositionPlayer;
-  }
+}
 
 
 // ============================================================================
@@ -197,15 +197,15 @@ protected function JBDispositionPlayer RemoveIconFromStart() {
 // Removes one icon from the end of the list and returns a reference to it.
 // ============================================================================
 
-protected function JBDispositionPlayer RemoveIconFromEnd() {
-
+protected function JBDispositionPlayer RemoveIconFromEnd()
+{
   local JBDispositionPlayer DispositionPlayer;
-  
+
   if (ListDispositionPlayer.Length == 0)
     return None;
-  
+
   DispositionPlayer = ListDispositionPlayer[ListDispositionPlayer.Length - 1];
   ListDispositionPlayer.Remove(ListDispositionPlayer.Length - 1, 1);
-  
+
   return DispositionPlayer;
-  }
+}

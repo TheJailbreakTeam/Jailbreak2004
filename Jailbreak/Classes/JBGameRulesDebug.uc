@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRulesDebug.uc,v 1.1 2003/02/16 16:35:34 mychaeel Exp $
+// $Id: JBGameRulesDebug.uc,v 1.2 2003/03/22 10:21:11 mychaeel Exp $
 //
 // Implements game rules for Jailbreak for debugging purposes.
 // ============================================================================
@@ -25,8 +25,8 @@ var byte bIsReleaseEnabledByTeam[2];
 // Finds and returns a player given his or her name.
 // ============================================================================
 
-function Controller FindPlayer(string TextName) {
-
+function Controller FindPlayer(string TextName)
+{
   local Controller thisController;
   local int iTeam;
 
@@ -48,7 +48,7 @@ function Controller FindPlayer(string TextName) {
       return thisController;
 
   return None;
-  }
+}
 
 
 // ============================================================================
@@ -57,15 +57,15 @@ function Controller FindPlayer(string TextName) {
 // Enables or disables a team's release switches.
 // ============================================================================
 
-function ExecSetSwitch(int iTeam, bool bIsReleaseEnabled) {
-
+function ExecSetSwitch(int iTeam, bool bIsReleaseEnabled)
+{
   bIsReleaseEnabledByTeam[iTeam] = int(bIsReleaseEnabled);
-  
+
   if (bIsReleaseEnabled)
     Log("Jailbreak Debugging: Enabled release switch for team" @ iTeam);
   else
     Log("Jailbreak Debugging: Disabled release switch for team" @ iTeam);
-  }
+}
 
 
 // ============================================================================
@@ -75,54 +75,54 @@ function ExecSetSwitch(int iTeam, bool bIsReleaseEnabled) {
 // given, all players are affected.
 // ============================================================================
 
-function ExecCanBeJailed(string TextName, bool bCanBeJailed) {
-
+function ExecCanBeJailed(string TextName, bool bCanBeJailed)
+{
   local int iController;
   local Controller thisController;
   local Controller ControllerPlayer;
 
   if (TextName == "") {
     ListControllerDisabledJail.Length = 0;
-    
+
     if (bCanBeJailed) {
       Log("Jailbreak Debugging: All players can be jailed");
-      }
-    
+    }
+
     else {
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (thisController.bIsPlayer)
           ListControllerDisabledJail[ListControllerDisabledJail.Length] = thisController;
-    
+
       Log("Jailbreak Debugging: No players can be jailed");
-      }
     }
-  
+  }
+
   else {
     ControllerPlayer = FindPlayer(TextName);
-    
+
     if (ControllerPlayer == None) {
       Log("Jailbreak Debugging: Unable to find player named '" $ TextName $ "'");
-      }
+    }
 
     else {
       for (iController = 0; iController < ListControllerDisabledJail.Length; iController++)
         if (ListControllerDisabledJail[iController] == ControllerPlayer)
           break;
-      
+
       if (bCanBeJailed) {
         Log("Jailbreak Debugging: Player '" $ ControllerPlayer.PlayerReplicationInfo.PlayerName $ "' can be jailed");
         if (iController < ListControllerDisabledJail.Length)
           ListControllerDisabledJail.Remove(iController, 1);
-        }
-      
+      }
+
       else {
         Log("Jailbreak Debugging: Player '" $ ControllerPlayer.PlayerReplicationInfo.PlayerName $ "' cannot be jailed");
         if (iController >= ListControllerDisabledJail.Length)
           ListControllerDisabledJail[ListControllerDisabledJail.Length] = ControllerPlayer;
-        }
       }
     }
   }
+}
 
 
 // ============================================================================
@@ -132,16 +132,16 @@ function ExecCanBeJailed(string TextName, bool bCanBeJailed) {
 // send a player to jail.
 // ============================================================================
 
-function bool CanSendToJail(JBTagPlayer TagPlayer) {
-
+function bool CanSendToJail(JBTagPlayer TagPlayer)
+{
   local int iController;
-  
+
   for (iController = 0; iController < ListControllerDisabledJail.Length; iController++)
     if (ListControllerDisabledJail[iController] == TagPlayer.GetController())
       return False;
-  
+
   return Super.CanSendToJail(TagPlayer);
-  }
+}
 
 
 // ============================================================================
@@ -150,21 +150,21 @@ function bool CanSendToJail(JBTagPlayer TagPlayer) {
 // Only allows a release if it has not been explicitly disabled.
 // ============================================================================
 
-function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objective) {
-
+function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objective)
+{
   if (bIsReleaseEnabledByTeam[Team.TeamIndex] == 0)
     return False;
 
   return Super.CanRelease(Team, PawnInstigator, Objective);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   bIsReleaseEnabledByTeam[0] = 1;
   bIsReleaseEnabledByTeam[1] = 1;
-  }
+}

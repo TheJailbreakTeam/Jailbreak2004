@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.4 2003/06/15 18:03:49 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.5 2003/06/28 11:43:51 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -29,14 +29,14 @@ class JBInterfaceScores extends ScoreBoardTeamDeathMatch
 // scoreboard tables.
 // ========================================================
 
-struct TEntryPosition {
-
+struct TEntryPosition
+{
   var bool bIsSet;                      // position stored here is valid
 
   var int iTable;                       // table containing entry
   var int iRow;                         // row in table for entry
   var bool bOutside;                    // coming from or going to outside
-  };
+};
 
 
 // ========================================================
@@ -46,8 +46,8 @@ struct TEntryPosition {
 // position, realized for the current canvas metrics.
 // ========================================================
 
-struct TEntryLayout {
-
+struct TEntryLayout
+{
   var vector Location;                  // pivot location of whole entry
 
   var vector OffsetName;                // offset of player name
@@ -57,10 +57,10 @@ struct TEntryLayout {
   var vector OffsetScore;               // offset of main score display
   var vector OffsetStats;               // offset of stats bars
   var vector OffsetLine;                // offset of start of location line
-  
+
   var Color ColorMain;                  // color base for name, score and line
   var Color ColorInfo;                  // color for additional information
-  };
+};
 
 
 // ========================================================
@@ -70,8 +70,8 @@ struct TEntryLayout {
 // all information required to render it on the screen.
 // ========================================================
 
-struct TEntry {
-
+struct TEntry
+{
   var string Name;                      // player name
   var string InfoGame;                  // orders and player status
   var string InfoTime;                  // playing time
@@ -81,24 +81,24 @@ struct TEntry {
 
   var bool bIsFree;                     // player is not jailed or in arena
   var bool bIsLocal;                    // player is local on this machine
-  
+
   var int Score;                        // total score
   var int ScorePartialAttack;           // partial score for frags in attack
   var int ScorePartialDefense;          // partial score for frags in defense
   var int ScorePartialRelease;          // partial score for released teammates
   var int nDeaths;                      // number of deaths
-  
+
   var int Health;                       // last acknowledged player health
   var float FadeDamage;                 // fadeout ratio for damage indicator
   var float FadeMain;                   // fadeout ratio for name and position
-  
+
   var float AlphaPosition;              // alpha between previous and current
   var TEntryPosition PositionPrevious;  // previous position; movement origin
   var TEntryPosition PositionCurrent;   // current position; movement target
   var TEntryPosition PositionPending;   // next target position when finished
-  
+
   var JBTagPlayer TagPlayer;            // reference to player game info
-  };
+};
 
 
 // ========================================================
@@ -108,20 +108,20 @@ struct TEntry {
 // current canvas metrics.
 // ========================================================
 
-struct TTableLayout {
-
+struct TTableLayout
+{
   var vector Location;                  // pivot location of whole table
-  
+
   var int HeightEntry;                  // height of single entry
   var int SpacingEntry;                 // spacing between two entries
   var int WidthLineMain;                // width of main line
   var int WidthLineStats;               // width of secondard stats lines
   var int WidthBarStats;                // width of stats bars
-  
+
   var vector OffsetLineStats[3];        // offset of stats lines
   var vector OffsetMain;                // offset of main content area
   var vector OffsetScore;               // offset of score area
-  };
+};
 
 
 // ========================================================
@@ -131,19 +131,19 @@ struct TTableLayout {
 // docking area for an arbitrary number of entries.
 // ========================================================
 
-struct TTable {
-
+struct TTable
+{
   var int nEntries;                     // number of entries in this table
   var float nEntriesDisplayed;          // displayed number of entries
-  
+
   var int iTable;                       // index of this table; left or right
   var Color ColorMain;                  // main color base
   var Color ColorMainLocal;             // main color base for local player
   var Color ColorInfo;                  // additional color
   var Color ColorInfoLocal;             // additional color for local player
-  
+
   var TTableLayout Layout;              // current layout for this table
-  };
+};
 
 
 // ========================================================
@@ -153,8 +153,8 @@ struct TTable {
 // the location and size of a sprite in a larger texture.
 // ========================================================
 
-struct SpriteWidget {
-
+struct SpriteWidget
+{
   var Material WidgetTexture;           // texture to retrieve sprite from
   var IntBox TextureCoords;             // texture coordinates of sprite
   var float TextureScale;               // sprite scale relative to screen size
@@ -164,7 +164,7 @@ struct SpriteWidget {
   var int OffsetX;                      // scaled horizontal displacement
   var int OffsetY;                      // scaled vertical displacement
   var Color Color;                      // color to draw sprite with
-  };
+};
 
 
 // ========================================================
@@ -175,8 +175,8 @@ struct SpriteWidget {
 // SpriteWidget struct above crash the game.)
 // ========================================================
 
-struct RotatedWidget {
-
+struct RotatedWidget
+{
   var Material WidgetTexture;           // texture to retrieve sprite from
   var IntBox TextureCoords;             // texture coordinates of sprite
   var float TextureScale;               // sprite scale relative to screen size
@@ -192,7 +192,7 @@ struct RotatedWidget {
   var int OffsetCenterY;                // to unrotated upper-left corner
   var int OffsetRotatedX;               // horizontal and vertical displacement
   var int OffsetRotatedY;               // scaled and rotated with the sprite
-  };
+};
 
 
 // ============================================================================
@@ -282,11 +282,11 @@ var private array<TexRotator> ListTexRotatorPool;  // TexRotator object pool
 // Adds the sprite widget material to the global list of precached materials.
 // ============================================================================
 
-simulated function UpdatePrecacheMaterials() {
-
+simulated function UpdatePrecacheMaterials()
+{
   Level.AddPrecacheMaterial(Material'SpriteWidgetScores');
   Super.UpdatePrecacheMaterials();
-  }
+}
 
 
 // ============================================================================
@@ -295,13 +295,13 @@ simulated function UpdatePrecacheMaterials() {
 // Finds the JBPanorama actor if there is one.
 // ============================================================================
 
-simulated function Init() {
-
+simulated function Init()
+{
   foreach DynamicActors(Class'JBPanorama', Panorama)
     break;
 
   Super.Init();
-  }
+}
 
 
 // ============================================================================
@@ -310,8 +310,8 @@ simulated function Init() {
 // Draws Jailbreak's scoreboard and tactics display on the screen.
 // ============================================================================
 
-simulated event UpdateScoreBoard(Canvas Canvas) {
-
+simulated event UpdateScoreBoard(Canvas Canvas)
+{
   local int iEntry;
   local int iTable;
   local int HeightTables;
@@ -325,14 +325,14 @@ simulated event UpdateScoreBoard(Canvas Canvas) {
 
   FontObjectMain = GetSmallerFontFor(Canvas, 2);
   FontObjectInfo = GetSmallFontFor(Canvas.ClipX, 1);
-  
+
   UpdateListEntry();
 
   for (iTable = 0; iTable < ArrayCount(Table); iTable++) {
     MoveTable(Table[iTable], TimeDelta);
     Table[iTable].Layout = CalcTableLayout(Canvas, Table[iTable]);
     HeightTables = Max(HeightTables, Canvas.ClipY - Table[iTable].Layout.Location.Y);
-    }
+  }
 
   DrawGradient(Canvas, HeightTables);
   DrawHeader(Canvas);
@@ -352,10 +352,10 @@ simulated event UpdateScoreBoard(Canvas Canvas) {
   for (iEntry = 0; iEntry < ListEntry.Length; iEntry++) {
     MoveEntry(ListEntry[iEntry], TimeDelta);
     DrawEntry(Canvas, ListEntry[iEntry]);
-    }
+  }
 
   DrawCrosshair(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -364,8 +364,8 @@ simulated event UpdateScoreBoard(Canvas Canvas) {
 // Draws a scoreboard background gradient for the given table height.
 // ============================================================================
 
-simulated function DrawGradient(Canvas Canvas, int HeightTables) {
-
+simulated function DrawGradient(Canvas Canvas, int HeightTables)
+{
   HeightTables = Max(HeightTables, Canvas.ClipX / 5);
 
   Canvas.DrawColor = SpriteWidgetGradient.Color;
@@ -378,7 +378,7 @@ simulated function DrawGradient(Canvas Canvas, int HeightTables) {
     SpriteWidgetGradient.TextureCoords.Y1,
     SpriteWidgetGradient.TextureCoords.X2 - SpriteWidgetGradient.TextureCoords.X1,
     SpriteWidgetGradient.TextureCoords.Y2 - SpriteWidgetGradient.TextureCoords.Y1);
-  }
+}
 
 
 // ============================================================================
@@ -387,22 +387,22 @@ simulated function DrawGradient(Canvas Canvas, int HeightTables) {
 // Draws the scoreboard header showing general map information.
 // ============================================================================
 
-simulated function DrawHeader(Canvas Canvas) {
-
+simulated function DrawHeader(Canvas Canvas)
+{
   if (TextTitle == "")
     TextTitle = GetGameTitle(Level);
 
   Canvas.Font = GetSmallerFontFor(Canvas, 0);
   Canvas.SetDrawColor(255, 255, 255);
   Canvas.DrawScreenText(TextTitle, 0.050, 0.050, DP_UpperLeft);
-  
+
   if (TextSubtitle == "")
     TextSubtitle = GetGameDescription(Level) @ GetGameLimits(Level);
 
   Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
   Canvas.SetDrawColor(255, 255, 255);
   Canvas.DrawScreenText(TextSubtitle, 0.050, 0.110, DP_UpperLeft);
-  }
+}
 
 
 // ============================================================================
@@ -412,8 +412,8 @@ simulated function DrawHeader(Canvas Canvas) {
 // processes the map package name to create one.
 // ============================================================================
 
-static function string GetGameTitle(LevelInfo Level) {
-
+static function string GetGameTitle(LevelInfo Level)
+{
   local int iChar;
   local int iCharSeparator;
   local string TextTitle;
@@ -423,7 +423,7 @@ static function string GetGameTitle(LevelInfo Level) {
 
   TextTitle = string(Level);
   TextTitle = Left(TextTitle, InStr(TextTitle, "."));
-  
+
   iCharSeparator = InStr(TextTitle, "-");
   if (iCharSeparator >= 0)
     TextTitle = Mid(TextTitle, iCharSeparator + 1);
@@ -441,7 +441,7 @@ static function string GetGameTitle(LevelInfo Level) {
       TextTitle = Left(TextTitle, iChar) @ Mid(TextTitle, iChar);
 
   return TextTitle;
-  }
+}
 
 
 // ============================================================================
@@ -451,13 +451,13 @@ static function string GetGameTitle(LevelInfo Level) {
 // given LevelInfo object.
 // ============================================================================
 
-static function GameReplicationInfo GetGameReplicationInfo(LevelInfo Level) {
-
+static function GameReplicationInfo GetGameReplicationInfo(LevelInfo Level)
+{
   if (Level.Game != None)
     return Level.Game.GameReplicationInfo;
 
   return Level.GetLocalPlayerController().GameReplicationInfo;
-  }
+}
 
 
 // ============================================================================
@@ -466,8 +466,8 @@ static function GameReplicationInfo GetGameReplicationInfo(LevelInfo Level) {
 // Returns a description of the current type of game.
 // ============================================================================
 
-static function string GetGameDescription(LevelInfo Level) {
-
+static function string GetGameDescription(LevelInfo Level)
+{
   local int iSkill;
 
   if (Level.NetMode != NM_Standalone)
@@ -478,7 +478,7 @@ static function string GetGameDescription(LevelInfo Level) {
     iSkill = Level.Game.CurrentGameProfile.BaseDifficulty;
 
   return Default.TextSkill[iSkill] @ Default.TextGameBotmatch;
-  }
+}
 
 
 // ============================================================================
@@ -487,10 +487,10 @@ static function string GetGameDescription(LevelInfo Level) {
 // Returns a description of the game limits.
 // ============================================================================
 
-static function string GetGameLimits(LevelInfo Level) {
-
+static function string GetGameLimits(LevelInfo Level)
+{
   local string TextLimits;
-  
+
   if (GetGameReplicationInfo(Level).TimeLimit > 0)
     TextLimits = GetGameReplicationInfo(Level).TimeLimit @ Default.TextLimitTime;
 
@@ -498,10 +498,10 @@ static function string GetGameLimits(LevelInfo Level) {
     if (TextLimits != "")
       TextLimits = TextLimits $ ", ";
     TextLimits = TextLimits $ GetGameReplicationInfo(Level).GoalScore @ Default.TextLimitScore;
-    }
+  }
 
   return Default.TextLimitPrefix $ TextLimits $ Default.TextLimitSuffix;
-  }
+}
 
 
 // ============================================================================
@@ -511,8 +511,8 @@ static function string GetGameLimits(LevelInfo Level) {
 // captures, and the textual time display that goes with it.
 // ============================================================================
 
-simulated function DrawClock(Canvas Canvas) {
-
+simulated function DrawClock(Canvas Canvas)
+{
   local int iCapture;
   local int iTeam;
   local int nCaptures;
@@ -537,7 +537,7 @@ simulated function DrawClock(Canvas Canvas) {
   DrawSpriteWidget(Canvas, SpriteWidgetClockAnchorFrame);
 
   DrawSpriteWidget(Canvas, SpriteWidgetClockCircle);
-  
+
   if (GRI.TimeLimit > 0) {
     nSecondsMax = 60 * GRI.TimeLimit;
 
@@ -545,38 +545,38 @@ simulated function DrawClock(Canvas Canvas) {
     if (GRI.ElapsedTime > nSecondsMax)
       TextRelation = TextRelationOvertime;
     TextTime = FormatTime(Abs(nSecondsMax - GRI.ElapsedTime));
-    }
+  }
 
   else {
     nSecondsMax = 60 * 12;
     while (nSecondsMax <= GRI.ElapsedTime)
       nSecondsMax *= 2;
-    
+
     TextRelation = TextRelationElapsed;
     TextTime = FormatTime(GRI.ElapsedTime);
-    }
+  }
 
   nSecondsInterval  = nSecondsMax / 15 + 59;
   nSecondsInterval -= nSecondsInterval % 60;
-  
+
   nSecondsCurrent = GRI.ElapsedTime;
   nSecondsDisplayed = nSecondsCurrent % nSecondsMax;
 
   for (nSecondsTick = 0; nSecondsTick < nSecondsMax; nSecondsTick += nSecondsInterval) {
     RotatedWidgetClockTick.Angle = -65536 * nSecondsTick / nSecondsMax;
     DrawRotatedWidget(Canvas, RotatedWidgetClockTick);
-    }
-  
+  }
+
   if (nSecondsDisplayed < nSecondsMax / 2) {
     RotatedWidgetClockFillFirst.Angle = -65536 * nSecondsDisplayed / nSecondsMax;
     DrawRotatedWidget(Canvas, RotatedWidgetClockFillFirst);
-    }
-  
+  }
+
   else {
     RotatedWidgetClockFillSecond.Angle = -65536 * nSecondsDisplayed / nSecondsMax;
     DrawSpriteWidget(Canvas, SpriteWidgetClockFillFirst);
     DrawRotatedWidget(Canvas, RotatedWidgetClockFillSecond);
-    }
+  }
 
   Canvas.SetDrawColor(255, 255, 255);
   Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
@@ -588,16 +588,16 @@ simulated function DrawClock(Canvas Canvas) {
   for (iCapture = 0; iCapture < nCaptures; iCapture++) {
     TimeCapture  = JBGameReplicationInfo(GRI).GetCaptureTime(iCapture);
     TeamCaptured = JBGameReplicationInfo(GRI).GetCaptureTeam(iCapture);
-  
+
     RotatedWidgetClockMarker.Angle = -65536 * TimeCapture / nSecondsMax;
     RotatedWidgetClockMarker.Color = ColorMarkerTie;
-    
+
     if (TeamCaptured != None)
       RotatedWidgetClockMarker.Color = ColorMarkerCaptured[TeamCaptured.TeamIndex];
 
     DrawRotatedWidget(Canvas, RotatedWidgetClockMarker);
-    }
   }
+}
 
 
 // ============================================================================
@@ -608,12 +608,12 @@ simulated function DrawClock(Canvas Canvas) {
 // to one leading zero max.
 // ============================================================================
 
-simulated function string FormatTime(int nSeconds) {
-
+simulated function string FormatTime(int nSeconds)
+{
   local int nHours;
   local int nMinutes;
   local string TextFormatted;
-  
+
   nHours   = nSeconds / 3600;  nSeconds = nSeconds % 3600;
   nMinutes = nSeconds /   60;  nSeconds = nSeconds %   60;
 
@@ -622,16 +622,16 @@ simulated function string FormatTime(int nSeconds) {
 
     if (nMinutes < 10)
       TextFormatted = TextFormatted $ "0";
-    }
+  }
 
   TextFormatted = TextFormatted $ nMinutes $ ":";
-  
+
   if (nSeconds < 10)
     TextFormatted = TextFormatted $ "0";
   TextFormatted = TextFormatted $ nSeconds;
 
   return TextFormatted;
-  }
+}
 
 
 // ============================================================================
@@ -640,16 +640,16 @@ simulated function string FormatTime(int nSeconds) {
 // Draws the current crosshair if appropriate.
 // ============================================================================
 
-simulated function DrawCrosshair(Canvas Canvas) {
-
+simulated function DrawCrosshair(Canvas Canvas)
+{
   local Hud Hud;
-  
+
   Hud = PlayerController(Owner).myHUD;
-  
+
   if (Hud.PawnOwner        != None &&
       Hud.PawnOwner.Weapon != None)
     Hud.DrawCrosshair(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -659,14 +659,14 @@ simulated function DrawCrosshair(Canvas Canvas) {
 // later when the player entries are rendered on the screen.
 // ============================================================================
 
-simulated function DrawPanorama(Canvas Canvas) {
-
+simulated function DrawPanorama(Canvas Canvas)
+{
   if (Panorama != None)
     Panorama.Draw(Canvas);
   else
     if (Level.NetMode == NM_Standalone)
       Class'JBPanorama'.Static.DrawStatus(Canvas, Class'JBPanorama'.Default.TextSetup);
-  }
+}
 
 
 // ============================================================================
@@ -677,8 +677,8 @@ simulated function DrawPanorama(Canvas Canvas) {
 // updates their positions. Also updates iEntryOwner and ScorePartialMax.
 // ============================================================================
 
-simulated function UpdateListEntry() {
-
+simulated function UpdateListEntry()
+{
   local int iEntry;
   local int iEntryNew;
   local int iTable;
@@ -692,14 +692,14 @@ simulated function UpdateListEntry() {
   for (iEntry = 0; iEntry < ListEntry.Length; iEntry++) {
     if (ListEntry[iEntry].TagPlayer != None)
       ListEntry[iEntry].TagPlayer.bIsInScoreboard = True;
-    
+
     if (!UpdateEntry(ListEntry[iEntry]))
       SetEntryPosition(
         ListEntry[iEntry],
         ListEntry[iEntry].PositionCurrent.iTable,
         ListEntry[iEntry].PositionCurrent.iRow,
         True);
-    }
+  }
 
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetTeam() != None &&
@@ -710,7 +710,7 @@ simulated function UpdateListEntry() {
       ListEntry[iEntryNew].TagPlayer = thisTagPlayer;
 
       UpdateEntry(ListEntry[iEntryNew]);
-      }
+    }
 
   for (iEntry = ListEntry.Length - 1; iEntry >= 0; iEntry--)
     if (ListEntry[iEntry].AlphaPosition == 1.0   &&
@@ -730,7 +730,7 @@ simulated function UpdateListEntry() {
     if (ListEntry[iEntry].PositionCurrent.bIsSet &&
         ListEntry[iEntry].PositionCurrent.bOutside)
       continue;
-  
+
     if (ListEntry[iEntry].bIsLocal)
       iEntryOwner = iEntry;
 
@@ -746,8 +746,8 @@ simulated function UpdateListEntry() {
 
     if (!ListEntry[iEntry].PositionCurrent.bOutside)
       Table[ListEntry[iEntry].PositionCurrent.iTable].nEntries += 1;
-    }
   }
+}
 
 
 // ============================================================================
@@ -756,8 +756,8 @@ simulated function UpdateListEntry() {
 // Sets the given entry's next position.
 // ============================================================================
 
-simulated function SetEntryPosition(out TEntry Entry, int iTable, int iRow, optional bool bOutside) {
-
+simulated function SetEntryPosition(out TEntry Entry, int iTable, int iRow, optional bool bOutside)
+{
   if (Entry.PositionCurrent.bIsSet) {
     if (Entry.PositionCurrent.iTable   != iTable ||
         Entry.PositionCurrent.iRow     != iRow   ||
@@ -766,34 +766,34 @@ simulated function SetEntryPosition(out TEntry Entry, int iTable, int iRow, opti
       if (Entry.AlphaPosition == 1.0) {
         Entry.AlphaPosition = 0.0;
         Entry.PositionPrevious = Entry.PositionCurrent;
-  
+
         Entry.PositionCurrent.iTable   = iTable;
         Entry.PositionCurrent.iRow     = iRow;
         Entry.PositionCurrent.bOutside = bOutside;
 
         Entry.PositionPending.bIsSet   = False;
-        }
-  
+      }
+
       else {
         Entry.PositionPending.bIsSet   = True;
         Entry.PositionPending.iTable   = iTable;
         Entry.PositionPending.iRow     = iRow;
         Entry.PositionPending.bOutside = bOutside;
-        }    
       }
     }
+  }
 
   else {
     Entry.PositionCurrent.bIsSet   = True;
     Entry.PositionCurrent.iTable   = iTable;
     Entry.PositionCurrent.iRow     = iRow;
     Entry.PositionCurrent.bOutside = bOutside;
-    
+
     Entry.AlphaPosition = 0.0;
     Entry.PositionPrevious = Entry.PositionCurrent;
     Entry.PositionPrevious.bOutside = True;
-    }
   }
+}
 
 
 // ============================================================================
@@ -802,38 +802,38 @@ simulated function SetEntryPosition(out TEntry Entry, int iTable, int iRow, opti
 // Sorts all entries using a QuickSort implementation.
 // ============================================================================
 
-private simulated function SortListEntry(int iEntryStart, int iEntryEnd) {
-
+private simulated function SortListEntry(int iEntryStart, int iEntryEnd)
+{
   local int iEntryLeft;
   local int iEntryRight;
   local TEntry EntryMiddle;
   local TEntry EntrySwapped;
-  
+
   if (iEntryStart >= iEntryEnd)
     return;
-  
+
   iEntryLeft  = iEntryStart;
   iEntryRight = iEntryEnd;
 
   EntryMiddle = ListEntry[(iEntryStart + iEntryEnd) / 2];
-  
+
   while (iEntryLeft < iEntryRight) {
     while (iEntryLeft  < iEntryEnd   && IsEntryInOrder(ListEntry[iEntryLeft], EntryMiddle))  iEntryLeft  += 1;
     while (iEntryStart < iEntryRight && IsEntryInOrder(EntryMiddle, ListEntry[iEntryRight])) iEntryRight -= 1;
-    
+
     if (iEntryLeft < iEntryRight) {
       EntrySwapped           = ListEntry[iEntryLeft];
       ListEntry[iEntryLeft]  = ListEntry[iEntryRight];
       ListEntry[iEntryRight] = EntrySwapped;
-      }
+    }
 
     iEntryLeft  += 1;
     iEntryRight -= 1;
-    }
+  }
 
   SortListEntry(iEntryStart, iEntryRight);
   SortListEntry(iEntryLeft,  iEntryEnd);
-  }
+}
 
 
 // ============================================================================
@@ -842,14 +842,14 @@ private simulated function SortListEntry(int iEntryStart, int iEntryEnd) {
 // Checks and returns whether two given entries are in the correct order.
 // ============================================================================
 
-simulated function bool IsEntryInOrder(TEntry Entry1, TEntry Entry2) {
-
+simulated function bool IsEntryInOrder(TEntry Entry1, TEntry Entry2)
+{
   return (Entry1.Score >  Entry2.Score ||
          (Entry1.Score == Entry2.Score &&
            (Entry1.nDeaths <  Entry2.nDeaths ||
            (Entry1.nDeaths == Entry2.nDeaths &&
              Entry1.Name < Entry2.Name))));
-  }
+}
 
 
 // ============================================================================
@@ -858,14 +858,14 @@ simulated function bool IsEntryInOrder(TEntry Entry1, TEntry Entry2) {
 // Updates an entry. Returns whether the given player is still in the game.
 // ============================================================================
 
-simulated function bool UpdateEntry(out TEntry Entry) {
-
+simulated function bool UpdateEntry(out TEntry Entry)
+{
   local int HealthCurrent;
   local TeamPlayerReplicationInfo TeamPlayerReplicationInfo;
 
   if (Entry.TagPlayer == None)
     return False;
-  
+
   TeamPlayerReplicationInfo = TeamPlayerReplicationInfo(Entry.TagPlayer.GetPlayerReplicationInfo());
   if (TeamPlayerReplicationInfo == None)
     return False;
@@ -874,7 +874,7 @@ simulated function bool UpdateEntry(out TEntry Entry) {
   Entry.Score   = TeamPlayerReplicationInfo.Score;
   Entry.nDeaths = TeamPlayerReplicationInfo.Deaths;
   Entry.iTeam   = TeamPlayerReplicationInfo.Team.TeamIndex;
-  
+
   Entry.bIsFree  = Entry.TagPlayer.IsFree();
   Entry.bIsLocal = Entry.TagPlayer.GetController() == Owner;
   Entry.Location = Entry.TagPlayer.GetLocationPawn();
@@ -892,7 +892,7 @@ simulated function bool UpdateEntry(out TEntry Entry) {
   if (Level.NetMode != NM_Standalone && !TeamPlayerReplicationInfo.bBot) {
     Entry.InfoTime = FormatTime(GRI.ElapsedTime - TeamPlayerReplicationInfo.StartTime);
     Entry.InfoNet = TeamPlayerReplicationInfo.Ping @ "ms";
-    }
+  }
 
   HealthCurrent = Entry.TagPlayer.GetHealth(True);
   if (Entry.Health > HealthCurrent && Entry.FadeDamage == 0.0)
@@ -904,7 +904,7 @@ simulated function bool UpdateEntry(out TEntry Entry) {
   Entry.ScorePartialRelease = Entry.TagPlayer.ScorePartialRelease;
 
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -913,8 +913,8 @@ simulated function bool UpdateEntry(out TEntry Entry) {
 // Returns a string describing the given player's current orders.
 // ============================================================================
 
-simulated function string GetInfoOrders(JBTagPlayer TagPlayer) {
-
+simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
+{
   local int iTeamPlayer;
   local GameObjective GameObjective;
   local TeamPlayerReplicationInfo TeamPlayerReplicationInfo;
@@ -946,7 +946,7 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer) {
     return TextOrdersDefense @ GameObjective.ObjectiveName;
   else
     return TextOrdersAttack  @ GameObjective.ObjectiveName;
-  }
+}
 
 
 // ============================================================================
@@ -955,30 +955,30 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer) {
 // Returns a string describing the given player's partial scores.
 // ============================================================================
 
-static function string GetInfoScores(JBTagPlayer TagPlayer) {
-
+static function string GetInfoScores(JBTagPlayer TagPlayer)
+{
   local string TextInfoScores;
-  
+
   if (TagPlayer.ScorePartialAttack > 0)
     TextInfoScores = TagPlayer.ScorePartialAttack @ Default.TextScoresAttack;
-  
+
   if (TagPlayer.ScorePartialDefense > 0) {
     if (TextInfoScores != "")
       TextInfoScores = TextInfoScores $ ", ";
     TextInfoScores = TextInfoScores $ TagPlayer.ScorePartialDefense @ Default.TextScoresDefense;
-    }
-  
+  }
+
   if (TagPlayer.ScorePartialRelease > 0) {
     if (TextInfoScores != "")
       TextInfoScores = TextInfoScores $ ", ";
     TextInfoScores = TextInfoScores $ TagPlayer.ScorePartialRelease @ Default.TextScoresRelease;
-    }
+  }
 
   if (TextInfoScores != "")
     return TextInfoScores;
 
   return Default.TextScoresNone;
-  }
+}
 
 
 // ============================================================================
@@ -987,8 +987,8 @@ static function string GetInfoScores(JBTagPlayer TagPlayer) {
 // Realizes and returns a layout for the given table.
 // ============================================================================
 
-simulated function TTableLayout CalcTableLayout(Canvas Canvas, TTable Table) {
-
+simulated function TTableLayout CalcTableLayout(Canvas Canvas, TTable Table)
+{
   local int OffsetBarHorz;
   local int OffsetStatsHorz;
   local int SpacingStatsHorz;
@@ -1012,12 +1012,12 @@ simulated function TTableLayout CalcTableLayout(Canvas Canvas, TTable Table) {
   switch (Table.iTable) {
     case 0:  OffsetStatsHorz = -3 * SpacingStatsHorz - OffsetBarHorz - Layout.WidthLineStats;  break;
     case 1:  OffsetStatsHorz =      SpacingStatsHorz + OffsetBarHorz + Layout.WidthLineMain;   break;
-    }
+  }
 
   Layout.OffsetLineStats[0].X = OffsetStatsHorz;
   Layout.OffsetLineStats[1].X = OffsetStatsHorz +     SpacingStatsHorz;
   Layout.OffsetLineStats[2].X = OffsetStatsHorz + 2 * SpacingStatsHorz;
-  
+
   Layout.OffsetLineStats[0].Y = Canvas.ClipY * -0.010;
   Layout.OffsetLineStats[1].Y = Canvas.ClipY * -0.050;
   Layout.OffsetLineStats[2].Y = Canvas.ClipY * -0.026;
@@ -1025,22 +1025,22 @@ simulated function TTableLayout CalcTableLayout(Canvas Canvas, TTable Table) {
   switch (Table.iTable) {
     case 0:  Layout.Location.X = Canvas.ClipX * 0.100;                         break;
     case 1:  Layout.Location.X = Canvas.ClipX * 0.900 - Layout.WidthLineMain;  break;
-    }
+  }
 
   Layout.Location.Y = int(Canvas.ClipY * 0.960 - Table.nEntriesDisplayed * (Layout.HeightEntry + Layout.SpacingEntry));
 
   switch (Table.iTable) {
     case 0:  Layout.OffsetMain.X = Canvas.ClipX *  0.014 + Layout.WidthLineMain;  break;
     case 1:  Layout.OffsetMain.X = Canvas.ClipX * -0.010;                         break;
-    }
+  }
 
   switch (Table.iTable) {
     case 0:  Layout.OffsetScore.X = Layout.OffsetLineStats[0].X - SpacingStatsHorz - OffsetBarHorz;                          break;
     case 1:  Layout.OffsetScore.X = Layout.OffsetLineStats[2].X + SpacingStatsHorz + OffsetBarHorz + Layout.WidthLineStats;  break;
-    }
-  
-  return Layout;
   }
+
+  return Layout;
+}
 
 
 // ============================================================================
@@ -1050,8 +1050,8 @@ simulated function TTableLayout CalcTableLayout(Canvas Canvas, TTable Table) {
 // position.
 // ============================================================================
 
-simulated function TEntryLayout CalcEntryLayout(Canvas Canvas, TEntry Entry, TEntryPosition Position) {
-
+simulated function TEntryLayout CalcEntryLayout(Canvas Canvas, TEntry Entry, TEntryPosition Position)
+{
   local float AlphaHighlight;
   local vector SizeTextName;
   local vector SizeTextInfoGame;
@@ -1066,17 +1066,17 @@ simulated function TEntryLayout CalcEntryLayout(Canvas Canvas, TEntry Entry, TEn
   Canvas.Font = FontObjectInfo;  Canvas.TextSize(Entry.InfoTime, SizeTextInfoTime.X, SizeTextInfoTime.Y);
   Canvas.Font = FontObjectInfo;  Canvas.TextSize(Entry.InfoNet,  SizeTextInfoNet .X, SizeTextInfoNet .Y);
   Canvas.Font = FontObjectMain;  Canvas.TextSize(Entry.Score,    SizeTextScore   .X, SizeTextScore   .Y);
-  
+
   LayoutTable = Table[Position.iTable].Layout;
-  
+
   LayoutEntry.Location = LayoutTable.Location;
   LayoutEntry.Location.Y += Position.iRow * (LayoutTable.HeightEntry + LayoutTable.SpacingEntry);
-  
+
   if (Position.bOutside)
     switch (Position.iTable) {
       case 0:  LayoutEntry.Location.X -= Canvas.ClipX * 0.500;  break;
       case 1:  LayoutEntry.Location.X += Canvas.ClipX * 0.500;  break;
-      }
+    }
 
   LayoutEntry.OffsetName     = LayoutTable.OffsetMain;
   LayoutEntry.OffsetScore    = LayoutTable.OffsetScore;
@@ -1098,7 +1098,7 @@ simulated function TEntryLayout CalcEntryLayout(Canvas Canvas, TEntry Entry, TEn
       LayoutEntry.OffsetInfoTime.X -= SizeTextInfoTime.X + Canvas.ClipX * 0.002;
       LayoutEntry.OffsetLine    .X += SizeTextName    .X + Canvas.ClipX * 0.008;
       break;
-    
+
     case 1:
       if (Entry.InfoGame != "")
         LayoutEntry.OffsetInfoNet.X -= Canvas.ClipX * 0.016;
@@ -1108,29 +1108,29 @@ simulated function TEntryLayout CalcEntryLayout(Canvas Canvas, TEntry Entry, TEn
       LayoutEntry.OffsetInfoTime.X +=                      Canvas.ClipX * 0.002;
       LayoutEntry.OffsetLine    .X -= SizeTextName    .X + Canvas.ClipX * 0.008;
       break;
-    }
+  }
 
   if (Entry.bIsLocal) {
     AlphaHighlight = FClamp(Sin(Level.TimeSeconds * 10.0), 0.0, 1.0);
 
-    LayoutEntry.ColorMain =        AlphaHighlight  * Table[Position.iTable].ColorMainLocal + 
+    LayoutEntry.ColorMain =        AlphaHighlight  * Table[Position.iTable].ColorMainLocal +
                             (1.0 - AlphaHighlight) * Table[Position.iTable].ColorMain;
-    LayoutEntry.ColorInfo =        AlphaHighlight  * Table[Position.iTable].ColorInfoLocal + 
+    LayoutEntry.ColorInfo =        AlphaHighlight  * Table[Position.iTable].ColorInfoLocal +
                             (1.0 - AlphaHighlight) * Table[Position.iTable].ColorInfo;
-    }
+  }
 
   else {
     LayoutEntry.ColorMain = Table[Position.iTable].ColorMain;
     LayoutEntry.ColorInfo = Table[Position.iTable].ColorInfo;
-    }
+  }
 
   if (Position.bOutside) {
     LayoutEntry.ColorMain.A = 0;
     LayoutEntry.ColorInfo.A = 0;
-    }
+  }
 
   return LayoutEntry;
-  }
+}
 
 
 // ============================================================================
@@ -1139,10 +1139,10 @@ simulated function TEntryLayout CalcEntryLayout(Canvas Canvas, TEntry Entry, TEn
 // Interpolates between two entry layouts and returns the result.
 // ============================================================================
 
-simulated function TEntryLayout InterpolateEntryLayout(float Alpha, TEntryLayout Layout1, TEntryLayout Layout2) {
-
+simulated function TEntryLayout InterpolateEntryLayout(float Alpha, TEntryLayout Layout1, TEntryLayout Layout2)
+{
   local TEntryLayout LayoutInterpolated;
-  
+
   LayoutInterpolated.Location = Layout1.Location + Alpha * (Layout2.Location - Layout1.Location);
 
   if (Layout1.Location.X == Layout2.Location.X)
@@ -1155,15 +1155,15 @@ simulated function TEntryLayout InterpolateEntryLayout(float Alpha, TEntryLayout
   LayoutInterpolated.OffsetScore    = Layout1.OffsetScore    + Alpha * (Layout2.OffsetScore    - Layout1.OffsetScore);
   LayoutInterpolated.OffsetStats    = Layout1.OffsetStats    + Alpha * (Layout2.OffsetStats    - Layout1.OffsetStats);
   LayoutInterpolated.OffsetLine     = Layout1.OffsetLine     + Alpha * (Layout2.OffsetLine     - Layout1.OffsetLine);
-  
+
   LayoutInterpolated.ColorMain   =        (1.0 - Alpha) * Layout1.ColorMain   + Alpha * Layout2.ColorMain;
   LayoutInterpolated.ColorMain.A = FClamp((1.0 - Alpha) * Layout1.ColorMain.A + Alpha * Layout2.ColorMain.A, 0, 255);
-  
+
   LayoutInterpolated.ColorInfo   =        (1.0 - Alpha) * Layout1.ColorInfo   + Alpha * Layout2.ColorInfo;
   LayoutInterpolated.ColorInfo.A = FClamp((1.0 - Alpha) * Layout1.ColorInfo.A + Alpha * Layout2.ColorInfo.A, 0, 255);
-  
+
   return LayoutInterpolated;
-  }
+}
 
 
 // ============================================================================
@@ -1172,10 +1172,10 @@ simulated function TEntryLayout InterpolateEntryLayout(float Alpha, TEntryLayout
 // Gradually moves the table layout to accommodate the current requirements.
 // ============================================================================
 
-simulated function MoveTable(out TTable Table, float TimeDelta) {
-
+simulated function MoveTable(out TTable Table, float TimeDelta)
+{
   Table.nEntriesDisplayed += (Table.nEntries - Table.nEntriesDisplayed) * FMin(1.0, 4.0 * TimeDelta);
-  }
+}
 
 
 // ============================================================================
@@ -1186,8 +1186,8 @@ simulated function MoveTable(out TTable Table, float TimeDelta) {
 // movement.
 // ============================================================================
 
-simulated function MoveEntry(out TEntry Entry, float TimeDelta) {
-
+simulated function MoveEntry(out TEntry Entry, float TimeDelta)
+{
   if (!bIsMatchRunning)
     Entry.FadeMain = 1.0;
   else
@@ -1197,7 +1197,7 @@ simulated function MoveEntry(out TEntry Entry, float TimeDelta) {
 
   Entry.FadeDamage    = FMax(0.0, Entry.FadeDamage    - 2.0 * TimeDelta);
   Entry.AlphaPosition = FMin(1.0, Entry.AlphaPosition + 2.0 * TimeDelta);
-  
+
   if (Entry.AlphaPosition < 1.0 ||
      !Entry.PositionPending.bIsSet)
     return;
@@ -1209,7 +1209,7 @@ simulated function MoveEntry(out TEntry Entry, float TimeDelta) {
 
   if (TimeDelta < 1.0)  // otherwise skip movement
     Entry.AlphaPosition = 0.0;
-  }
+}
 
 
 // ============================================================================
@@ -1219,8 +1219,8 @@ simulated function MoveEntry(out TEntry Entry, float TimeDelta) {
 // draws the table.
 // ============================================================================
 
-simulated function DrawTable(Canvas Canvas, out TTable Table) {
-
+simulated function DrawTable(Canvas Canvas, out TTable Table)
+{
   local int iStats;
   local int WidthShadow;
   local int WidthTick;
@@ -1231,9 +1231,9 @@ simulated function DrawTable(Canvas Canvas, out TTable Table) {
   local vector ScaleIconStats;
   local vector SizeTextScore;
   local vector SizeIconStats;
-  
+
   Table.Layout = CalcTableLayout(Canvas, Table);
-  
+
   WidthTick = Canvas.ClipX * 0.010;
   if (Table.iTable == 1)
     WidthTick = Table.Layout.WidthLineMain - WidthTick;
@@ -1254,21 +1254,21 @@ simulated function DrawTable(Canvas Canvas, out TTable Table) {
   Canvas.DrawRect(Texture'WhiteTexture', Table.Layout.WidthLineMain, Canvas.ClipY - Canvas.CurY);
   Canvas.SetPos(LocationLineMain.X, LocationLineMain.Y);
   Canvas.DrawRect(Texture'WhiteTexture', WidthTick, Table.Layout.WidthLineMain);
-  
+
   for (iStats = 0; iStats < 3; iStats++) {
     LocationStats = Table.Layout.Location + Table.Layout.OffsetLineStats[iStats];
-  
+
     Canvas.DrawColor = ColorLineStats[iStats];
     Canvas.SetPos(LocationStats.X, LocationStats.Y);
     Canvas.DrawRect(Texture'WhiteTexture', Table.Layout.WidthLineStats, Canvas.ClipY - Canvas.CurY);
 
     ScaleIconStats.X = SpriteWidgetIconStats[iStats].TextureScale * Canvas.ClipX / 640;
     ScaleIconStats.Y = SpriteWidgetIconStats[iStats].TextureScale * Canvas.ClipY / 480;
-  
+
     SizeIconStats = ScaleIconStats;
     SizeIconStats.X *= Abs(SpriteWidgetIconStats[iStats].TextureCoords.X2 - SpriteWidgetIconStats[iStats].TextureCoords.X1);
     SizeIconStats.Y *= Abs(SpriteWidgetIconStats[iStats].TextureCoords.Y2 - SpriteWidgetIconStats[iStats].TextureCoords.Y1);
-  
+
     Canvas.DrawColor = SpriteWidgetIconStats[iStats].Color;
     Canvas.SetPos(
       LocationStats.X - SizeIconStats.X / 2 + SpriteWidgetIconStats[iStats].OffsetX * ScaleIconStats.X,
@@ -1281,25 +1281,25 @@ simulated function DrawTable(Canvas Canvas, out TTable Table) {
       SpriteWidgetIconStats[iStats].TextureCoords.Y1,
       SpriteWidgetIconStats[iStats].TextureCoords.X2 - SpriteWidgetIconStats[iStats].TextureCoords.X1,
       SpriteWidgetIconStats[iStats].TextureCoords.Y2 - SpriteWidgetIconStats[iStats].TextureCoords.Y1);
-    }
+  }
 
   TextScore = string(int(GRI.Teams[Table.iTable].Score));
-  
+
   Canvas.Font = GetSmallerFontFor(Canvas, 0);
   Canvas.TextSize(TextScore, SizeTextScore.X, SizeTextScore.Y);
-  
+
   LocationTextScore = Table.Layout.Location;
   LocationTextScore.Y -= Canvas.ClipY * 0.010 + SizeTextScore.Y;
-  
+
   switch (Table.iTable) {
     case 0:  LocationTextScore.X += Canvas.ClipX * 0.020;                    break;
     case 1:  LocationTextScore.X -= Canvas.ClipX * 0.020 + SizeTextScore.X;  break;
-    }
+  }
 
   Canvas.DrawColor = Table.ColorMain;
   Canvas.SetPos(LocationTextScore.X, LocationTextScore.Y);
   Canvas.DrawTextClipped(TextScore);
-  }
+}
 
 
 // ============================================================================
@@ -1309,8 +1309,8 @@ simulated function DrawTable(Canvas Canvas, out TTable Table) {
 // Interpolates between layouts if the positions are changing.
 // ============================================================================
 
-simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
-
+simulated function DrawEntry(Canvas Canvas, TEntry Entry)
+{
   local int iStats;
   local int HeightBarStats;
   local int HeightBarStatsMax;
@@ -1323,7 +1323,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
   local TEntry EntryOwner;
   local TEntryLayout LayoutEntry;
   local TTableLayout LayoutTable;
-  
+
   LayoutEntry = CalcEntryLayout(Canvas, Entry, Entry.PositionCurrent);
   if (Entry.AlphaPosition < 1.0)
     LayoutEntry = InterpolateEntryLayout(Entry.AlphaPosition,
@@ -1348,7 +1348,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
   Canvas.DrawColor   =        LayoutEntry.ColorInfo;
   Canvas.DrawColor.A = FClamp(LayoutEntry.ColorInfo.A * (0.5 + 0.5 * Entry.FadeMain), 0, 255);
   Canvas.Font = FontObjectInfo;
-  
+
   Canvas.SetPos(
     LayoutEntry.Location.X + LayoutEntry.OffsetInfoGame.X,
     LayoutEntry.Location.Y + LayoutEntry.OffsetInfoGame.Y);
@@ -1374,7 +1374,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
       case 0:  ScorePartial = Entry.ScorePartialAttack;   break;
       case 1:  ScorePartial = Entry.ScorePartialDefense;  break;
       case 2:  ScorePartial = Entry.ScorePartialRelease;  break;
-      }
+    }
 
     if (iStats > 0)
       LocationStats.X += LayoutTable.OffsetLineStats[iStats    ].X -
@@ -1383,13 +1383,13 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
     HeightBarStatsMin = Max(1, LayoutTable.WidthBarStats / 2);
     HeightBarStatsMax = LayoutTable.HeightEntry - HeightBarStatsMin;
     HeightBarStats = HeightBarStatsMin + HeightBarStatsMax * ScorePartial / Max(6, ScorePartialMax);
-    
+
     Canvas.DrawColor = ColorBarStats[iStats];
     Canvas.SetPos(
       LocationStats.X,
       LocationStats.Y + LayoutTable.HeightEntry - HeightBarStats);
     Canvas.DrawRect(Texture'WhiteTexture', LayoutTable.WidthBarStats, HeightBarStats);
-    }
+  }
 
   if (Panorama != None && bIsMatchRunning && Entry.FadeMain > 0) {
     Canvas.DrawColor   =        LayoutEntry.ColorMain;
@@ -1397,15 +1397,15 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
 
     if (iEntryOwner >= 0) {
       EntryOwner = ListEntry[iEntryOwner];
-      
+
       iTableOwner = EntryOwner.PositionCurrent .iTable *        EntryOwner.AlphaPosition +
                     EntryOwner.PositionPrevious.iTable * (1.0 - EntryOwner.AlphaPosition);
       iTableEntry = Entry     .PositionCurrent .iTable *        Entry     .AlphaPosition +
                     Entry     .PositionPrevious.iTable * (1.0 - Entry     .AlphaPosition);
-      
+
       Canvas.DrawColor.A = FClamp(Canvas.DrawColor.A * (1.0 - Abs(iTableEntry - iTableOwner)), 0, 255);
-      }
-  
+    }
+
     if (Canvas.DrawColor.A > 0) {
       LocationPlayer = Panorama.CalcLocation(Canvas, Entry.Location);
 
@@ -1416,16 +1416,16 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
       if (Entry.FadeDamage > 0.0) {
         SpriteWidgetDamage.PosX = LocationPlayer.X / Canvas.ClipX;
         SpriteWidgetDamage.PosY = LocationPlayer.Y / Canvas.ClipY;
-      
+
         SpriteWidgetDamage.Color   =        Canvas.DrawColor;
         SpriteWidgetDamage.Color.A = FClamp(Canvas.DrawColor.A * Entry.FadeDamage, 0, 255);
         SpriteWidgetDamage.TextureScale = Default.SpriteWidgetDamage.TextureScale * (3.0 - Entry.FadeDamage * 2.0);
-        
+
         DrawSpriteWidget(Canvas, SpriteWidgetDamage);
-        }
       }
     }
   }
+}
 
 
 // ============================================================================
@@ -1435,20 +1435,20 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry) {
 // is assumed to be its upper-left corner.
 // ============================================================================
 
-simulated function DrawSpriteWidget(Canvas Canvas, SpriteWidget SpriteWidget) {
-
+simulated function DrawSpriteWidget(Canvas Canvas, SpriteWidget SpriteWidget)
+{
   local vector LocationWidget;
   local vector ScaleWidget;
   local vector SizeWidget;
-  
+
   ScaleWidget.X = SpriteWidget.TextureScale * Canvas.ClipX / 640;
   ScaleWidget.Y = SpriteWidget.TextureScale * Canvas.ClipY / 480;
   SizeWidget.X  = Abs(SpriteWidget.TextureCoords.X2 - SpriteWidget.TextureCoords.X1) * ScaleWidget.X;
   SizeWidget.Y  = Abs(SpriteWidget.TextureCoords.Y2 - SpriteWidget.TextureCoords.Y1) * ScaleWidget.Y;
-  
+
   LocationWidget.X = SpriteWidget.PosX * Canvas.ClipX + SpriteWidget.OffsetX * ScaleWidget.X;
   LocationWidget.Y = SpriteWidget.PosY * Canvas.ClipY + SpriteWidget.OffsetY * ScaleWidget.Y;
-  
+
   Canvas.DrawColor = SpriteWidget.Color;
   Canvas.SetPos(
     LocationWidget.X,
@@ -1461,7 +1461,7 @@ simulated function DrawSpriteWidget(Canvas Canvas, SpriteWidget SpriteWidget) {
     SpriteWidget.TextureCoords.Y1,
     SpriteWidget.TextureCoords.X2 - SpriteWidget.TextureCoords.X1,
     SpriteWidget.TextureCoords.Y2 - SpriteWidget.TextureCoords.Y1);
-  }
+}
 
 
 // ============================================================================
@@ -1471,8 +1471,8 @@ simulated function DrawSpriteWidget(Canvas Canvas, SpriteWidget SpriteWidget) {
 // is assumed to be the point it is rotated about.
 // ============================================================================
 
-simulated function DrawRotatedWidget(Canvas Canvas, RotatedWidget RotatedWidget) {
-
+simulated function DrawRotatedWidget(Canvas Canvas, RotatedWidget RotatedWidget)
+{
   local float AngleInRadian;
   local float SinAngle;
   local float CosAngle;
@@ -1481,7 +1481,7 @@ simulated function DrawRotatedWidget(Canvas Canvas, RotatedWidget RotatedWidget)
   local vector ScaleWidget;
   local vector SizeWidget;
   local TexRotator TexRotator;
-  
+
   if (TimeTexRotatorPool != Level.TimeSeconds)
     iTexRotatorPool = 0;
   else
@@ -1515,7 +1515,7 @@ simulated function DrawRotatedWidget(Canvas Canvas, RotatedWidget RotatedWidget)
 
     OffsetWidgetRotated.X = RotatedWidget.OffsetRotatedX * CosAngle + RotatedWidget.OffsetRotatedY * SinAngle;
     OffsetWidgetRotated.Y = RotatedWidget.OffsetRotatedY * CosAngle - RotatedWidget.OffsetRotatedX * SinAngle;
-    }
+  }
 
   LocationWidget.X = RotatedWidget.PosX * Canvas.ClipX;
   LocationWidget.Y = RotatedWidget.PosY * Canvas.ClipY;
@@ -1534,7 +1534,7 @@ simulated function DrawRotatedWidget(Canvas Canvas, RotatedWidget RotatedWidget)
     RotatedWidget.TextureCoords.Y1,
     RotatedWidget.TextureCoords.X2 - RotatedWidget.TextureCoords.X1,
     RotatedWidget.TextureCoords.Y2 - RotatedWidget.TextureCoords.Y1);
-  }
+}
 
 
 // ============================================================================
@@ -1546,8 +1546,8 @@ simulated function DrawRotatedWidget(Canvas Canvas, RotatedWidget RotatedWidget)
 // efficient use of integer numbers, we're just using float vector maths here.
 // ============================================================================
 
-simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector LocationEnd) {
-
+simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector LocationEnd)
+{
   local byte AlphaColorDraw;
   local int iSegment;
   local float AlphaSpline;
@@ -1567,13 +1567,13 @@ simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector Locati
   local vector SizePlayer;
   local array<float> ListLengthSegment;
   local array<vector> ListLocationSegment;
-  
+
   LocationStart.Z = 0;
   LocationEnd  .Z = 0;
-  
+
   LocationMiddle.X = LocationStart.X + (LocationEnd.X - LocationStart.X) * 0.75;
   LocationMiddle.Y = LocationStart.Y;
-  
+
   for (AlphaSpline = 0.0; AlphaSpline <= 1.0; AlphaSpline += 0.0625) {
     iSegment = ListLocationSegment.Length;
 
@@ -1587,8 +1587,8 @@ simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector Locati
 
       ListLengthSegment[iSegment - 1] = LengthSegment;
       LengthTotal += LengthSegment;
-      }
     }
+  }
 
   AlphaColorDraw = Canvas.DrawColor.A;
   Canvas.DrawColor.A = AlphaColorDraw / 2;
@@ -1605,7 +1605,7 @@ simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector Locati
 
   DistanceDots    = SizeDot   .X * 1.5;  // distance between dots
   DistanceDotLast = SizePlayer.X * 0.5;  // distance between last dot and line end
-  
+
   for (iSegment = 0; iSegment < ListLengthSegment.Length; iSegment++) {
     if (LengthTotal < DistanceDotLast)
       break;
@@ -1613,17 +1613,17 @@ simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector Locati
     LengthSegment = ListLengthSegment[iSegment];
     if (LengthSegment == 0.0)
       continue;
-    
+
     LocationSegment =  ListLocationSegment[iSegment];
     VectorSegment   = (ListLocationSegment[iSegment + 1] - LocationSegment) / LengthSegment;
 
     DistanceSegment = 0.0;
-    
+
     while (LengthSegment >= DistanceDotNext &&
            LengthTotal   >= DistanceDotLast) {
 
       DistanceSegment += DistanceDotNext;
-      
+
       LocationDot = LocationSegment + VectorSegment * DistanceSegment;
       LocationDot -= SizeDot / 2;
 
@@ -1638,16 +1638,16 @@ simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector Locati
         SpriteWidgetDot.TextureCoords.Y1,
         SpriteWidgetDot.TextureCoords.X2 - SpriteWidgetDot.TextureCoords.X1,
         SpriteWidgetDot.TextureCoords.Y2 - SpriteWidgetDot.TextureCoords.Y1);
-      
+
       LengthSegment -= DistanceDotNext;
       LengthTotal   -= DistanceDotNext;
-      
+
       DistanceDotNext = DistanceDots;
-      }
-    
+    }
+
     DistanceDotNext -= LengthSegment;
     LengthTotal     -= LengthSegment;
-    }
+  }
 
   Canvas.DrawColor.A = AlphaColorDraw;
 
@@ -1662,7 +1662,7 @@ simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector Locati
     SpriteWidgetPlayer.TextureCoords.Y1,
     SpriteWidgetPlayer.TextureCoords.X2 - SpriteWidgetPlayer.TextureCoords.X1,
     SpriteWidgetPlayer.TextureCoords.Y2 - SpriteWidgetPlayer.TextureCoords.Y1);
-  }
+}
 
 
 // ============================================================================
@@ -1673,8 +1673,8 @@ simulated function DrawSpline(Canvas Canvas, vector LocationStart, vector Locati
 // connect player names with their locations on the minimap.
 // ============================================================================
 
-simulated function DrawLine(Canvas Canvas, vector LocationStart, vector LocationEnd) {
-
+simulated function DrawLine(Canvas Canvas, vector LocationStart, vector LocationEnd)
+{
   local byte AlphaColorDraw;
   local int WidthLine;
   local vector ScaleDot;
@@ -1693,8 +1693,8 @@ simulated function DrawLine(Canvas Canvas, vector LocationStart, vector Location
 
     Canvas.SetPos(LocationStart.X, LocationStart.Y);
     Canvas.DrawRect(Texture'WhiteTexture', LocationEnd.X - LocationStart.X, WidthLine);
-    }
-  
+  }
+
   else {
     Canvas.SetPos(LocationStart.X, LocationStart.Y);
     if (LocationStart.X < LocationEnd.X)
@@ -1705,7 +1705,7 @@ simulated function DrawLine(Canvas Canvas, vector LocationStart, vector Location
       LocationStart.Y += WidthLine;
     Canvas.SetPos(LocationEnd.X, LocationStart.Y);
     Canvas.DrawRect(Texture'WhiteTexture', WidthLine, LocationEnd.Y - LocationStart.Y);
-    }
+  }
 
   Canvas.DrawColor.A = AlphaColorDraw;
 
@@ -1728,15 +1728,15 @@ simulated function DrawLine(Canvas Canvas, vector LocationStart, vector Location
     SpriteWidgetPlayer.TextureCoords.Y1,
     SpriteWidgetPlayer.TextureCoords.X2 - SpriteWidgetPlayer.TextureCoords.X1,
     SpriteWidgetPlayer.TextureCoords.Y2 - SpriteWidgetPlayer.TextureCoords.Y1);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   TextGameBotmatch = "Botmatch";
   TextGameOnline   = "Online Match on";
 
@@ -1758,7 +1758,7 @@ defaultproperties {
   TextInfoDead    = "dead";
   TextInfoArena   = "arena";
   TextInfoJail    = "jailed";
-  
+
   TextOrdersUndisclosed = "undisclosed";
   TextOrdersAttack      = "attacking";
   TextOrdersDefense     = "defending";
@@ -1774,11 +1774,11 @@ defaultproperties {
 
   Table[0] = (iTable=0,ColorMain=(R=255,G=000,B=000,A=255),ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
   Table[1] = (iTable=1,ColorMain=(R=000,G=000,B=255,A=255),ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
-  
+
   ColorLineStats[0] = (R=255,G=000,B=000,A=064);
   ColorLineStats[1] = (R=255,G=255,B=000,A=064);
   ColorLineStats[2] = (R=000,G=255,B=000,A=064);
-  
+
   ColorBarStats[0]  = (R=128,G=000,B=000,A=255);
   ColorBarStats[1]  = (R=128,G=128,B=000,A=255);
   ColorBarStats[2]  = (R=000,G=128,B=000,A=255);
@@ -1791,16 +1791,16 @@ defaultproperties {
   SpriteWidgetPlayer   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09);
   SpriteWidgetDamage   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09,OffsetX=-32,OffsetY=-32);
   SpriteWidgetGradient = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=128,Y1=351,X2=129,Y2=353),Color=(R=0,G=0,B=0,A=128));
-  
+
   ColorFill[0] = (R=100,G=000,B=000,A=200);
   ColorFill[1] = (R=048,G=075,B=120,A=200);
   ColorTint[0] = (R=100,G=000,B=000,A=100);
   ColorTint[1] = (R=037,G=066,B=102,A=150);
-  
+
   ColorMarkerTie         = (R=128,G=128,B=128,A=255);
   ColorMarkerCaptured[0] = (R=000,G=000,B=255,A=255);
   ColorMarkerCaptured[1] = (R=255,G=000,B=000,A=255);
-  
+
   SpriteWidgetClockAnchorFill  = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=610,Y1=763,X2=455,Y2=891),TextureScale=0.3,PosX=1.00,PosY=0.00,OffsetX=-153,OffsetY=000);
   SpriteWidgetClockAnchorTint  = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=454,Y1=763,X2=299,Y2=891),TextureScale=0.3,PosX=1.00,PosY=0.00,OffsetX=-155,OffsetY=000);
   SpriteWidgetClockAnchorFrame = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=298,Y1=763,X2=143,Y2=891),TextureScale=0.3,PosX=1.00,PosY=0.00,OffsetX=-153,OffsetY=000,Color=(R=255,G=255,B=255,A=255));
@@ -1810,4 +1810,4 @@ defaultproperties {
   RotatedWidgetClockFillSecond = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=288,Y1=272,X2=400,Y2=496),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-127,OffsetY=128,OffsetCenterX=112,OffsetCenterY=112,Color=(R=056,G=056,B=056,A=255));
   RotatedWidgetClockTick       = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=448,X2=176,Y2=512),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-127,OffsetY=128,OffsetCenterX=032,OffsetCenterY=032,OffsetRotatedX=0,OffsetRotatedY=-121,Color=(R=255,G=255,B=255,A=255));
   RotatedWidgetClockMarker     = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=384,X2=176,Y2=448),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-127,OffsetY=128,OffsetCenterX=032,OffsetCenterY=032,OffsetRotatedX=0,OffsetRotatedY=-118,Color=(R=255,A=255));
-  }
+}

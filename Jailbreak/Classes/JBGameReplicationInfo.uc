@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameReplicationInfo
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameReplicationInfo.uc,v 1.11 2003/03/16 17:38:14 mychaeel Exp $
+// $Id: JBGameReplicationInfo.uc,v 1.12 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Replicated information for the entire game.
 // ============================================================================
@@ -15,8 +15,8 @@ class JBGameReplicationInfo extends GameReplicationInfo
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role == ROLE_Authority && bNetInitial)
     OrderNameTactics;     // updated during initialization
 
@@ -28,25 +28,25 @@ replication {
     ListInfoCapture,      // updated on capture
     iInfoCaptureFirst,    // updated on capture when list full
     nInfoCaptures;        // updated on capture when list not full
-  }
+}
 
 
 // ============================================================================
 // Types
 // ============================================================================
 
-struct TOrderName {
-
+struct TOrderName
+{
   var name OrderName;  // name of order passed to SetOrders
   var int iOrderName;  // index into OrderName array in class Bot
-  };
+};
 
 
-struct TInfoCapture {
-
+struct TInfoCapture
+{
   var int Time;        // elapsed game time on capture
   var TeamInfo Team;   // captured team or None on tie
-  };
+};
 
 
 // ============================================================================
@@ -79,13 +79,13 @@ var private JBTagClient TagClientLocal;  // used for synchronized server time
 // Registers order names for the custom team tactics menu in the speech menu.
 // ============================================================================
 
-simulated event PostBeginPlay() {
-
+simulated event PostBeginPlay()
+{
   if (Role == ROLE_Authority)
     RegisterOrderNames();
 
   Super.PostBeginPlay();
-  }
+}
 
 
 // ============================================================================
@@ -94,23 +94,23 @@ simulated event PostBeginPlay() {
 // On both server and client creates the linked lists for jails and arenas.
 // ============================================================================
 
-simulated event PostNetBeginPlay() {
-
+simulated event PostNetBeginPlay()
+{
   local JBInfoArena thisArena;
   local JBInfoJail thisJail;
-  
+
   foreach DynamicActors(Class'JBInfoArena', thisArena) {
     thisArena.nextArena = firstArena;
     firstArena = thisArena;
-    }
-  
+  }
+
   foreach DynamicActors(Class'JBInfoJail', thisJail) {
     thisJail.nextJail = firstJail;
     firstJail = thisJail;
-    }
+  }
 
   Super.PostNetBeginPlay();
-  }
+}
 
 
 // ============================================================================
@@ -119,8 +119,8 @@ simulated event PostNetBeginPlay() {
 // Updates the client-side match timers.
 // ============================================================================
 
-simulated event Timer() {
-
+simulated event Timer()
+{
   if (TagClientLocal == None)
     TagClientLocal = Class'JBTagClient'.Static.FindFor(Level.GetLocalPlayerController());
 
@@ -128,7 +128,7 @@ simulated event Timer() {
 
   if (Level.NetMode == NM_Client && !bTeamSymbolsUpdated)
     TeamSymbolNotify();
-  }
+}
 
 
 // ============================================================================
@@ -139,21 +139,21 @@ simulated event Timer() {
 // name indices in the OrderNameTactics array.
 // ============================================================================
 
-function RegisterOrderNames() {
-
+function RegisterOrderNames()
+{
   local int iOrderNameBot;
   local int iOrderNameTactics;
   local Class<Bot> ClassBot;
-  
+
   ClassBot = Class'xBot';
-  
+
   for (iOrderNameBot = 0; iOrderNameBot < ArrayCount(ClassBot.Default.OrderNames); iOrderNameBot++)
     if (ClassBot.Default.OrderNames[iOrderNameBot] == '') {
       OrderNameTactics[iOrderNameTactics++].iOrderName = iOrderNameBot;
       if (iOrderNameTactics == ArrayCount(OrderNameTactics))
         break;
-      }
-  }
+    }
+}
 
 
 // ============================================================================
@@ -162,13 +162,13 @@ function RegisterOrderNames() {
 // Starts or restarts the client-side match timer for all clients.
 // ============================================================================
 
-function StartMatchTimer() {
-
+function StartMatchTimer()
+{
   if (TimeMatchStarted == 0.0)
     TimeMatchStarted = Level.TimeSeconds;
 
   TimeMatchStopped = 0.0;  // unstop timer
-  }
+}
 
 
 // ============================================================================
@@ -178,15 +178,15 @@ function StartMatchTimer() {
 // all clients.
 // ============================================================================
 
-function SynchronizeMatchTimer(float TimeMatchElapsed) {
-
+function SynchronizeMatchTimer(float TimeMatchElapsed)
+{
   TimeMatchElapsed *= Level.TimeDilation;
 
   if (TimeMatchStopped == 0.0)
     TimeMatchCorrection = TimeMatchElapsed - (Level.TimeSeconds - TimeMatchStarted);
   else
     TimeMatchCorrection = TimeMatchElapsed - (TimeMatchStopped - TimeMatchStarted);
-  }
+}
 
 
 // ============================================================================
@@ -196,10 +196,10 @@ function SynchronizeMatchTimer(float TimeMatchElapsed) {
 // by calling StartMatchTimer again.
 // ============================================================================
 
-function StopMatchTimer() {
-
+function StopMatchTimer()
+{
   TimeMatchStopped = Level.TimeSeconds;
-  }
+}
 
 
 // ============================================================================
@@ -220,13 +220,13 @@ function StopMatchTimer() {
 // like during execution sequences.
 // ============================================================================
 
-private simulated function UpdateMatchTimer() {
-
+private simulated function UpdateMatchTimer()
+{
   local float TimeMatchElapsed;
 
   if (TagClientLocal == None)
     return;
-  
+
   if (TimeMatchStarted != 0.0) {
     if (TimeMatchStopped != 0.0)
       TimeMatchElapsed = TimeMatchStopped - TimeMatchStarted;
@@ -235,18 +235,18 @@ private simulated function UpdateMatchTimer() {
 
     TimeMatchElapsed += TimeMatchCorrection;
     TimeMatchElapsed /= Level.TimeDilation;
-    
+
     ElapsedTime = TimeMatchElapsed;
     if (TimeLimit > 0)
       RemainingTime = Max(0, TimeLimit * 60 - ElapsedTime);
-    }
+  }
 
   if (TimeMatchStarted != 0.0 &&
       TimeMatchStopped == 0.0)
     SetTimer((1.0 - TimeMatchElapsed % 1.0) * Level.TimeDilation, False);
   else
     SetTimer(0.3, False);
-  }
+}
 
 
 // ============================================================================
@@ -255,8 +255,8 @@ private simulated function UpdateMatchTimer() {
 // Records a capture in the list and replicates it to clients.
 // ============================================================================
 
-function AddCapture(int TimeCapture, TeamInfo TeamCaptured) {
-
+function AddCapture(int TimeCapture, TeamInfo TeamCaptured)
+{
   local int iInfoCapture;
 
   if (nInfoCaptures < ArrayCount(ListInfoCapture))
@@ -268,7 +268,7 @@ function AddCapture(int TimeCapture, TeamInfo TeamCaptured) {
 
   ListInfoCapture[iInfoCapture].Time = TimeCapture;
   ListInfoCapture[iInfoCapture].Team = TeamCaptured;
-  }
+}
 
 
 // ============================================================================
@@ -277,10 +277,10 @@ function AddCapture(int TimeCapture, TeamInfo TeamCaptured) {
 // Returns the number of recorded captures that are present in the list.
 // ============================================================================
 
-simulated function int CountCaptures() {
-
+simulated function int CountCaptures()
+{
   return nInfoCaptures;
-  }
+}
 
 
 // ============================================================================
@@ -289,8 +289,8 @@ simulated function int CountCaptures() {
 // Returns the capture time of the given recorded capture.
 // ============================================================================
 
-simulated function int GetCaptureTime(int iCapture) {
-
+simulated function int GetCaptureTime(int iCapture)
+{
   local int iInfoCapture;
 
   if (iCapture < 0 ||
@@ -299,7 +299,7 @@ simulated function int GetCaptureTime(int iCapture) {
 
   iInfoCapture = (iInfoCaptureFirst + iCapture) % ArrayCount(ListInfoCapture);
   return ListInfoCapture[iInfoCapture].Time;
-  }
+}
 
 
 // ============================================================================
@@ -308,8 +308,8 @@ simulated function int GetCaptureTime(int iCapture) {
 // Returns the captured team of the given recorded capture.
 // ============================================================================
 
-simulated function TeamInfo GetCaptureTeam(int iCapture) {
-
+simulated function TeamInfo GetCaptureTeam(int iCapture)
+{
   local int iInfoCapture;
 
   if (iCapture < 0 ||
@@ -318,19 +318,19 @@ simulated function TeamInfo GetCaptureTeam(int iCapture) {
 
   iInfoCapture = (iInfoCaptureFirst + iCapture) % ArrayCount(ListInfoCapture);
   return ListInfoCapture[iInfoCapture].Team;
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   OrderNameTactics[0] = (OrderName=TacticsAuto);
   OrderNameTactics[1] = (OrderName=TacticsSuicidal);
   OrderNameTactics[2] = (OrderName=TacticsAggressive);
   OrderNameTactics[3] = (OrderName=TacticsNormal);
   OrderNameTactics[4] = (OrderName=TacticsDefensive);
   OrderNameTactics[5] = (OrderName=TacticsEvasive);
-  }
+}

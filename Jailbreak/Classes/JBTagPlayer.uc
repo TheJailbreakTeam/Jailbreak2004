@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.39 2003/12/15 21:41:48 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.40 2003/12/15 23:11:29 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -15,8 +15,8 @@ class JBTagPlayer extends JBTag
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role == ROLE_Authority)
     Arena,
     ArenaPending,
@@ -36,23 +36,23 @@ replication {
   reliable if (Role == ROLE_Authority)
     ClientSetArena,
     ClientSetJail;
-  }
+}
 
 
 // ============================================================================
 // Types
 // ============================================================================
 
-enum ERestart {
-
+enum ERestart
+{
   Restart_Jail,
   Restart_Freedom,
   Restart_Arena,
-  };
+};
 
 
-struct TInfoScore {
-
+struct TInfoScore
+{
   var float Score;
   var float Deaths;
   var int GoalsScored;
@@ -61,14 +61,14 @@ struct TInfoScore {
   var int FlakCount;
   var int ComboCount;
   var int HeadCount;
-  };
+};
 
 
-struct TInfoLocation {
-  
+struct TInfoLocation
+{
   var NavigationPoint NavigationPoint;
   var float Probability;
-  };
+};
 
 
 // ============================================================================
@@ -164,11 +164,11 @@ protected simulated function InternalSetNext(JBTag TagNext) {
 // reconnect.
 // ============================================================================
 
-function bool BelongsTo(Controller Controller) {
-
+function bool BelongsTo(Controller Controller)
+{
   return (PlayerController(Controller) != None &&
           PlayerController(Controller).GetPlayerIDHash() == HashIdPlayer);
-  }
+}
 
 
 // ============================================================================
@@ -178,8 +178,8 @@ function bool BelongsTo(Controller Controller) {
 // with a short interval. Restores the saved values in PlayerReplicationInfo.
 // ============================================================================
 
-function Register() {
-
+function Register()
+{
   local JBGameRules firstJBGameRules;
 
   Super.Register();
@@ -190,7 +190,7 @@ function Register() {
   PlayerReplicationInfo(Keeper).Deaths      = InfoScore.Deaths;
   PlayerReplicationInfo(Keeper).GoalsScored = InfoScore.GoalsScored;
   PlayerReplicationInfo(Keeper).Kills       = InfoScore.Kills;
-  
+
   TeamPlayerReplicationInfo(Keeper).Suicides   = InfoScore.Suicides;
   TeamPlayerReplicationInfo(Keeper).FlakCount  = InfoScore.FlakCount;
   TeamPlayerReplicationInfo(Keeper).ComboCount = InfoScore.ComboCount;
@@ -208,7 +208,7 @@ function Register() {
 
   Enable('Tick');
   SetTimer(RandRange(0.18, 0.22), True);
-  }
+}
 
 
 // ============================================================================
@@ -217,8 +217,8 @@ function Register() {
 // Saves persistent information for later restoration and stops the timer.
 // ============================================================================
 
-function Unregister() {
-
+function Unregister()
+{
   local byte bIsLlamaByte;
   local JBGameRules firstJBGameRules;
 
@@ -228,7 +228,7 @@ function Unregister() {
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (PlayerController(Controller) != None && firstJBGameRules != None)
     firstJBGameRules.NotifyPlayerDisconnect(PlayerController(Controller), bIsLlamaByte);
-  
+
   bIsLlama = bool(bIsLlamaByte);
 
   Arena        = None;
@@ -241,7 +241,7 @@ function Unregister() {
   InfoScore.Deaths      = PlayerReplicationInfo(Keeper).Deaths;
   InfoScore.GoalsScored = PlayerReplicationInfo(Keeper).GoalsScored;
   InfoScore.Kills       = PlayerReplicationInfo(Keeper).Kills;
-  
+
   InfoScore.Suicides    = TeamPlayerReplicationInfo(Keeper).Suicides + 1;
   InfoScore.FlakCount   = TeamPlayerReplicationInfo(Keeper).FlakCount;
   InfoScore.ComboCount  = TeamPlayerReplicationInfo(Keeper).ComboCount;
@@ -253,7 +253,7 @@ function Unregister() {
   SetTimer(0.0, False);  // stop timer
 
   Super.Unregister();
-  }
+}
 
 
 // ============================================================================
@@ -262,13 +262,13 @@ function Unregister() {
 // Updates jail status, replicated location and health.
 // ============================================================================
 
-event Timer() {
-
+event Timer()
+{
   UpdateJail();
   UpdateLocation();
 
   GetHealth();  // update Health variable
-  }
+}
 
 
 // ============================================================================
@@ -279,8 +279,8 @@ event Timer() {
 // information to all clients.
 // ============================================================================
 
-event Tick(float TimeDelta) {
-
+event Tick(float TimeDelta)
+{
   local Pawn thisPawn;
 
   Pawn = Controller.Pawn;
@@ -292,11 +292,11 @@ event Tick(float TimeDelta) {
       foreach DynamicActors(Class'Pawn', thisPawn)
         if (Pawn != thisPawn && Pawn.TouchingActor(thisPawn))
           thisPawn.JumpOffPawn();
-  
+
     Pawn.bCanBeBaseForPawns = Pawn.bIsCrouched;
     bCanBeBaseForPawns = Pawn.bCanBeBaseForPawns;
-    }
   }
+}
 
 
 // ============================================================================
@@ -306,24 +306,24 @@ event Tick(float TimeDelta) {
 // the Jail variable accordingly, giving all necessary notifications.
 // ============================================================================
 
-private function UpdateJail() {
-
+private function UpdateJail()
+{
   local JBInfoJail JailPrev;
-  
+
   if (Arena == None &&
       Controller.Pawn != None &&
       Controller.Pawn.IsPlayerPawn()) {
 
     JailPrev = Jail;
     Jail = FindJail();
-    
+
     if (JailPrev != None && Jail == None) NotifyJailLeft(JailPrev);
     if (JailPrev == None && Jail != None) NotifyJailEntered();
-    
+
     if (JailPrev != Jail)
       ClientSetJail(Jail);
-    }
   }
+}
 
 
 // ============================================================================
@@ -333,8 +333,8 @@ private function UpdateJail() {
 // apply in standalone games.
 // ============================================================================
 
-private function UpdateLocation() {
-
+private function UpdateLocation()
+{
   local int iLocationPawn;
   local vector DirectionPawnActual;
   local vector DirectionPawnPrev;
@@ -349,7 +349,7 @@ private function UpdateLocation() {
     VelocityPawn = 0.0;
     LocationPawn[0] = LocationPawnLast;
     LocationPawn[1] = LocationPawnLast;
-    }
+  }
 
   else {
     DirectionPawnPrev = LocationPawn[1] - LocationPawn[0];
@@ -369,15 +369,15 @@ private function UpdateLocation() {
     if (VelocityPawn == 0.0) {
       LocationPawn[0] = LocationPawnActual;
       LocationPawn[1] = LocationPawnActual;
-      }
-    
+    }
+
     else {
       LocationPawnExtrapolated = ExtrapolateLocationPawn();
-  
+
       DirectionPawnActual = Normal(LocationPawnActual - LocationPawnBase);
       if (CalcOrientation(DirectionPawnActual) < 0)
         VelocityPawn = -VelocityPawn;  // resolve orientation ambiguity
-  
+
       if (VSize(LocationPawnExtrapolated - LocationPawnActual) > 16.0) {
         LocationPawn[    iLocationPawn] = LocationPawnActual;
         LocationPawn[1 - iLocationPawn] = LocationPawnBase;
@@ -385,12 +385,12 @@ private function UpdateLocation() {
         // used for server-side extrapolation
         DirectionPawn = DirectionPawnActual;
         LocationPawnBase = LocationPawnActual;
-  
+
         TimeUpdateLocation = Level.TimeSeconds;
-        }
       }
     }
   }
+}
 
 
 // ============================================================================
@@ -403,8 +403,8 @@ private function UpdateLocation() {
 // Also sets the bCanBeBaseForPawns flag client-side.
 // ============================================================================
 
-simulated event PostNetReceive() {
-
+simulated event PostNetReceive()
+{
   local vector LocationPawnSmoothed;
 
   Super.PostNetReceive();
@@ -420,8 +420,8 @@ simulated event PostNetReceive() {
     if (CalcOrientation(DirectionPawn) * VelocityPawn < 0) {
       DirectionPawn = -DirectionPawn;  // switch orientation
       LocationPawnBase = LocationPawn[0];
-      }    
-    
+    }
+
     TimeUpdateLocation = Level.TimeSeconds;
 
     DeviationPawn = LocationPawnSmoothed - LocationPawnBase;
@@ -430,13 +430,13 @@ simulated event PostNetReceive() {
 
     LocationPawnPrev[0] = LocationPawn[0];
     LocationPawnPrev[1] = LocationPawn[1];
-    }
-  
+  }
+
   VelocityPawnBase = Abs(VelocityPawn);
 
   if (Pawn != None)  // for human ladder
     Pawn.bCanBeBaseForPawns = bCanBeBaseForPawns;
-  }
+}
 
 
 // ============================================================================
@@ -453,8 +453,8 @@ simulated event PostNetReceive() {
 // bit of information.
 // ============================================================================
 
-simulated function float CalcOrientation(vector VectorInput) {
-
+simulated function float CalcOrientation(vector VectorInput)
+{
   local vector VectorTranslated;
 
   VectorTranslated.X = VectorInput dot vect(1, 1, 0);  if (VectorTranslated.X != 0.0) return VectorTranslated.X;
@@ -462,7 +462,7 @@ simulated function float CalcOrientation(vector VectorInput) {
   VectorTranslated.Z = VectorInput dot vect(0, 0, 1);  if (VectorTranslated.Z != 0.0) return VectorTranslated.Z;
 
   return 0.0;
-  }
+}
 
 
 // ============================================================================
@@ -472,18 +472,18 @@ simulated function float CalcOrientation(vector VectorInput) {
 // is in freedom. Expects the player to possess a valid Pawn when called.
 // ============================================================================
 
-function JBInfoJail FindJail() {
-
+function JBInfoJail FindJail()
+{
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
-  
+
   firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
   for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
     if (thisJail.ContainsActor(Controller.Pawn))
       return thisJail;
-  
+
   return None;
-  }
+}
 
 
 // ============================================================================
@@ -492,11 +492,11 @@ function JBInfoJail FindJail() {
 // Returns whether this player is in freedom at the moment.
 // ============================================================================
 
-simulated function bool IsFree() {
-
+simulated function bool IsFree()
+{
   return (Arena == None &&
           Jail  == None);
-  }
+}
 
 
 // ============================================================================
@@ -505,10 +505,10 @@ simulated function bool IsFree() {
 // Returns whether this player is fighting in an arena at the moment.
 // ============================================================================
 
-simulated function bool IsInArena() {
-
+simulated function bool IsInArena()
+{
   return (Arena != None);
-  }
+}
 
 
 // ============================================================================
@@ -517,10 +517,10 @@ simulated function bool IsInArena() {
 // Returns whether this player is in jail at the moment.
 // ============================================================================
 
-simulated function bool IsInJail() {
-
+simulated function bool IsInJail()
+{
   return (Jail != None);
-  }
+}
 
 
 // ============================================================================
@@ -529,10 +529,10 @@ simulated function bool IsInJail() {
 // Called when a new round starts. Resets the player's llama state.
 // ============================================================================
 
-function NotifyRound() {
-
+function NotifyRound()
+{
   bIsLlama = False;
-  }
+}
 
 
 // ============================================================================
@@ -544,11 +544,11 @@ function NotifyRound() {
 // the arena or disables it otherwise.
 // ============================================================================
 
-function NotifyRestarted() {
-
+function NotifyRestarted()
+{
   local JBInfoArena ArenaPrev;
   local JBInfoJail JailPrev;
-  
+
   ArenaPrev = Arena;
   JailPrev  = Jail;
 
@@ -556,7 +556,7 @@ function NotifyRestarted() {
     case Restart_Freedom:  Arena = None;          Jail = None;        break;
     case Restart_Jail:     Arena = None;          Jail = FindJail();  break;
     case Restart_Arena:    Arena = ArenaRestart;  Jail = None;        break;
-    }
+  }
 
   CacheGetRestart.Time = 0.0;  // reset GetRestart cache
 
@@ -564,10 +564,10 @@ function NotifyRestarted() {
   if (JailPrev  != None && Jail  == None) NotifyJailLeft(JailPrev);
   if (ArenaPrev == None && Arena != None) NotifyArenaEntered();
   if (JailPrev  == None && Jail  != None) NotifyJailEntered();
-  
+
   if (ArenaPrev != Arena) ClientSetArena(Arena);
   if (JailPrev  != Jail)  ClientSetJail(Jail);
-  }
+}
 
 
 // ============================================================================
@@ -576,14 +576,14 @@ function NotifyRestarted() {
 // Called when the player entered an arena. Puts bots on the arena squad.
 // ============================================================================
 
-function NotifyArenaEntered() {
-
+function NotifyArenaEntered()
+{
   if (Bot(Controller) != None)
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadArena(Bot(Controller));
 
   bAdrenalineEnabledPrev = Controller.bAdrenalineEnabled;
   Controller.bAdrenalineEnabled = False;
-  }
+}
 
 
 // ============================================================================
@@ -592,8 +592,8 @@ function NotifyArenaEntered() {
 // Called when the player left the arena for jail or for freedom.
 // ============================================================================
 
-function NotifyArenaLeft(JBInfoArena ArenaPrev) {
-
+function NotifyArenaLeft(JBInfoArena ArenaPrev)
+{
   Controller.bAdrenalineEnabled = bAdrenalineEnabledPrev;
 
   if (IsInJail())
@@ -601,7 +601,7 @@ function NotifyArenaLeft(JBInfoArena ArenaPrev) {
 
   JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifySpawn(Controller);
   JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifySpawn(Controller);
-  }
+}
 
 
 // ============================================================================
@@ -612,8 +612,8 @@ function NotifyArenaLeft(JBInfoArena ArenaPrev) {
 // player's translocator.
 // ============================================================================
 
-function NotifyJailEntered() {
-
+function NotifyJailEntered()
+{
   local Inventory thisInventory;
   local Inventory nextInventory;
 
@@ -624,13 +624,13 @@ function NotifyJailEntered() {
     nextInventory = thisInventory.Inventory;
     if (TransLauncher(thisInventory) != None)
       Controller.Pawn.DeleteInventory(thisInventory);
-    }
+  }
 
   if  (Controller.Pawn.Weapon == None)
     Controller.ClientSwitchToBestWeapon();
 
   Jail.NotifyJailEntered(Self);
-  }
+}
 
 
 // ============================================================================
@@ -641,8 +641,8 @@ function NotifyJailEntered() {
 // back a translocator to the player if it is enabled in the game.
 // ============================================================================
 
-function NotifyJailLeft(JBInfoJail JailPrev) {
-
+function NotifyJailLeft(JBInfoJail JailPrev)
+{
   local Controller ControllerInstigator;
   local JBInfoArena firstArena;
   local JBInfoArena thisArena;
@@ -653,7 +653,7 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 
   ArenaPending = None;
   ArenaRequest = None;
-  
+
   if (IsInArena())
     return;
 
@@ -667,7 +667,7 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
       Jailbreak(Level.Game).ScorePlayer(ControllerInstigator, 'Release');
 
     TimeRelease = JailPrev.GetReleaseTime(GetTeam());
-    }
+  }
 
   JailPrev.NotifyJailLeft(Self);
 
@@ -676,7 +676,7 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 
   JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
   JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
-  }
+}
 
 
 // ============================================================================
@@ -686,14 +686,14 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 // the player's health and cancels an upcoming arena match.
 // ============================================================================
 
-function NotifyJailOpening() {
-
+function NotifyJailOpening()
+{
   if (Controller.Pawn != None)
     Controller.Pawn.Health = Controller.Pawn.Default.Health;
 
   if (ArenaPending != None)
     ArenaPending.MatchCancel();
-  }
+}
 
 
 // ============================================================================
@@ -703,11 +703,11 @@ function NotifyJailOpening() {
 // Gives bots new orders to make them leave the jail.
 // ============================================================================
 
-function NotifyJailOpened() {
-
+function NotifyJailOpened()
+{
   if (Bot(Controller) != None)
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).ResumeBotOrders(Bot(Controller));
-  }
+}
 
 
 // ============================================================================
@@ -717,11 +717,11 @@ function NotifyJailOpened() {
 // the jail squad.
 // ============================================================================
 
-function NotifyJailClosed() {
-
+function NotifyJailClosed()
+{
   if (Bot(Controller) != None)
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(Controller));
-  }
+}
 
 
 // ============================================================================
@@ -732,8 +732,8 @@ function NotifyJailClosed() {
 // away from.
 // ============================================================================
 
-private function RestartPlayer(ERestart RestartCurrent) {
-
+private function RestartPlayer(ERestart RestartCurrent)
+{
   local xPawn xPawn;
 
   if (Controller.Pawn != None)
@@ -741,7 +741,7 @@ private function RestartPlayer(ERestart RestartCurrent) {
 
   while (Controller.Pawn != None) {
     xPawn = xPawn(Controller.Pawn);
-    
+
     if (xPawn != None) {
       if (xPawn.CurrentCombo != None)
         xPawn.CurrentCombo.Destroy();
@@ -749,19 +749,19 @@ private function RestartPlayer(ERestart RestartCurrent) {
       if (xPawn.UDamageTimer != None) {
         xPawn.UDamageTimer.Destroy();
         xPawn.DisableUDamage();
-        }
       }
-    
-    Controller.Pawn.Destroy();
     }
-  
+
+    Controller.Pawn.Destroy();
+  }
+
   Restart = RestartCurrent;
 
   TimeRestart = Level.TimeSeconds;
   Level.Game.RestartPlayer(Controller);
 
   Restart = Restart_Jail;
-  }
+}
 
 
 // ============================================================================
@@ -781,11 +781,11 @@ function RestartInJail()    { RestartPlayer(Restart_Jail);    }
 // Restarts the player in a specified arena.
 // ============================================================================
 
-function RestartInArena(JBInfoArena Arena) {
-
+function RestartInArena(JBInfoArena Arena)
+{
   ArenaRestart = Arena;
   RestartPlayer(Restart_Arena);
-  }
+}
 
 
 // ============================================================================
@@ -807,8 +807,8 @@ simulated function ClientSetJail (JBInfoJail  JailNew)  { Jail  = JailNew;  }
 // and game rules into accound. Caches its result within a tick.
 // ============================================================================
 
-private function ERestart GetRestart() {
-
+private function ERestart GetRestart()
+{
   local JBGameRules firstJBGameRules;
 
   if (CacheGetRestart.Time == Level.TimeSeconds)
@@ -825,9 +825,9 @@ private function ERestart GetRestart() {
       firstJBGameRules != None &&
      !firstJBGameRules.CanSendToJail(Self))
     CacheGetRestart.Result = Restart_Freedom;
-  
+
   return CacheGetRestart.Result;
-  }
+}
 
 
 // ============================================================================
@@ -837,8 +837,8 @@ private function ERestart GetRestart() {
 // player in the current situation, regardless of the player's team.
 // ============================================================================
 
-function bool IsValidStart(NavigationPoint NavigationPoint) {
-
+function bool IsValidStart(NavigationPoint NavigationPoint)
+{
   local JBInfoArena firstArena;
   local JBInfoArena thisArena;
   local JBInfoJail firstJail;
@@ -855,18 +855,18 @@ function bool IsValidStart(NavigationPoint NavigationPoint) {
         if (thisArena.ContainsActor(NavigationPoint))
           return False;
       return True;
-    
+
     case Restart_Jail:
       firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
       for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
         if (thisJail.ContainsActor(NavigationPoint))
           return True;
       return False;
-    
+
     case Restart_Arena:
       return ArenaRestart.ContainsActor(NavigationPoint);
-    }
   }
+}
 
 
 // ============================================================================
@@ -875,12 +875,12 @@ function bool IsValidStart(NavigationPoint NavigationPoint) {
 // Sets ArenaPending if the player can actually fight in the given arena.
 // ============================================================================
 
-function SetArenaPending(JBInfoArena NewArenaPending) {
-
+function SetArenaPending(JBInfoArena NewArenaPending)
+{
   if (NewArenaPending == None ||
       NewArenaPending.CanFight(Controller))
     ArenaPending = NewArenaPending;
-  }
+}
 
 
 // ============================================================================
@@ -890,18 +890,18 @@ function SetArenaPending(JBInfoArena NewArenaPending) {
 // the given arena.
 // ============================================================================
 
-function SetArenaRequest(JBInfoArena NewArenaRequest) {
-
+function SetArenaRequest(JBInfoArena NewArenaRequest)
+{
   if (NewArenaRequest != None) {
     if (ArenaPending != None)
       return;
     if (!NewArenaRequest.CanFight(Controller))
       return;
-    }
+  }
 
   ArenaRequest = NewArenaRequest;
   TimeArenaRequest = Level.TimeSeconds;
-  }
+}
 
 
 // ============================================================================
@@ -911,8 +911,8 @@ function SetArenaRequest(JBInfoArena NewArenaRequest) {
 // total number of hitpoints the player can take before dying.
 // ============================================================================
 
-simulated function int GetHealth(optional bool bCached) {
-
+simulated function int GetHealth(optional bool bCached)
+{
   local Inventory thisInventory;
 
   if (bCached || Role < ROLE_Authority)
@@ -926,13 +926,13 @@ simulated function int GetHealth(optional bool bCached) {
     for (thisInventory = Controller.Pawn.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
       if (Armor(thisInventory) != None)
         Health += (Armor(thisInventory).Charge * Armor(thisInventory).ArmorAbsorption) / 100;
-  
+
     if (xPawn(Controller.Pawn) != None)
       Health += xPawn(Controller.Pawn).ShieldStrength;
-    }
+  }
 
   return Health;
-  }
+}
 
 
 // ============================================================================
@@ -943,10 +943,10 @@ simulated function int GetHealth(optional bool bCached) {
 // movement in any other way.
 // ============================================================================
 
-private simulated function vector ExtrapolateLocationPawn() {
-
+private simulated function vector ExtrapolateLocationPawn()
+{
   return LocationPawnBase + DirectionPawn * VelocityPawnBase * (Level.TimeSeconds - TimeUpdateLocation);
-  }
+}
 
 
 // ============================================================================
@@ -957,13 +957,13 @@ private simulated function vector ExtrapolateLocationPawn() {
 // applies time-based smoothing on it.
 // ============================================================================
 
-simulated function vector GetLocationPawn() {
-
+simulated function vector GetLocationPawn()
+{
   if (Role == ROLE_Authority)
     return LocationPawnLast;
 
   return ExtrapolateLocationPawn() + DeviationPawn * FMax(0.0, 1.0 - (Level.TimeSeconds - TimeUpdateLocation) / 2.0);
-  }
+}
 
 
 // ============================================================================
@@ -973,20 +973,20 @@ simulated function vector GetLocationPawn() {
 // use this location as the player's assumed starting point.
 // ============================================================================
 
-function RecordLocation(optional NavigationPoint NavigationPoint) {
-
+function RecordLocation(optional NavigationPoint NavigationPoint)
+{
   if (NavigationPoint == None) {
     ListInfoLocation.Length = 0;
-    }
-  
+  }
+
   else {
     ListInfoLocation.Length = 1;
     ListInfoLocation[0].NavigationPoint = NavigationPoint;
     ListInfoLocation[0].Probability = 1.0;
-    }
-  
-  TimeInfoLocation = Level.TimeSeconds;
   }
+
+  TimeInfoLocation = Level.TimeSeconds;
+}
 
 
 // ============================================================================
@@ -996,18 +996,18 @@ function RecordLocation(optional NavigationPoint NavigationPoint) {
 // probabilities. If no argument is given, resets the list.
 // ============================================================================
 
-function RecordLocationList(optional array<NavigationPoint> ListNavigationPoint) {
-
+function RecordLocationList(optional array<NavigationPoint> ListNavigationPoint)
+{
   local int iNavigationPoint;
 
   ListInfoLocation.Length = ListNavigationPoint.Length;
   for (iNavigationPoint = 0; iNavigationPoint < ListNavigationPoint.Length; iNavigationPoint++) {
     ListInfoLocation[iNavigationPoint].NavigationPoint = ListNavigationPoint[iNavigationPoint];
     ListInfoLocation[iNavigationPoint].Probability = 1.0 / ListNavigationPoint.Length;
-    }
+  }
 
   TimeInfoLocation = Level.TimeSeconds;
-  }
+}
 
 
 // ============================================================================
@@ -1019,8 +1019,8 @@ function RecordLocationList(optional array<NavigationPoint> ListNavigationPoint)
 // list of possible locations.
 // ============================================================================
 
-function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoint) {
-
+function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoint)
+{
   local int iNavigationPointStart;
   local int iNavigationPointTarget;
   local float Distance;
@@ -1032,14 +1032,14 @@ function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoin
 
   if (Controller.Pawn == None)
     return None;
-  
+
   if (TimeInfoLocation != Level.TimeSeconds) {
     DistanceMax = Controller.Pawn.GroundSpeed * (Level.TimeSeconds - TimeInfoLocation) * 1.1;
-    
+
     for (iNavigationPointTarget = 0; iNavigationPointTarget < ListNavigationPoint.Length; iNavigationPointTarget++) {
       ListInfoLocationTarget.Insert(iNavigationPointTarget, 1);
       ListInfoLocationTarget[iNavigationPointTarget].NavigationPoint = ListNavigationPoint[iNavigationPointTarget];
-      
+
       for (iNavigationPointStart = 0; iNavigationPointStart < ListInfoLocation.Length; iNavigationPointStart++) {
         Distance = Class'JBTagNavigation'.Static.CalcDistance(
           ListInfoLocation[iNavigationPointStart].NavigationPoint,
@@ -1048,26 +1048,26 @@ function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoin
         if (ProbabilityPath > 0.0)
           ListInfoLocationTarget[iNavigationPointTarget].Probability +=
             ProbabilityPath * ListInfoLocation[iNavigationPointStart].Probability;
-        }
-  
-      ProbabilityTotal += ListInfoLocationTarget[iNavigationPointTarget].Probability;
       }
-    
+
+      ProbabilityTotal += ListInfoLocationTarget[iNavigationPointTarget].Probability;
+    }
+
     if (ProbabilityTotal > 0.0) {
       for (iNavigationPointTarget = 0; iNavigationPointTarget < ListInfoLocationTarget.Length; iNavigationPointTarget++)
         ListInfoLocationTarget[iNavigationPointTarget].Probability /= ProbabilityTotal;  // normalize
-      
+
       ListInfoLocation.Length = ListInfoLocationTarget.Length;
       for (iNavigationPointTarget = 0; iNavigationPointTarget < ListInfoLocationTarget.Length; iNavigationPointTarget++)
         ListInfoLocation[iNavigationPointTarget] = ListInfoLocationTarget[iNavigationPointTarget];
 
       TimeInfoLocation = Level.TimeSeconds;
-      }
-    
+    }
+
     else {
       RecordLocationList(ListNavigationPoint);  // unknown, could be anywhere
-      }
     }
+  }
 
   ProbabilitySelected = FRand();
 
@@ -1075,10 +1075,10 @@ function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoin
     ProbabilitySelected -= ListInfoLocation[iNavigationPointTarget].Probability;
     if (ProbabilitySelected < 0.0)
       return ListInfoLocation[iNavigationPointTarget].NavigationPoint;
-    }
-  
-  return None;  // should never happen
   }
+
+  return None;  // should never happen
+}
 
 
 // ============================================================================
@@ -1090,8 +1090,8 @@ function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoin
 // yield the same result; then the function evaluates its guess again.
 // ============================================================================
 
-function GameObjective GuessObjective() {
-
+function GameObjective GuessObjective()
+{
   local int iObjective;
   local float Distance;
   local float DistanceApproached;
@@ -1108,7 +1108,7 @@ function GameObjective GuessObjective() {
 
   if (TimeObjectiveGuessed + 3.0 > Level.TimeSeconds && Controller.Pawn == PawnObjectiveGuessed)
     return ObjectiveGuessed;
-  
+
   if (Controller.Pawn != PawnObjectiveGuessed)
     ListDistanceObjective.Length = 0;  // clear list after respawn
   PawnObjectiveGuessed = Controller.Pawn;
@@ -1123,29 +1123,29 @@ function GameObjective GuessObjective() {
       ObjectiveClosest = thisObjective;
       DistanceClosestPrev = DistanceClosest;
       DistanceClosest = Distance;
-      }
-    
+    }
+
     else if (DistanceClosestPrev == 0.0 ||
              DistanceClosestPrev > Distance) {
       DistanceClosestPrev = Distance;
-      }
-    
+    }
+
     // assumes that number and order of objectives never change
-    
+
     if (iObjective < ListDistanceObjective.Length) {
       DistanceApproached = ListDistanceObjective[iObjective] - Distance;
       if (ObjectiveApproachedMax == None || DistanceApproached > DistanceApproachedMax) {
         ObjectiveApproachedMax = thisObjective;
         DistanceApproachedMax = DistanceApproached;
-        }
       }
-    
+    }
+
     ListDistanceObjective[iObjective] = Distance;
     iObjective++;
-    }
-  
+  }
+
   DistanceTravelledMax = Controller.Pawn.GroundSpeed * (Level.TimeSeconds - TimeObjectiveGuessed);
-  
+
   if (DistanceApproachedMax > DistanceTravelledMax * 0.8)
     ObjectiveGuessed = ObjectiveApproachedMax;  // moving towards objective
   else
@@ -1154,10 +1154,10 @@ function GameObjective GuessObjective() {
       ObjectiveGuessed = ObjectiveClosest;  // located in vicinity of objective
     else
       ObjectiveGuessed = None;  // located between objectives, freelancing
-  
+
   TimeObjectiveGuessed = Level.TimeSeconds;
-  return ObjectiveGuessed;  
-  }
+  return ObjectiveGuessed;
+}
 
 
 // ============================================================================
@@ -1193,9 +1193,9 @@ simulated function GameObjective GetObjectiveGuessed() {
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   Restart = Restart_Jail;
 
   RemoteRole = ROLE_SimulatedProxy;
-  }
+}

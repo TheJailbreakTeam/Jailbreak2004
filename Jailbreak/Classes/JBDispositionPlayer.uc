@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionPlayer.uc,v 1.7 2003/06/15 21:31:33 mychaeel Exp $
+// $Id: JBDispositionPlayer.uc,v 1.8 2003/06/15 21:41:18 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -14,13 +14,13 @@ class JBDispositionPlayer extends Object;
 // Types
 // ============================================================================
 
-struct SpriteWidget {
-
+struct SpriteWidget
+{
   var Material WidgetTexture;
   var IntBox TextureCoords;
   var float TextureScale;
   var Color Tints[2];
-  };
+};
 
 
 // ============================================================================
@@ -52,11 +52,11 @@ var private bool bInitial;
 // Sets the target location and scale.
 // ============================================================================
 
-function SetTarget(vector NewLocationTarget, float NewScaleTarget) {
-
+function SetTarget(vector NewLocationTarget, float NewScaleTarget)
+{
   LocationTarget = NewLocationTarget;
   ScaleTarget = NewScaleTarget;
-  }
+}
 
 
 // ============================================================================
@@ -66,8 +66,8 @@ function SetTarget(vector NewLocationTarget, float NewScaleTarget) {
 // the icon along the line of movement if applicable or by time otherwise.
 // ============================================================================
 
-function Move(float TimeDelta) {
-
+function Move(float TimeDelta)
+{
   local float DistanceTotal;
   local float DistanceDelta;
   local float ScaleDelta;
@@ -76,38 +76,38 @@ function Move(float TimeDelta) {
   if (bInitial) {
     bInitial = False;
     Location = LocationTarget;
-    }
+  }
 
   else {
     DistanceTotal = Sqrt(Square(LocationTarget.X - Location.X) +
                          Square(LocationTarget.Y - Location.Y));
-  
+
     if (DistanceTotal > 0.0) {
       Velocity += 1.0 * TimeDelta;
       DistanceDelta = Velocity * TimeDelta;
-  
+
       LocationDelta = LocationTarget - Location;
       if (DistanceDelta < DistanceTotal)
         LocationDelta *= DistanceDelta / DistanceTotal;
-  
+
       Location += LocationDelta;
       if (Location == LocationTarget)
         Velocity = 0.0;
-      }
-  
+    }
+
     if (Scale != ScaleTarget) {
       if (DistanceTotal > 0.0)
         ScaleDelta = Abs(ScaleTarget - Scale) * DistanceDelta / DistanceTotal;
       else
         ScaleDelta = 2.0 * TimeDelta;
-      
+
       if (Scale < ScaleTarget)
         Scale = FMin(ScaleTarget, Scale + ScaleDelta);
       else
         Scale = FMax(ScaleTarget, Scale - ScaleDelta);
-      }
     }
   }
+}
 
 
 // ============================================================================
@@ -117,12 +117,12 @@ function Move(float TimeDelta) {
 // faded out already. When it has, it can be removed.
 // ============================================================================
 
-function bool Fadeout(float TimeDelta) {
-
+function bool Fadeout(float TimeDelta)
+{
   Scale = FMax(0.0, Scale - 2.0 * TimeDelta);
 
   return (Scale == 0.0);
-  }
+}
 
 
 // ============================================================================
@@ -131,8 +131,8 @@ function bool Fadeout(float TimeDelta) {
 // Renders the icon at its current location and scale on the given canvas.
 // ============================================================================
 
-function Draw(Canvas Canvas) {
-
+function Draw(Canvas Canvas)
+{
   local float ScaleCanvas;
   local float ScaleWidget;
   local float ScaleIconTexture;
@@ -142,7 +142,7 @@ function Draw(Canvas Canvas) {
 
   ScaleCanvas = Canvas.Viewport.Actor.myHUD.HudCanvasScale;
   ScaleWidget = Canvas.Viewport.Actor.myHUD.HudScale;
-  
+
   SizeIconTexture.X = SpriteWidgetPlayer.TextureCoords.X2 - SpriteWidgetPlayer.TextureCoords.X1;
   SizeIconTexture.Y = SpriteWidgetPlayer.TextureCoords.Y2 - SpriteWidgetPlayer.TextureCoords.Y1;
 
@@ -167,15 +167,15 @@ function Draw(Canvas Canvas) {
     SpriteWidgetPlayer.TextureCoords.Y1,
     SizeIconTexture.X,
     SizeIconTexture.Y);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   SpriteWidgetPlayer = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=16,Y1=352,X2=50,Y2=418),TextureScale=0.21,Tints[0]=(R=255,G=0,B=0,A=255),Tints[1]=(R=0,G=0,B=255,A=255));
   bInitial = True;
-  }
+}

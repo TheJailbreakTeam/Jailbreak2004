@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.4 2003/06/15 22:00:02 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.5 2003/07/19 22:02:25 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -20,14 +20,14 @@ class JBGameRules extends GameRules
 // Called when a game round starts, including the first round in a game.
 // ============================================================================
 
-function NotifyRound() {
-
+function NotifyRound()
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyRound();
-  }
+}
 
 
 // ============================================================================
@@ -38,14 +38,14 @@ function NotifyRound() {
 // llama the next time he or she rejoins the game.
 // ============================================================================
 
-function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsLlama) {
-
+function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsLlama)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerDisconnect(ControllerPlayer, bIsLlama);
-  }
+}
 
 
 // ============================================================================
@@ -57,14 +57,14 @@ function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsL
 // same round they reconnected and was in jail when they disconnected.
 // ============================================================================
 
-function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama) {
-
+function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerReconnect(ControllerPlayer, bIsLlama);
-  }
+}
 
 
 // ============================================================================
@@ -75,16 +75,16 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 // scheduled for a fight in the given arena, the match will be cancelled.
 // ============================================================================
 
-function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena) {
-
+function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     return nextJBGameRules.CanSendToArena(TagPlayer, Arena);
-  
+
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -93,14 +93,14 @@ function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena) {
 // Called direcly after both arena combatants have been spawned in the arena.
 // ============================================================================
 
-function NotifyArenaStart(JBInfoArena Arena) {
-
+function NotifyArenaStart(JBInfoArena Arena)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyArenaStart(Arena);
-  }
+}
 
 
 // ============================================================================
@@ -111,14 +111,14 @@ function NotifyArenaStart(JBInfoArena Arena) {
 // a short time earlier already.
 // ============================================================================
 
-function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner) {
-
+function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyArenaEnd(Arena, TagPlayerWinner);
-  }
+}
 
 
 // ============================================================================
@@ -129,16 +129,16 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner) {
 // losing an arena fight. Returning False will restart the player in freedom.
 // ============================================================================
 
-function bool CanSendToJail(JBTagPlayer TagPlayer) {
-
+function bool CanSendToJail(JBTagPlayer TagPlayer)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     return nextJBGameRules.CanSendToJail(TagPlayer);
-  
+
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -150,16 +150,16 @@ function bool CanSendToJail(JBTagPlayer TagPlayer) {
 // they are activated again.
 // ============================================================================
 
-function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objective) {
-
+function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objective)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     return nextJBGameRules.CanRelease(Team, PawnInstigator, Objective);
-  
+
   return True;
-  }
+}
 
 
 // ============================================================================
@@ -169,14 +169,14 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
 // opening, but haven't fully opened yet.
 // ============================================================================
 
-function NotifyJailOpening(JBInfoJail Jail) {
-
+function NotifyJailOpening(JBInfoJail Jail)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyJailOpening(Jail);
-  }
+}
 
 
 // ============================================================================
@@ -186,14 +186,14 @@ function NotifyJailOpening(JBInfoJail Jail) {
 // completed opening and are fully open now.
 // ============================================================================
 
-function NotifyJailOpened(JBInfoJail Jail) {
-
+function NotifyJailOpened(JBInfoJail Jail)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyJailOpened(Jail);
-  }
+}
 
 
 // ============================================================================
@@ -203,14 +203,14 @@ function NotifyJailOpened(JBInfoJail Jail) {
 // and before the objectives are activated again.
 // ============================================================================
 
-function NotifyJailClosed(JBInfoJail Jail) {
-
+function NotifyJailClosed(JBInfoJail Jail)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyJailClosed(Jail);
-  }
+}
 
 
 // ============================================================================
@@ -221,14 +221,14 @@ function NotifyJailClosed(JBInfoJail Jail) {
 // by simply physically walking into it.
 // ============================================================================
 
-function NotifyPlayerJailed(JBTagPlayer TagPlayer) {
-
+function NotifyPlayerJailed(JBTagPlayer TagPlayer)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerJailed(TagPlayer);
-  }
+}
 
 
 // ============================================================================
@@ -239,14 +239,14 @@ function NotifyPlayerJailed(JBTagPlayer TagPlayer) {
 // for a fight.
 // ============================================================================
 
-function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail) {
-
+function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyPlayerReleased(TagPlayer, Jail);
-  }
+}
 
 
 // ============================================================================
@@ -257,14 +257,14 @@ function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail) {
 // camera.
 // ============================================================================
 
-function NotifyExecutionCommit(TeamInfo Team) {
-
+function NotifyExecutionCommit(TeamInfo Team)
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyExecutionCommit(Team);
-  }
+}
 
 
 // ============================================================================
@@ -274,14 +274,14 @@ function NotifyExecutionCommit(TeamInfo Team) {
 // next round starts.
 // ============================================================================
 
-function NotifyExecutionEnd() {
-
+function NotifyExecutionEnd()
+{
   local JBGameRules nextJBGameRules;
 
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     nextJBGameRules.NotifyExecutionEnd();
-  }
+}
 
 
 // ============================================================================
@@ -290,8 +290,8 @@ function NotifyExecutionEnd() {
 // Internal. Used to find the next JBGameRules actor in the GameRules chain.
 // ============================================================================
 
-protected final function JBGameRules GetNextJBGameRules() {
-
+protected final function JBGameRules GetNextJBGameRules()
+{
   local GameRules thisGameRules;
 
   for (thisGameRules = NextGameRules; thisGameRules != None; thisGameRules = thisGameRules.NextGameRules)
@@ -299,4 +299,4 @@ protected final function JBGameRules GetNextJBGameRules() {
       return JBGameRules(thisGameRules);
 
   return None;
-  }
+}

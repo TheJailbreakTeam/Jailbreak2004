@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.6 2003/01/13 21:24:16 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.7 2003/03/22 19:42:25 mychaeel Exp $
 //
 // Localized messages for generic Jailbreak announcements.
 // ============================================================================
@@ -47,7 +47,7 @@ var Color ColorArena;
 // Receives an event on a client's computer and performs appropriate actions.
 // The parameters assume the following values:
 //
-//   Switch    Meaning             Info 1           Info 2           Object    
+//   Switch    Meaning             Info 1           Info 2           Object
 //   =======   =================   ==============   ==============   ========
 //   100 (b)   Team captured                                         TeamInfo
 //   200 (b)   Team released       Releaser                          TeamInfo
@@ -66,7 +66,7 @@ var Color ColorArena;
 
 static function ClientReceive(PlayerController Player,
                               optional int Switch,
-                              optional PlayerReplicationInfo PlayerReplicationInfo1, 
+                              optional PlayerReplicationInfo PlayerReplicationInfo1,
                               optional PlayerReplicationInfo PlayerReplicationInfo2,
                               optional Object ObjectOptional) {
 
@@ -74,7 +74,7 @@ static function ClientReceive(PlayerController Player,
     Player.PlayBeepSound();
 
   Super.ClientReceive(Player, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
-  }
+}
 
 
 // ============================================================================
@@ -85,11 +85,11 @@ static function ClientReceive(PlayerController Player,
 // from other static functions.
 // ============================================================================
 
-static function string StaticReplaceText(string TextTemplate, string TextPlaceholder, string TextReplacement) {
-
+static function string StaticReplaceText(string TextTemplate, string TextPlaceholder, string TextReplacement)
+{
   local int OffsetPlaceholder;
   local string TextOutput;
-  
+
   while (True) {
     OffsetPlaceholder = InStr(TextTemplate, TextPlaceholder);
     if (OffsetPlaceholder < 0)
@@ -97,13 +97,13 @@ static function string StaticReplaceText(string TextTemplate, string TextPlaceho
 
     TextOutput = TextOutput $ Left(TextTemplate, OffsetPlaceholder);
     TextOutput = TextOutput $ TextReplacement;
-    
+
     TextTemplate = Mid(TextTemplate, OffsetPlaceholder + Len(TextPlaceholder));
-    }
+  }
 
   TextOutput = TextOutput $ TextTemplate;
   return TextOutput;
-  }
+}
 
 
 // ============================================================================
@@ -113,10 +113,10 @@ static function string StaticReplaceText(string TextTemplate, string TextPlaceho
 // result.
 // ============================================================================
 
-static function string ReplaceTextPlayer(string TextTemplate, PlayerReplicationInfo PlayerReplicationInfo) {
-
+static function string ReplaceTextPlayer(string TextTemplate, PlayerReplicationInfo PlayerReplicationInfo)
+{
   return StaticReplaceText(TextTemplate, "%player%", PlayerReplicationInfo.PlayerName);
-  }
+}
 
 
 // ============================================================================
@@ -140,23 +140,23 @@ static function string ReplaceTextArena(string TextTemplate,
   if (PlayerLocal.PlayerReplicationInfo.Team == PlayerReplicationInfo1.Team) {
     PlayerReplicationInfoTeammate = PlayerReplicationInfo1;
     PlayerReplicationInfoEnemy    = PlayerReplicationInfo2;
-    }
-  
+  }
+
   else {
     PlayerReplicationInfoTeammate = PlayerReplicationInfo2;
     PlayerReplicationInfoEnemy    = PlayerReplicationInfo1;
-    }
+  }
 
   TextTemplate = StaticReplaceText(TextTemplate, "%teammate%", PlayerReplicationInfoTeammate.PlayerName);
   if (PlayerReplicationInfoEnemy != None)
     TextTemplate = StaticReplaceText(TextTemplate, "%enemy%", PlayerReplicationInfoEnemy.PlayerName);
-  
+
   TextTemplate = StaticReplaceText(TextTemplate, "%winner%", PlayerReplicationInfo1.PlayerName);
   if (PlayerReplicationInfo2 != None)
     TextTemplate = StaticReplaceText(TextTemplate, "%loser%",  PlayerReplicationInfo2.PlayerName);
 
   return TextTemplate;
-  }
+}
 
 
 // ============================================================================
@@ -166,10 +166,10 @@ static function string ReplaceTextArena(string TextTemplate,
 // player on this client.
 // ============================================================================
 
-static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo) {
-
+static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo)
+{
   return (PlayerReplicationInfo.Level.GetLocalPlayerController().PlayerReplicationInfo == PlayerReplicationInfo);
-  }
+}
 
 
 // ============================================================================
@@ -180,7 +180,7 @@ static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo) 
 // ============================================================================
 
 static function string GetString(optional int Switch,
-                                 optional PlayerReplicationInfo PlayerReplicationInfo1, 
+                                 optional PlayerReplicationInfo PlayerReplicationInfo1,
                                  optional PlayerReplicationInfo PlayerReplicationInfo2,
                                  optional Object ObjectOptional) {
 
@@ -192,7 +192,7 @@ static function string GetString(optional int Switch,
       if (PlayerReplicationInfo1 != None)
         return ReplaceTextPlayer(Default.TextTeamReleasedBy[TeamInfo(ObjectOptional).TeamIndex], PlayerReplicationInfo1);
       return Default.TextTeamReleased[TeamInfo(ObjectOptional).TeamIndex];
-    
+
     case 403:  return ReplaceTextArena(Default.TextArenaCountdown[2], PlayerReplicationInfo1, PlayerReplicationInfo2);
     case 402:  return ReplaceTextArena(Default.TextArenaCountdown[1], PlayerReplicationInfo1, PlayerReplicationInfo2);
     case 401:  return ReplaceTextArena(Default.TextArenaCountdown[0], PlayerReplicationInfo1, PlayerReplicationInfo2);
@@ -202,7 +202,7 @@ static function string GetString(optional int Switch,
           IsLocalPlayer(PlayerReplicationInfo2))
         return ReplaceTextArena(Default.TextArenaStartCombatant, PlayerReplicationInfo1, PlayerReplicationInfo2);
       return ReplaceTextArena(Default.TextArenaStartOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
-    
+
     case 410:
       if (IsLocalPlayer(PlayerReplicationInfo1) ||
           IsLocalPlayer(PlayerReplicationInfo2))
@@ -221,8 +221,8 @@ static function string GetString(optional int Switch,
       if (IsLocalPlayer(PlayerReplicationInfo2))
         return ReplaceTextArena(Default.TextArenaEndLoser, PlayerReplicationInfo1, PlayerReplicationInfo2);
       return ReplaceTextArena(Default.TextArenaEndOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
-    }
   }
+}
 
 
 // ============================================================================
@@ -232,22 +232,22 @@ static function string GetString(optional int Switch,
 // ============================================================================
 
 static function Color GetColor(optional int Switch,
-                               optional PlayerReplicationInfo PlayerReplicationInfo1, 
+                               optional PlayerReplicationInfo PlayerReplicationInfo1,
                                optional PlayerReplicationInfo PlayerReplicationInfo2) {
 
   if (Switch >= 400 && Switch <= 499)
     return Default.ColorArena;
 
   return Super.GetColor(Switch, PlayerReplicationInfo1, PlayerReplicationInfo2);
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   TextTeamCaptured[0]      = "The red team has been captured.";
   TextTeamCaptured[1]      = "The blue team has been captured.";
   TextTeamReleased[0]      = "The red team has been released.";
@@ -275,4 +275,4 @@ defaultproperties {
   bFadeMessage = True;
   bIsUnique    = True;
   bIsSpecial   = True;
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGUITabPanelAddons.uc,v 1.1 2003/06/25 19:01:45 mychaeel Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -14,18 +14,18 @@ class JBGUITabPanelAddons extends GUITabPanel;
 // Types
 // ============================================================================
 
-struct TInfoAddon {
-
+struct TInfoAddon
+{
   var() string TextName;                        // short add-on name
   var() string TextDescription;                 // brief add-on description
   var() string Group;                           // only one from each group
-  
+
   var() Class<JBAddon> ClassAddon;              // class of add-on mutator
   var() Class<GUIPanel> ClassGUIPanelConfig;    // class of its config panel
 
   var moCheckBox moCheckBoxSelected;            // checkbox for this addon
   var GUIPanel GUIPanelConfig;                  // instantiated config panel
-  };
+};
 
 
 // ============================================================================
@@ -52,8 +52,8 @@ var GUIPanel GUIPanelConfigTemplate;            // template for config panels
 // Reads the list of add-ons and creates a checkbox for each.
 // ============================================================================
 
-function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwner) {
-
+function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwner)
+{
   local int iInfoAddon;
 
   Super.InitComponent(GUIController, GUIComponentOwner);
@@ -64,20 +64,20 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   GUIComponentTabsAddons = JBGUIComponentTabs(Controls[0]);
   GUIComponentTabsAddons.OnTabOpened = GUIComponentTabsAddons_TabOpened;
   GUIComponentTabsAddons.OnTabClosed = GUIComponentTabsAddons_TabClosed;
-  
+
   GUIScrollTextBoxAddon = GUIScrollTextBox(GUIComponentTabsAddons.Controls[0]);
 
   for (iInfoAddon = 0; iInfoAddon < ListInfoAddon.Length; iInfoAddon++) {
     ListInfoAddon[iInfoAddon].moCheckBoxSelected =
       moCheckBox(GUIComponentTabsAddons.AddTab(ListInfoAddon[iInfoAddon].TextName));
-      
+
     ListInfoAddon[iInfoAddon].moCheckBoxSelected.Checked(
       InStr("," $ LastAddons                           $ ",",
             "," $ ListInfoAddon[iInfoAddon].ClassAddon $ ",") >= 0);
-    
+
     ListInfoAddon[iInfoAddon].moCheckBoxSelected.OnChange = moCheckBoxSelected_Change;
-    }
   }
+}
 
 
 // ============================================================================
@@ -87,38 +87,38 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
 // all information from the loaded classes' default properties.
 // ============================================================================
 
-function ReadListInfoAddon() {
-
+function ReadListInfoAddon()
+{
   local int iClassAddon;
   local int iInfoAddon;
   local string NameClassAddon;
   local Class<JBAddon> ClassAddon;
 
   ListInfoAddon.Length = 0;
-  
+
   while (True) {
     NameClassAddon = PlayerOwner().GetNextInt("JBAddon", iClassAddon++);
     if (NameClassAddon == "")
       break;
-    
+
     ClassAddon = Class<JBAddon>(DynamicLoadObject(NameClassAddon, Class'Class', True));
     if (ClassAddon == None ||
         ClassAddon.Default.FriendlyName == Class'JBAddon'.Default.FriendlyName)
       continue;
-    
+
     iInfoAddon = ListInfoAddon.Length;
     ListInfoAddon.Length = ListInfoAddon.Length + 1;
-    
+
     ListInfoAddon[iInfoAddon].ClassAddon      = ClassAddon;
     ListInfoAddon[iInfoAddon].TextName        = ClassAddon.Default.FriendlyName;
     ListInfoAddon[iInfoAddon].TextDescription = ClassAddon.Default.Description;
     ListInfoAddon[iInfoAddon].Group           = ClassAddon.Default.GroupName;
-    
+
     if (ClassAddon.Default.ConfigMenuClassName != "")
       ListInfoAddon[iInfoAddon].ClassGUIPanelConfig =
         Class<GUIPanel>(DynamicLoadObject(ClassAddon.Default.ConfigMenuClassName, Class'Class', True));
-    }
   }
+}
 
 
 // ============================================================================
@@ -127,8 +127,8 @@ function ReadListInfoAddon() {
 // Sorts the list of add-ons alphabetically by their name.
 // ============================================================================
 
-function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd) {
-
+function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd)
+{
   local int iInfoAddonLeft;
   local int iInfoAddonRight;
   local TInfoAddon InfoAddonMiddle;
@@ -136,29 +136,29 @@ function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd) {
 
   if (iInfoAddonStart >= iInfoAddonEnd)
     return;
-  
+
   iInfoAddonLeft  = iInfoAddonStart;
   iInfoAddonRight = iInfoAddonEnd;
-  
+
   InfoAddonMiddle = ListInfoAddon[(iInfoAddonStart + iInfoAddonEnd) / 2];
-  
+
   while (iInfoAddonLeft < iInfoAddonRight) {
     while (iInfoAddonLeft  < iInfoAddonEnd   && ListInfoAddon[iInfoAddonLeft] .TextName < InfoAddonMiddle.TextName) iInfoAddonLeft  += 1;
     while (iInfoAddonRight > iInfoAddonStart && ListInfoAddon[iInfoAddonRight].TextName > InfoAddonMiddle.TextName) iInfoAddonRight -= 1;
-    
+
     if (iInfoAddonLeft < iInfoAddonRight) {
       InfoAddonSwapped               = ListInfoAddon[iInfoAddonLeft];
       ListInfoAddon[iInfoAddonLeft]  = ListInfoAddon[iInfoAddonRight];
       ListInfoAddon[iInfoAddonRight] = InfoAddonSwapped;
-      }
+    }
 
     iInfoAddonLeft  += 1;
     iInfoAddonRight -= 1;
-    }
+  }
 
   SortListInfoAddon(iInfoAddonStart, iInfoAddonRight);
   SortListInfoAddon(iInfoAddonLeft,  iInfoAddonEnd);
-  }
+}
 
 
 // ============================================================================
@@ -168,8 +168,8 @@ function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd) {
 // loads and displays its configuration panel if one is available.
 // ============================================================================
 
-function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab) {
-
+function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab)
+{
   local int iInfoAddon;
   local GUIPanel GUIPanelConfig;
 
@@ -194,10 +194,10 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
     GUIPanelConfig.WinHeight = GUIPanelConfigTemplate.WinHeight;
 
     GUIComponentTabsAddons.AddComponent(GUIPanelConfig);
-    }
+  }
 
   ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = True;
-  }
+}
 
 
 // ============================================================================
@@ -206,15 +206,15 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
 // Called when a tab is closed. Removes the current configuration panel.
 // ============================================================================
 
-function GUIComponentTabsAddons_TabClosed(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab) {
-
+function GUIComponentTabsAddons_TabClosed(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab)
+{
   local int iInfoAddon;
-  
+
   iInfoAddon = GUIComponentTabsAddons.GetTabIndex(GUIMenuOptionTab);
 
   if (ListInfoAddon[iInfoAddon].GUIPanelConfig != None)
     ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = False;
-  }
+}
 
 
 // ============================================================================
@@ -224,20 +224,20 @@ function GUIComponentTabsAddons_TabClosed(GUIComponent GUIComponentSender, GUIMe
 // currently selected add-ons.
 // ============================================================================
 
-function string GetAddons() {
-
+function string GetAddons()
+{
   local int iInfoAddon;
   local string Addons;
-  
+
   for (iInfoAddon = 0; iInfoAddon < ListInfoAddon.Length; iInfoAddon++)
     if (ListInfoAddon[iInfoAddon].moCheckBoxSelected.IsChecked()) {
       if (Addons != "")
         Addons = Addons $ ",";
       Addons = Addons $ ListInfoAddon[iInfoAddon].ClassAddon;
-      }
+    }
 
   return Addons;
-  }
+}
 
 
 // ============================================================================
@@ -248,11 +248,11 @@ function string GetAddons() {
 // unchecks all other checkboxes in that group.
 // ============================================================================
 
-function moCheckBoxSelected_Change(GUIComponent GUIComponentSender) {
-
+function moCheckBoxSelected_Change(GUIComponent GUIComponentSender)
+{
   local int iInfoAddon;
   local int iInfoAddonChanged;
-  
+
   iInfoAddonChanged = GUIComponentTabsAddons.GetTabIndex(GUIMenuOption(GUIComponentSender));
 
   if (ListInfoAddon[iInfoAddonChanged].Group != "" &&
@@ -264,7 +264,7 @@ function moCheckBoxSelected_Change(GUIComponent GUIComponentSender) {
 
   LastAddons = GetAddons();
   SaveConfig();
-  }
+}
 
 
 // ============================================================================
@@ -274,13 +274,13 @@ function moCheckBoxSelected_Change(GUIComponent GUIComponentSender) {
 // to the game parameter string.
 // ============================================================================
 
-function string Play() {
-
+function string Play()
+{
   LastAddons = GetAddons();
   SaveConfig();
-  
+
   return "?Addon=" $ LastAddons;
-  }
+}
 
 
 // ============================================================================
@@ -290,23 +290,23 @@ function string Play() {
 // on PlanetJailbreak pointing to those downloads.
 // ============================================================================
 
-function bool GUIButtonDownloadAddons_Click(GUIComponent GUIComponentClicked) {
-
+function bool GUIButtonDownloadAddons_Click(GUIComponent GUIComponentClicked)
+{
   PlayerOwner().ConsoleCommand("start http://www.planetjailbreak.com/download/addons/");
   return True;
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   WinLeft   = 0.000;
   WinWidth  = 1.000;
   WinHeight = 0.770;
-  
+
   bAcceptsInput = False;
 
   Begin Object Class=GUIScrollTextBox Name=GUIScrollTextBoxAddonDef
@@ -326,7 +326,7 @@ defaultproperties {
     WinHeight    = 0.936;
     Controls[0]  = GUIScrollTextBox'GUIScrollTextBoxAddonDef';
   End Object
-  
+
   Begin Object Class=GUIButton Name=GUIButtonDownloadAddonsDef
     Caption      = "Download More Add-Ons!";
     Hint         = "Opens the add-on download page on PlanetJailbreak in a web browser.";
@@ -337,7 +337,7 @@ defaultproperties {
     OnClick      = GUIButtonDownloadAddons_Click;
     OnClickSound = CS_Down;
   End Object
-  
+
   Begin Object Class=GUIPanel Name=GUIPanelConfigTemplateDef
     bVisible     = False;
     WinTop       = 0.330;
@@ -350,4 +350,4 @@ defaultproperties {
   Controls[1] = GUIButton'GUIButtonDownloadAddonsDef';
 
   GUIPanelConfigTemplate = GUIPanel'GUIPanelConfigTemplateDef';
-  }
+}

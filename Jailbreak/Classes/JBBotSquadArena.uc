@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadArena.uc,v 1.2 2003/01/25 23:46:48 mychaeel Exp $
+// $Id: JBBotSquadArena.uc,v 1.3 2003/02/17 21:18:20 mychaeel Exp $
 //
 // Controls the bots fighting in an arena.
 // ============================================================================
@@ -24,13 +24,13 @@ var localized string TextArena;
 // If the bot is currently following a scripted sequence, stops it.
 // ============================================================================
 
-function AddBot(Bot Bot) {
-
+function AddBot(Bot Bot)
+{
   Super.AddBot(Bot);
 
   Bot.FreeScript();
   TeamPlayerReplicationInfo(Bot.PlayerReplicationInfo).bHolding = False;
-  }
+}
 
 
 // ============================================================================
@@ -39,8 +39,8 @@ function AddBot(Bot Bot) {
 // Ignores all players except those in the same arena.
 // ============================================================================
 
-function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
-
+function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
+{
   local JBTagPlayer TagPlayerBot;
   local JBTagPlayer TagPlayerEnemy;
 
@@ -52,7 +52,7 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
     return False;
 
   return Super.SetEnemy(Bot, PawnEnemy);
-  }
+}
 
 
 // ============================================================================
@@ -62,17 +62,17 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
 // in this squad, simply that they're fighting in an arena.
 // ============================================================================
 
-simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo) {
-
+simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo)
+{
   return TextArena;
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   TextArena = "fighting in arena";
-  }
+}

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameObjective.uc,v 1.3 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBGameObjective.uc,v 1.4 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Dummy game objective automatically spawned by the game to mark release
 // switches that are simple triggers.
@@ -16,11 +16,11 @@ class JBGameObjective extends GameObjective
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role == ROLE_Authority)
     RepDefenderTeamIndex;
-  }
+}
 
 
 // ============================================================================
@@ -40,10 +40,10 @@ var private int RepDefenderTeamIndex;  // replicated value for compass
 // dynamically spawned objectives.
 // ============================================================================
 
-event PostBeginPlay() {
-
+event PostBeginPlay()
+{
   local GameObjective thisObjective;
-  
+
   foreach AllActors(Class'GameObjective', thisObjective)
     if (thisObjective.bFirstObjective)
       break;
@@ -54,12 +54,12 @@ event PostBeginPlay() {
       thisObjective = thisObjective.NextObjective;
     if (thisObjective != Self)
       thisObjective.NextObjective = Self;
-    }
-  
-  Class'JBTagObjective'.Static.SpawnFor(Self);
-  
-  Super.PostBeginPlay();
   }
+
+  Class'JBTagObjective'.Static.SpawnFor(Self);
+
+  Super.PostBeginPlay();
+}
 
 
 // ============================================================================
@@ -68,17 +68,17 @@ event PostBeginPlay() {
 // Finds defense scripts with the given tag.
 // ============================================================================
 
-function FindDefenseScripts(name TagDefenseScripts) {
-
+function FindDefenseScripts(name TagDefenseScripts)
+{
   local UnrealScriptedSequence thisScript;
 
   foreach AllActors(Class'UnrealScriptedSequence', DefenseScripts, TagDefenseScripts)
     if (DefenseScripts.bFirstScript)
       break;
-  
+
   for (thisScript = DefenseScripts; thisScript != None; thisScript = thisScript.NextScript)
     thisScript.bFreelance = False;
-  }
+}
 
 
 // ============================================================================
@@ -87,11 +87,11 @@ function FindDefenseScripts(name TagDefenseScripts) {
 // Replicates the value of DefenderTeamIndex.
 // ============================================================================
 
-event Tick(float TimeDelta) {
-
+event Tick(float TimeDelta)
+{
   RepDefenderTeamIndex = DefenderTeamIndex;
   Disable('Tick');
-  }
+}
 
 
 // ============================================================================
@@ -102,11 +102,11 @@ event Tick(float TimeDelta) {
 // statically placed in the map by level designers.
 // ============================================================================
 
-simulated event PostNetBeginPlay() {
-
+simulated event PostNetBeginPlay()
+{
   if (Role < ROLE_Authority)
     DefenderTeamIndex = RepDefenderTeamIndex;
-  }
+}
 
 
 // ============================================================================
@@ -115,13 +115,13 @@ simulated event PostNetBeginPlay() {
 // Directs the given bot to the trigger associated with thie objective.
 // ============================================================================
 
-function bool TellBotHowToDisable(Bot Bot) {
-
+function bool TellBotHowToDisable(Bot Bot)
+{
   if (TriggerRelease != None)
     return Bot.Squad.FindPathToObjective(Bot, TriggerRelease);
 
   Log("Warning: Objective" @ Self @ "has no associated release trigger");
-  }
+}
 
 
 // ============================================================================
@@ -130,22 +130,22 @@ function bool TellBotHowToDisable(Bot Bot) {
 // Directs bots to the associated trigger instead of the objective itself.
 // ============================================================================
 
-event Actor SpecialHandling(Pawn Pawn) {
-
+event Actor SpecialHandling(Pawn Pawn)
+{
   if (TriggerRelease != None)
     return TriggerRelease;
 
   Log("Warning: Objective" @ Self @ "has no associated release trigger");
-  }
+}
 
 
 // ============================================================================
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   bStatic         = False;
   bNoDelete       = False;
   bAlwaysRelevant = True;
-  }
+}

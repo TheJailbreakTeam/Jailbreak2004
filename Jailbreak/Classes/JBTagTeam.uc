@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagTeam.uc,v 1.12 2003/02/26 20:01:31 mychaeel Exp $
+// $Id: JBTagTeam.uc,v 1.13 2003/06/25 18:46:48 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -15,11 +15,11 @@ class JBTagTeam extends JBTag
 // Replication
 // ============================================================================
 
-replication {
-
+replication
+{
   reliable if (Role == ROLE_Authority)
     Tactics, bTacticsAuto, nPlayers, nPlayersFree, nPlayersJailed;
-  }
+}
 
 
 // ============================================================================
@@ -53,12 +53,12 @@ static function JBTagTeam SpawnFor(TeamInfo Keeper) {
 // Starts the timer.
 // ============================================================================
 
-function Register() {
-
+function Register()
+{
   Super.Register();
 
   SetTimer(0.2, True);
-  }
+}
 
 
 // ============================================================================
@@ -68,13 +68,13 @@ function Register() {
 // players for replication.
 // ============================================================================
 
-event Timer() {
-
+event Timer()
+{
   Tactics      = JBBotTeam(UnrealTeamInfo(Keeper).AI).GetTactics();
   bTacticsAuto = JBBotTeam(UnrealTeamInfo(Keeper).AI).GetTacticsAuto();
-  
+
   CountPlayers();
-  }
+}
 
 
 // ============================================================================
@@ -84,18 +84,18 @@ event Timer() {
 // variables. Updated only once per tick.
 // ============================================================================
 
-private function CountPlayers() {
-
+private function CountPlayers()
+{
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
   if (TimeCountPlayers == Level.TimeSeconds)
     return;
-  
+
   nPlayers = TeamInfo(Keeper).Size;
   nPlayersFree   = 0;
   nPlayersJailed = 0;
-  
+
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetTeam() == Keeper)
@@ -105,8 +105,8 @@ private function CountPlayers() {
         nPlayersFree++;
 
   TimeCountPlayers = Level.TimeSeconds;
-  }
-  
+}
+
 
 // ============================================================================
 // CountPlayersFree
@@ -115,13 +115,13 @@ private function CountPlayers() {
 // them, client-side by reading the replicated value.
 // ============================================================================
 
-simulated function int CountPlayersFree(optional bool bCached) {
-
+simulated function int CountPlayersFree(optional bool bCached)
+{
   if (Role == ROLE_Authority && !bCached)
     CountPlayers();
-  
+
   return nPlayersFree;
-  }
+}
 
 
 // ============================================================================
@@ -131,13 +131,13 @@ simulated function int CountPlayersFree(optional bool bCached) {
 // them, client-side by reading the replicated value.
 // ============================================================================
 
-simulated function int CountPlayersJailed(optional bool bCached) {
-
+simulated function int CountPlayersJailed(optional bool bCached)
+{
   if (Role == ROLE_Authority && !bCached)
     CountPlayers();
 
   return nPlayersJailed;
-  }
+}
 
 
 // ============================================================================
@@ -146,13 +146,13 @@ simulated function int CountPlayersJailed(optional bool bCached) {
 // Returns the total number of players in this team client- and server-side.
 // ============================================================================
 
-simulated function int CountPlayersTotal() {
-
+simulated function int CountPlayersTotal()
+{
   if (Role == ROLE_Authority)
     return TeamInfo(Keeper).Size;
   else
     return nPlayers;  // replicated value
-  }
+}
 
 
 // ============================================================================
@@ -162,8 +162,8 @@ simulated function int CountPlayersTotal() {
 // freedom.
 // ============================================================================
 
-function array<PlayerStart> FindPlayerStarts() {
-
+function array<PlayerStart> FindPlayerStarts()
+{
   local NavigationPoint thisNavigationPoint;
 
   if (ListPlayerStart.Length == 0)
@@ -177,7 +177,7 @@ function array<PlayerStart> FindPlayerStarts() {
         ListPlayerStart[ListPlayerStart.Length] = PlayerStart(thisNavigationPoint);
 
   return ListPlayerStart;
-  }
+}
 
 
 // ============================================================================
@@ -196,7 +196,7 @@ simulated function bool GetTacticsAuto() {
 // Defaults
 // ============================================================================
 
-defaultproperties {
-
+defaultproperties
+{
   RemoteRole = ROLE_SimulatedProxy;
-  }
+}

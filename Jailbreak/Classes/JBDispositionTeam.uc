@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionTeam.uc,v 1.1 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBDispositionTeam.uc,v 1.2 2003/06/15 21:31:32 mychaeel Exp $
 //
 // Manages the icon groups of one team.
 // ============================================================================
@@ -27,13 +27,13 @@ var private array<JBDispositionPlayer> ListDispositionPlayerFadeout;
 // Initializes this object and creates its icon groups.
 // ============================================================================
 
-function Initialize(TeamInfo NewTeam) {
-
+function Initialize(TeamInfo NewTeam)
+{
   Team = NewTeam;
 
   DispositionGroupJail = new Class'JBDispositionGroupJail';  DispositionGroupJail.Initialize(Self);
   DispositionGroupFree = new Class'JBDispositionGroupFree';  DispositionGroupFree.Initialize(Self);
-  }
+}
 
 
 // ============================================================================
@@ -43,13 +43,13 @@ function Initialize(TeamInfo NewTeam) {
 // necessary. Updates the icon positions and fades out leftover icons.
 // ============================================================================
 
-function Update(float TimeDelta) {
-
+function Update(float TimeDelta)
+{
   local int iDisposition;
 
   DispositionGroupJail.Recount();
   DispositionGroupFree.Recount();
-  
+
   while (DispositionGroupJail.IsIconSurplus() &&
          DispositionGroupFree.IsIconRequired())
     DispositionGroupFree.AddIconForChange(DispositionGroupJail.RemoveIconForChange());
@@ -60,17 +60,17 @@ function Update(float TimeDelta) {
 
   while (DispositionGroupFree.IsIconSurplus()) AddIconFadeout(DispositionGroupFree.RemoveIconForFadeout());
   while (DispositionGroupJail.IsIconSurplus()) AddIconFadeout(DispositionGroupJail.RemoveIconForFadeout());
-  
+
   while (DispositionGroupFree.IsIconRequired()) DispositionGroupFree.AddIconForFadein(CreateIcon());
   while (DispositionGroupJail.IsIconRequired()) DispositionGroupJail.AddIconForFadein(CreateIcon());
-  
+
   for (iDisposition = ListDispositionPlayerFadeout.Length - 1; iDisposition >= 0; iDisposition--)
     if (ListDispositionPlayerFadeout[iDisposition].Fadeout(TimeDelta))
       ListDispositionPlayerFadeout.Remove(iDisposition, 1);
-    
+
   DispositionGroupFree.Setup();  DispositionGroupFree.Move(TimeDelta);
   DispositionGroupJail.Setup();  DispositionGroupJail.Move(TimeDelta);
-  }
+}
 
 
 // ============================================================================
@@ -79,8 +79,8 @@ function Update(float TimeDelta) {
 // Draws all icons for this team on the given canvas.
 // ============================================================================
 
-function Draw(Canvas Canvas) {
-
+function Draw(Canvas Canvas)
+{
   local int iDisposition;
 
   for (iDisposition = 0; iDisposition < ListDispositionPlayerFadeout.Length; iDisposition++)
@@ -88,7 +88,7 @@ function Draw(Canvas Canvas) {
 
   DispositionGroupFree.Draw(Canvas);
   DispositionGroupJail.Draw(Canvas);
-  }
+}
 
 
 // ============================================================================
@@ -97,15 +97,15 @@ function Draw(Canvas Canvas) {
 // Creates a new icon and returns a reference to it.
 // ============================================================================
 
-function JBDispositionPlayer CreateIcon() {
-
+function JBDispositionPlayer CreateIcon()
+{
   local JBDispositionPlayer DispositionPlayer;
-  
+
   DispositionPlayer = new Class'JBDispositionPlayer';
   DispositionPlayer.DispositionTeam = Self;
-  
+
   return DispositionPlayer;
-  }
+}
 
 
 // ============================================================================
@@ -114,7 +114,7 @@ function JBDispositionPlayer CreateIcon() {
 // Adds an icon to the fadeout queue.
 // ============================================================================
 
-function AddIconFadeout(JBDispositionPlayer DispositionPlayer) {
-
+function AddIconFadeout(JBDispositionPlayer DispositionPlayer)
+{
   ListDispositionPlayerFadeout[ListDispositionPlayerFadeout.Length] = DispositionPlayer;
-  }
+}
