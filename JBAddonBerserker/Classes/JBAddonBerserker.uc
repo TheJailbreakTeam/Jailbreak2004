@@ -1,11 +1,11 @@
 // ============================================================================
 // JBAddonBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonBerserker.uc,v 1.4 2004/03/18 20:06:49 tarquin Exp $
+// $Id: JBAddonBerserker.uc,v 1.5 2004/04/04 00:53:36 mychaeel Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
-class JBAddonBerserker extends JBAddon config(JBAddons);
+class JBAddonBerserker extends JBAddon config;
 
 
 // ============================================================================
