@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPageClientOptions
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGUIPageClientOptions.uc,v 1.1.2.1 2004/05/17 17:29:00 mychaeel Exp $
 //
 // Dialog box for Jailbreak's client-side settings. Hooks a button into the
 // mid-game menu.
@@ -16,11 +16,14 @@ class JBGUIPageClientOptions extends GUIPage;
 // ============================================================================
 
 var moCombobox co_VoicePack;
+var GUIButton b_TestVoicePack;
 var moCheckbox ch_EnableScreens;
 
 var GUIButton b_Reset;
 var GUIButton b_Cancel;
 var GUIButton b_OK;
+
+var private string VoicePackPrev;
 
 
 // ============================================================================ 
@@ -70,11 +73,12 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   Super.InitComponent(GUIController, GUIComponentOwner);
 
   co_VoicePack     = moComboBox(Controls[2]);
-  ch_EnableScreens = moCheckBox(Controls[3]);
+  b_TestVoicePack  = GUIButton (Controls[3]);
+  ch_EnableScreens = moCheckBox(Controls[4]);
 
-  b_Reset  = GUIButton(Controls[4]);
-  b_Cancel = GUIButton(Controls[5]);
-  b_OK     = GUIButton(Controls[6]);
+  b_Reset  = GUIButton(Controls[5]);
+  b_Cancel = GUIButton(Controls[6]);
+  b_OK     = GUIButton(Controls[7]);
 
   LoadVoicePacks();
   LoadSettings();
@@ -118,14 +122,15 @@ function LoadSettings()
 {
   local int iVoicePack;
   local int nVoicePacks;
-  local string VoicePack;
   
-  VoicePack = Class'JBSpeechManager'.Static.GetVoicePack();
+  VoicePackPrev = Class'JBSpeechManager'.Static.GetVoicePack();
   
   nVoicePacks = co_VoicePack.ItemCount();
   for (iVoicePack = 0; iVoicePack < nVoicePacks; iVoicePack++)
-    if (co_VoicePack.MyComboBox.List.GetExtraAtIndex(iVoicePack) ~= VoicePack)
+    if (co_VoicePack.MyComboBox.List.GetExtraAtIndex(iVoicePack) ~= VoicePackPrev)
       co_VoicePack.Find(co_VoicePack.GetItem(iVoicePack), True);
+
+  co_VoicePack.OnChange = VoicePackChange;
 
   ch_EnableScreens.Checked(GetEnableScreens());
 }
@@ -190,11 +195,74 @@ function bool InternalOnClick(GUIComponent GUIComponentSender)
 
 function InternalOnClose(optional bool bCancelled)
 {
-  if (!bCancelled)
+  if (bCancelled)
+    Class'JBSpeechManager'.Static.SetVoicePack(VoicePackPrev);
+  else
     SaveSettings();
 
   if (UT2MidGameMenu(ParentPage) != None)
     ParentPage.InactiveFadeColor.A = ParentPage.Default.InactiveFadeColor.A;
+}
+
+
+// ============================================================================
+// VoicePackChange
+//
+// Plays a test sample when the user selects another voice pack.
+// ============================================================================
+
+function VoicePackChange(GUIComponent GUIComponentSender)
+{
+  TestVoicePack();
+}
+
+
+// ============================================================================
+// TestVoicePackClick
+//
+// Plays a test sample when the user clicks the Test button.
+// ============================================================================
+
+function bool TestVoicePackClick(GUIComponent GUIComponentSender)
+{
+  TestVoicePack();
+  return True;
+}
+
+
+// ============================================================================
+// TestVoicePack
+//
+// Plays a random test sample for the currently selected voice pack.
+// ============================================================================
+
+function TestVoicePack()
+{
+  local string Macro;
+  local string Tags;
+
+  switch (Rand(11)) {
+    case  0:  Macro = "LastMan";           break;
+    case  1:  Macro = "LastSecondSave";    break;
+    case  2:  Macro = "TeamCapturedRed";   break;
+    case  3:  Macro = "TeamCapturedBlue";  break;
+    case  4:  Macro = "TeamCapturedBoth";  break;
+    case  5:  Macro = "TeamReleasedRed";   break;
+    case  6:  Macro = "TeamReleasedBlue";  break;
+    case  7:  Macro = "ArenaWarning";      break;
+    case  8:  Macro = "ArenaEndTimeout";   break;
+    case  9:  Macro = "ArenaEndWinner";    break;
+    case 10:  Macro = "ArenaEndLoser";     break;
+  }
+
+  switch (Rand(3)) {
+    case 0:  Tags = "red";        break;
+    case 1:  Tags = "blue";       break;
+    case 2:  Tags = "spectator";  break;
+  }
+
+  Class'JBSpeechManager'.Static.SetVoicePack(co_VoicePack.GetExtra());
+  Class'JBSpeechManager'.Static.PlayFor(PlayerOwner().Level, "$" $ Macro, Tags);
 }
 
 
@@ -283,11 +351,23 @@ defaultproperties
     bReadOnly              = True;
     WinTop                 = 0.40;
     WinLeft                = 0.24;
-    WinWidth               = 0.52;
+    WinWidth               = 0.43;
     Hint = "The voice pack to use in Jailbreak.";
   End Object
   Controls[2] = moComboBox'VoicePack';
   
+  Begin Object Class=GUIButton Name=TestVoicePackButton
+    Caption                = "Test";
+    WinTop                 = 0.40;
+    WinLeft                = 0.68;
+    WinWidth               = 0.08;
+    WinHeight              = 0.06;
+    StyleName              = "SquareButton";
+    OnClick                = TestVoicePackClick;
+    Hint = "Click to play a random test sample from the selected voice pack.";
+  End Object
+  Controls[3] = GUIButton'TestVoicePackButton';
+
   Begin Object Class=moCheckBox Name=EnableScreens
     Caption                = "Enable Dynamic Screen Textures";
     CaptionWidth           = 0.90;
@@ -298,7 +378,7 @@ defaultproperties
     WinWidth               = 0.52;
     Hint = "Whether you want to see the dynamic screens placed in some Jailbreak maps. Disabling this setting may increase your framerate."
   End Object
-  Controls[3] = moCheckBox'EnableScreens';
+  Controls[4] = moCheckBox'EnableScreens';
   
   Begin Object Class=GUIButton Name=ResetButton
     Caption                = "Defaults";
@@ -309,7 +389,7 @@ defaultproperties
     OnClick                = InternalOnClick;
     Hint = "Restore all settings to their default value.";
   End Object
-  Controls[4] = GUIButton'ResetButton';
+  Controls[5] = GUIButton'ResetButton';
   
   Begin Object Class=GUIButton Name=CancelButton
     Caption                = "Cancel";
@@ -320,7 +400,7 @@ defaultproperties
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, discarding changes.";
   End Object
-  Controls[5] = GUIButton'CancelButton';
+  Controls[6] = GUIButton'CancelButton';
   
   Begin Object Class=GUIButton Name=OkButton
     Caption                = "OK";
@@ -331,5 +411,5 @@ defaultproperties
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, saving changes.";
   End Object
-  Controls[6] = GUIButton'OkButton';
+  Controls[7] = GUIButton'OkButton';
 }
