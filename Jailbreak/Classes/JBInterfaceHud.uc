@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.15 2003/03/15 21:03:43 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.16 2003/03/16 13:09:05 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -21,6 +21,9 @@ class JBInterfaceHud extends HudBTeamDeathMatch
 // ============================================================================
 // Localization
 // ============================================================================
+
+var localized string TextPlayerKilled;       // player was killed
+var localized string TextPlayerExecuted;     // player was executed
 
 var localized string TextMenuEntryTactics;   // tactics entry in order menu
 var localized string TextMenuTitleTactics;   // title for tactics submenu
@@ -177,6 +180,30 @@ simulated event PostRender(Canvas Canvas) {
   else {
     Super.PostRender(Canvas);
     }
+  }
+
+
+// ============================================================================
+// DrawSpectatingHud
+//
+// Since, for an arcane reason, the ScoreBoardDeathMatch class is hard-coded
+// in the superclass implementation of this function, we work around that
+// by temporarily modifying the default values of the scoreboard class here.
+// ============================================================================
+
+simulated function DrawSpectatingHud(Canvas Canvas) {
+
+  local string TextPlayerRestartPrev;
+
+  TextPlayerRestartPrev = Class'ScoreboardDeathMatch'.Default.Restart;
+  if (JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).bIsExecuting)
+    Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerExecuted;
+  else
+    Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerKilled;
+
+  Super.DrawSpectatingHud(Canvas);
+
+  Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerRestartPrev;
   }
 
 
@@ -687,6 +714,9 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
 // ============================================================================
 
 defaultproperties {
+
+  TextPlayerKilled   = "You were killed.";
+  TextPlayerExecuted = "You have been executed."
 
   TextMenuEntryTactics = "Team tactics";
   TextMenuTitleTactics = "Team Tactics"

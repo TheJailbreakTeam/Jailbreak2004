@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameReplicationInfo
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGameReplicationInfo.uc,v 1.10 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Replicated information for the entire game.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBGameReplicationInfo extends GameReplicationInfo
 replication {
 
   reliable if (Role == ROLE_Authority)
-    OrderNameTactics;
+    bIsExecuting, OrderNameTactics;
   }
 
 
@@ -36,6 +36,8 @@ struct TOrderName {
 // ============================================================================
 // Variables
 // ============================================================================
+
+var bool bIsExecuting;                 // set during an execution sequence
 
 var JBInfoArena    firstArena;         // first arena in chain
 var JBInfoJail     firstJail;          // first jail in chain

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.40 2003/03/16 10:38:38 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.41 2003/03/16 16:14:31 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -977,6 +977,18 @@ state Executing {
 
 
   // ================================================================
+  // BeginState
+  //
+  // Sets the bIsExecuting flag in JBGameReplicationInfo.
+  // ================================================================
+
+  event BeginState() {
+  
+    JBGameReplicationInfo(GameReplicationInfo).bIsExecuting = True;
+    }
+
+
+  // ================================================================
   // Timer
   //
   // Checks whether there are still players alive in jail. If not,
@@ -1023,6 +1035,18 @@ state Executing {
   
     if (CameraExecution != None)
       CameraExecution.ActivateFor(Controller);
+    }
+
+
+  // ================================================================
+  // EndState
+  //
+  // Resets the bIsExecuting flag in JBGameReplicationInfo.
+  // ================================================================
+
+  event EndState() {
+  
+    JBGameReplicationInfo(GameReplicationInfo).bIsExecuting = False;
     }
 
   } // state Executing
