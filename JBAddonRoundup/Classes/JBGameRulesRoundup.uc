@@ -1,13 +1,13 @@
 // ============================================================================
-// JBGameRulesHunt
+// JBGameRulesRoundup
 // Copyright 2004 by EagleAR
-// $Id: JBGameRulesHunt.uc,v 1.3 2004/05/31 19:21:40 tarquin Exp $
+// $Id: JBGameRulesRoundup.uc,v 1.4 2004/05/31 19:29:02 tarquin Exp $
 //
-// The rules for the hunt add-on.
+// The rules for the Roundup add-on.
 // ============================================================================
 
 
-class JBGameRulesHunt extends JBGameRules;
+class JBGameRulesRoundup extends JBGameRules;
 
 
 // ============================================================================

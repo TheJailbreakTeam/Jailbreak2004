@@ -1,13 +1,13 @@
 // ============================================================================
-// JBAddonHunt
+// JBAddonRoundup
 // Copyright 2004 by EagleAR
-// $Id: JBAddonHunt.uc,v 1.2 2004/05/31 19:21:40 tarquin Exp $
+// $Id: JBAddonRoundup.uc,v 1.3 2004/05/31 19:29:02 tarquin Exp $
 //
 //
 // ============================================================================
 
 
-class JBAddonHunt extends JBAddon;
+class JBAddonRoundup extends JBAddon;
 
 
 // ============================================================================
@@ -26,20 +26,20 @@ var() const editconst string Build;
 
 function PostBeginPlay()
 {
-    local JBGameRulesHunt HuntRules;
+    local JBGameRulesRoundup RoundupRules;
 
     Super.PostBeginPlay();
 
-    HuntRules = Spawn(Class'JBGameRulesHunt');
-    if(HuntRules != None)
+    RoundupRules = Spawn(Class'JBGameRulesRoundup');
+    if(RoundupRules != None)
     {
         if(Level.Game.GameRulesModifiers == None)
-            Level.Game.GameRulesModifiers = HuntRules;
-        else Level.Game.GameRulesModifiers.AddGameRules(HuntRules);
+            Level.Game.GameRulesModifiers = RoundupRules;
+        else Level.Game.GameRulesModifiers.AddGameRules(RoundupRules);
     }
     else
     {
-        LOG("!!!!!"@name$".PostBeginPlay() : Fail to register the JBGameRulesHunt !!!!!");
+        LOG("!!!!!"@name$".PostBeginPlay() : Fail to register the JBGameRulesRoundup !!!!!");
         Destroy();
     }
 }
@@ -59,8 +59,8 @@ function CheckRounds()
 
 defaultproperties
 {
-    Build="2004-04-26 15:24"
+    Build="%%%%-%%-%% %%:%%"
     ConfigMenuClassName=""
-    FriendlyName="Hunt"
-    Description="One team hunt down Other team."
+    FriendlyName="Roundup"
+    Description="One team hunts down the other team."
 }
