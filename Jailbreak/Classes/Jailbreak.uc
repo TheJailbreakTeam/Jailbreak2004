@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.35 2003/02/26 17:46:15 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.36 2003/02/26 20:01:31 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -14,6 +14,8 @@ class Jailbreak extends xTeamGame
 // ============================================================================
 // Configuration
 // ============================================================================
+
+var string Build;
 
 var config bool bEnableJailFights;
 var config bool bEnableSpectatorDeathCam;
@@ -1025,6 +1027,8 @@ state Executing {
 // ============================================================================
 
 defaultproperties {
+
+  Build = "%%%%-%%-%% %%:%%";
 
   bEnableJailFights        = True;
   bEnableSpectatorDeathCam = True;

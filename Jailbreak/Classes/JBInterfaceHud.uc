@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.11 2003/02/26 20:01:30 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.12 2003/03/15 18:32:17 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -447,7 +447,7 @@ simulated function ShowBuild(Canvas Canvas) {
   Canvas.DrawColor.A = 64;
   
   Canvas.DrawScreenText(
-    PlayerOwner.PlayerReplicationInfo.PlayerName $ ", Jailbreak 2003, build %%%%-%%-%% %%:%%",
+    PlayerOwner.PlayerReplicationInfo.PlayerName $ ", Jailbreak 2003, build" @ Class'Jailbreak'.Default.Build,
     0.5, 0.94, DP_LowerMiddle);
   }
 
