@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.43 2004/05/28 21:05:57 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.44 2004/05/30 17:48:39 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -717,6 +717,9 @@ function Controller FindWinner()
   local Controller ControllerWinner;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
+
+  if (!Level.Game.IsInState('MatchInProgress'))
+    return None;
 
   if (IsInState('MatchRunning') ||
       IsInState('MatchFinished')) {
