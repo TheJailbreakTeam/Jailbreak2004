@@ -38,10 +38,14 @@ Var() ENum EMonsterType
   WarLord,
   Custom,
 } MonsterType;
+
 Var() String    CustomMonster;
 Var() Mesh      MonsterMesh;
 Var() Material  MonsterSkin[8];
-var() bool      bMonsterControllable;
+Var   bool      bMonsterControllable;
+Var() bool      bMonsterInGodMode;
+Var() bool      bResetOnExecutionEnd;
+
 var(Events) name TagExecutionCommit; // tag for start of execution 
 var(Events) name TagExecutionEnd;    // tag for end of execution: reset monster
 var(Events) bool bUseExecutionTags;  // use above tags or Tag property
@@ -52,6 +56,7 @@ var(Events) bool bUseExecutionTags;  // use above tags or Tag property
 // ============================================================================
 
 Var Vector StartSpot;
+Var Vector MonsterLocationPrev;
 Var xPawn MyMonster;
 Var Controller MonsterController;
 Var Class<xPawn> MonsterClass;
@@ -68,25 +73,21 @@ Function PostBeginPlay()
 {
   Local JBInfoJail Jails; 
 
-  If (DynamicLoadObject("SkaarjPack.Monster", Class'class', True) == None)
-    {
+  If (DynamicLoadObject("SkaarjPack.Monster", Class'Class', True) == None)
+  {
     For (Jails = JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstJail; Jails != None; Jails = Jails.NextJail)
-        Jails.ExecutionDelayFallback = 3;
-
-    Self.Destroy();
-    }
+      Jails.ExecutionDelayFallback = Jails.Default.ExecutionDelayFallback;
+    Destroy();
+  }
   
-  If (MonsterType != Custom)
-    MonsterClass = Class<xPawn>(DynamicLoadObject("Skaarjpack." $ String(GetEnum(Enum'EMonsterType', MonsterType)), Class'class'));
-  Else
-    {
-    MonsterClass = Class<xPawn>(DynamicLoadObject(CustomMonster, Class'class', True));
-    If (MonsterClass == None);
-      MonsterClass = Class<xPawn>(DynamicLoadObject("Skaarjpack.Krall", Class'class', True));
-    }
+  If (MonsterType == Custom)
+         MonsterClass = Class<xPawn>(DynamicLoadObject(CustomMonster,                                                    Class'Class'));
+    Else MonsterClass = Class<xPawn>(DynamicLoadObject("SkaarjPack." $ String(GetEnum(Enum'EMonsterType', MonsterType)), Class'Class'));
 
-  StartSpot = Self.Location;
-  
+  If (MonsterClass == None)
+    MonsterClass = Class<xPawn>(DynamicLoadObject("SkaarjPack.Krall", Class'Class'));
+
+  StartSpot = Location;
 }
 
 
@@ -100,22 +101,30 @@ Function SpawnMonster()
 {
   Local int i;
 
-  MyMonster = Spawn(MonsterClass, , , StartSpot, Self.Rotation);
-  
+  KillMonster();
+
+  MyMonster = Spawn(MonsterClass, , , StartSpot, Rotation);
+  If (MyMonster == None)
+    Return;
+
+  MonsterLocationPrev = StartSpot;
+
+  MonsterController = MyMonster.Controller;
+  MonsterController.bIsPlayer = False;
+  MonsterController.bGodMode = bMonsterInGodMode;
+
   If (MyMonster != None)
-    {
+  {
     If (MonsterMesh != None)
       MyMonster.LinkMesh(MonsterMesh);
   
     For (i = 0; i < 8; i++)
-      {
       If (MonsterSkin[i] != None)
         MyMonster.Skins[i] = MonsterSkin[i];
-      }
 
     MyMonster.DamageScaling = 6.5;
     MyMonster.PlayTeleportEffect(True, True);
-    }
+  }
 }
 
 
@@ -130,9 +139,9 @@ Function EraseWeapons()
   Local Weapon W;
 
   ForEach DynamicActors(Class'Weapon', W)
-    If (W != None)
-      If (W.Owner.IsA('Monster'))
-        W.Destroy();
+    If (W.Owner != None &&
+        W.Owner.IsA('Monster'))
+      W.Destroy();
 }
 
 
@@ -150,58 +159,31 @@ Function KillMonster()
 
 
 // ============================================================================
-// Tick
-//
-// Prevents monsters fighting each other, removes their weapons, and makes them
-// gods.
-// ============================================================================
-
-Function Tick(Float TimeDelta)
-{
-  If (MyMonster != None)
-    {
-    If ((MyMonster.Controller != None) && (MonsterController == None))
-      MonsterController = MyMonster.Controller;
-
-      If (MonsterController != None)
-        {
-        If ((MonsterController.Enemy != None) && (MonsterController.Enemy.IsA('Monster')))
-          MonsterController.Enemy = None;
-        EraseWeapons();
-        }     
-  
-    If ((MyMonster != None) && (MyMonster.Controller != None))
-      MyMonster.Controller.bGodMode = True;
-    }
-}
-
-
-// ============================================================================
 // State MonsterSpawnedOnTrigger
 //
 // Nothing happens. On triggering, the monster is spawned and attacks.
 // ============================================================================
 
-State() MonsterSpawnedOnTrigger {
-
-  // ============================================================================
+State() MonsterSpawnedOnTrigger
+{
+  // ================================================================
   // BeginState
   //
-  // Set Tag.
-  // ============================================================================
+  // Sets Tag to TagExecutionCommit if bUseExecutionTags is used.
+  // ================================================================
   
   Function BeginState()
   {
-    if(bUseExecutionTags)
+    if (bUseExecutionTags)
       Tag = TagExecutionCommit;
   }
 
 
-  // ============================================================================
+  // ================================================================
   // Trigger
   //
   // Monster will attack.
-  // ============================================================================
+  // ================================================================
   
   Function Trigger(Actor Other, Pawn EventInstigator)
   {
@@ -218,28 +200,26 @@ State() MonsterSpawnedOnTrigger {
 // The monster is spawned and waits. On triggering it will attack.
 // ============================================================================
 
-State() MonsterWaitsDormant {
-
-  // ============================================================================
+State() MonsterWaitsDormant
+{
+  // ================================================================
   // BeginState
   //
-  // Set Tag. Spawns a monster, and sets the timer.
-  // ============================================================================
-  
+  // Sets Tag to TagExecutionCommit if bUseExecutionTags is used.
+  // ================================================================
+
   Function BeginState()
   {
-    SpawnMonster();
-    if(bUseExecutionTags)
+    If (bUseExecutionTags)
       Tag = TagExecutionCommit;
-    SetTimer(0.05, true);
   }
-  
-  
-  // ============================================================================
+
+
+  // ================================================================
   // Trigger
   //
-  // Monster will attack.
-  // ============================================================================
+  // Enters state MonsterAttack so that monsters start attacking.
+  // ================================================================
   
   Function Trigger(Actor Other, Pawn EventInstigator)
   {
@@ -247,29 +227,29 @@ State() MonsterWaitsDormant {
   }
 
 
-  // ============================================================================
-  // Timer
+  // ================================================================
+  // State Code
   //
-  // Stops the monster attacking.
-  // ============================================================================
+  // Waits until the level is not in the startup phase anymore.
+  // Then spawns a monster and sets it up to ignore players.
+  // ================================================================
   
-  Function Timer()
-  {
-    If (MonsterController != None)
-      {
-      MonsterController.default.bStasis = True;
+  Begin:
+  
+    While (Level.bStartup)
+      Sleep(0.0);  // wait until next tick
+
+    SpawnMonster();
+
+    If (MyMonster != None)
+    {
       MonsterController.bStasis = True;
-      MonsterController.Velocity = Vect(0, 0, 0);
-      MonsterController.bIsPlayer = False;
-      MyMonster.bIgnoreForces = True;
-      MyMonster.Default.bStasis = True;
-      MyMonster.SetLocation(StartSpot);
-      SetTimer(0, False);
-      }
-  }
-  
-  
+      MyMonster.bStasis         = True;
+      MyMonster.bIgnoreForces   = True;
+    }
+
 } // state MonsterWaitsDormant
+
 
 // ============================================================================
 // State MonsterAttack
@@ -278,27 +258,34 @@ State() MonsterWaitsDormant {
 // returns to initial state.
 // ============================================================================
 
-State MonsterAttack {
-  
-  // ============================================================================
+State MonsterAttack
+{
+  // ================================================================
   // BeginState
   //
-  // Updates Tag. Sets timer to unset the variables holding the monsters.
-  // ============================================================================
+  // Sets Tag to TagExecutionEnd if bUseExecutionTags is used. Sets
+  // the monsters up to attack players.
+  // ================================================================
   
   Function BeginState()
   {
-    if(bUseExecutionTags)
+    If (bUseExecutionTags)
       Tag = TagExecutionEnd;
-    SetTimer(0.05, true);
+
+    If (MyMonster != None)
+    {
+      MonsterController.bStasis = False;
+      MyMonster.bStasis         = False;
+      MyMonster.bIgnoreForces   = False;
+    }
   }
   
 
-  // ============================================================================
+  // ================================================================
   // Trigger
   //
   // Kill the monster and go back to InitialState.
-  // ============================================================================
+  // ================================================================
   
   Function Trigger(Actor Other, Pawn EventInstigator)
   {
@@ -307,42 +294,57 @@ State MonsterAttack {
   }
 
 
-  // ============================================================================
-  // Timer
+  // ================================================================
+  // Tick
   //
-  // Allow the monster to attack.
-  // ============================================================================
+  // Prevents monsters from fighting each other and removes their
+  // weapons. Ends this state when the execution sequence ends.
+  // ================================================================
   
-  Function Timer()
+  Function Tick(Float TimeDelta)
   {
     If (MonsterController != None)
-      {
-      MonsterClass.Default.bStasis = False;
-      MonsterController.bStasis = False;
-      MonsterController.Default.bStasis = False;
-      MyMonster.bStasis = False;
-      MyMonster.bIgnoreForces = False;
-      }
+    {
+      EraseWeapons();
+      
+      If (MonsterController.Enemy != None &&
+          MonsterController.Enemy.IsA('Monster'))
+        MonsterController.Enemy = None;
+    }
 
-    SetTimer(0, False);
+    If (MyMonster != None)
+    {
+      // reset monster if it teleported away
+      If (VSize(MonsterLocationPrev - MyMonster.Location) > 256.0)
+        MyMonster.SetLocation(MonsterLocationPrev);
+      MonsterLocationPrev = MyMonster.Location;
+    }
+
+    If (bResetOnExecutionEnd && !Level.Game.IsInState('Executing'))
+      Trigger(Self, None);
   }
-
 
 } // state MonsterAttack
 
+
 // ============================================================================
-// Default properties
+// Defaults
 // ============================================================================
 
 DefaultProperties
 {
-  Texture = Texture'JBToolbox.icons.JBMonsterSpawner';  
-  MonsterType = SkaarjPupae
-  bHidden     = True
-  bDirectional= True
-  bHiddenEd   = False
-  bUseExecutionTags = True;
-  bStatic     = False /* override Keypoint */
-  InitialState= MonsterWaitsDormant
-  DrawType    = DT_Sprite
+  MonsterType          = SkaarjPupae;
+  bMonsterControllable = False;
+  bMonsterInGodMode    = True;
+  bResetOnExecutionEnd = True;
+  bUseExecutionTags    = True;
+  InitialState         = MonsterWaitsDormant;
+
+  Texture              = Texture'JBToolbox.Icons.JBMonsterSpawner';  
+  bHidden              = True;
+  bHiddenEd            = False;
+  bStatic              = False;
+
+  bDirectional         = True;
+  DrawType             = DT_Sprite;
 }
