@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.29.2.9 2004/05/25 14:22:00 mychaeel Exp $
+// $Id$
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -393,6 +393,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
             if (PlayerController(thisController) != None) {
               TagPlayer = Class'JBTagPlayer'.Static.FindFor(thisController.PlayerReplicationInfo);
               if (TagPlayer           == None ||
+                  TagPlayer.GetTeam() != Team ||
                   TagPlayer.GetJail() == None ||
                   TagPlayer.GetJail() == Self)
                 Level.Game.BroadcastHandler.BroadcastLocalized(
