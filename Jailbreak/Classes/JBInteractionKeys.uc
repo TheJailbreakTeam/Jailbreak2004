@@ -193,6 +193,16 @@ event bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float 
     }
   }
   
+  if (bVisible && TimeFadeoutDialog == 0.0) {
+    Key   = PlayerController.ConsoleCommand("KeyName"    @ InputKey);
+    Alias = PlayerController.ConsoleCommand("KeyBinding" @      Key);
+
+    if (InStr(Caps(Alias), "FIRE") >= 0) {
+      TimeFadeoutDialog = PlayerController.Level.TimeSeconds;
+      return True;
+    }
+  }
+
   return False;
 }
 
@@ -242,13 +252,10 @@ event PostRender(Canvas Canvas)
   PlayerController = ViewportOwner.Actor;
   GUIController = GUIController(ViewportOwner.GUIController);
 
-  TimeCurrent = PlayerController.Level.TimeSeconds;
-  if (bool(PlayerController.bFire) && TimeFadeoutDialog == 0.0)
-    TimeFadeoutDialog = TimeCurrent;
-
   if (PlayerController.myHUD.bShowScoreBoard)
     return;
 
+  TimeCurrent = PlayerController.Level.TimeSeconds;
   if (TimeFadeoutDialog == 0.0)
          Alpha =           1.0;
     else Alpha = FMax(0.0, 1.0 - (TimeCurrent - TimeFadeoutDialog) * 2.0);
