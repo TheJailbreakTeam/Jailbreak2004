@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.18 2003/01/30 20:04:33 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.19 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -486,13 +486,23 @@ function NotifyJailClosed(TeamInfo Team) {
 //
 // Resets all objectives associated with this jail for the given team unless
 // the release for another jail listening to the same event is still active.
-// Resets all objectives associated with this jail for the given team.
+// ============================================================================
+
 function ResetObjectives(TeamInfo Team) {
 
   local GameObjective firstObjective;
   local GameObjective thisObjective;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
+
+  firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+  firstJail = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstJail;
+        thisJail.Tag == Tag &&
+        thisJail.IsReleaseActive(Team))
+      return;
+
+  firstObjective = UnrealTeamInfo(Team).AI.Objectives;
   for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
     if (thisObjective.Event == Tag &&
         thisObjective.DefenderTeamIndex != Team.TeamIndex &&
@@ -503,6 +513,21 @@ function ResetObjectives(TeamInfo Team) {
 
 // ============================================================================
 // ExecutePlayer
+//
+// Executes the given player. Used for fallback execution.
+// ============================================================================
+
+function ExecutePlayer(Controller Controller) {
+
+  if (Controller.Pawn == None)
+    return;
+
+  Class'LavaDeath'.Default.bHighDetail = False;
+  Controller.Pawn.Died(None, Class'FellLava', vect(0,0,0));
+  }
+
+// ============================================================================
+// ExecutionInit
 //
 // Initiates the execution sequence. Can be called only in state Waiting and
 // logs a warning otherwise.
@@ -538,7 +563,7 @@ function ExecutionEnd() {
     firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
         ExecutePlayer(thisTagPlayer.GetController());
     
-        thisTagPlayer.GetController().Pawn.GibbedBy(None);
+    if (Jailbreak(Level.Game).CanFireEvent(EventExecutionEnd, True))
       TriggerEvent(EventExecutionEnd, Self, None);
     
     GotoState('Waiting');
@@ -752,9 +777,8 @@ state ExecutionFallback {
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
         ExecutePlayer(thisTagPlayer.GetController());
-      if (thisTagPlayer.IsInJail() &&
-          thisTagPlayer.GetController().Pawn != None)
-        thisTagPlayer.GetController().Pawn.GibbedBy(None);
+    }
+
 
   // ================================================================
   // EndState
@@ -793,8 +817,8 @@ defaultproperties {
 
   ExecutionDelayCommit   = 1.0;
   ExecutionDelayFallback = 2.0;
-  ExecutionDelayCommit   = 2.0;
-  ExecutionDelayFallback = 4.0;
+  
+  TagAttachZones   = Auto;
   TagAttachVolumes = None;
   
   Texture = Texture'JBInfoJail';
