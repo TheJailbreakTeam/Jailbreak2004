@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.6 2003/01/02 14:15:03 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.7 2003/01/02 16:42:58 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -523,7 +523,7 @@ function int SuggestStrengthAttack(GameObjective GameObjective) {
 
   nPlayersDefending = EstimateStrengthDefense(GameObjective);
   if (CountPlayersReleasable(GameObjective) > 0)
-    return Max(nPlayersDefending / FClamp(RatePlayers(), 0.5, 2.0) + 0.9, 1);
+    return Max(nPlayersDefending / FClamp(RatePlayers(), 1.0, 2.0) + 0.9, 1);
 
   return 0;
   }
@@ -542,7 +542,7 @@ function int SuggestStrengthDefense(GameObjective GameObjective) {
 
   nPlayersAttacking = EstimateStrengthAttack(GameObjective);
   if (nPlayersAttacking > 0)
-    return Max(nPlayersAttacking / FClamp(RatePlayers(), 0.5, 2.0) + 0.9, 1);
+    return Max(nPlayersAttacking / FClamp(RatePlayers(), 1.0, 2.0) + 0.9, 1);
   
   return 0;
   }
