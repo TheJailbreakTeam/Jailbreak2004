@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.4 2002/12/23 01:11:24 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.5 2003/01/01 22:11:16 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -63,15 +63,20 @@ event Timer() {
 // ============================================================================
 // SetObjectiveLists
 //
-// For every trigger directly connected to a jail, spawns a JBGameObjective
-// actor and sets it up for this team.
+// For all GameObjective actors that don't have a JBTagObjective actor yet,
+// spawns one. For every trigger directly connected to a jail, spawns a
+// JBGameObjective actor and sets it up for this team.
 // ============================================================================
 
 function SetObjectiveLists() {
 
-  local Trigger thisTrigger;
+  local GameObjective thisObjective;
   local JBGameObjective Objective;
   local JBInfoJail thisJail;
+  local Trigger thisTrigger;
+
+  foreach AllActors(Class'GameObjective', thisObjective)
+    Class'JBTagObjective'.Static.SpawnFor(thisObjective);
 
   foreach DynamicActors(Class'Trigger', thisTrigger) {
     foreach DynamicActors(Class'JBInfoJail', thisJail)

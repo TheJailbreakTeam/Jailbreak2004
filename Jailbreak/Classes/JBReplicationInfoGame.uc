@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoGame
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoGame.uc,v 1.4 2002/12/23 01:11:24 mychaeel Exp $
+// $Id: JBReplicationInfoGame.uc,v 1.5 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Replicated information for a the entire game.
 // ============================================================================
@@ -24,7 +24,6 @@ var JBTagPlayer    firstTagPlayer;
 // ============================================================================
 // PostNetBeginPlay
 //
-// On the server, creates a JBTagObjective actor for every objective in game.
 // On both server and client, creates the linked lists for jails and arenas.
 // ============================================================================
 
@@ -34,10 +33,6 @@ simulated event PostNetBeginPlay() {
   local JBInfoArena thisArena;
   local JBInfoJail thisJail;
   
-  if (Role == ROLE_Authority)
-    foreach AllActors(Class'GameObjective', thisObjective)
-      Class'JBTagObjective'.Static.SpawnFor(thisObjective);
-
   foreach DynamicActors(Class'JBInfoArena', thisArena) {
     thisArena.nextArena = firstArena;
     firstArena = thisArena;
