@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUILlamaConfig
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUILlamaConfigPanel.uc,v 1.2 2003/07/29 14:50:52 wormbo Exp $
+// $Id: JBGUILlamaConfigPanel.uc,v 1.3 2003/11/11 17:48:47 wormbo Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -49,10 +49,10 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 function LoadINISettings()
 {
   bInitialized = False;
-  moNumericEdit(Controls[CONTROL_REWARD_ADRENALINE]).SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
-  moNumericEdit(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
-  moNumericEdit(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
-  moNumericEdit(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
+  JBGUISliderEdit(Controls[CONTROL_REWARD_ADRENALINE]).SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
+  JBGUISliderEdit(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
+  JBGUISliderEdit(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
+  JBGUISliderEdit(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
   bInitialized = True;
 }
 
@@ -69,10 +69,10 @@ function SaveINISettings(GUIComponent Sender)
   if ( !bInitialized )
     return;
   
-  class'JBAddonLlama'.default.RewardAdrenaline     = moNumericEdit(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
-  class'JBAddonLlama'.default.RewardHealth         = moNumericEdit(Controls[CONTROL_REWARD_HEALTH]).GetValue();
-  class'JBAddonLlama'.default.RewardShield         = moNumericEdit(Controls[CONTROL_REWARD_SHIELD]).GetValue();
-  class'JBAddonLlama'.default.MaximumLlamaDuration = moNumericEdit(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
+  class'JBAddonLlama'.default.RewardAdrenaline     = JBGUISliderEdit(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
+  class'JBAddonLlama'.default.RewardHealth         = JBGUISliderEdit(Controls[CONTROL_REWARD_HEALTH]).GetValue();
+  class'JBAddonLlama'.default.RewardShield         = JBGUISliderEdit(Controls[CONTROL_REWARD_SHIELD]).GetValue();
+  class'JBAddonLlama'.default.MaximumLlamaDuration = JBGUISliderEdit(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
   class'JBAddonLlama'.static.StaticSaveConfig();
 }
 
@@ -111,72 +111,80 @@ defaultproperties
 
   Begin Object Class=GUILabel Name=LlamaKillRewardLabel
     WinTop=0.2
-    WinLeft=0.1
+    WinLeft=0.05
     WinHeight=0.1
     WinWidth=0.8
     Caption="Rewards for killing a Llama:"
   End Object
   Controls(1)=GUILabel'LlamaKillRewardLabel'
   
-  Begin Object Class=moNumericEdit Name=RewardAdrenaline
+  Begin Object Class=JBGUISliderEdit Name=RewardAdrenaline
     WinTop=0.3
-    WinLeft=0.2
+    WinLeft=0.15
     WinHeight=0.1
-    WinWidth=0.6
+    WinWidth=0.8
     Caption="Adrenaline"
     Hint="Adrenaline gained for killing a llama."
-    CaptionWidth=0.666666
+    CaptionWidth=0.4
+    SliderWidth=-1
+    EditBoxWidth=0.2
     MinValue=0
     MaxValue=100
-    bHeightFromComponent=False
+    bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(2)=moNumericEdit'RewardAdrenaline'
+  Controls(2)=JBGUISliderEdit'RewardAdrenaline'
   
-  Begin Object Class=moNumericEdit Name=RewardHealth
+  Begin Object Class=JBGUISliderEdit Name=RewardHealth
     WinTop=0.45
-    WinLeft=0.2
+    WinLeft=0.15
     WinHeight=0.1
-    WinWidth=0.6
+    WinWidth=0.8
     Caption="Health"
     Hint="Health gained for killing a llama."
-    CaptionWidth=0.666666
+    CaptionWidth=0.4
+    SliderWidth=-1
+    EditBoxWidth=0.2
     MinValue=0
     MaxValue=199
-    bHeightFromComponent=False
+    bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(3)=moNumericEdit'RewardHealth'
+  Controls(3)=JBGUISliderEdit'RewardHealth'
   
-  Begin Object Class=moNumericEdit Name=RewardShield
+  Begin Object Class=JBGUISliderEdit Name=RewardShield
     WinTop=0.6
-    WinLeft=0.2
+    WinLeft=0.15
     WinHeight=0.1
-    WinWidth=0.6
+    WinWidth=0.8
     Caption="Shield"
     Hint="Shield gained for killing a llama."
-    CaptionWidth=0.666666
+    CaptionWidth=0.4
+    SliderWidth=-1
+    EditBoxWidth=0.2
     MinValue=0
     MaxValue=150
-    bHeightFromComponent=False
+    bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(4)=moNumericEdit'RewardShield'
+  Controls(4)=JBGUISliderEdit'RewardShield'
   
-  Begin Object Class=moNumericEdit Name=MaximumLlamaDuration
+  Begin Object Class=JBGUISliderEdit Name=MaximumLlamaDuration
     WinTop=0.0
-    WinLeft=0.1
+    WinLeft=0.05
     WinHeight=0.1
-    WinWidth=0.7
+    WinWidth=0.9
     Caption="Llama Hunt Duration"
     Hint="Maximum duration of a llama hunt."
-    CaptionWidth=0.714286
+    CaptionWidth=0.475
+    SliderWidth=-1
+    EditBoxWidth=0.175
     MinValue=10
     MaxValue=120
-    bHeightFromComponent=False
+    bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(5)=moNumericEdit'MaximumLlamaDuration'
+  Controls(5)=JBGUISliderEdit'MaximumLlamaDuration'
   
   WinTop=0.330
   WinLeft=0.360
