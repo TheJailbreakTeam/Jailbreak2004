@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.14 2003/01/27 08:06:28 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.15 2003/01/30 23:18:18 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -220,9 +220,6 @@ function DeactivateFor(Controller Controller) {
     if (JBCamera(ListInfoViewer[iInfoViewer].ViewTargetPrev) == None &&
                  ListInfoViewer[iInfoViewer].ViewTargetPrev  != None)
       ViewTargetPrev = ListInfoViewer[iInfoViewer].ViewTargetPrev;
-
-    if (Controller(ViewTargetPrev) != None)
-      ViewTargetPrev = Controller(ViewTargetPrev).Pawn;
 
     ControllerPlayer.SetViewTarget      (ViewTargetPrev);
     ControllerPlayer.ClientSetViewTarget(ViewTargetPrev);
