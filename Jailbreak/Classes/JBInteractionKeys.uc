@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.1.2.5 2004/05/02 13:08:52 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.1.2.6 2004/05/20 12:24:41 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -115,13 +115,20 @@ event Initialized()
     }
   }
 
+  bIsKeyUnknown[EInputKey.IK_Select   ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Print    ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Execute  ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_PrintScrn] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Help     ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Separator] = byte(True);
+
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++) {
     if (Bindings[iBinding].bIsBoundConfig)
       continue;
     
     iKeyAuto = Bindings[iBinding].iKeyPreferred;
     if (bool(bIsKeyBound[iKeyAuto]))
-      for (iKeyAuto = EInputKey.IK_0; iKeyAuto <= EInputKey.IK_F12; iKeyAuto++)
+      for (iKeyAuto = EInputKey.IK_Escape; iKeyAuto <= EInputKey.IK_F12; iKeyAuto++)
         if (!bool(bIsKeyBound  [iKeyAuto]) &&
             !bool(bIsKeyUnknown[iKeyAuto]))
           break;
