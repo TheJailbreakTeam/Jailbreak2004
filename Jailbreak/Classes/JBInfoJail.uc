@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.39 2004/05/30 19:23:40 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.40 2004/05/31 00:01:45 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -388,17 +388,18 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
         if (Jailbreak(Level.Game).CanFireEvent(Tag, True)) {
           if (ControllerInstigator != None)
             PlayerReplicationInfoInstigator = ControllerInstigator.PlayerReplicationInfo;
-          
-          for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-            if (PlayerController(thisController) != None) {
-              TagPlayer = Class'JBTagPlayer'.Static.FindFor(thisController.PlayerReplicationInfo);
-              if (TagPlayer           == None ||
-                  TagPlayer.GetTeam() != Team ||
-                  TagPlayer.GetJail() == None ||
-                  TagPlayer.GetJail() == Self)
-                Level.Game.BroadcastHandler.BroadcastLocalized(
-                  Self, PlayerController(thisController), MessageClass, 200, PlayerReplicationInfoInstigator, , Team);
-            }
+
+          if (CountPlayers(Team) > 0)
+            for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+              if (PlayerController(thisController) != None) {
+                TagPlayer = Class'JBTagPlayer'.Static.FindFor(thisController.PlayerReplicationInfo);
+                if (TagPlayer           == None ||
+                    TagPlayer.GetTeam() != Team ||
+                    TagPlayer.GetJail() == None ||
+                    TagPlayer.GetJail() == Self)
+                  Level.Game.BroadcastHandler.BroadcastLocalized(
+                    Self, PlayerController(thisController), MessageClass, 200, PlayerReplicationInfoInstigator, , Team);
+              }
 
           JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
           JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);

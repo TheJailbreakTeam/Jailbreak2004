@@ -1,25 +1,26 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.15 2004/05/30 16:34:59 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.16 2004/05/31 14:15:57 mychaeel Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
 //
 // The following message codes are defined:
 //
-//   Switch    Meaning             Info 1           Info 2           Object
-//   =======   =================   ==============   ==============   ========
-//   100 (B)   Team captured                                         TeamInfo
-//   200 (B)   Team released       Releaser                          TeamInfo
-//   300 (B)   Team stalemate
-//   403       Arena countdown 3                                     Arena
-//   402       Arena countdown 2                                     Arena
-//   401       Arena countdown 1                                     Arena
-//   400 (B)   Arena start         Red Combatant    Blue Combatant   Arena
-//   410 (B)   Arena cancelled     Red Combatant    Blue Combatant   Arena
-//   420 (B)   Arena tie           Red Combatant    Blue Combatant   Arena
-//   430 (B)   Arena victory       Winner           Loser            Arena
+//   Switch    Meaning              Info 1           Info 2           Object
+//   =======   =================    ==============   ==============   ========
+//   100 (B)   Team captured                                          TeamInfo
+//   200 (B)   Release, jail full   Releaser                          TeamInfo
+//   210       Release, jail empty  Releaser                          TeamInfo
+//   300 (B)   Stalemate     
+//   403       Arena countdown 3                                      Arena
+//   402       Arena countdown 2                                      Arena
+//   401       Arena countdown 1                                      Arena
+//   400 (B)   Arena start          Red Combatant    Blue Combatant   Arena
+//   410 (B)   Arena cancelled      Red Combatant    Blue Combatant   Arena
+//   420 (B)   Arena tie            Red Combatant    Blue Combatant   Arena
+//   430 (B)   Arena victory        Winner           Loser            Arena
 //   500 (L)   Keyboard arena
 //   510 (L)   Keyboard cameras
 //   600 (L)   Last man (initial)
@@ -27,7 +28,7 @@
 //   700 (B)   Last second save
 //   900 (B)   Game started
 //   910 (B)   Game overtime
-//   920 (B)   Game over                                             TeamInfo
+//   920 (B)   Game over                                              TeamInfo
 //
 // Switches marked with (B) are broadcasted to all players, all other messages
 // are directly sent to the players in question. Messages marked with (L) are
@@ -46,6 +47,7 @@ class JBLocalMessage extends LocalMessage
 var localized string TextTeamCaptured[2];
 var localized string TextTeamReleased[2];
 var localized string TextTeamReleasedBy[2];
+var localized string TextTeamReleasedNobody;
 var localized string TextTeamStalemate;
 
 
@@ -152,7 +154,8 @@ static function ClientReceive(PlayerController PlayerController,
   switch (Switch) {
     case 100:  PlaySpeech(PlayerController, "$TeamCapturedRed", "$TeamCapturedBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
     case 200:  PlaySpeech(PlayerController, "$TeamReleasedRed", "$TeamReleasedBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
-    case 300:  PlaySpeech(PlayerController, "$TeamCapturedBoth");  break;
+    case 210:  PlaySpeech(PlayerController, "$TeamReleasedNobody");  break;
+    case 300:  PlaySpeech(PlayerController, "$TeamCapturedBoth");    break;
     
     case 403:  PlayerController.PlayBeepSound();  PlaySpeech(PlayerController, "$ArenaWarning");  break;
     case 402:  PlayerController.PlayBeepSound();  break;
@@ -336,6 +339,9 @@ static function string GetString(optional int Switch,
         return ReplaceTextPlayer(Default.TextTeamReleasedBy[TeamInfo(ObjectOptional).TeamIndex], PlayerReplicationInfo1);
       return Default.TextTeamReleased[TeamInfo(ObjectOptional).TeamIndex];
 
+    case 210:
+      return Default.TextTeamReleasedNobody;
+
     case 403:  return ReplaceTextArena(Default.TextArenaCountdown[2], PlayerReplicationInfo1, PlayerReplicationInfo2);
     case 402:  return ReplaceTextArena(Default.TextArenaCountdown[1], PlayerReplicationInfo1, PlayerReplicationInfo2);
     case 401:  return ReplaceTextArena(Default.TextArenaCountdown[0], PlayerReplicationInfo1, PlayerReplicationInfo2);
@@ -389,6 +395,7 @@ defaultproperties
   TextTeamReleased[1]       = "The blue team has been released.";
   TextTeamReleasedBy[0]     = "The red team has been released by %player%.";
   TextTeamReleasedBy[1]     = "The blue team has been released by %player%.";
+  TextTeamReleasedNobody    = "This jail is empty."
   TextTeamStalemate         = "Both teams captured, no score.";
 
   TextArenaCountdown[2]     = "Arena match is about to begin...3";
