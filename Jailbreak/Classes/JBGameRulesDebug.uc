@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRulesDebug.uc,v 1.2 2003/03/22 10:21:11 mychaeel Exp $
+// $Id$
 //
 // Implements game rules for Jailbreak for debugging purposes.
 // ============================================================================
@@ -120,6 +120,45 @@ function ExecCanBeJailed(string TextName, bool bCanBeJailed)
         if (iController >= ListControllerDisabledJail.Length)
           ListControllerDisabledJail[ListControllerDisabledJail.Length] = ControllerPlayer;
       }
+    }
+  }
+}
+
+
+// ============================================================================
+// ExecRelease
+//
+// Releases either the red or blue team from all jails, or all jailed players
+// from the jail with the given Tag, or causes the given release event.
+// ============================================================================
+
+function ExecRelease(string Whom)
+{
+  local TeamInfo TeamWhom;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+
+  Log("Jailbreak Debugging: Releasing '" $ Whom $ "'");
+
+       if (Whom ~= "Red")  TeamWhom = TeamGame(Level.Game).Teams[0];
+  else if (Whom ~= "Blue") TeamWhom = TeamGame(Level.Game).Teams[1];
+  
+  if (TeamWhom != None) {
+    firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+      thisJail.Release(TeamWhom);
+  }
+  
+  else {
+    firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail) {
+      if (string(thisJail.Tag) ~= Whom) {
+        thisJail.Release(TeamGame(Level.Game).Teams[0]);
+        thisJail.Release(TeamGame(Level.Game).Teams[1]);
+      }
+    
+      if (string(thisJail.EventReleaseRed)  ~= Whom) thisJail.Release(TeamGame(Level.Game).Teams[0]);
+      if (string(thisJail.EventReleaseBlue) ~= Whom) thisJail.Release(TeamGame(Level.Game).Teams[1]);
     }
   }
 }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
+// $Id$
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -66,6 +66,11 @@ event PostBeginPlay()
 //                                 to jail after being killed or not. If no
 //                                 name is specified, affects all players.
 //
+//   Release Red|Blue|<jailtag>|<releaseevent>
+//                                 Causes a release of the given team, the
+//                                 given jail (for both teams if applicable) or
+//                                 the given switch event, respectively.
+//
 //   KillPlayer <name>             Kills the given player. Splat.
 //
 // ============================================================================
@@ -102,6 +107,10 @@ function Mutate(string TextMutate, PlayerController Sender)
     TextName = GetParam(TextMutate);
 
     JBGameRulesDebug.ExecCanBeJailed(TextName, TextFlag ~= "On");
+  }
+
+  else if (TextCommand ~= "Release") {
+    JBGameRulesDebug.ExecRelease(TextMutate);
   }
 
   else if (TextCommand ~= "KillPlayer") {
