@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.45 2004/05/31 00:12:47 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.46 2004/05/31 14:50:13 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -83,6 +83,7 @@ var() name TagAttachCameras;
 var() name TagAttachStarts;
 var() name TagAttachStartsWinner;
 var() name TagAttachPickups;
+var() name TagAttachVehicles;
 
 
 // ============================================================================
@@ -225,6 +226,11 @@ function bool ContainsActor(Actor Actor)
     if (TagAttachCameras == 'Auto')
            return Actor.Region.ZoneNumber == Region.ZoneNumber;
       else return Actor.Tag == TagAttachCameras;
+
+  if (SVehicleFactory(Actor) != None)
+    if (TagAttachVehicles == 'Auto')
+           return Actor.Region.ZoneNumber == Region.ZoneNumber;
+      else return Actor.Tag == TagAttachVehicles;
 
   if (Controller(Actor) != None &&
       Controller(Actor).PlayerReplicationInfo != None)
@@ -595,6 +601,7 @@ function bool MatchStart()
 function Prepare()
 {
   local Pickup thisPickup;
+  local SVehicleFactory thisSVehicleFactory;
 
   foreach DynamicActors(Class'Pickup', thisPickup)
     if (!thisPickup.IsInState('Pickup') && ContainsActor(thisPickup)) {
@@ -602,6 +609,10 @@ function Prepare()
         thisPickup.PickupBase.TurnOn();
       thisPickup.GotoState('Pickup');
     }
+
+  foreach DynamicActors(Class'SVehicleFactory', thisSVehicleFactory)
+    if (ContainsActor(thisSVehicleFactory))
+      thisSVehicleFactory.Reset();
 }
 
 
@@ -1368,6 +1379,7 @@ defaultproperties
   TagAttachStarts       = Auto;
   TagAttachStartsWinner = Auto;
   TagAttachPickups      = Auto;
+  TagAttachVehicles     = Auto;
 
   SpriteWidgetCountdown = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.7,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   NumericWidgetCountdown = (TextureScale=0.36,DrawPivot=DP_MiddleMiddle,PosX=0.500,PosY=0.004,OffsetX=-2,OffsetY=50,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
