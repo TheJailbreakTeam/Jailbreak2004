@@ -348,6 +348,9 @@ simulated function CheckLastMan()
       bIsLastMan = True;
       TimeUpdateLastMan = Level.TimeSeconds;
     }
+    else {
+      bIsLastMan = False;
+    }
   }
 }
 
