@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.98 2004/05/29 21:56:42 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.99 2004/05/30 11:44:16 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -27,6 +27,9 @@ var config string Addons;
 var config bool bEnableJailFights;
 var config bool bEnableScreens;
 var config bool bEnableSpectatorDeathCam;
+
+var config bool bEnableWebScoreboard;
+var config bool bEnableWebAdminExtension;
 
 var config string WebScoreboardClass;
 var config string WebScoreboardPath;
@@ -72,7 +75,9 @@ var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 // ============================================================================
 // InitGame
 //
-// Initializes the game and interprets Jailbreak-specific parameters.
+// Initializes the game and interprets Jailbreak-specific parameters. Destroys
+// any WebServer actors left over from the previous match; fixes inability to
+// contact web admin interface after a level change.
 // ============================================================================
 
 event InitGame(string Options, out string Error)
@@ -81,6 +86,13 @@ event InitGame(string Options, out string Error)
   local string OptionAddon;
   local string OptionJailFights;
   local string NameAddon;
+  local WebServer thisWebServer;
+
+  foreach AllObjects(Class'WebServer', thisWebServer)
+    if (thisWebServer.Outer != Outer) {
+      thisWebServer.Destroy();
+      Log("Destroying left-over WebServer actor" @ thisWebServer);
+    }
 
   Super.InitGame(Options, Error);
 
@@ -287,9 +299,11 @@ function ReadAddonsForWebAdmin()
   local Mutator thisMutator;
   local UTServerAdmin UTServerAdmin;
 
+  if (!bEnableWebAdminExtension)
+    return;
+
   foreach AllObjects(Class'UTServerAdmin', UTServerAdmin)
     break;
-
   if (UTServerAdmin == None)
     return;  // web admin not running
 
@@ -336,9 +350,11 @@ function SetupWebScoreboard()
   local WebApplication WebApplicationScoreboard;
   local Class<WebApplication> ClassWebApplicationScoreboard;
 
+  if (!bEnableWebScoreboard)
+    return;
+
   foreach DynamicActors(Class'WebServer', WebServer)
     break;
-
   if (WebServer == None)
     return;  // web server not running
 
@@ -1887,6 +1903,9 @@ defaultproperties
   bEnableJailFights        = True;
   bEnableScreens           = True;
   bEnableSpectatorDeathCam = True;
+
+  bEnableWebScoreboard     = True;
+  bEnableWebAdminExtension = True;
 
   GoalScore                = 5;
 
