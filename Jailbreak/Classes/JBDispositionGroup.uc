@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroup
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBDispositionGroup.uc,v 1.1 2003/01/01 22:11:16 mychaeel Exp $
 //
 // Manages the disposition of a group of players on a team. Takes care of
 // their visual arrangement of the icons on the screen and of drawing them.
@@ -19,7 +19,7 @@ class JBDispositionGroup extends Object
 var protected JBDispositionTeam DispositionTeam;
 var protected GameReplicationInfo GameReplicationInfo;
 
-var protected int nPlayersRequired;
+var protected transient int nPlayersRequired;
 var protected array<JBDispositionPlayer> ListDispositionPlayer;
 
 
