@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIComponentTabs
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGUIComponentTabs.uc,v 1.1 2003/06/25 19:01:45 mychaeel Exp $
 //
 // User interface component: Has a column of tabs on the left side, each
 // containing an instance of a specified component class such as a checkbox.
@@ -240,11 +240,12 @@ function bool PreDraw(Canvas Canvas) {
     iTabOpen = iTabFocused;
 
   if (iTabOpen != iTabOpenPrev) {
-	PlayerOwner().PlayOwnedSound(Controller.EditSound, SLOT_Interface, 1.0);
-
     if (iTabOpenPrev >= 0)
       OnTabClosed(Self, GUIMenuOption(Controls[iTabOpenPrev]));
     OnTabOpened(Self, GUIMenuOption(Controls[iTabOpen]));
+
+    if (iTabOpenPrev >= 0)
+      PlayerOwner().PlayOwnedSound(Controller.EditSound, SLOT_Interface, 1.0);
 
     iTabOpenPrev = iTabOpen;
     }
