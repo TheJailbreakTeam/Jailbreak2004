@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.32 2004/05/31 14:27:18 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.33 2004/05/31 18:15:45 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -205,12 +205,25 @@ event Trigger(Actor ActorOther, Pawn PawnInstigator)
 // TriggerForController
 //
 // Like Trigger, but takes a controller reference as the instigator. Can be
-// used to trigger the camera when players have no pawns.
+// used to trigger the camera when players have no pawns. Ignores any attempt
+// to be triggered by a Trigger when the match is not running or if the
+// instigator is currently jail-fighting.
 // ============================================================================
 
 function TriggerForController(Actor ActorOther, Controller ControllerInstigator)
 {
   local JBCamera CameraActivate;
+  local JBTagPlayer TagPlayerInstigator;
+
+  if (Trigger(ActorOther) != None) {
+    if (!Level.Game.IsInState('MatchInProgress'))
+      return;
+
+    TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(ControllerInstigator.PlayerReplicationInfo);
+    if (TagPlayerInstigator == None ||
+       (TagPlayerInstigator.IsInJail() && Class'JBBotSquadJail'.Static.IsPlayerFighting(ControllerInstigator)))
+     return;
+  }
 
   if (CamManager == None) {
     CameraActivate = Self;
