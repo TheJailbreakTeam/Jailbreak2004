@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.71 2004/04/20 13:37:57 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.72 2004/04/21 17:10:52 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1324,8 +1324,10 @@ state MatchInProgress {
     if (TagPlayer.TimeRestart > Level.TimeSeconds)
       return;
 
-    Super.RestartPlayer(Controller);
-    TagPlayer.NotifyRestarted();
+    Global.RestartPlayer(Controller);
+
+    if (TagPlayer != None)
+      TagPlayer.NotifyRestarted();
 
     if (Controller != None) {
       JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
