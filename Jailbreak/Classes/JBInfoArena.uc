@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.21 2003/06/15 21:31:32 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.22 2003/07/19 22:02:25 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -46,6 +46,7 @@ struct TDisplayPlayer {
   var protected float TimeUpdate;
   var protected float HealthDisplayed;
   var protected string PlayerNameDisplayed;
+  var protected string PlayerNameOriginal;
   
   var Color ColorName;
   var vector LocationName;
@@ -730,7 +731,6 @@ simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer
     }
 
   ShowPlayerName  (Canvas, HudBase, DisplayPlayer);
-  ShowPlayerSymbol(Canvas, HudBase, DisplayPlayer);
   ShowPlayerHealth(Canvas, HudBase, DisplayPlayer);
 
   DisplayPlayer.TimeUpdate = Level.TimeSeconds;
@@ -745,6 +745,11 @@ simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer
 
 simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
 
+  local int nCharTotal;
+  local int nCharRemoved;
+  local vector SizeText;
+  local vector SizeTextMax;
+
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameFill);
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameTint);
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameFrame);
@@ -756,8 +761,28 @@ simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPl
   Canvas.FontScaleX = ScaleFontNames * HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipX / 640;
   Canvas.FontScaleY = ScaleFontNames * HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipY / 480;
 
-  if (DisplayPlayer.PlayerReplicationInfo != None)
+  if (DisplayPlayer.PlayerReplicationInfo != None &&
+      DisplayPlayer.PlayerReplicationInfo.PlayerName != DisplayPlayer.PlayerNameOriginal) {
+
+    DisplayPlayer.PlayerNameOriginal  = DisplayPlayer.PlayerReplicationInfo.PlayerName;
     DisplayPlayer.PlayerNameDisplayed = DisplayPlayer.PlayerReplicationInfo.PlayerName;
+
+    SizeTextMax.X = Abs(DisplayPlayer.LocationName.X) - 0.040;
+    SizeTextMax.X *= HudBase.HudScale * HudBase.HudCanvasScale * Canvas.ClipX;
+  
+    nCharTotal = Len(DisplayPlayer.PlayerNameOriginal);
+
+    while (nCharRemoved < nCharTotal) {
+      Canvas.TextSize(DisplayPlayer.PlayerNameDisplayed, SizeText.X, SizeText.Y);
+      if (SizeTextMax.X >= SizeText.X)
+        break;
+
+      nCharRemoved += 1;
+      DisplayPlayer.PlayerNameDisplayed =
+        Left(DisplayPlayer.PlayerNameOriginal, (nCharTotal - nCharRemoved + 1) / 2) $ "..." $
+        Mid (DisplayPlayer.PlayerNameOriginal, (nCharTotal - nCharRemoved + 1) / 2 + nCharRemoved);
+      }
+    }
 
   Canvas.DrawColor = DisplayPlayer.ColorName;
   Canvas.DrawScreenText(
