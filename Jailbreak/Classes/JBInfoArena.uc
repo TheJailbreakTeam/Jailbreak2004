@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.42 2004/05/25 14:25:09 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.43 2004/05/28 21:05:57 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -1061,7 +1061,9 @@ auto state Waiting {
 
   function bool MatchInitRandom()
   {
+    local byte bFoundHumansByTeam[2];
     local int iTagPlayer;
+    local Controller ControllerPlayer;
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBTagPlayer TagPlayerCandidate;
@@ -1070,9 +1072,22 @@ auto state Waiting {
     local TeamInfo TeamCandidate;
 
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
-    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (CanFight(thisTagPlayer.GetController()) && !IsExcluded(thisTagPlayer.GetController()))
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
+      ControllerPlayer = thisTagPlayer.GetController();
+      if (CanFight(ControllerPlayer) && !IsExcluded(ControllerPlayer)) {
         ListTagPlayerCandidate[ListTagPlayerCandidate.Length] = thisTagPlayer;
+        if (PlayerController(ControllerPlayer) != None)
+          bFoundHumansByTeam[thisTagPlayer.GetTeam().TeamIndex] = byte(True);
+      }
+    }
+
+    if (Jailbreak(Level.Game).bFavorHumansForArena)
+      for (iTagPlayer = ListTagPlayerCandidate.Length - 1; iTagPlayer >= 0; iTagPlayer--) {
+        TagPlayerCandidate = ListTagPlayerCandidate[iTagPlayer];
+        if (bool(bFoundHumansByTeam[TagPlayerCandidate.GetTeam().TeamIndex]) &&
+            PlayerController(TagPlayerCandidate.GetController()) == None)
+          ListTagPlayerCandidate.Remove(iTagPlayer, 1);
+      }
 
     while (ListTagPlayerCandidate.Length > 0) {
       TagPlayerCandidate = ListTagPlayerCandidate[Rand(ListTagPlayerCandidate.Length)];

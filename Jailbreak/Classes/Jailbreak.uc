@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.100 2004/05/30 13:44:13 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.101 2004/05/30 17:12:01 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -27,6 +27,7 @@ var config string Addons;
 var config bool bEnableJailFights;
 var config bool bEnableScreens;
 var config bool bEnableSpectatorDeathCam;
+var config bool bFavorHumansForArena;
 
 var config bool bEnableWebScoreboard;
 var config bool bEnableWebAdminExtension;
@@ -42,7 +43,9 @@ var config string WebScoreboardPath;
 var(LoadingHints) localized array<string> TextHintJailbreak;
 
 var localized string TextDescriptionEnableJailFights;
+var localized string TextDescriptionFavorHumansForArena;
 var localized string TextWebAdminEnableJailFights;
+var localized string TextWebAdminFavorHumansForArena;
 var localized string TextWebAdminPrefixAddon;
 
 
@@ -224,7 +227,8 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 
   Super.FillPlayInfo(PlayInfo);
 
-  PlayInfo.AddSetting(Default.GameGroup, "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
+  PlayInfo.AddSetting(Default.GameGroup, "bEnableJailFights",    Default.TextWebAdminEnableJailFights,    0, 60, "Check");
+  PlayInfo.AddSetting(Default.GameGroup, "bFavorHumansForArena", Default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
 }
 
 
@@ -239,8 +243,8 @@ static event string GetDescriptionText(string Property)
 {
   Class'JBGUIHook'.Static.Hook();
 
-  if (Property ~= "bEnableJailFights")
-    return Default.TextDescriptionEnableJailFights;
+  if (Property ~= "bEnableJailFights")    return Default.TextDescriptionEnableJailFights;
+  if (Property ~= "bFavorHumansForArena") return Default.TextDescriptionFavorHumansForArena;
 
   return Super.GetDescriptionText(Property);
 }
@@ -1893,9 +1897,11 @@ defaultproperties
   TextHintJailbreak[16] = "Don't try to cheat by reconnecting to the server while you're in jail! The game will turn you into a llama (quite literally) and give other players bonus points for hunting you down."
   TextHintJailbreak[17] = "Don't attack protected players who were just released from jail. You might get llamaized for it!"
 
-  TextDescriptionEnableJailFights = "Allows jail inmates to fight each other with their Shield Guns for fun."
-  TextWebAdminEnableJailFights    = "Allow Jail Fights";
-  TextWebAdminPrefixAddon         = "Jailbreak:";
+  TextDescriptionEnableJailFights    = "Allows jail inmates to fight each other with their Shield Guns for fun.";
+  TextDescriptionFavorHumansForArena = "Always selects human players over bots for arena fights.";
+  TextWebAdminEnableJailFights       = "Allow Jail Fights";
+  TextWebAdminFavorHumansForArena    = "Favor Humans For Arena";
+  TextWebAdminPrefixAddon            = "Jailbreak:";
 
   WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard";
   WebScoreboardPath  = "/scoreboard";
@@ -1905,6 +1911,7 @@ defaultproperties
   bEnableJailFights        = True;
   bEnableScreens           = True;
   bEnableSpectatorDeathCam = True;
+  bFavorHumansForArena     = False;
 
   bEnableWebScoreboard     = True;
   bEnableWebAdminExtension = True;
