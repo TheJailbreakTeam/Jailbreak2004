@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.5 2003/11/11 17:48:46 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.8 2004/05/20 14:08:29 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -312,10 +312,10 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddClass(default.Class);
   
   // now register any mutator settings
-  PlayInfo.AddSetting(default.FriendlyName, "MaximumLlamaDuration", default.MaximumLlamaDurationText, 0, 0, "Text", "3;0:120");
-  PlayInfo.AddSetting(default.FriendlyName, "RewardAdrenaline",     default.RewardAdrenalineText,     0, 0, "Text", "3;0:100");
-  PlayInfo.AddSetting(default.FriendlyName, "RewardHealth",         default.RewardHealthText,         0, 0, "Text", "3;0:199");
-  PlayInfo.AddSetting(default.FriendlyName, "RewardShield",         default.RewardShieldText,         0, 0, "Text", "3;0:150");
+  PlayInfo.AddSetting(PlayInfoGroup(), "MaximumLlamaDuration", default.MaximumLlamaDurationText, 0, 1, "Text", "3;0:120");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardAdrenaline",     default.RewardAdrenalineText,     0, 2, "Text", "3;0:100");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardHealth",         default.RewardHealthText,         0, 3, "Text", "3;0:199");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardShield",         default.RewardShieldText,         0, 4, "Text", "3;0:150");
   
   // remove mutator class from class stack
   PlayInfo.PopClass();
