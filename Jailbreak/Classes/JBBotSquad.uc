@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.9 2003/02/08 22:01:25 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.10 2003/02/17 19:49:03 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -113,7 +113,6 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
 
   return False;
   }
-
 
 
 // ============================================================================
