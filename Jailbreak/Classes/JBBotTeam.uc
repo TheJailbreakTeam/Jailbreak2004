@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.11 2003/01/23 18:31:36 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.12 2003/01/25 23:46:48 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -1212,7 +1212,7 @@ function GameObjective GetPriorityFreelanceObjective() {
 // ============================================================================
 // NotifySpawn
 //
-// Called when a player respawns. When an enemy spawns in freedom, dispatches
+// Called after a player respawns. When an enemy spawns in freedom, dispatches
 // a freelancing squad to the enemy's probable spawning point. Tells bots to
 // resume their fixed orders if they have any.
 // ============================================================================
@@ -1226,25 +1226,21 @@ function NotifySpawn(Controller ControllerSpawned) {
   if (TagPlayer == None)
     return;
 
-  switch (TagPlayer.GetRestart()) {
-    case 'Restart_Freedom':
-      if (TagPlayer.GetTeam() == Team) {
-        if (Bot(ControllerSpawned) != None)
-          ResumeBotOrders(Bot(ControllerSpawned));
-        }
+  if (TagPlayer.IsFree()) {
+    if (TagPlayer.GetTeam() == Team) {
+      if (Bot(ControllerSpawned) != None)
+        ResumeBotOrders(Bot(ControllerSpawned));
+      }
 
-      else {
-        NavigationPointGuessed = TagPlayer.GuessLocation(JBReplicationInfoTeam(TagPlayer.GetTeam()).FindPlayerStarts());
-        if (NavigationPointGuessed != None)
-          SendSquadTo(NavigationPointGuessed, ControllerSpawned);
-        }
-
-      break;
-
-    case 'Restart_Jail':
-    case 'Restart_Arena':
-      TagPlayer.RecordLocation(None);
-      break;
+    else {
+      NavigationPointGuessed = TagPlayer.GuessLocation(JBReplicationInfoTeam(TagPlayer.GetTeam()).FindPlayerStarts());
+      if (NavigationPointGuessed != None)
+        SendSquadTo(NavigationPointGuessed, ControllerSpawned);
+      }
+    }
+  
+  else {
+    TagPlayer.RecordLocation(None);
     }
   }
 

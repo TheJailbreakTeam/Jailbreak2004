@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.14 2003/01/19 19:11:19 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.15 2003/01/25 23:46:48 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -457,7 +457,7 @@ function NavigationPoint GuessLocation(array<NavigationPoint> ListNavigationPoin
   local float ProbabilitySelected;
   local float ProbabilityTotal;
   local array<TInfoLocation> ListInfoLocationTarget;
-  
+
   if (GetController().Pawn == None)
     return None;
   
@@ -590,9 +590,9 @@ function GameObjective GuessObjective() {
 // Returns where this player ought to be restarted next. The following names
 // can be returned:
 //
-//   Freedom   Restart player in their own base in freedom.
-//   Jail      Restart player in jail.
-//   Arena     Restart player in the arena specified in ArenaRestart.
+//   Restart_Freedom   Restart player in their own base in freedom.
+//   Restart_Jail      Restart player in jail.
+//   Restart_Arena     Restart player in the arena specified in ArenaRestart.
 //
 // ============================================================================
 
