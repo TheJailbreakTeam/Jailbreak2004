@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.25 2003/06/29 13:57:55 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.26 2003/07/19 22:02:25 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -380,16 +380,36 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
 // ============================================================================
 // CancelRelease
 //
-// Cancels a release that has been initiated. Doesn't open the jail doors, but
-// marks the release as active and schedules a reset shortly.
+// Cancels a release that has been initiated. If the release did not start yet,
+// doesn't open the jail doors, but marks the release as active and schedules
+// a reset shortly; otherwise just resets the internal release state and fires
+// the remaining notification events in the correct order as if the jail doors
+// had closed.
 // ============================================================================
 
 function CancelRelease(TeamInfo Team) {
 
-  InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
-  InfoReleaseByTeam[Team.TeamIndex].bIsOpening     = False;
-  InfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
-  InfoReleaseByTeam[Team.TeamIndex].TimeReset      = Level.TimeSeconds + 2.0;
+  if (InfoReleaseByTeam[Team.TeamIndex].bIsActive) {
+    if (InfoReleaseByTeam[Team.TeamIndex].bIsOpening)
+      NotifyJailOpened(Team);
+  
+    InfoReleaseByTeam[Team.TeamIndex].bIsActive  = False;
+    InfoReleaseByTeam[Team.TeamIndex].bIsOpening = False;
+    InfoReleaseByTeam[Team.TeamIndex].TimeReset  = 0.0;  // disable
+    
+    NotifyJailClosed(Team);
+    ResetObjectives(Team);
+    }
+  
+  else {
+    InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
+    InfoReleaseByTeam[Team.TeamIndex].bIsOpening     = False;
+    InfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
+    InfoReleaseByTeam[Team.TeamIndex].TimeReset      = Level.TimeSeconds + 2.0;
+    }
+
+  InfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = None;
+  }
 
 
 // ============================================================================
@@ -737,11 +757,17 @@ auto state Waiting {
   //
   // Cancels all ongoing releases and stops the timer.
   // ================================================================
-  // Stops the timer.
+
   event EndState() {
   
     local int iTeam;
   
+    for (iTeam = 0; iTeam < ArrayCount(InfoReleaseByTeam); iTeam++)
+      if (InfoReleaseByTeam[iTeam].bIsActive)
+        CancelRelease(TeamGame(Level.Game).Teams[iTeam]);
+
+    SetTimer(0.0, False);
+    }
 
   } // state Waiting
 
