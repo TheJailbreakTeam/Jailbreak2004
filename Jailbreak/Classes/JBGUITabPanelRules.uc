@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelRules.uc,v 1.2 2003/06/25 19:01:46 mychaeel Exp $
+// $Id: JBGUITabPanelRules.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
 //
 // User interface panel for Jailbreak game rules.
 // ============================================================================
@@ -23,15 +23,18 @@ var localized string TextHintAddons;
 // Configuration
 // ============================================================================
 
-var config bool bLastJailFights;
+var config bool bLastJailFights;       // configuration for jail fights
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var GUITabPanel GUITabPanelAddons;
-var moCheckBox moCheckBoxJailFights;
+var string SongJailbreak;              // Jailbreak theme song
+var string SongPrev;                   // previously played song
+
+var GUITabPanel GUITabPanelAddons;     // new tab panel for add-ons 
+var moCheckBox moCheckBoxJailFights;   // new checkbox for jail fights
 
 
 // ============================================================================
@@ -83,6 +86,10 @@ function InitPanel()
 
   AddPanelAddons();
   HookChangeGameType();
+
+  SongPrev = PlaySong(SongJailbreak, 2.0, 0.0);
+  if (SongPrev ~= SongJailbreak)
+    SongPrev = ExtendedConsole(PlayerOwner().Player.Console).MusicManager.PlayList.Current;
 }
 
 
@@ -215,8 +222,36 @@ delegate OnChangeGameType();
 
 function ChangeGameType()
 {
+  PlaySong(SongPrev, 2.0, 2.0);
   RemovePanelAddons();
   UnhookChangeGameType();
+}
+
+
+// ============================================================================
+// PlaySong
+//
+// Starts playing the given song, cross-fading the current and the new song if
+// desired. Returns the name of the previously played song.
+// ============================================================================
+
+function string PlaySong(string Song, optional float TimeFadeOut, optional float TimeFadeIn)
+{
+  local string SongPrev;
+  local PlayerController PlayerController;
+  
+  PlayerController = PlayerOwner();
+  SongPrev = PlayerController.Song;  
+
+  if (Song == "" ||
+      Song ~= SongPrev)
+    return SongPrev;
+
+  PlayerController.Song = Song;
+  PlayerController.StopAllMusic(TimeFadeOut);
+  PlayerController.PlayMusic(Song, TimeFadeIn);
+
+  return SongPrev;
 }
 
 
@@ -226,6 +261,8 @@ function ChangeGameType()
 
 defaultproperties
 {
+  SongJailbreak = "Jailbreak";
+  
   TextCaptionGoalScore = "Capture Limit";
   TextCaptionAddons = "Add-Ons";
   TextHintAddons = "Select and configure any Jailbreak add-ons to use...";
