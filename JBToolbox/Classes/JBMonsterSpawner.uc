@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.2 2003/03/16 12:16:45 will Exp $
+// $Id: JBMonsterSpawner.uc,v 1.3 2003/03/16 13:20:48 will Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -53,7 +53,7 @@ Function PostBeginPlay()
 
 	If (DynamicLoadObject("Skaarjpack.Monster", Class'class', True) == None)
 		{
-		For (Jails = JBGameReplicationInfo(Level.Game.GameReplicatonInfo).FirstJail; Jails != None; Jails = Jails.NextJail)
+		For (Jails = JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstJail; Jails != None; Jails = Jails.NextJail)
 				Jails.ExecutionDelayFallback = 3;
 
 		Self.Destroy();
@@ -94,7 +94,6 @@ Function SpawnMonster()
 			If (MonsterSkin[i] != None)
 				MyMonster.Skins[i] = MonsterSkin[i];
 			}
-		MyMonster.bIsPlayer = False;
 
 		MyMonster.DamageScaling = 6.5;
 		}
@@ -181,6 +180,7 @@ State MonsterWait
 			MonsterController.default.bStasis = True;
 			MonsterController.bStasis = True;
 			MonsterController.Velocity = Vect(0, 0, 0);
+			MonsterController.bIsPlayer = False;
 			MyMonster.bIgnoreForces = True;
 			MyMonster.SetLocation(StartSpot);
 			SetTimer(0, False);
@@ -229,6 +229,7 @@ State MonsterAttack
 			{
 			MonsterClass.Default.bStasis = False;
 			MonsterController.bStasis = False;
+			MonsterController.bIsPlayer = True;
 			MyMonster.bStasis = False;
 			MyMonster.bIgnoreForces = False;
 			}
