@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaHeadAttachment
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaArrow.uc,v 1.2 2003/07/26 23:24:50 wormbo Exp $
+// $Id: JBLlamaHeadAttachment.uc,v 1.1 2003/07/27 18:27:39 wormbo Exp $
 //
 // A llama head replacing a llama's original head.
 //=============================================================================
@@ -14,7 +14,7 @@ class JBLlamaHeadAttachment extends InventoryAttachment;
 // Imports
 //=============================================================================
 
-#exec obj load file=StaticMeshes\LlamaHead.usx package=JBAddonLlama.LlamaHead
+#exec Obj Load File=StaticMeshes\LlamaHead.usx Package=JBAddonLlama.LlamaHead
 
 
 //=============================================================================
@@ -24,7 +24,8 @@ class JBLlamaHeadAttachment extends InventoryAttachment;
 defaultproperties
 {
   DrawType=DT_StaticMesh
-  StaticMesh=StaticMesh'JBAddonLlama.LlamaHead.LlamaHead'
-  DrawScale=0.25
+  StaticMesh=StaticMesh'LlamaHead'
+  DrawScale=0.075
+  PrePivot=(Z=60)
   AttachmentBone=head
 }

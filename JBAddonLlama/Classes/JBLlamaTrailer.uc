@@ -1,13 +1,13 @@
 //=============================================================================
 // JBLlamaTrailer
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTrailer.uc,v 1.1 2003/07/26 20:20:35 wormbo Exp $
+// $Id$
 //
 // Pulsing colored light effect for the llama.
 //=============================================================================
 
 
-class JBLlamaTrailer extends Effects;
+class JBLlamaTrailer extends Effects notplaceable;
 
 
 //=============================================================================
@@ -31,13 +31,14 @@ defaultproperties
 {
   RemoteRole=ROLE_SimulatedProxy
   bNetTemporary=false
-  bReplicateMovement=false
+  bReplicateMovement=False
   Physics=PHYS_Trailer
   DrawType=DT_None
-  bTrailerSameRotation=true
+  bTrailerSameRotation=True
+  LifeSpan=0.0
   bDynamicLight=True
   LightType=LT_Steady
   LightEffect=LE_NonIncidence
-  LightSaturation=127
+  LightSaturation=0
   LightBrightness=250
 }

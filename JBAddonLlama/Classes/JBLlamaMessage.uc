@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaMessage
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaMessage.uc,v 1.1 2003/07/29 14:50:53 wormbo Exp $
+// $Id: JBLlamaMessage.uc,v 1.2 2003/07/29 19:06:55 wormbo Exp $
 //
 // Localized messages for Llama Hunt announcements.
 //=============================================================================
@@ -39,14 +39,17 @@ var localized string TextLlamaDisconnected;
 //
 //=============================================================================
 
-static function string GetString(optional int Switch,
+static function string GetString(optional int iSwitch,
                                  optional PlayerReplicationInfo PlayerReplicationInfo1, 
                                  optional PlayerReplicationInfo PlayerReplicationInfo2,
                                  optional Object ObjectOptional)
 {
   local string ReturnText;
   
-  switch (Switch) {
+  if ( iSwitch == 2 && PlayerReplicationInfo2 == None )
+    iSwitch = 3;
+  
+  switch (iSwitch) {
     case 1:
       return class'JBLocalMessage'.static.StaticReplaceText(Default.TextLlamaHuntStart,
                                                             "%llama%",
@@ -102,7 +105,7 @@ defaultproperties
   TextLlamaDisconnected="%llama% ran away!"
   DrawColor=(R=255,G=255,B=0,A=255)
   StackMode=SM_Down
-  PosY=0.2
+  PosY=0.3
   bFadeMessage=True
   bIsUnique=True
   bIsSpecial=True

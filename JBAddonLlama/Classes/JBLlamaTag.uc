@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.3 2003/07/29 14:50:54 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.4 2003/07/29 19:06:56 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -9,6 +9,20 @@
 
 
 class JBLlamaTag extends Inventory;
+
+
+//=============================================================================
+// Imports
+//=============================================================================
+
+#exec audio import file=Sounds\alarm.wav
+#exec audio import file=Sounds\falarm.wav
+#exec audio import file=Sounds\cluck.wav
+#exec audio import file=Sounds\clucksnort.wav
+#exec audio import file=Sounds\hummun.wav
+#exec audio import file=Sounds\humw.wav
+#exec audio import file=Sounds\mom.wav
+#exec audio import file=Sounds\snort.wav
 
 
 //=============================================================================
@@ -22,7 +36,10 @@ var JBLlamaArrow               LlamaArrow;      // client-side spinning arrow ov
 var JBTagPlayer                TagPlayer;       // the llama's JBTagPlayer
 var float                      LlamaStartTime;  // Level.TimeSeconds when this player was llamaized
 var JBInterfaceHUD             LocalHUD;        // the Llama's HUD
-
+var array<Sound>               LlamaSounds;
+var bool                       bNotYetRegistered;
+var bool                       bShiftedView;
+var rotator                    ViewRotationOffset;
 
 //=============================================================================
 // PostBeginPlay
@@ -37,7 +54,8 @@ simulated event PostBeginPlay()
   Super.PostBeginPlay();
   
   LlamaStartTime = Level.TimeSeconds;
-  LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
+  if ( Role == ROLE_Authority )
+    LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
   HUDOverlay = class'JBInterfaceLlamaHUDOverlay'.static.FindLlamaHUDOverlay(Self);
   LlamaArrow = Spawn(class'JBLlamaArrow', Self);
 }
@@ -76,6 +94,7 @@ function GiveTo(Pawn Other, optional Pickup Pickup)
   if ( Level.NetMode != NM_DedicatedServer )
     InitLlamaTag();
   
+  Timer();
   BroadcastLocalizedMessage(class'JBLlamaMessage', 1, Other.PlayerReplicationInfo);
 }
 
@@ -95,10 +114,15 @@ simulated function InitLlamaTag()
   // find local playercontroller
   PlayerControllerLocal = Level.GetLocalPlayerController();
   
-  if ( Pawn(Owner) != None )
+  if ( Pawn(Owner) != None ) {
     TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner).PlayerReplicationInfo);
-  else
+    bNotYetRegistered = False;
+  }
+  else {
     warn("Owner ="@Owner);
+    bNotYetRegistered = True;
+    return;
+  }
   
   // make sure that the local player owns the llama tag
   if ( Pawn(Owner) != None && PlayerControllerLocal == Pawn(Owner).Controller ) {
@@ -193,6 +217,26 @@ simulated function Tick(float DeltaTime)
 {
   local int CurrentCrosshair;
   
+  if ( bNotYetRegistered && Owner != None )
+    InitLlamaTag();
+  
+  if ( PlayerController(Pawn(Owner).Controller) != None
+      && !PlayerController(Pawn(Owner).Controller).bBehindView
+      && (PlayerController(Pawn(Owner).Controller).ViewTarget == None
+          || PlayerController(Pawn(Owner).Controller).ViewTarget == Self
+          || PlayerController(Pawn(Owner).Controller).ViewTarget == Owner) ) {
+    PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation - ViewRotationOffset);
+    ViewRotationOffset.Pitch = 1024 * Sin(1.2 * Pi * (Level.TimeSeconds - LlamaStartTime));
+    ViewRotationOffset.Yaw   = 1024 * Sin(0.9 * Pi * (Level.TimeSeconds - LlamaStartTime));
+    ViewRotationOffset.Roll  = 1536 * Sin(1.1 * Pi * (Level.TimeSeconds - LlamaStartTime));
+    PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation + ViewRotationOffset);
+    bShiftedView = True;
+  }
+  else if ( bShiftedView ) {
+    PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation - ViewRotationOffset);
+    bShiftedView = False;
+  }
+  
   //Pawn(Owner).SetHeadScale(2.0 + 1.0 * Cos(2.0 * Level.TimeSeconds));
   Pawn(Owner).SetHeadScale(0.01);
   
@@ -214,6 +258,23 @@ simulated function Tick(float DeltaTime)
   }
 }
 
+
+//=============================================================================
+// Timer
+//
+// Plays a random llama sound and sets up the timer for playing the next sound.
+//=============================================================================
+
+function Timer()
+{
+  local int RandSound;
+  
+  RandSound = Rand(LlamaSounds.Length);
+  Trail.PlaySound(LlamaSounds[RandSound],, 255,, 1000, RandRange(0.9, 1.1));
+  SetTimer((GetSoundDuration(LlamaSounds[RandSound]) + FRand() + 1.0) * 2.0 * Level.TimeDilation, False);
+}
+
+
 //=============================================================================
 // default properties
 //=============================================================================
@@ -224,4 +285,5 @@ defaultproperties
   bAlwaysRelevant=True
   bOnlyRelevantToOwner=False
   AttachmentClass=class'JBLlamaHeadAttachment'
+  LlamaSounds=(Sound'Alarm',Sound'FAlarm',Sound'Cluck',Sound'CluckSnort',Sound'hummun',Sound'humw',Sound'mom',Sound'Snort')
 }

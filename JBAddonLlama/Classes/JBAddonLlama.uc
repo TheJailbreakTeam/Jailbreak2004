@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.2 2003/07/26 23:24:48 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.3 2003/07/29 14:50:52 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -91,11 +91,12 @@ function Mutate(string MutateString, PlayerController Sender)
   // possibly handle multiple space chars?
   
   
-  // only do something if the first word after "mutate" was "llama"
+  // only do something if the first word after "mutate" was "llama" or "unllama"
   if ( SplittedString.Length > 0 && (SplittedString[0] ~= "llama" || SplittedString[0] ~= "unllama") ) {
     if ( SplittedString.Length == 1 ) {
       // no arguments - display "help"
-      Sender.ClientMessage("Syntax: mutate llama [[player] playername]"); // TODO: needs localization
+      Sender.ClientMessage("Syntax: mutate llama <playername>");   // TODO: needs localization
+      Sender.ClientMessage("or:     mutate unllama <playername>"); // TODO: needs localization
     }
     /*else if ( ... ) {
       // handle config parameters here 
