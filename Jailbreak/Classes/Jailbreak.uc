@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.104 2004/05/30 21:24:47 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.105 2004/05/30 21:44:26 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -94,8 +94,8 @@ event InitGame(string Options, out string Error)
 
   foreach AllObjects(Class'WebServer', thisWebServer)
     if (thisWebServer.Outer != Outer) {
-      thisWebServer.Destroy();
       Log("Destroying left-over WebServer actor" @ thisWebServer);
+      thisWebServer.Destroy();
     }
 
   Super.InitGame(Options, Error);
