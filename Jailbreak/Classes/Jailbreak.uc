@@ -1244,7 +1244,12 @@ state MatchInProgress {
 
   event Timer()
   {
+    local bool bSynchronizeTime;
     local int iTeam;
+
+    bSynchronizeTime = ElapsedTime % 30 == 0 ||
+                       ElapsedTime != GameReplicationInfo.ElapsedTime ||
+                       DilationTimePrev != Level.TimeDilation;
 
     Super.Timer();
 
@@ -1259,9 +1264,9 @@ state MatchInProgress {
       ExecutionInit();
     }
 
-    if (ElapsedTime % 30 == 0 || DilationTimePrev != Level.TimeDilation) {
-      DilationTimePrev = Level.TimeDilation;
+    if (bSynchronizeTime) {
       JBGameReplicationInfo(GameReplicationInfo).SynchronizeMatchTimer(ElapsedTime);
+      DilationTimePrev = Level.TimeDilation;
     }
   }
 

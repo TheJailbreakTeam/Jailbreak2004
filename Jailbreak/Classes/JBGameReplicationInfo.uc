@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameReplicationInfo
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameReplicationInfo.uc,v 1.12 2003/05/31 17:06:05 mychaeel Exp $
+// $Id$
 //
 // Replicated information for the entire game.
 // ============================================================================
@@ -183,9 +183,8 @@ function SynchronizeMatchTimer(float TimeMatchElapsed)
   TimeMatchElapsed *= Level.TimeDilation;
 
   if (TimeMatchStopped == 0.0)
-    TimeMatchCorrection = TimeMatchElapsed - (Level.TimeSeconds - TimeMatchStarted);
-  else
-    TimeMatchCorrection = TimeMatchElapsed - (TimeMatchStopped - TimeMatchStarted);
+         TimeMatchCorrection = TimeMatchElapsed - (Level.TimeSeconds - TimeMatchStarted);
+    else TimeMatchCorrection = TimeMatchElapsed - (TimeMatchStopped  - TimeMatchStarted);
 }
 
 
@@ -216,7 +215,7 @@ function StopMatchTimer()
 //     temporarily interrupted and both ElapsedTime and RemainingTime remain
 //     at a fixed value.
 //
-// TimeMatchCorrection accounts for time spend while the match was interrupted
+// TimeMatchCorrection accounts for time spent while the match was interrupted
 // like during execution sequences.
 // ============================================================================
 
@@ -229,9 +228,8 @@ private simulated function UpdateMatchTimer()
 
   if (TimeMatchStarted != 0.0) {
     if (TimeMatchStopped != 0.0)
-      TimeMatchElapsed = TimeMatchStopped - TimeMatchStarted;
-    else
-      TimeMatchElapsed = TagClientLocal.GetServerTime() - TimeMatchStarted;
+           TimeMatchElapsed = TimeMatchStopped               - TimeMatchStarted;
+      else TimeMatchElapsed = TagClientLocal.GetServerTime() - TimeMatchStarted;
 
     TimeMatchElapsed += TimeMatchCorrection;
     TimeMatchElapsed /= Level.TimeDilation;
@@ -243,9 +241,8 @@ private simulated function UpdateMatchTimer()
 
   if (TimeMatchStarted != 0.0 &&
       TimeMatchStopped == 0.0)
-    SetTimer((1.0 - TimeMatchElapsed % 1.0) * Level.TimeDilation, False);
-  else
-    SetTimer(0.3, False);
+         SetTimer((1.0 - TimeMatchElapsed % 1.0) * Level.TimeDilation, False);
+    else SetTimer( 0.3,                                                False);
 }
 
 
