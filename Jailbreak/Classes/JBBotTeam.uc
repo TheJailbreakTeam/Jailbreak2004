@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.21 2003/06/14 18:14:30 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.22 2003/06/14 18:46:59 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -1663,10 +1663,42 @@ state TacticsAggressive {
 // ============================================================================
 // state TacticsSuicidal
 //
-// Dummy state pending implementation.
+// Suicidal team tactics. In disregard to their own safety and their base's
+// defense, all bots either attack to release their teammates or roam the map
+// to kill everything.
 // ============================================================================
 
-state TacticsSuicidal extends TacticsAggressive {}
+state TacticsSuicidal {
+
+  // ================================================================
+  // ReAssessOrders
+  //
+  // If a jail requires attack, sends all free players to attack it.
+  // Otherwise sets all free players to freelance.
+  // ================================================================
+
+  function ReAssessOrders() {
+  
+    local int nPlayersFree;
+    local int nPlayersJailed;
+    local GameObjective ObjectiveAttack;
+    
+    nPlayersFree   = TagTeamSelf.CountPlayersFree();
+    nPlayersJailed = TagTeamSelf.CountPlayersJailed();
+    
+    if (nPlayersJailed == 0) {
+      DeployRestart();
+      DeployExecute();  // all on freelance
+      }
+      
+    else {
+      ObjectiveAttack = GetPriorityAttackObjective();
+      DeployToObjective(ObjectiveAttack, nPlayersFree);
+      DeployExecute();
+      }
+    }
+
+  } // state TacticsSuicidal
 
 
 // ============================================================================
