@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.8 2002/11/24 18:14:04 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.9 2002/11/24 18:58:53 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -480,7 +480,8 @@ function bool ExecutionInit() {
         }
 
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-      if (thisController.PlayerReplicationInfo != None &&
+      if (thisController.PlayerReplicationInfo      != None &&
+          thisController.PlayerReplicationInfo.Team != None &&
           thisController.PlayerReplicationInfo.Team.TeamIndex != TeamCaptured)
         ScoreEvent(thisController, 'Capture');
 
@@ -566,10 +567,8 @@ state MatchInProgress {
     
     if (TimeExecution == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-        if (IsCaptured(iTeam)) {
+        if (IsCaptured(iTeam))
           TimeExecution = Level.TimeSeconds + 1.0;
-          break;
-          }
       }
     
     else if (Level.TimeSeconds > TimeExecution) {
