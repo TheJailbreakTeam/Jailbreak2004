@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.7 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.8 2003/01/02 11:33:20 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -107,7 +107,7 @@ event Timer() {
   JailPrev = Jail;
   Jail = None;
 
-  if (Arena == None) {
+  if (Arena == None && GetController().Pawn != None) {
     firstJail = JBReplicationInfoGame(GetGameReplicationInfo()).firstJail;
     for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)    
       if (Jail.ContainsActor(GetController().Pawn))
@@ -274,11 +274,18 @@ private function RestartPlayer() {
 
 function RestartFreedom() {
 
+  local JBInfoJail JailPrev;
+
   Restart = Restart_Freedom;
   
   ArenaRestart = None;
   ArenaPending = None;
   ArenaRequest = None;
+  
+  JailPrev = Jail;       // would be picked up automatically by Timer too,
+  Jail = None;           // but not before the player gets a new Pawn,
+  if (JailPrev != None)  // so handle the release from jail here already
+    JailLeft(Jail);
   
   RestartPlayer();
 
