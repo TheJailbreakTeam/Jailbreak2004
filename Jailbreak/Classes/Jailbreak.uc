@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.6 2002/11/24 12:38:23 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.7 2002/11/24 14:41:31 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -14,6 +14,8 @@ class Jailbreak extends TeamGame
 // ============================================================================
 // Variables
 // ============================================================================
+
+var class<LocalMessage> ClassLocalMessage;
 
 var private JBCamera CameraExecution;    // camera for execution sequence
 
@@ -409,7 +411,7 @@ function bool ExecutionInit() {
           TeamCaptured = iTeam;
         else {
           RestartAll();
-          BroadcastLocalizedMessage(Class'JBLocalMessage', 300);
+          BroadcastLocalizedMessage(ClassLocalMessage, 300);
           return False;
           }
   
@@ -430,7 +432,7 @@ function bool ExecutionInit() {
     for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
       InfoGame.ListInfoJail[iInfoJail].ExecutionInit();
     
-    BroadcastLocalizedMessage(Class'JBLocalMessage', 100, , , Teams[TeamCaptured]);
+    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , Teams[TeamCaptured]);
     return True;
     }
   
@@ -585,6 +587,8 @@ state Executing {
 // ============================================================================
 
 defaultproperties {
+
+  ClassLocalMessage = Class'JBLocalMessage';
 
   MapPrefix  = "JB";
   BeaconName = "JB";

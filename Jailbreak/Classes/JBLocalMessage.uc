@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.1 2002/11/24 11:14:07 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.2 2002/11/24 16:36:21 mychaeel Exp $
 //
 // Localized messages for generic Jailbreak announcements.
 // ============================================================================
@@ -30,6 +30,8 @@ var localized string TextTeamStalemate;
 var localized string TextArenaCountdown[3];
 var localized string TextArenaStartCombatant;
 var localized string TextArenaStartOther;
+var localized string TextArenaCancelCombatant;
+var localized string TextArenaCancelOther;
 var localized string TextArenaTieCombatant;
 var localized string TextArenaTieOther;
 var localized string TextArenaEndWinner;
@@ -52,8 +54,9 @@ var localized string TextArenaEndOther;
 //   402       Arena countdown 2                                     Arena
 //   401       Arena countdown 1                                     Arena
 //   400 (b)   Arena start         Red Combatant    Blue Combatant   Arena
-//   410 (b)   Arena tie           Red Combatant    Blue Combatant   Arena
-//   420 (b)   Arena victory       Winner           Loser            Arena
+//   410 (b)   Arena cancelled     Red Combatant    Blue Combatant   Arena
+//   420 (b)   Arena tie           Red Combatant    Blue Combatant   Arena
+//   430 (b)   Arena victory       Winner           Loser            Arena
 //
 // Switches marked with (b) are broadcasted to all players, all other messages
 // are directly sent to the players in question.
@@ -173,10 +176,16 @@ static function string GetString(optional int Switch,
     case 410:
       if (IsLocalPlayer(PlayerReplicationInfo1) ||
           IsLocalPlayer(PlayerReplicationInfo2))
+        return ReplaceTextArena(Default.TextArenaCancelCombatant, PlayerReplicationInfo1, PlayerReplicationInfo2);
+      return ReplaceTextArena(Default.TextArenaCancelOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
+
+    case 420:
+      if (IsLocalPlayer(PlayerReplicationInfo1) ||
+          IsLocalPlayer(PlayerReplicationInfo2))
         return ReplaceTextArena(Default.TextArenaTieCombatant, PlayerReplicationInfo1, PlayerReplicationInfo2);
       return ReplaceTextArena(Default.TextArenaTieOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
 
-    case 420:
+    case 430:
       if (IsLocalPlayer(PlayerReplicationInfo1))
         return ReplaceTextArena(Default.TextArenaEndWinner, PlayerReplicationInfo1, PlayerReplicationInfo2);
       if (IsLocalPlayer(PlayerReplicationInfo2))
@@ -192,24 +201,26 @@ static function string GetString(optional int Switch,
 
 defaultproperties {
 
-  TextTeamCaptured[0]     = "The red team has been captured.";
-  TextTeamCaptured[1]     = "The blue team has been captured.";
-  TextTeamReleased[0]     = "The red team has been released.";
-  TextTeamReleased[1]     = "The blue team has been released.";
-  TextTeamReleasedBy[0]   = "The red team has been released by %player%.";
-  TextTeamReleasedBy[1]   = "The blue team has been released by %player%.";
-  TextTeamStalemate       = "Both teams captured, no score.";
+  TextTeamCaptured[0]      = "The red team has been captured.";
+  TextTeamCaptured[1]      = "The blue team has been captured.";
+  TextTeamReleased[0]      = "The red team has been released.";
+  TextTeamReleased[1]      = "The blue team has been released.";
+  TextTeamReleasedBy[0]    = "The red team has been released by %player%.";
+  TextTeamReleasedBy[1]    = "The blue team has been released by %player%.";
+  TextTeamStalemate        = "Both teams captured, no score.";
 
-  TextArenaCountdown[2]   = "Arena match is about to begin...3";
-  TextArenaCountdown[1]   = "Arena match is about to begin...2";
-  TextArenaCountdown[0]   = "Arena match is about to begin...1";
-  TextArenaStartCombatant = "Arena match has begun!";
-  TextArenaStartOther     = "%teammate% is fighting %enemy% in the arena.";
-  TextArenaTieCombatant   = "Arena match tied.";
-  TextArenaTieOther       = "Arena match between %teammate% and %enemy% tied.";
-  TextArenaEndWinner      = "You have won your freedom!";
-  TextArenaEndLoser       = "You have lost the arena match.";
-  TextArenaEndOther       = "%winner% has defeated %loser% in the arena.";
+  TextArenaCountdown[2]    = "Arena match is about to begin...3";
+  TextArenaCountdown[1]    = "Arena match is about to begin...2";
+  TextArenaCountdown[0]    = "Arena match is about to begin...1";
+  TextArenaStartCombatant  = "Arena match has begun!";
+  TextArenaStartOther      = "%teammate% is fighting %enemy% in the arena.";
+  TextArenaCancelCombatant = "Arena match between %teammate% and %enemy% cancelled.";
+  TextArenaCancelOther     = "Arena match has been cancelled.";
+  TextArenaTieCombatant    = "Arena match tied.";
+  TextArenaTieOther        = "Arena match between %teammate% and %enemy% tied.";
+  TextArenaEndWinner       = "You have won your freedom!";
+  TextArenaEndLoser        = "You have lost the arena match.";
+  TextArenaEndOther        = "%winner% has defeated %loser% in the arena.";
 
   bFadeMessage = True;
   bIsUnique    = True;

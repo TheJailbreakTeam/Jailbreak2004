@@ -1,9 +1,11 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.4 2002/11/24 16:55:31 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.5 2002/11/24 16:59:18 mychaeel Exp $
 //
-// Holds information about an arena.
+// Holds information about an arena. Some design inconsistencies in here: Part
+// of the code could do well enough with any number of teams, other parts need
+// to limit it to red and blue due to restrictions of the underlying game.
 // ============================================================================
 
 
@@ -52,6 +54,8 @@ var() name TagAttachPickups;
 // Variables
 // ============================================================================
 
+var class<LocalMessage> ClassLocalMessage;
+
 var private JBProbeEvent ProbeEventRequest;
 var private JBProbeEvent ProbeEventExclude;
 
@@ -59,6 +63,9 @@ var private array<Controller> ListControllerExclude;
 
 var private float TimeCountdownStart;  // time until the match starts
 var private float TimeCountdownTie;    // time until a tie is announced
+
+var private PlayerReplicationInfo PlayerReplicationInfoRed;   // for messages
+var private PlayerReplicationInfo PlayerReplicationInfoBlue;  // for messages
 
 
 // ============================================================================
@@ -365,8 +372,11 @@ function bool MatchInit(Controller ControllerCombatantRed, Controller Controller
       return False;
       }
     
-    Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerCombatantRed.PlayerReplicationInfo).SetArenaPending(Self);
-    Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerCombatantBlue.PlayerReplicationInfo).SetArenaPending(Self);
+    PlayerReplicationInfoRed  = ControllerCombatantRed.PlayerReplicationInfo;
+    PlayerReplicationInfoBlue = ControllerCombatantBlue.PlayerReplicationInfo;
+    
+    Class'JBReplicationInfoPlayer'.Static.FindFor(PlayerReplicationInfoRed ).SetArenaPending(Self);
+    Class'JBReplicationInfoPlayer'.Static.FindFor(PlayerReplicationInfoBlue).SetArenaPending(Self);
     
     GotoState('MatchCountdown');
     return True;
@@ -395,11 +405,11 @@ function MatchCancel() {
     InfoGame = JBReplicationInfoGame(Level.GRI);
   
     for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArenaPending() == Self) {
-        // TODO: notify player
+      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArenaPending() == Self)
         InfoGame.ListInfoPlayer[iInfoPlayer].SetArenaPending(None);
-        }
-  
+
+    TriggerEvent(EventTied, Self, None);
+    BroadcastLocalizedMessage(ClassLocalMessage, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     GotoState('Waiting');
     }
   
@@ -432,6 +442,7 @@ function bool MatchStart() {
       Prepare();
   
       TriggerEvent(EventStart, Self, None);
+      BroadcastLocalizedMessage(ClassLocalMessage, 400, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       GotoState('MatchRunning');
       
       return True;
@@ -482,12 +493,11 @@ function MatchTie() {
     InfoGame = JBReplicationInfoGame(Level.GRI);
     
     for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArena() == Self) {
-        // TODO: notify players about tie
+      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArena() == Self)
         InfoGame.ListInfoPlayer[iInfoPlayer].RestartJail();
-        }
 
     TriggerEvent(EventTied, Self, None);
+    BroadcastLocalizedMessage(Class'JBLocalMessage', 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     GotoState('Waiting');
     }
   
@@ -516,21 +526,30 @@ function MatchFinish() {
   
     if (ControllerWinner != None) {
       switch (ControllerWinner.PlayerReplicationInfo.Team.TeamIndex) {
-        case 0:  TriggerEvent(EventWonRed,  Self, ControllerWinner.Pawn);  break;
-        case 1:  TriggerEvent(EventWonBlue, Self, ControllerWinner.Pawn);  break;
+        case 0:
+          TriggerEvent(EventWonRed, Self, ControllerWinner.Pawn);
+          BroadcastLocalizedMessage(ClassLocalMessage, 430, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+          break;
+
+        case 1:
+          TriggerEvent(EventWonBlue, Self, ControllerWinner.Pawn);
+          BroadcastLocalizedMessage(ClassLocalMessage, 430, PlayerReplicationInfoBlue, PlayerReplicationInfoRed, Self);
+          break;
         }
 
-      // TODO: notify winner
       Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo).RestartFreedom();
+      }
+    
+    else {
+      TriggerEvent(EventTied, Self, None);
+      BroadcastLocalizedMessage(ClassLocalMessage, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       }
     
     InfoGame = JBReplicationInfoGame(Level.GRI);
     
     for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArena() == Self) {
-        // TODO: notify players about loss
+      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArena() == Self)
         InfoGame.ListInfoPlayer[iInfoPlayer].RestartJail();
-        }
     }
   
   else {
@@ -712,6 +731,33 @@ state Waiting {
 state MatchCountdown {
 
   // ================================================================
+  // BroadcastCountdown
+  //
+  // Notifies all players scheduled for a match in this arena about
+  // the countdown.
+  // ================================================================
+
+  private function BroadcastCountdown(int nSeconds) {
+  
+    local int iInfoPlayer;
+    local JBReplicationInfoGame InfoGame;
+
+    InfoGame = JBReplicationInfoGame(Level.GRI);
+
+    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
+      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArenaPending() == Self)
+        Level.Game.BroadcastHandler.BroadcastLocalized(
+          Self,
+          PlayerController(InfoGame.ListInfoPlayer[iInfoPlayer].Owner),
+          ClassLocalMessage,
+          Clamp(nSeconds, 1, 3) + 400,
+          PlayerReplicationInfoRed,
+          PlayerReplicationInfoBlue,
+          Self);
+    }
+
+
+  // ================================================================
   // BeginState
   //
   // Starts the timer with an interval of one second and initializes
@@ -721,7 +767,7 @@ state MatchCountdown {
   event BeginState() {
   
     TimeCountdownStart = 3.0;
-    // TODO: notify players of countdown
+    BroadcastCountdown(TimeCountdownStart + 0.5);
     
     SetTimer(1.0, True);
     }
@@ -742,7 +788,7 @@ state MatchCountdown {
     if (TimeCountdownStart <= 0.0)
       MatchStart();
     else if (CanStart())
-      Log("Countdown:" @ int(TimeCountdownStart)); // TODO: notify players of countdown
+      BroadcastCountdown(TimeCountdownStart + 0.5);
     else
       MatchCancel();
     }
@@ -851,6 +897,8 @@ simulated function float GetCountdownTie() {
 // ============================================================================
 
 defaultproperties {
+
+  ClassLocalMessage = Class'JBLocalMessage';
 
   EventStart   = 'ArenaStart';
   EventTied    = 'ArenaTied';
