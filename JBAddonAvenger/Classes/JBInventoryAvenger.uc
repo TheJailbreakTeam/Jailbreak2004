@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInventoryAvenger
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id$
+// $Id: JBInventoryAvenger.uc,v 1.4 2004/05/18 18:31:45 mychaeel Exp $
 //
 // Spawned for each avenger player. Gives the player the combo and then 
 // destroys it after set time.
@@ -48,6 +48,8 @@ simulated event PostNetBeginPlay()
     {
         LocalHUD = JBInterfaceHud(PlayerControllerLocal.myHUD);
         LocalHUD.RegisterOverlay(Self);
+        
+        Class'JBSpeechManager'.Static.PlayFor(Level, "$AddonVengeanceStart");
     }
 }
 
