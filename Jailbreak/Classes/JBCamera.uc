@@ -803,10 +803,7 @@ simulated function RenderOverlays(Canvas Canvas)
 
 event Destroyed()
 {
-  local int iInfoViewer;
-  
-  for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++)
-    DeactivateFor(ListInfoViewer[iInfoViewer].Controller);
+  DeactivateForAll();
 }
 
 
