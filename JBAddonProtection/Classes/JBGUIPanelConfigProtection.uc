@@ -1,11 +1,11 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.2 2004/03/12 20:38:32 tarquin Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.3 2004/03/12 20:43:02 tarquin Exp $
 //
 // Option of protection mutator.
 // ============================================================================
-class JBGUIPanelConfigProtection extends GUIPanel;
+class JBGUIPanelConfigProtection extends JBGUIPanelConfig;
 
 
 // ============================================================================
@@ -82,7 +82,7 @@ function ChangeOptions(GUIComponent Sender)
 //
 // When you click on Reset button.
 // ============================================================================
-function ClickReset(coerce string Msg, float MsgLife)
+function ResetConfiguration()
 {
     ProtectionTime.SetValue(3);
     ProtectionType.SetIndex(0);
@@ -105,7 +105,6 @@ defaultproperties
     ProtectionTypeText(1)="Drop when you inflict damage"
     SecondText="second"
     SecondsText="seconds"
-    OnMessage=ClickReset;
     Begin Object class=GUILabel Name=ProtectionTimeLabel
         Caption="Protection time :"
         TextALign=TXTA_Left

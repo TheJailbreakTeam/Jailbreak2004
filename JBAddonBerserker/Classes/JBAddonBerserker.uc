@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonBerserker.uc,v 1.2 2004/03/12 20:52:39 tarquin Exp $
+// $Id: JBAddonBerserker.uc,v 1.3 2004/03/12 20:57:54 tarquin Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -19,7 +19,7 @@ var() config int MaxBerserkTime;
 // ============================================================================
 // PostBeginPlay
 //
-// Registre the additional rules.
+// Register the additional rules.
 // ============================================================================
 function PostBeginPlay()
 {
@@ -36,7 +36,7 @@ function PostBeginPlay()
     }
     else
     {
-        LOG("!!!!!"@name$".PostBeginPlay() : Fail to registre the JBGameRulesBerserker !!!!!");
+        LOG("!!!!!"@name$".PostBeginPlay() : Fail to register the JBGameRulesBerserker !!!!!");
         Destroy();
     }
 }
@@ -50,7 +50,6 @@ defaultproperties
     Build = "2003-07-24 19:41";
     BerserkTimeMultiplier=50
     MaxBerserkTime=30
-    bCanResetConfig=True;
     FriendlyName="Berserker"
     Description="Arena winners are made Beserker. The amount of time depends on the swiftness of victory."
     ConfigMenuClassName="JBAddonBerserker.JBGUIPanelConfigBerserker"

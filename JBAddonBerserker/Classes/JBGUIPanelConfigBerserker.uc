@@ -1,11 +1,11 @@
 // ============================================================================
 // JBGUIPanelConfigBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigBerserker.uc,v 1.1 2004/03/12 20:52:39 tarquin Exp $
+// $Id: JBGUIPanelConfigBerserker.uc,v 1.2 2004/03/12 20:57:54 tarquin Exp $
 //
 // Options of Berserker add-on.
 // ============================================================================
-class JBGUIPanelConfigBerserker extends GUIPanel;
+class JBGUIPanelConfigBerserker extends JBGUIPanelConfig;
 
 
 // ============================================================================
@@ -72,7 +72,7 @@ function ChangeOptions(GUIComponent Sender)
 //
 // When you click on Reset button.
 // ============================================================================
-function ClickReset(coerce string Msg, float MsgLife)
+function ResetConfiguration()
 {
     BerserkTimeMultiplier.SetValue(50);
     MaxBerserkTime.SetValue(30);
@@ -88,7 +88,6 @@ function ClickReset(coerce string Msg, float MsgLife)
 // ============================================================================
 defaultproperties
 {
-    OnMessage   = ClickReset;
     SecondsText = "seconds"
 
     Begin Object class=GUILabel Name=BerserkTimeMultiplierLabel
