@@ -418,13 +418,16 @@ function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator)
 // Returns the number of living players currently fighting in this arena.
 // ============================================================================
 
-function int CountPlayers()
+simulated function int CountPlayers()
 {
   local int nPlayers;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
-  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  if (Level.Game != None)
+         firstTagPlayer = JBGameReplicationInfo(Level.Game                      .GameReplicationInfo).firstTagPlayer;
+    else firstTagPlayer = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo).firstTagPlayer;
+
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArena() == Self &&
         thisTagPlayer.GetPawn() != None)
