@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCameraArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCameraArena.uc,v 1.1 2004/03/28 22:45:37 mychaeel Exp $
+// $Id: JBCameraArena.uc,v 1.2 2004/04/01 18:19:28 mychaeel Exp $
 //
 // Arena follower camera which tracks the arena opponent. Destroys itself when
 // the trailed player dies or is respawned or when the last viewer is gone.
@@ -60,15 +60,16 @@ function bool IsViewerAllowed(Controller Controller)
 // ============================================================================
 // Tick
 //
-// Checks whether the followed player has left the arena. If so, 
+// Checks whether the followed player has left the arena. If so, enters state
+// Finished which will wait a bit and then destroy the camera.
 // ============================================================================
 
 simulated event Tick(float TimeDelta)
 {
   Super.Tick(TimeDelta);
 
-  if (!TagPlayerFollowed.IsInArena() &&
-      !TagPlayerOpponent.IsInArena())
+  if ((TagPlayerFollowed == None || !TagPlayerFollowed.IsInArena()) &&
+      (TagPlayerOpponent == None || !TagPlayerOpponent.IsInArena()))
     GotoState('Finished');
 }
 
