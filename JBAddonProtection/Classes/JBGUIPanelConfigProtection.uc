@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBGUIPanelConfigProtection.uc,v 1.10 2004/04/06 22:53:46 tarquin Exp $
 //
 // Options for the protection add-on.
 // ============================================================================
@@ -99,7 +99,7 @@ function LoadINISettings()
 
 function ResetConfiguration()
 {
-  class'JBAddonProtection'.static.ResetConfiguration();
+  class'JBAddonProtection'.static.ResetConfig();
   LoadINISettings();
 }
 
@@ -139,7 +139,7 @@ defaultproperties
     OptionText(1) = "Drop when you inflict damage";
     
     OptionHint(0) = "Your weapons do no damage while protected.";
-    OptionHint(1) = "Protection is removed when you fire on a player.";
+    OptionHint(1) = "Protection is removed when you hit a player.";
     
     ItemHeight = 0.1;
     ButtonWidth=0.04;

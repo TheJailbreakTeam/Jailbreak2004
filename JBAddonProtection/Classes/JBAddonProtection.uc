@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBAddonProtection.uc,v 1.9 2004/04/06 22:53:46 tarquin Exp $
 //
 // This add-on protects players released from jail.
 // ============================================================================
@@ -14,10 +14,10 @@ class JBAddonProtection extends JBAddon config;
 // Constants
 //=============================================================================
 
-const DEFAULT_PROTECTION_TIME = 3;
-const DEFAULT_PROTECTION_TYPE = 0;
-const DEFAULT_PROTECT_ARENA   = 1; // doesn't work
-const DEFAULT_LLAMAIZE_CAMPERS= 1; // doesn't work
+//const DEFAULT_PROTECTION_TIME = 3;
+//const DEFAULT_PROTECTION_TYPE = 0;
+//const DEFAULT_PROTECT_ARENA   = True;
+//const DEFAULT_LLAMAIZE_CAMPERS= True;
 
 
 // ============================================================================
@@ -31,16 +31,23 @@ var() config bool bProtectArenaWinner;
 var() config bool bLlamaizeCampers;
 
 var PlayerReplicationInfo LastRestartedPRI;
+var localized string caption_ProtectionType;
+var localized string caption_ProtectionTime;
+var localized string caption_ProtectArenaWinner;
+var localized string caption_LlamaizeCampers;
+
 var localized string desc_ProtectionType;
 var localized string desc_ProtectionTime;
 var localized string desc_ProtectArenaWinner;
 var localized string desc_LlamaizeCampers;
 
+var localized string options_ProtectionType;
+
 
 // ============================================================================
 // PostBeginPlay
 //
-// Spawn and registre the additional rules.
+// Spawn and register the additional rules.
 // ============================================================================
 
 function PostBeginPlay()
@@ -88,11 +95,30 @@ function ModifyPlayer(Pawn P)
 static function FillPlayInfo(PlayInfo PlayInfo)
 {
     PlayInfo.AddClass(default.class);
-    PlayInfo.AddSetting(default.FriendlyName, "ProtectionType", default.desc_ProtectionType, 0, 0, "Text", "3;0:2");
-    PlayInfo.AddSetting(default.FriendlyName, "ProtectionTime", default.desc_ProtectionTime, 0, 0, "Text", "3;1:10");
-    PlayInfo.AddSetting(default.FriendlyName, "bProtectArenaWinner", default.desc_ProtectArenaWinner , 0, 0, "Check");
-    PlayInfo.AddSetting(default.FriendlyName, "bLlamaizeCampers", default.desc_LlamaizeCampers , 0, 0, "Check");
+    PlayInfo.AddSetting(default.FriendlyName, "ProtectionTime", default.caption_ProtectionTime, 0, 1, "Text", "2;0:10");
+    PlayInfo.AddSetting(default.FriendlyName, "ProtectionType", default.caption_ProtectionType, 0, 2, "Select", default.options_ProtectionType);
+    PlayInfo.AddSetting(default.FriendlyName, "bProtectArenaWinner", default.caption_ProtectArenaWinner , 0, 3, "Check");
+    PlayInfo.AddSetting(default.FriendlyName, "bLlamaizeCampers", default.caption_LlamaizeCampers , 0, 4, "Check");
     PlayInfo.PopClass();
+}
+
+
+//=============================================================================
+// GetDescriptionText
+//
+// Returns the description text for a configurable property.
+//=============================================================================
+
+static event string GetDescriptionText(string PropName)
+{
+  switch (PropName) {
+    case "ProtectionType":      return default.desc_ProtectionType;
+    case "ProtectionTime":      return default.desc_ProtectionTime;
+    case "bProtectArenaWinner": return default.desc_ProtectArenaWinner;
+    case "bLlamaizeCampers":    return default.desc_LlamaizeCampers;
+  }
+  
+  return Super.GetDescriptionText(PropName);
 }
 
 
@@ -102,14 +128,14 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 // Resets the Avenger configuration.
 //=============================================================================
 
-static function ResetConfiguration()
+/*static function ResetConfiguration()
 {
   default.ProtectionTime      = DEFAULT_PROTECTION_TIME;
   default.ProtectionType      = DEFAULT_PROTECTION_TYPE;
-  default.bProtectArenaWinner = true; // bool(DEFAULT_PROTECT_ARENA);
-  default.bLlamaizeCampers    = true; // bool(DEFAULT_LLAMAIZE_CAMPERS);
+  default.bProtectArenaWinner = DEFAULT_PROTECT_ARENA;
+  default.bLlamaizeCampers    = DEFAULT_LLAMAIZE_CAMPERS;
   StaticSaveConfig();
-}
+}*/
 
 
 // ============================================================================
@@ -125,8 +151,13 @@ defaultproperties
     FriendlyName="Release Protection"
     Description="Players released from jail are protected from enemy fire."
     ConfigMenuClassName="JBAddonProtection.JBGUIPanelConfigProtection"
-    desc_ProtectionTime="The protection time."
-    desc_ProtectionType="The protection type."
+    caption_ProtectionTime    ="Protection time"
+    caption_ProtectionType    ="Protection type"
+    caption_ProtectArenaWinner="Protect the arena winner"
+    caption_LlamaizeCampers   ="Make jail campers llamas"
+    desc_ProtectionTime    ="Duration of protection in seconds."
+    desc_ProtectionType    ="Whether your weapons do no damage while you are protected or protection is removed when you hit a player."
     desc_ProtectArenaWinner="When enabled, the arena winner gains protection."
-    desc_LlamaizeCampers="When enabled, players causing lethal damage to protected players are made llamas."
+    desc_LlamaizeCampers   ="When enabled, players causing lethal damage to protected players are made llamas."
+    options_ProtectionType="0;You can't inflict damage;1;Drop when you inflict damage"
 }
