@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.2.2.1 2004/04/06 13:06:13 tarquin Exp $
+// $Id$
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -15,7 +15,6 @@ class JBGameRulesProtection extends JBGameRules;
 // ============================================================================
 
 var JBAddonProtection MyAddon;
-//var private JBInfoProtection MyProtection;
 var private Shader RedHitEffect, BlueHitEffect;
 var private sound ProtectionHitSound;
 
@@ -44,7 +43,7 @@ function NotifyPlayerJailed(JBTagPlayer NewJailedPlayer)
 // ============================================================================
 // NotifyJailOpening
 //
-// Called when a jail starts the opening, give protection to jailed players.
+// When a jail starts opening, give protection to jailed players.
 // ============================================================================
 
 function NotifyJailOpening(JBInfoJail Jail, TeamInfo Team)
@@ -68,8 +67,9 @@ function NotifyJailOpening(JBInfoJail Jail, TeamInfo Team)
 // ============================================================================
 // NotifyPlayerReleased
 //
-// Called when a jailled player was escaped, start the protection delay.
+// Called when a jailed player was escaped, start the protection delay.
 // ============================================================================
+
 function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
 {
     local JBInfoProtection MyProtection;
@@ -86,6 +86,7 @@ function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
 //
 // Called when the jail door was re-closed, remove evantual protection.
 // ============================================================================
+
 function NotifyJailClosed(JBInfoJail Jail, TeamInfo Team)
 {
     local JBTagPlayer ReJailedPlayer;
@@ -108,8 +109,9 @@ function NotifyJailClosed(JBInfoJail Jail, TeamInfo Team)
 // ============================================================================
 // NotifyExecutionCommit
 //
-// When a team are captured, remove all evantual protection.
+// When a team is captured, remove all protection.
 // ============================================================================
+
 function NotifyExecutionCommit(TeamInfo Team)
 {
     local JBInfoProtection MyProtection;
@@ -125,8 +127,9 @@ function NotifyExecutionCommit(TeamInfo Team)
 // ============================================================================
 // NotifyArenaStart
 //
-// When a player go fight in arena, this player lost his evantual protection.
+// When a player goes to the arena, remove his protection.
 // ============================================================================
+
 function NotifyArenaStart(JBInfoArena Arena)
 {
     local JBTagPlayer Fighter;
@@ -148,8 +151,9 @@ function NotifyArenaStart(JBInfoArena Arena)
 // ============================================================================
 // NotifyArenaEnd
 //
-// The winner of arena was protected.
+// The winner of the arena match is protected.
 // ============================================================================
+
 function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 {
     if(class'JBAddonProtection'.default.bProtectArenaWinner)
@@ -164,6 +168,7 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 //
 // Protect a player from his JBTagPlayer.
 // ============================================================================
+
 function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
 {
     local JBInfoProtection MyProtection;
@@ -204,37 +209,63 @@ function HitShieldEffect(Pawn ProtectedPawn)
 // ============================================================================
 // NetDamage
 //
-// Called when a player receive damage.
+// Called when a player receives damage.
 // ============================================================================
+
 function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn InstigatedBy, vector HitLocation, out vector Momentum, class<DamageType> DamageType)
 {
-    local JBInfoProtection MyProtection;
+  local JBInfoProtection MyProtection;
 
-    if(Injured.ReducedDamageType == class'JBDamageTypeNone')
-    {
-        HitShieldEffect(Injured);
-        Momentum = vect(0,0,0);
-        return 0;
-    }
+  // no damage is done to a protected player
+  if(Injured.ReducedDamageType == class'JBDamageTypeNone')
+  {
+    // ... but if damage is lethal, make attacker a llama
+    if( class'JBAddonProtection'.default.bLlamaizeCampers == True
+        && Damage >= Injured.Default.Health 
+        && InstigatedBy != None 
+        && InstigatedBy.Controller != None )
+      Llamaize(InstigatedBy.Controller);
+    
+    HitShieldEffect(Injured);
+    Momentum = vect(0,0,0);
+    return 0;
+  }
 
-    if((InstigatedBy != None)
+  // a protected player either does no damage or has protection removed
+  if((InstigatedBy != None)
     && (InstigatedBy.ReducedDamageType == class'JBDamageTypeNone')
     && (InstigatedBy != Injured))
+  {
+    if(class'JBAddonProtection'.default.ProtectionType == 0)
     {
-        if(class'JBAddonProtection'.default.ProtectionType == 0)
-        {
-            Momentum = vect(0,0,0);
-            return 0;
-        }
-        else if(class'JBAddonProtection'.default.ProtectionType == 1)
-        {
-            MyProtection = GetMyProtection(InstigatedBy.PlayerReplicationInfo);
-            if(MyProtection != None) MyProtection.Destroy();
-        }
+      Momentum = vect(0,0,0);
+      return 0;
     }
+    else if(class'JBAddonProtection'.default.ProtectionType == 1)
+    {
+      MyProtection = GetMyProtection(InstigatedBy.PlayerReplicationInfo);
+      if(MyProtection != None) MyProtection.Destroy();
+    }
+  }
 
-    if(NextGameRules != None)
-        return NextGameRules.NetDamage(OriginalDamage, Damage, Injured, InstigatedBy, HitLocation, Momentum, DamageType);
+  if(NextGameRules != None)
+      return NextGameRules.NetDamage(OriginalDamage, Damage, Injured, InstigatedBy, HitLocation, Momentum, DamageType);
+}
+
+
+//=============================================================================
+// Llamaize
+//
+// Makes a player a Llama.
+//=============================================================================
+
+function Llamaize(Controller ControllerPlayer)
+{
+  local class<Actor> LlamaPendingTagClass;
+  
+  LlamaPendingTagClass = class<Actor>(DynamicLoadObject("JBAddonLlama.JBLlamaPendingTag", class'Class'));
+  if ( LlamaPendingTagClass != None )
+    Spawn(LlamaPendingTagClass, ControllerPlayer);
 }
 
 
