@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.35.2.8 2004/05/17 03:20:05 mychaeel Exp $
+// $Id$
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1156,7 +1156,11 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
 // player if the player was viewing the last available one already.
 // ============================================================================
 
-simulated exec function ArenaCam() { GetTagClientOwner().ExecArenaCam(); }
+simulated exec function ArenaCam()
+{
+  ClearMessageByClass(Class'JBLocalMessageScreen', 500);
+  GetTagClientOwner().ExecArenaCam();
+}
 
 
 // ============================================================================
@@ -1164,8 +1168,7 @@ simulated exec function ArenaCam() { GetTagClientOwner().ExecArenaCam(); }
 // exec ViewTeamJailed
 // exec ViewTeamAny
 //
-// Allows players to spectate one of their teammates. If no subset of players
-// is given, switches only between free players.
+// Allows players to spectate one of their teammates.
 // ============================================================================
 
 simulated exec function ViewTeamFree()   { GetTagClientOwner().ExecViewTeam('Free'  ); }
