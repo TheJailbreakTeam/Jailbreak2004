@@ -140,12 +140,19 @@ TextSetup="geben Sie SetupPanorama in der Konsole ein"
 TextPreview="nur Vorschau, weisen Sie TexturePanorama zu"
 
 [Jailbreak]
-TextHintJailbreak=("Beobachten Sie die Kompass-Punkte: Je schneller sie pulsieren, desto mehr Spieler können durch den entsprechenden Schalter befreit werden.","Verwenden Sie %PREVWEAPON% und %NEXTWEAPON%, um Kamera-Blickpunkte zu wechseln.","Sie können auf die Schultern von geduckten Teamgefährten steien. Halten Sie nach Fluchtwegen aus Gefängnissen Ausschau, die diese Zusammenarbeit benötigen!","Einige Gefängnisse haben versteckte Fluchtwege. Möglicherweise müssen Sie auf die Schultern eines geduckten Teamgefährten steigen, um sie zu erreichen.","Möglicherweise existiert mehr als nur ein Schalter zur Befreiung Ihrer Teamgefährten. Je schneller ein Kompass-Punkt pulsiert, desto mehr Spieler können mit dem entsprechenden Schalter befreit werden.","Manchmal ist es besser, dem Gegner auszuweichen, statt ihm einen einfachen Punkt zu verschaffen.","Wenn Sie den letzten freien Gegner getötet haben, können Sie das gegnerische Team während der Exekutionssequenz auf dem Bildschirm verspotten.","Langweile im Gefängnis? Sie können ohne Punktestrafen mit der Shield Gun mit Ihren Mitgefangenen kämpfen.","Manche Gefängnisse enthalten Bildschirme für Überwachungskameras im Level. Nähern Sie sich einem Bildschirm, um die Kamera zu aktivieren.","Wenn Sie im Gefängnis sind, können Sie für einen Arena-Zweikampf ausgewählt werden. Gewinnen Sie Ihre Freiheit in der Arena!","Drücken Sie %ARENACAM%, um eine Live-Übertragung aus der Arena zu sehen!","Drücken Sie %TEAMTACTICS UP% und %TEAMTACTICS DOWN%, um die Aggressivität der Bots in Ihrem Team zu erhöhen oder zu vermindern.","Das Jailbreak-Scoreboard zeigt den Aufenthaltsort Ihrer Teamgefährten auf einer Übersichtskarte.","Sie können im Jailbreak-Scoreboard sehen, was Ihre menschlichen Teamgefährten gerade tun: ob sie angreifen, verteidigen oder das Level nach Gegnern durchsuchen.","Die roten, gelben und grünen Balken neben den Spielernamen auf dem Jailbreak-Scoreboard zeigen die Zahl der erledigten Gegner in Angriff bzw. Verteidigung und die Anzahl befreiter Teamgefährten.","Die Markierungen auf der Uhr in der rechten oberen Ecke des Jailbreak-Scoreboards zeigen Team-Gefangennahmen.","Versuchen Sie nicht zu betrügen, indem Sie sich zum Server neu verbinden, während Sie im Gefängnis sind! Das Spiel macht aus Ihnen ein Lama (im Wortsinn) und gibt anderen Spielern Bonuspunkte, um Sie zu töten.","Greifen Sie keine eben befreiten Spieler an. Sie könnten dafür zum Lama gemacht werden!")
-TextDescriptionEnableJailFights="Erlaubt Gefangenen, zum Spaß mit ihren Shield Guns zu kämpfen."
-TextDescriptionFavorHumansForArena="Zieht menschliche Spieler bei der Auswahl für einen Arena-Kampf vor."
 TextWebAdminEnableJailFights="Gefängniskämpfe erlauben"
 TextWebAdminFavorHumansForArena="Menschen für Arena vorziehen"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Zwei Teams versuchen, die gegnerischen Spieler ins Gefängnis zu bringen, indem sie sie töten. Wenn alle Spieler eines Teams gefangen sind, erhält das andere Team einen Punkt. Kämpfen Sie ihren Weg in die gegnerische Basis, um Ihre Teamgefährten freizulassen!"
 
+[JBGUITabPanelRules]
+moCheckBoxJailFightsDef.Caption="Gefängniskämpfe erlauben"
+moCheckBoxJailFightsDef.Hint="Erlaubt Gefangenen, zum Spaß mit ihren Shield Guns zu kämpfen."
+moCheckBoxFavorHumansForArenaDef.Caption="Menschen für Arena vorziehen"
+moCheckBoxFavorHumansForArenaDef.Hint="Zieht menschliche Spieler bei der Auswahl für einen Arena-Kampf vor."
+GUIButtonConfigureAddonsDef.Caption="Jailbreak-Add-Ons konfigurieren"
+GUIButtonConfigureAddonsDef.Hint="Öffnet den Add-Ons-Tab, um Jailbreak-Add-Ons zu konfigurieren."
+
+[JBGUIButtonClientOptions]
+Caption="JAILBREAK-OPTIONEN"
