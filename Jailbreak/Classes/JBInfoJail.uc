@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.11 2002/12/22 02:07:35 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.12 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -42,7 +42,7 @@ var() name TagAttachZones;
 struct TInfoRelease {
 
   var bool bIsActive;                   // release has been activated
-  var bool bIsOpen;                     // release doors are open
+  var bool bIsOpening;                  // release doors are opening
   var float Time;                       // time of release activation
   var Controller ControllerInstigator;  // player activating the release
   var array<Mover> ListMover;           // movers opening for this release
@@ -154,7 +154,7 @@ function name GetEventRelease(TeamInfo Team) {
 // IsReleaseOpen
 //
 // Checks and returns whether any release movers of this jail for the given
-// team are currently open.
+// team are currently fully open.
 // ============================================================================
 
 function bool IsReleaseOpen(TeamInfo Team) {
@@ -170,6 +170,28 @@ function bool IsReleaseOpen(TeamInfo Team) {
       return True;  // neither closed nor interpolating, thus open
 
   return False;
+  }
+
+
+// ============================================================================
+// IsReleaseClosed
+//
+// Checks and returns whether all release movers of this jail for the given
+// team are fully closed.
+// ============================================================================
+
+function bool IsReleaseClosed(TeamInfo Team) {
+
+  local int iMover;
+  local TInfoRelease InfoRelease;
+  
+  InfoRelease = ListInfoReleaseByTeam[Team.TeamIndex];
+  
+  for (iMover = 0; iMover < InfoRelease.ListMover.Length; iMover++)
+    if (!InfoRelease.ListMover[iMover].bClosed)
+      return False;
+  
+  return True;
   }
 
 
@@ -261,7 +283,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
   if (IsInState('Waiting')) {
     if (ListInfoReleaseByTeam[Team.TeamIndex].bIsActive)
       return;
-    
+
     if (ControllerInstigator != None &&
         ControllerInstigator.PlayerReplicationInfo.Team != Team) {
       Log("Warning:" @ ControllerInstigator.PlayerReplicationInfo.PlayerName @ "on team" @
@@ -277,10 +299,12 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
         TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
         }
       
-      ListInfoReleaseByTeam[Team.TeamIndex].bIsActive = True;
-      ListInfoReleaseByTeam[Team.TeamIndex].bIsOpen = False;
+      ListInfoReleaseByTeam[Team.TeamIndex].bIsActive  = True;
+      ListInfoReleaseByTeam[Team.TeamIndex].bIsOpening = True;
       ListInfoReleaseByTeam[Team.TeamIndex].Time = Level.TimeSeconds;
       ListInfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = ControllerInstigator;
+      
+      JailOpening(Team);
       }
     }
   
@@ -291,13 +315,14 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
 
 
 // ============================================================================
-// JailOpened
+// JailOpening
 // called. Disables all GameObjectives that can be used to trigger this jail's
-// Called when this jail is opened. Temporarily disables all objectives that
-// can be used to open this jail and communicates that event to all inmates.
+// Called when the doors to this jail start opening, before JailOpened is
+// ============================================================================
+
 function NotifyJailOpening(TeamInfo Team) {
 
-function JailOpened(TeamInfo Team, optional Controller ControllerInstigator) {
+function JailOpening(TeamInfo Team) {
   local GameObjective thisObjective;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
@@ -313,6 +338,26 @@ function JailOpened(TeamInfo Team, optional Controller ControllerInstigator) {
   firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
         thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.NotifyJailOpening();
+
+      thisTagPlayer.JailOpening();
+
+// ============================================================================
+// NotifyJailOpened
+//
+// JailOpened
+// event to all inmates.
+// ============================================================================
+
+function NotifyJailOpened(TeamInfo Team) {
+
+function JailOpened(TeamInfo Team) {
+  local JBTagPlayer firstTagPlayer;
+
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+        thisTagPlayer.GetTeam() == Team)
+      thisTagPlayer.NotifyJailOpened();
 
       thisTagPlayer.JailOpened();
 
@@ -459,21 +504,22 @@ auto state Waiting {
     for (iTeam = 0; iTeam < ArrayCount(ListInfoReleaseByTeam); iTeam++) {
       if (!InfoReleaseByTeam[iTeam].bIsActive)
         continue;
-      if (!ListInfoReleaseByTeam[iTeam].bIsActive ||
-           ListInfoReleaseByTeam[iTeam].bIsOpen == IsReleaseOpen(Team))
+      if (!ListInfoReleaseByTeam[iTeam].bIsActive)
       if (InfoReleaseByTeam[iTeam].bIsOpening) {
+        if (IsReleaseOpen(Team)) {
+      if (IsReleaseOpen(Team) && ListInfoReleaseByTeam[iTeam].bIsOpening) {
+        ListInfoReleaseByTeam[iTeam].bIsOpening = False;
 
-      if (ListInfoReleaseByTeam[iTeam].bIsOpen) {
-        ListInfoReleaseByTeam[iTeam].bIsActive = False;
-        ListInfoReleaseByTeam[iTeam].bIsOpen = False;
+        JailOpened(Team);
+      else if (IsReleaseClosed(Team)) {
+        if (InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
+          InfoReleaseByTeam[iTeam].TimeReset = Level.TimeSeconds + 0.5;
+        ListInfoReleaseByTeam[iTeam].bIsActive  = False;
+        ListInfoReleaseByTeam[iTeam].bIsOpening = False;
         ListInfoReleaseByTeam[iTeam].Time = 0.0;
         ListInfoReleaseByTeam[iTeam].ControllerInstigator = None;
+          InfoReleaseByTeam[iTeam].bIsActive  = False;
         JailClosed(Team);
-        }
-    
-      else {
-        ListInfoReleaseByTeam[iTeam].bIsOpen = True;
-        JailOpened(Team);
     }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.8 2003/01/02 11:33:20 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.9 2003/01/02 16:44:29 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -112,10 +112,10 @@ event Timer() {
     for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)    
       if (Jail.ContainsActor(GetController().Pawn))
         break;
-    
-         if (JailPrev == None && Jail != None) JailEntered();
-    else if (JailPrev != None && Jail == None) JailLeft(JailPrev);
     }
+    
+       if (JailPrev == None && Jail != None) JailEntered();
+  else if (JailPrev != None && Jail == None) JailLeft(JailPrev);
   }
 
 
@@ -208,10 +208,23 @@ function JailLeft(JBInfoJail JailPrev) {
 
 
 // ============================================================================
+// JailOpening
+//
+// Automatically called when the doors of the jail this player is in start
+// opening.
+// ============================================================================
+
+function JailOpening() {
+
+  // nothing yet
+  }
+
+
+// ============================================================================
 // JailOpened
 //
-// Automatically called when the jail opens while this player is in jail.
-// Gives bots new orders to make them leave the jail.
+// Automatically called when the doors of the jail this player is in have
+// fully opened. Gives bots new orders to make them leave the jail.
 // ============================================================================
 
 function JailOpened() {
