@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.12 2003/01/25 23:46:48 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.13 2003/01/26 13:44:21 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -888,6 +888,26 @@ protected function int CountPlayersDeployed(GameObjective GameObjective) {
 
 
 // ============================================================================
+// DeployRestart
+//
+// Resets all deployment orders. Automatically called by DeployToObjective and
+// DeployToDefense on the first deployment order within a tick.
+// ============================================================================
+
+protected function DeployRestart() {
+
+  local JBTagObjective firstTagObjective;
+  local JBTagObjective thisTagObjective;
+
+  firstTagObjective = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagObjective;
+  for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
+    thisTagObjective.nPlayersDeployed = 0;
+
+  TimeDeployment = Level.TimeSeconds;
+  }
+
+
+// ============================================================================
 // DeployToObjective
 //
 // Records a deployment order for a given objective and number of players.
@@ -898,27 +918,19 @@ protected function int CountPlayersDeployed(GameObjective GameObjective) {
 protected function DeployToObjective(GameObjective GameObjective, int nPlayers) {
 
   local JBTagObjective TagObjective;
-  local JBTagObjective firstTagObjective;
-  local JBTagObjective thisTagObjective;
   
-  if (GameObjective == None || nPlayers == 0)
-    return;
+  if (TimeDeployment != Level.TimeSeconds)
+    DeployRestart();
   
-  if (TimeDeployment != Level.TimeSeconds) {
-    firstTagObjective = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagObjective;
-    for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
-      thisTagObjective.nPlayersDeployed = 0;
+  if (GameObjective != None && nPlayers > 0) {
+    TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
+    
+    if (TagObjective != None) {
+      if (TagObjective.nPlayersDeployed == 0)
+        TagObjective.nPlayersCurrent = CountPlayersAtObjective(TagObjective.GetObjective());
+      TagObjective.nPlayersDeployed += nPlayers;
+      }
     }
-  
-  TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
-  
-  if (TagObjective != None) {
-    if (TagObjective.nPlayersDeployed == 0)
-      TagObjective.nPlayersCurrent = CountPlayersAtObjective(TagObjective.GetObjective());
-    TagObjective.nPlayersDeployed += nPlayers;
-    }
-  
-  TimeDeployment = Level.TimeSeconds;
   }
 
 
@@ -940,6 +952,9 @@ protected function DeployToDefense(int nPlayers) {
   local float RatioPlayersDeploy;
   local GameObjective thisObjective;
   local GameObjective ObjectiveDeploy;
+
+  if (TimeDeployment != Level.TimeSeconds)
+    DeployRestart();
 
   while (nPlayers > 0) {
     ObjectiveDeploy = None;
@@ -1063,7 +1078,7 @@ protected function DeployExecute() {
       if (CanDeploy(thisController))
         for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
           if (CanDeployToObjective(thisController, thisTagObjective.GetObjective()) &&
-              thisTagObjective.nPlayersDeployed > 0 &&
+              thisTagObjective.nPlayersDeployed != 0 &&
               thisTagObjective.nPlayersDeployed > thisTagObjective.nPlayersCurrent) {
 
             DistanceObjective = CalcDistance(thisController, thisTagObjective.GetObjective());
