@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDecoSwitchPadlock
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDecoSwitchPadlock.uc,v 1.1 2004/05/09 16:19:37 mychaeel Exp $
+// $Id: JBDecoSwitchPadlock.uc,v 1.2 2004/05/10 14:53:05 mychaeel Exp $
 //
 // Animated padlock for standard release switch.
 // ============================================================================
@@ -138,6 +138,7 @@ defaultproperties
   Location                  = (Z=8.0);
   
   bStatic                   = False;
+  bStasis                   = False;
   bBlockActors              = False;
   bBlockNonZeroExtentTraces = False;
   bBlockPlayers             = False;
