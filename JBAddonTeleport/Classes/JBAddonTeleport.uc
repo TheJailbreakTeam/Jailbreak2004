@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTeleport
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBAddonTeleport.uc,v 1.2 2004/04/23 08:59:01 mychaeel Exp $
 //
 // This addon teleport a player to his base when he release his team.
 // ============================================================================
@@ -59,6 +59,6 @@ defaultproperties
 {
   Build = "%%%%-%%-%% %%:%%";
 
-  Description   = "When a player releases his team, he is teleported back to his base.";
+  Description   = "When a player releases his team, the releaser is teleported back to his or her base.";
   FriendlyName  = "Teleport Releaser";
 }
