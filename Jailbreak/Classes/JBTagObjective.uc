@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagObjective.uc,v 1.3 2003/01/11 22:17:46 mychaeel Exp $
+// $Id: JBTagObjective.uc,v 1.4 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -59,12 +59,14 @@ protected simulated function InternalSetNext(JBTag TagNext) {
 
 
 // ============================================================================
-// PostBeginPlay
+// Register
 //
 // Replicates a reference to the objective and starts the timer.
 // ============================================================================
 
-event PostBeginPlay() {
+function Register() {
+
+  Super.Register();
 
   Objective = GameObjective(Owner);
   SetTimer(0.1, True);

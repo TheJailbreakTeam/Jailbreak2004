@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTag.uc,v 1.2 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -80,7 +80,7 @@ protected simulated function InternalSetNext(JBTag TagNext) {
 replication {
 
   reliable if (Role == ROLE_Authority)
-    Keeper;
+    Keeper, bIsRegisteredOnServer;
   }
 
 
@@ -88,8 +88,10 @@ replication {
 // Variables
 // ============================================================================
 
-var private Actor Keeper;       // set when spawned
-var private Actor KeeperLocal;  // local on client
+var private Actor Keeper;                // replicated keeper actor
+
+var private bool bIsRegisteredOnServer;  // registered on the server
+var private bool bIsRegisteredOnClient;  // registered on this client
 
 
 // ============================================================================
@@ -149,7 +151,7 @@ protected static function JBTag InternalFindFor(Actor Keeper) {
     foreach Keeper.DynamicActors(Class'JBTag', thisTag)
       if (thisTag.Class == Default.Class &&
           thisTag.Keeper == Keeper)
-        return thisTag.RegisterLocal(Keeper);
+        return thisTag.RegisterInInventory();
   
   return None;
   }
@@ -171,11 +173,8 @@ protected static function JBTag InternalSpawnFor(Actor Keeper) {
     return None;
   
   TagSpawned = InternalFindFor(Keeper);
-  if (TagSpawned != None)
-    return TagSpawned;
-  
-  TagSpawned = Keeper.Spawn(Default.Class, Keeper);
-  TagSpawned.Keeper = Keeper;  // replicate
+  if (TagSpawned == None)
+    TagSpawned = Keeper.Spawn(Default.Class, Keeper);
   
   return TagSpawned;
   }
@@ -199,83 +198,154 @@ protected simulated function       InternalSetNext(JBTag TagNext);
 // ============================================================================
 // Register
 //
-// Adds this JBTag item at the beginning of the linked list of items and
-// both server-side and client-side to the keeper actor's inventory.
+// Registers this item both in the global linked list and in the keeper
+// actor's inventory. Requires the item to be owned by its keeper actor before
+// being called. Communicates the registration to all clients.
 // ============================================================================
 
-simulated function Register() {
+function Register() {
 
-  if (Role == ROLE_Authority)
-    RegisterLocal(Owner);
-
-  InternalSetNext(InternalGetFirst());
-  InternalSetFirst(Self);
-  }
-
-
-// ============================================================================
-// RegisterLocal
-//
-// Adds this JBTag item at the beginning of the given actor's inventory and
-// returns a reference to the item.
-// ============================================================================
-
-simulated function JBTag RegisterLocal(Actor NewKeeperLocal) {
-
-  KeeperLocal = NewKeeperLocal;
-
-  Inventory = KeeperLocal.Inventory;
-  KeeperLocal.Inventory = Self;
+  if (bIsRegisteredOnServer || Owner == None)
+    return;
   
-  return Self;
+  Keeper = Owner;
+  
+  RegisterInList();
+  RegisterInInventory();
+  
+  bIsRegisteredOnServer = True;  // triggers PostNetReceive on clients
   }
 
 
 // ============================================================================
 // Unregister
 //
-// Removes this JBTag item from the linked list of items. If this item has
-// been locally added to the keeper actor's inventory, removes it there too.
+// Unregisters this item from both the global linked list and the keeper
+// actor's inventory. Communicates the unregistration to all clients.
 // ============================================================================
 
-simulated function Unregister() {
+function Unregister() {
 
-  local Inventory thisInventory;
-  local JBTag thisTag;
+  if (!bIsRegisteredOnServer)
+    return;
   
+  UnregisterFromList();
+  UnregisterFromInventory();
+  
+  bIsRegisteredOnServer = False;  // triggers PostNetReceive on clients
+  }
+
+
+// ============================================================================
+// RegisterInList
+//
+// Registers this item in the global linked list. Doesn't check whether the
+// item is present there already and thus assumes that this isn't the case.
+// Returns a reference to the item.
+// ============================================================================
+
+private simulated function JBTag RegisterInList() {
+
+  InternalSetNext(InternalGetFirst());
+  InternalSetFirst(Self);
+  
+  return Self;
+  }
+
+
+// ============================================================================
+// RegisterInInventory
+//
+// Registers this item in its keeper actor's inventory. Doesn't check whether
+// the item is present there already and thus assumes that this isn't the case.
+// Returns a reference to the item.
+// ============================================================================
+
+private simulated function JBTag RegisterInInventory() {
+
+  if (Keeper == None)
+    return Self;
+  
+  Inventory = Keeper.Inventory;
+  Keeper.Inventory = Self;
+  
+  return Self;
+  }
+
+
+// ============================================================================
+// UnregisterFromList
+//
+// Removes this item from the global linked list.
+// ============================================================================
+
+private simulated function UnregisterFromList() {
+
+  local JBTag thisTag;
+
   if (InternalGetFirst() == Self)
     InternalSetFirst(InternalGetNext());
   else
     for (thisTag = InternalGetFirst(); thisTag != None; thisTag = thisTag.InternalGetNext())
       if (thisTag.InternalGetNext() == Self)
         thisTag.InternalSetNext(InternalGetNext());
+  }
 
-  if (KeeperLocal != None)
-    if (KeeperLocal.Inventory == Self)
-      KeeperLocal.Inventory = Inventory;
+
+// ============================================================================
+// UnregisterFromInventory
+//
+// Removes this item from its keeper actor's inventory.
+// ============================================================================
+
+private simulated function UnregisterFromInventory() {
+
+  local Inventory thisInventory;
+
+  if (Keeper != None)
+    if (Keeper.Inventory == Self)
+      Keeper.Inventory = Inventory;
     else
-      for (thisInventory = KeeperLocal.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
+      for (thisInventory = Keeper.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
         if (thisInventory.Inventory == Self)
           thisInventory.Inventory = Inventory;
   }
 
 
 // ============================================================================
-// SetInitialState
+// BeginPlay
 //
-// Server-side, directly registers this actor. Client-side, goes to state
-// Registering which waits for the GameReplicationInfo to become available on
-// the client and then registers this actor.
+// Registers this item server-side. Client-side registration is taken care of
+// by the PostNetReceive event.
 // ============================================================================
 
-simulated event SetInitialState() {
+event BeginPlay() {
 
-  bScriptInitialized = True;
+  Register();
+  }
 
-  if (Role == ROLE_Authority)
-    Register();
-  else
+
+// ============================================================================
+// PostNetReceive
+//
+// Called when a replication update is received. Client-side, checks whether
+// a change in the server-side registration change occurred and registers or
+// unregisters the item accordingly.
+// ============================================================================
+
+simulated event PostNetReceive() {
+
+  if (Role == ROLE_Authority || bIsRegisteredOnClient == bIsRegisteredOnServer)
+    return;
+  
+  if (bIsRegisteredOnServer)
     GotoState('Registering');
+  else {
+    UnregisterFromList();
+    UnregisterFromInventory();
+    }
+
+  bIsRegisteredOnClient = bIsRegisteredOnServer;
   }
 
 
@@ -287,7 +357,8 @@ simulated event SetInitialState() {
 
 simulated event Destroyed() {
 
-  Unregister();
+  UnregisterFromList();
+  UnregisterFromInventory();
   }
 
 
@@ -305,7 +376,8 @@ simulated state Registering {
     while (GetGameReplicationInfo() == None)
       Sleep(0.0001);  // sleep for a tick
 
-    Register();
+    RegisterInList();
+    RegisterInInventory();
 
   } // state Registering
 
@@ -319,6 +391,7 @@ defaultproperties {
   RemoteRole = ROLE_None;  // may be changed in subclasses
 
   bAlwaysRelevant = True;
+  bNetNotify = True;
   bOnlyRelevantToOwner = False;
   bSkipActorPropertyReplication = True;
   NetUpdateFrequency = 10.0;

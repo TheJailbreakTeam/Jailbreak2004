@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.17 2003/01/26 22:30:31 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.18 2003/01/30 20:04:33 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -34,6 +34,19 @@ enum ERestart {
   };
 
 
+struct TInfoScore {
+
+  var float Score;
+  var float Deaths;
+  var int GoalsScored;
+  var int Kills;
+  var int Suicides;
+  var int FlakCount;
+  var int ComboCount;
+  var int HeadCount;
+  };
+
+
 struct TInfoLocation {
   
   var NavigationPoint NavigationPoint;
@@ -45,20 +58,26 @@ struct TInfoLocation {
 // Variables
 // ============================================================================
 
-var name OrderNameFixed;               // bot should stick to these orders
+var name OrderNameFixed;                // bot should stick to these orders
 
-var private PlayerReplicationInfo PlayerReplicationInfo;
+var private PlayerReplicationInfo PlayerReplicationInfo;  // info actor
+var private string HashIdPlayer;        // key hash for later recognition
 
-var private ERestart Restart;          // restart location for this player
+var private bool bIsLlama;              // player disconnected in jail
+var private int TimeElapsedConnect;     // elapsed time at player connect
+var private int TimeElapsedDisconnect;  // elapsed time at player disconnect
+var private TInfoScore InfoScore;       // persistent score over reconnects
 
-var private JBInfoArena Arena;         // arena the player is currently in
-var private JBInfoArena ArenaRestart;  // arena the player will be restarted in
-var private JBInfoArena ArenaPending;  // arena the player is scheduled for
-var private JBInfoArena ArenaRequest;  // arena the player has requested
-var private float TimeArenaRequest;    // time of the arena request
+var private ERestart Restart;           // restart location for this player
 
-var private JBInfoJail Jail;           // jail the player is currently in
-var private float TimeRelease;         // time of last release from jail
+var private JBInfoArena Arena;          // arena player is currently in
+var private JBInfoArena ArenaRestart;   // arena player will be restarted in
+var private JBInfoArena ArenaPending;   // arena player is scheduled for
+var private JBInfoArena ArenaRequest;   // arena player has requested
+var private float TimeArenaRequest;     // time of the arena request
+
+var private JBInfoJail Jail;            // jail the player is currently in
+var private float TimeRelease;          // time of last release from jail
 
 var private float TimeInfoLocation;                 // last known location time
 var private array<TInfoLocation> ListInfoLocation;  // location probabilities
@@ -91,15 +110,86 @@ protected simulated function InternalSetNext(JBTag TagNext) {
 
 
 // ============================================================================
-// PostBeginPlay
+// BelongsTo
 //
-// Sets the PlayerReplicationInfo and starts the timer in a short interval.
+// Checks and returns whether this tag belongs to the given player after a
+// reconnect.
 // ============================================================================
 
-event PostBeginPlay() {
+function bool BelongsTo(Controller Controller) {
+
+  return (PlayerController(Controller) != None &&
+          PlayerController(Controller).GetPlayerIDHash() == HashIdPlayer);
+  }
+
+
+// ============================================================================
+// Register
+//
+// Initializes variables relating to the owning player and starts the timer
+// with a short interval. Restores the saved values in PlayerReplicationInfo.
+// ============================================================================
+
+function Register() {
+
+  Super.Register();
 
   PlayerReplicationInfo = PlayerReplicationInfo(Owner);
-  SetTimer(0.2, True);
+
+  PlayerReplicationInfo.Score       = InfoScore.Score;
+  PlayerReplicationInfo.Deaths      = InfoScore.Deaths;
+  PlayerReplicationInfo.GoalsScored = InfoScore.GoalsScored;
+  PlayerReplicationInfo.Kills       = InfoScore.Kills;
+  
+  TeamPlayerReplicationInfo(PlayerReplicationInfo).Suicides   = InfoScore.Suicides;
+  TeamPlayerReplicationInfo(PlayerReplicationInfo).FlakCount  = InfoScore.FlakCount;
+  TeamPlayerReplicationInfo(PlayerReplicationInfo).ComboCount = InfoScore.ComboCount;
+  TeamPlayerReplicationInfo(PlayerReplicationInfo).HeadCount  = InfoScore.HeadCount;
+
+  TimeElapsedConnect += Level.Game.GameReplicationInfo.ElapsedTime - TimeElapsedDisconnect;
+  PlayerReplicationInfo.StartTime = TimeElapsedConnect;
+
+  if (Jailbreak(Level.Game).firstJBGameRules != None && TimeElapsedDisconnect > 0)
+    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReconnect(PlayerController(GetController()), bIsLlama);
+
+  if (PlayerController(Owner.Owner) != None)
+    HashIdPlayer = PlayerController(Owner.Owner).GetPlayerIDHash();
+  
+  SetTimer(RandRange(0.18, 0.22), True);
+  }
+
+
+// ============================================================================
+// Unregister
+//
+// Saves persistent information for later restoration and stops the timer.
+// ============================================================================
+
+function Unregister() {
+
+  SetTimer(0.0, False);  // stop timer
+
+  bIsLlama = !IsFree();
+
+  Arena        = None;
+  ArenaRestart = None;
+  ArenaPending = None;
+  ArenaRequest = None;
+  Jail         = None;
+
+  InfoScore.Score       = PlayerReplicationInfo.Score;
+  InfoScore.Deaths      = PlayerReplicationInfo.Deaths;
+  InfoScore.GoalsScored = PlayerReplicationInfo.GoalsScored;
+  InfoScore.Kills       = PlayerReplicationInfo.Kills;
+  
+  InfoScore.Suicides    = TeamPlayerReplicationInfo(PlayerReplicationInfo).Suicides + 1;
+  InfoScore.FlakCount   = TeamPlayerReplicationInfo(PlayerReplicationInfo).FlakCount;
+  InfoScore.ComboCount  = TeamPlayerReplicationInfo(PlayerReplicationInfo).ComboCount;
+  InfoScore.HeadCount   = TeamPlayerReplicationInfo(PlayerReplicationInfo).HeadCount;
+
+  TimeElapsedDisconnect = Level.Game.GameReplicationInfo.ElapsedTime;
+
+  Super.Unregister();
   }
 
 
@@ -116,10 +206,13 @@ event Timer() {
   local JBInfoJail firstJail;
   local JBInfoJail JailPrev;
 
+  if (GetController().Pawn == None)
+    return;
+
   JailPrev = Jail;
   Jail = None;
 
-  if (Arena == None && GetController().Pawn != None) {
+  if (Arena == None) {
     firstJail = JBReplicationInfoGame(GetGameReplicationInfo()).firstJail;
     for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)    
       if (Jail.ContainsActor(GetController().Pawn))
@@ -169,10 +262,22 @@ simulated function bool IsInJail() {
 
 
 // ============================================================================
+// NotifyRound
+//
+// Called when a new round starts. Resets the player's llama state.
+// ============================================================================
+
+function NotifyRound() {
+
+  bIsLlama = False;
+  }
+
+
+// ============================================================================
 // NotifyJailEntered
 //
-// Automatically called when the player entered the jail from an arena or from
-// freedom. Notifies the jail of that. Puts bots on the jail squad.
+// Called when the player entered the jail from an arena or from freedom.
+// Notifies the jail of that. Puts bots on the jail squad.
 // ============================================================================
 
 function NotifyJailEntered() {
@@ -373,7 +478,7 @@ function RestartArena(JBInfoArena NewArenaRestart) {
 
 function name GetRestart() {
 
-  if (GetController().PreviousPawnClass == None)
+  if (GetController().PreviousPawnClass == None && !bIsLlama)
     return 'Restart_Freedom';  // first-time world spawn
 
   if (Restart == Restart_Jail &&

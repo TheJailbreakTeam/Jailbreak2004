@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.27 2003/01/30 20:04:33 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.28 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -33,7 +33,9 @@ var private float TimeRestart;           // time for pending round restart
 var private float TimeEventFired;        // time of last fired singular event
 var private array<name> ListEventFired;  // singular events fired this tick
 
-var private transient name Restart;      // area to start player in
+var private JBTagPlayer firstTagPlayerInactive;  // disconnected players
+
+var private transient name Restart;              // place to start player in
 var private transient JBInfoArena ArenaRestart;  // arena to start player in
 
 
@@ -61,13 +63,37 @@ event InitGame(string Options, out string Error) {
 event PlayerController Login(string Portal, string Options, out string Error) {
 
   local PlayerController PlayerLogin;
+  local JBTagPlayer thisTagPlayer;
+  local JBTagPlayer TagPlayerLogin;
   
   PlayerLogin = Super.Login(Portal, Options, Error);
   
   if (PlayerLogin                            != None &&
       PlayerLogin.PlayerReplicationInfo      != None &&
-      PlayerLogin.PlayerReplicationInfo.Team != None)
-    Class'JBTagPlayer'.Static.SpawnFor(PlayerLogin.PlayerReplicationInfo);
+      PlayerLogin.PlayerReplicationInfo.Team != None) {
+
+    for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.BelongsTo(PlayerLogin))
+        break;
+
+    if (thisTagPlayer != None) {
+      TagPlayerLogin = thisTagPlayer;
+
+      if (firstTagPlayerInactive == TagPlayerLogin)
+        firstTagPlayerInactive = firstTagPlayerInactive.nextTag;
+      else
+        for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer.nextTag != None; thisTagPlayer = thisTagPlayer.nextTag)
+          if (thisTagPlayer.nextTag == TagPlayerLogin)
+            thisTagPlayer.nextTag = TagPlayerLogin.nextTag;
+      
+      TagPlayerLogin.SetOwner(PlayerLogin.PlayerReplicationInfo);
+      TagPlayerLogin.Register();
+      }
+
+    else {
+      Class'JBTagPlayer'.Static.SpawnFor(PlayerLogin.PlayerReplicationInfo);
+      }
+    }
   
   Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
   
@@ -112,10 +138,21 @@ function Bot SpawnBot(optional string NameBot) {
 
 function Logout(Controller ControllerExiting) {
 
-  Class'JBTagPlayer'.Static.DestroyFor(ControllerExiting.PlayerReplicationInfo);
+  local JBTagPlayer TagPlayerExiting;
 
-  if (PlayerController(ControllerExiting) != None)
+  if (PlayerController(ControllerExiting) != None) {
     Class'JBTagClient'.Static.DestroyFor(PlayerController(ControllerExiting));
+
+    TagPlayerExiting = Class'JBTagPlayer'.Static.FindFor(ControllerExiting.PlayerReplicationInfo);
+    TagPlayerExiting.Unregister();
+
+    TagPlayerExiting.nextTag = firstTagPlayerInactive;
+    firstTagPlayerInactive = TagPlayerExiting;
+    }
+
+  else {
+    Class'JBTagPlayer'.Static.DestroyFor(ControllerExiting.PlayerReplicationInfo);
+    }
 
   Super.Logout(ControllerExiting);
   }
@@ -756,6 +793,9 @@ state MatchInProgress {
   // ================================================================
 
   event BeginState() {
+
+    local JBTagPlayer firstTagPlayer;
+    local JBTagPlayer thisTagPlayer;
   
     if (bWaitingToStartMatch)
       Super.BeginState();
@@ -765,6 +805,12 @@ state MatchInProgress {
     
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyRound();
+    
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      thisTagPlayer.NotifyRound();
+    for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      thisTagPlayer.NotifyRound();
     }
 
 
@@ -798,7 +844,7 @@ state MatchInProgress {
   // ================================================================
   // RestartPlayer
   //
-  // Records the player's current potential locations.
+  // Notifies both bot teams of the respawn.
   // ================================================================
 
   function RestartPlayer(Controller Controller) {
@@ -836,7 +882,8 @@ state Executing {
   
     local int iTeam;
     local int nPlayersJailed;
-    local Controller thisController;
+    local JBTagPlayer firstTagPlayer;
+    local JBTagPlayer thisTagPlayer;
     
     if (TimeRestart == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
@@ -850,11 +897,11 @@ state Executing {
       ExecutionEnd();
       }
 
-    for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-        if (PlayerController(thisController) != None &&
-           !thisController.PlayerReplicationInfo.bOnlySpectator &&
-            thisController.Pawn == None)
-          PlayerController(thisController).ServerReStartPlayer();
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.IsInJail() &&
+          thisTagPlayer.GetController().Pawn == None)
+        thisTagPlayer.RestartFreedom();
     }
 
 
