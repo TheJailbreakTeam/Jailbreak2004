@@ -1,7 +1,7 @@
 // ============================================================================
 // JBProbeEvent
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBProbeEvent.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
 //
 // Forwards handling of an event with a given Tag to another class.
 // ============================================================================
@@ -40,4 +40,14 @@ event Trigger(Actor ActorOther, Pawn PawnInstigator) {
 event UnTrigger(Actor ActorOther, Pawn PawnInstigator) {
 
   OnUnTrigger(ActorOther, PawnInstigator);
+  }
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
+defaultproperties {
+
+  bHidden = True;
   }
