@@ -1,0 +1,83 @@
+===============================================================================
+Jailbreak 2004a (SP1)
+Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
+===============================================================================
+
+For feedback, suggestions and bug reports, visit
+
+  PlanetJailbreak               http://www.planetjailbreak.com
+  PlanetJailbreak Forums        http://www.planetjailbreak.com/forums/
+
+
+===============================================================================
+Service Pack 1 Changes
+===============================================================================
+
+The following bugs have been fixed since the last release:
+
+
+Server
+======
+
+136063 – Frequent server crashes.
+136155 – Servers frequently report "N/A" ping and/or crash on level change with
+         an error message indicating a port swap in UdpGameSpyQuery.
+136156 – Web admin interface (and web scoreboard) don't react anymore after a
+         level change.
+136040 – Web scoreboard "Join server" link uses unreal:// instead of ut2004://.
+136023 – Accessed None log spam by JBInterfaceHud and JBLocalMessage on some
+         dedicated servers. Might be related to some demo recording tools.
+136386 – Some netcode fixes to improve network performance.
+
+
+Gameplay
+========
+
+135985 – Some players respawn in jail if a map is played with too many players
+         for its size.
+136512 – Connecting players occasionally get wrongly llamaized.
+136183 – Enhancement: Added an option to always favor human players over bots
+         for arena matches.
+136072 – Enhancement: No momentum transfer by the Shield Gun to players not
+         participating in a jail fight.
+136290 – Enhancement: Added bot call signs to scoreboard.
+136465 – Enhancement: Surveillance cameras are deactivated for jail-fighting
+         players and during the execution sequence.
+136382 – Release announcements for enemy team not played for jailed players.
+136168 – Teleporter add-on transports players to the wrong base.
+136374 – Not all players are showing up on the scoreboard.
+136374 – Last Man played occasionally even if not the last man, occasionally.
+136430 – Arena cam does a long zoom-in movement and/or tracks a fixed point in
+         the map for a short time after being activated.
+
+
+User Interface
+==============
+
+136000 – Players are unable to join another game (of a different game type)
+         after selecting "Jailbreak" once in the server browser (or having it
+         selected from the previous game).
+135362 – Temporary key bindings keep popping up when somebody joins the server.
+135362 – Enhancement: Pressing Alt-Fire instead of Fire permanently hides the
+         auto key binder dialog (until the auto key bindings change).
+136356 – Some loading screens, map preview images and panorama maps appear
+         blurred at low texture settings.
+135972 – Enhancement: Fallback to default voice if voice pack cannot be loaded.
+
+
+Mapping
+=======
+
+136347 – Enhancement: Added full support for vehicles in Jailbreak.
+132123 – Numerous fixes and enhancements in JBMonsterSpawner, and made bots
+         shoot at monsters which try to kill them (just for the fun of it).
+
+
+Manual
+======
+
+Information on creating human ladders updated.
+Links in navigation bar now work on case-sensitive operating systems.
+
+
+===============================================================================
