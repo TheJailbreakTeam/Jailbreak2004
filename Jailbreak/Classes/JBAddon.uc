@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.6 2004/03/18 20:02:44 tarquin Exp $
+// $Id: JBAddon.uc,v 1.7 2004/05/17 23:36:39 mychaeel Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -121,4 +121,14 @@ simulated event Destroyed()
 
   if (Role == ROLE_Authority)
     Super.Destroyed();
+}
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
+defaultproperties
+{
+  bAddToServerPackages = True;
 }
