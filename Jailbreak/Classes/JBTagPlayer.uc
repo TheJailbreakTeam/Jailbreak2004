@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.37 2003/06/29 12:21:44 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.38 2003/07/19 22:02:25 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -24,6 +24,7 @@ replication {
     Pawn,
     Controller,
     Health,
+    bCanBeBaseForPawns,
     ScorePartialAttack,
     ScorePartialDefense,
     ScorePartialRelease,
@@ -103,6 +104,7 @@ var private float TimeRelease;            // time of last release from jail
 var private Pawn Pawn;                    // pawn used by this player
 var private Controller Controller;        // controller used by this player
 var private int Health;                   // current health and armor
+var private bool bCanBeBaseForPawns;      // can be base for other players
 
 var private float TimeUpdateLocation;     // client-side location update time
 var private float VelocityPawn;           // replicated velocity of pawn
@@ -272,15 +274,28 @@ event Timer() {
 // ============================================================================
 // Tick
 //
-// Updates the Pawn and LocationPawnLast variables.
+// Updates the Pawn and LocationPawnLast variables. Configures the Pawn to be
+// a base for a human ladder if the player is crouching and replicates this
+// information to all clients.
 // ============================================================================
 
 event Tick(float TimeDelta) {
 
+  local Pawn thisPawn;
+
   Pawn = Controller.Pawn;
 
-  if (Pawn != None)
+  if (Pawn != None) {
     LocationPawnLast = Pawn.Location;
+
+    if (Pawn.bCanBeBaseForPawns && !Pawn.bIsCrouched)
+      foreach DynamicActors(Class'Pawn', thisPawn)
+        if (Pawn != thisPawn && Pawn.TouchingActor(thisPawn))
+          thisPawn.JumpOffPawn();
+  
+    Pawn.bCanBeBaseForPawns = Pawn.bIsCrouched;
+    bCanBeBaseForPawns = Pawn.bCanBeBaseForPawns;
+    }
   }
 
 
@@ -384,6 +399,8 @@ private function UpdateLocation() {
 // If new information about the Pawn's whereabouts is received, derives the
 // player's current movement direction from the last two location updates.
 // Calculates the deviation between the extrapolated and the actual location.
+//
+// Also sets the bCanBeBaseForPawns flag client-side.
 // ============================================================================
 
 simulated event PostNetReceive() {
@@ -416,6 +433,9 @@ simulated event PostNetReceive() {
     }
   
   VelocityPawnBase = Abs(VelocityPawn);
+
+  if (Pawn != None)  // for human ladder
+    Pawn.bCanBeBaseForPawns = bCanBeBaseForPawns;
   }
 
 
