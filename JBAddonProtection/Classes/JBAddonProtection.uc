@@ -1,11 +1,11 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.6 2004/03/26 20:47:40 tarquin Exp $
+// $Id: JBAddonProtection.uc,v 1.7 2004/04/04 00:56:24 mychaeel Exp $
 //
 // This mutator protect the released players.
 // ============================================================================
-class JBAddonProtection extends JBAddon config(JBAddons);
+class JBAddonProtection extends JBAddon config;
 
 
 // ============================================================================
