@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesAvenger
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesAvenger.uc,v 1.1 2003/07/27 03:23:37 crokx Exp $
+// $Id: JBGameRulesAvenger.uc,v 1.1 2004/04/09 19:16:35 tarquin Exp $
 //
 // The rules for the Avenger add-on.
 // ============================================================================
@@ -42,19 +42,22 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
   local xPawn Avenger;
   local JBInventoryAvenger InvAvenger;
   
-  ArenaCountDown = Arena.GetCountdownTie();
-  if(class'JBAddonAvenger'.default.PowerTimeMultiplier > 0)
-    ArenaCountDown = (ArenaCountDown * class'JBAddonAvenger'.default.PowerTimeMultiplier) / 100;
-  AvengerTime = Clamp(ArenaCountDown, 10, class'JBAddonAvenger'.default.PowerTimeMaximum);  
-
-  if((TagPlayerWinner.GetController() != None)
-  && (TagPlayerWinner.GetController().Pawn != None)
-  && (TagPlayerWinner.GetController().Pawn.IsA('xPawn')))
+  if (TagPlayerWinner != None)
   {
-    Avenger = xPawn(TagPlayerWinner.GetController().Pawn);
-    InvAvenger = Spawn( class'JBInventoryAvenger', Avenger );
-    InvAvenger.GiveTo(Avenger);
-    InvAvenger.StartAvenger(AvengerTime);
+    ArenaCountDown = Arena.GetCountdownTie();
+    if(class'JBAddonAvenger'.default.PowerTimeMultiplier > 0)
+      ArenaCountDown = (ArenaCountDown * class'JBAddonAvenger'.default.PowerTimeMultiplier) / 100;
+    AvengerTime = Clamp(ArenaCountDown, 10, class'JBAddonAvenger'.default.PowerTimeMaximum);  
+  
+    if((TagPlayerWinner.GetController() != None)
+    && (TagPlayerWinner.GetController().Pawn != None)
+    && (TagPlayerWinner.GetController().Pawn.IsA('xPawn')))
+    {
+      Avenger = xPawn(TagPlayerWinner.GetController().Pawn);
+      InvAvenger = Spawn( class'JBInventoryAvenger', Avenger );
+      InvAvenger.GiveTo(Avenger);
+      InvAvenger.StartAvenger(AvengerTime);
+    }
   }
 
   Super.NotifyArenaEnd(Arena, TagPlayerWinner);
