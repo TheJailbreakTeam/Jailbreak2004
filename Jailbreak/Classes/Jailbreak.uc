@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.17 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.18 2003/01/03 22:35:56 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -718,7 +718,7 @@ defaultproperties {
   BeaconName = "JB";
   GameName   = "Jailbreak";
  
-  HUDType                  = "Jailbreak.JBInterfaceHUD";
+  HUDType                  = "Jailbreak.JBInterfaceHud";
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
   DefaultEnemyRosterClass  = "Jailbreak.JBReplicationInfoTeam";
   

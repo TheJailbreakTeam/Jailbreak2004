@@ -1,13 +1,13 @@
 // ============================================================================
-// JBInterfaceHUD
+// JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHUD.uc,v 1.3 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.4 2003/01/02 14:51:48 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
 
 
-class JBInterfaceHUD extends HudBTeamDeathMatch
+class JBInterfaceHud extends HudBTeamDeathMatch
   notplaceable;
 
 
