@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.2 2004/04/14 20:25:56 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.3 2004/04/20 13:28:41 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -279,7 +279,7 @@ event PostRender(Canvas Canvas)
   Canvas.TextSize(TextDialogBottom, SizeText.X, SizeText.Y);  if (SizeText.X > SizeDialog.X) SizeDialog.X = SizeText.X;
 
   SizeDialog += Dialog.Margins * 2;
-  SizeDialog.Y *= Alpha;
+  SizeDialog.Y *= 0.5 + Alpha * 0.5;
 
   LocationDialog.X = int((Canvas.ClipX - SizeDialog.X) / 2);
   LocationDialog.Y = int((Canvas.ClipY - SizeDialog.Y) / 2);
