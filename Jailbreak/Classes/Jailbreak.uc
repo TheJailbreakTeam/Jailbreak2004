@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.18 2003/01/03 22:35:56 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.19 2003/01/03 23:22:48 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -51,7 +51,7 @@ event InitGame(string Options, out string Error) {
 // ============================================================================
 // Login
 //
-// Gives every player a JBTagPlayer actor.
+// Gives every player new JBTagPlayer and JBTagClient actors.
 // ============================================================================
 
 event PlayerController Login(string Portal, string Options, out string Error) {
@@ -59,8 +59,13 @@ event PlayerController Login(string Portal, string Options, out string Error) {
   local PlayerController PlayerLogin;
   
   PlayerLogin = Super.Login(Portal, Options, Error);
-  if (PlayerLogin != None)
+  
+  if (PlayerLogin                            != None &&
+      PlayerLogin.PlayerReplicationInfo      != None &&
+      PlayerLogin.PlayerReplicationInfo.Team != None)
     Class'JBTagPlayer'.Static.SpawnFor(PlayerLogin.PlayerReplicationInfo);
+  
+  Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
   
   return PlayerLogin;
   }
@@ -87,12 +92,16 @@ function Bot SpawnBot(optional string NameBot) {
 // ============================================================================
 // Logout
 //
-// Destroys the JBTagPlayer actor for the given player or bot if one exists.
+// Destroys the JBTagPlayer and JBTagClient actors for the given player or bot
+// if one exists.
 // ============================================================================
 
 function Logout(Controller ControllerExiting) {
 
   Class'JBTagPlayer'.Static.DestroyFor(ControllerExiting.PlayerReplicationInfo);
+
+  if (PlayerController(ControllerExiting) != None)
+    Class'JBTagClient'.Static.DestroyFor(PlayerController(ControllerExiting));
 
   Super.Logout(ControllerExiting);
   }
@@ -608,13 +617,16 @@ state MatchInProgress {
   // BeginState
   //
   // Only calls the superclass function if this state is entered the
-  // first time.
+  // first time. Resets the orders all bots.
   // ================================================================
 
   event BeginState() {
   
     if (bWaitingToStartMatch)
       Super.BeginState();
+    
+    JBBotTeam(Teams[0].AI).ResetOrders();
+    JBBotTeam(Teams[1].AI).ResetOrders();
     }
 
 

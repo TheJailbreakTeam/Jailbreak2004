@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.7 2003/01/02 16:42:58 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.8 2003/01/03 22:35:28 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -12,27 +12,17 @@ class JBBotTeam extends TeamAI
 
 
 // ============================================================================
-// Types
-// ============================================================================
-
-struct TDeployment {
-
-  var int nPlayersOrdered;
-  var int nPlayersCurrent;
-  var GameObjective Objective;
-  };
-
-
-// ============================================================================
 // Variables
 // ============================================================================
 
 var class<JBBotSquadArena> ClassSquadArena;
 var class<JBBotSquadJail>  ClassSquadJail;
 
+var private bool bTacticsAuto;  // team tactics selected automatically
+
 var private int nObjectives;  // counted once by CountObjectives
 
-var private transient array<TDeployment> ListDeployment;
+var private transient float TimeDeployment;  // time of last deployment order
 
 var private transient float TimeCacheCountEnemiesAccounted;
 var private transient float TimeCacheCountEnemiesUnaccounted;
@@ -41,6 +31,115 @@ var private transient float TimeCacheRatePlayers;
 var private transient int CacheCountEnemiesAccounted;
 var private transient int CacheCountEnemiesUnaccounted;
 var private transient float CacheRatePlayers;
+
+
+// ============================================================================
+// SetTactics
+//
+// Sets the current team tactics for this team and returns the selected
+// tactics. The following input values are supported:
+//
+//   Auto             Enables auto-selection of team tactics.
+//
+//   MoreAggressive   Modify the currently selected team tactics into the
+//   MoreDefensive    given direction. Disable auto-selection if enabled.
+//
+//   Evasive          Set the team tactics to the given value. Disable auto-
+//   Defensive        selection if enabled.
+//   Normal
+//   Aggressive
+//   Suicidal
+//   
+// ============================================================================
+
+function name SetTactics(name Tactics) {
+
+  bTacticsAuto = False;
+
+  switch (Tactics) {
+    case 'Auto':
+      ReAssessStrategy();
+      bTacticsAuto = True;
+      break;
+
+    case 'MoreAggressive':
+      switch (GetTactics()) {
+        case 'Evasive':     return SetTactics('Defensive');
+        case 'Defensive':   return SetTactics('Normal');
+        case 'Normal':      return SetTactics('Aggressive');
+        case 'Aggressive':  return SetTactics('Suicidal');
+        }
+      break;
+
+    case 'MoreDefensive':
+      switch (GetTactics()) {
+        case 'Defensive':   return SetTactics('Evasive');
+        case 'Normal':      return SetTactics('Defensive');
+        case 'Aggressive':  return SetTactics('Normal');
+        case 'Suicidal':    return SetTactics('Aggressive');
+        }
+      break;
+
+    case 'Evasive':     GotoState('TacticsEvasive');     break;
+    case 'Defensive':   GotoState('TacticsDefensive');   break;
+    case 'Normal':      GotoState('TacticsNormal');      break;
+    case 'Aggressive':  GotoState('TacticsAggressive');  break;
+    case 'Suicidal':    GotoState('TacticsSuicidal');    break;
+    
+    default:
+      Log("Warning: Invalid tactics" @ Tactics @ "selected for team" @ Team.TeamIndex);
+    }
+
+  return GetTactics();
+  }
+
+
+// ============================================================================
+// GetTactics
+//
+// Returns the name of the currently selected team tactics.
+// ============================================================================
+
+function name GetTactics() {
+
+  switch (GetStateName()) {
+    case 'TacticsEvasive':     return 'Evasive';
+    case 'TacticsDefensive':   return 'Defensive';
+    case 'TacticsNormal':      return 'Normal';
+    case 'TacticsAggressive':  return 'Aggressive';
+    case 'TacticsSuicidal':    return 'Suicidal';
+    }
+  
+  return 'Invalid';
+  }
+
+
+// ============================================================================
+// GetTacticsAuto
+//
+// Checks and returns whether the currently used team tactics have been
+// selected automatically.
+// ============================================================================
+
+function bool GetTacticsAuto() {
+
+  return bTacticsAuto;
+  }
+
+
+// ============================================================================
+// RequestReAssessment
+//
+// Requests a reassessment of strategy and bot orders for this team. This
+// function doesn't perform the reassessment itself but schedules it for
+// execution within the next half second.
+// ============================================================================
+
+function RequestReAssessment() {
+
+  if (TimerRate - TimerCounter > 0.5)
+    SetTimer(RandRange(0.3, 0.5), False);
+  }
 
 
 // ============================================================================
@@ -53,10 +152,13 @@ var private transient float CacheRatePlayers;
 
 event Timer() {
 
-  ReAssessStrategy();
-  ReAssessOrders();
-  
-  SetTimer(4.0 + FRand() * 2.0, False);
+  if (Level.Game.IsInState('MatchInProgress')) {
+    if (bTacticsAuto)
+      ReAssessStrategy();
+    ReAssessOrders();
+    }
+    
+  SetTimer(RandRange(4.0, 6.0), False);
   }
 
 
@@ -96,6 +198,19 @@ function SetObjectiveLists() {
     }
 
   Super.SetObjectiveLists();
+  }
+
+
+// ============================================================================
+// FindNewObjectiveFor
+//
+// Schedules a reassessment of bot orders shortly. Unlike in other team games,
+// Jailbreak squads always keep their objectives, but bots change squads.
+// ============================================================================
+
+function FindNewObjectiveFor(SquadAI Squad, bool bForceUpdate) {
+
+  RequestReAssessment();
   }
 
 
@@ -523,7 +638,7 @@ function int SuggestStrengthAttack(GameObjective GameObjective) {
 
   nPlayersDefending = EstimateStrengthDefense(GameObjective);
   if (CountPlayersReleasable(GameObjective) > 0)
-    return Max(nPlayersDefending / FClamp(RatePlayers(), 1.0, 2.0) + 0.9, 1);
+    return Max(nPlayersDefending / FClamp(RatePlayers(), 0.5, 1.0) + 0.9, 1);
 
   return 0;
   }
@@ -542,7 +657,7 @@ function int SuggestStrengthDefense(GameObjective GameObjective) {
 
   nPlayersAttacking = EstimateStrengthAttack(GameObjective);
   if (nPlayersAttacking > 0)
-    return Max(nPlayersAttacking / FClamp(RatePlayers(), 1.0, 2.0) + 0.9, 1);
+    return Max(nPlayersAttacking / FClamp(RatePlayers(), 0.5, 1.0) + 0.9, 1);
   
   return 0;
   }
@@ -578,181 +693,279 @@ function ReAssessOrders() {
 // ============================================================================
 // SetBotOrders
 //
-// Called for bots that just entered the game or were released from jail. The
-// default implementation should never be called, but for crash-safety's sake
-// puts them on the freelance squad and issues a warning to the log.
+// Called for bots that just entered the game or were released from jail. Puts
+// the bot on freelance and requests reassessment of all team orders.
 // ============================================================================
 
 function SetBotOrders(Bot Bot, RosterEntry RosterEntry) {
 
-  Log("Warning: SetBotOrders called for" @ Bot.PlayerReplicationInfo.PlayerName @
-      "in team" @ Bot.PlayerReplicationInfo.Team.TeamIndex @ "outside any Tactics state");
-
   PutOnFreelance(Bot);
+  RequestReAssessment();
   }
 
 
 // ============================================================================
-// DeployPlayers
+// ResetOrders
+//
+// Puts all bots on freelance, clears the enemy lists of all squads and
+// requests reassessment of orders.
+// ============================================================================
+
+function ResetOrders() {
+
+  local Controller thisController;
+  local SquadAI thisSquad;
+  
+  for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+    if (Bot(thisController) != None && thisController.PlayerReplicationInfo.Team == Team)
+      PutOnFreelance(Bot(thisController));
+  
+  for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
+    if (JBBotSquad(thisSquad) != None)
+      JBBotSquad(thisSquad).ClearEnemies();
+  }
+
+
+// ============================================================================
+// CountPlayersDeployed
+//
+// Returns the number of players currently deployed to the given objective.
+// ============================================================================
+
+protected function int CountPlayersDeployed(GameObjective GameObjective) {
+
+  local JBTagObjective TagObjective;
+
+  if (TimeDeployment != Level.TimeSeconds)
+    return 0;
+  
+  TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
+
+  if (TagObjective != None)
+    return TagObjective.nPlayersDeployed;
+  
+  return 0;
+  }
+
+
+// ============================================================================
+// DeployToObjective
 //
 // Records a deployment order for a given objective and number of players.
 // Multiple deployment orders on the same objective are accumulative. Call
 // DeployExecute after all deployments have been recorded to commit the orders.
 // ============================================================================
 
-function DeployPlayers(GameObjective GameObjective, int nPlayersDeploy) {
+protected function DeployToObjective(GameObjective GameObjective, int nPlayers) {
 
-  local int iDeployment;
-
-  if (nPlayersDeploy == 0)
+  local JBTagObjective TagObjective;
+  local JBTagObjective firstTagObjective;
+  local JBTagObjective thisTagObjective;
+  
+  if (GameObjective == None || nPlayers == 0)
     return;
   
-  for (iDeployment = 0; iDeployment < ListDeployment.Length; iDeployment++)
-    if (ListDeployment[iDeployment].Objective == GameObjective)
-      break;
-
-  if (iDeployment == ListDeployment.Length)
-    ListDeployment.Insert(iDeployment, 1);
-
-  ListDeployment[iDeployment].Objective = GameObjective;
-  ListDeployment[iDeployment].nPlayersOrdered += nPlayersDeploy;
+  if (TimeDeployment != Level.TimeSeconds) {
+    firstTagObjective = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagObjective;
+    for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
+      thisTagObjective.nPlayersDeployed = 0;
+    }
+  
+  TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
+  
+  if (TagObjective != None) {
+    if (TagObjective.nPlayersDeployed == 0)
+      TagObjective.nPlayersCurrent = CountPlayersAtObjective(TagObjective.GetObjective());
+    TagObjective.nPlayersDeployed += nPlayers;
+    }
+  
+  TimeDeployment = Level.TimeSeconds;
   }
 
 
 // ============================================================================
-// DeployPlayersDefense
+// DeployToDefense
 //
 // Distributes the given number of players on all objectives that need to be
-// defended and issues corresponding deployment orders.
+// defended and issues corresponding deployment orders. If more players are
+// specified than needed to man (or bot) all objectives, the objective with
+// the smallest number of defenders are filled up.
 // ============================================================================
 
-function DeployPlayersDefense(int nPlayersDeploy) {
+protected function DeployToDefense(int nPlayers) {
 
-  local int iDeployment;
+  local bool bSaturated;
+  local int nPlayersDeployed;
   local int nPlayersSuggested;
   local float RatioPlayers;
-  local float RatioPlayersWeakest;
+  local float RatioPlayersDeploy;
   local GameObjective thisObjective;
-  local GameObjective ObjectiveWeakest;
-  
-  while (nPlayersDeploy > 0) {
-    ObjectiveWeakest = None;
+  local GameObjective ObjectiveDeploy;
+
+  while (nPlayers > 0) {
+    ObjectiveDeploy = None;
     
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
-        nPlayersSuggested = SuggestStrengthDefense(thisObjective);
+        if (bSaturated)
+          nPlayersSuggested = 1;  // fill up objectives evenly
+        else
+          nPlayersSuggested = SuggestStrengthDefense(thisObjective);
+
         if (nPlayersSuggested == 0)
           continue;
 
-        for (iDeployment = 0; iDeployment < ListDeployment.Length; iDeployment++)
-          if (ListDeployment[iDeployment].Objective == thisObjective)
-            break;
+        nPlayersDeployed = CountPlayersDeployed(thisObjective);
+        RatioPlayers = nPlayersDeployed / nPlayersSuggested;
         
-        if (iDeployment < ListDeployment.Length)
-          RatioPlayers = ListDeployment[iDeployment].nPlayersOrdered / nPlayersSuggested;
-        else
-          RatioPlayers = 0.0;
-
-        if (ObjectiveWeakest == None || RatioPlayers < RatioPlayersWeakest) {
-          ObjectiveWeakest = thisObjective;
-          RatioPlayersWeakest = RatioPlayers;
+        if (ObjectiveDeploy == None || RatioPlayers < RatioPlayersDeploy) {
+          ObjectiveDeploy = thisObjective;
+          RatioPlayersDeploy = RatioPlayers;
           }
         }
-
-    if (ObjectiveWeakest == None) {
-      Log("Warning:" @ nPlayersDeploy @ "player(s) on team" @ Team.TeamIndex @ "left to deploy for defense," @
-          "but no objectives found that need to be defended.");
-      break;
+    
+    if (ObjectiveDeploy == None) {
+      bSaturated = True;  // all suggested defenses are saturated,
+      continue;           // continue distributing surplus defenders
       }
-
-    nPlayersDeploy--;
-    DeployPlayers(ObjectiveWeakest, 1);
+    
+    nPlayers -= 1;
+    DeployToObjective(ObjectiveDeploy, 1);
     }
+  }
+
+
+// ============================================================================
+// IsDeployable
+//
+// Checks and returns whether the given controller is a bot on this team and 
+// can be drawn off from its current objective.
+// ============================================================================
+
+protected function bool IsDeployable(Controller Controller) {
+
+  local JBTagObjective TagObjective;
+
+  if (Bot(Controller) == None ||
+      Controller.Pawn == None ||
+      Controller.PlayerReplicationInfo.Team != Team)
+    return False;
+
+  if (JBBotSquad(Bot(Controller).Squad) == None)
+    return False;
+
+  if (Bot(Controller).Squad != None &&
+      Bot(Controller).Squad.SquadObjective != None)
+    TagObjective = Class'JBTagObjective'.Static.FindFor(Bot(Controller).Squad.SquadObjective);
+  
+  if (TagObjective == None ||
+      TagObjective.nPlayersDeployed == 0 ||
+      TagObjective.nPlayersDeployed < TagObjective.nPlayersCurrent)
+    return True;
+  
+  return False;
   }
 
 
 // ============================================================================
 // DeployExecute
 //
-// Deploys bots to objectives as previously recorded by calling DeployPlayers.
-// Players left without deployment are put on the freelance squad. After that,
-// resets all orders.
+// Deploys bots to objectives as previously recorded by DeployToObjective.
+// Players left without deployment are put on the freelance squad.
 // ============================================================================
 
-function DeployExecute() {
+protected function DeployExecute() {
 
-  local int iDeployment;
-  local int iDeploymentNearest;
-  local float Distance;
-  local float DistanceNearest;
-  local Bot BotNearest;
-  local SquadAI thisSquad;
+  local float DistanceObjective;
+  local float DistanceObjectiveDeploy;
+  local Bot BotDeploy;
   local Controller thisController;
+  local JBTagObjective firstTagObjective;
+  local JBTagObjective thisTagObjective;
+  local JBTagObjective TagObjectiveBot;
+  local JBTagObjective TagObjectiveDeploy;
 
-  for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
-    if (JBBotSquad(thisSquad) != None) {
-      for (iDeployment = 0; iDeployment < ListDeployment.Length; iDeployment++)
-        if (ListDeployment[iDeployment].Objective == thisSquad.SquadObjective)
-          break;
-      
-      if (iDeployment == ListDeployment.Length)
-        JBBotSquad(thisSquad).nPlayersRemove = thisSquad.GetSize();
-      else
-        JBBotSquad(thisSquad).nPlayersRemove =
-          Max(0, CountPlayersAtObjective(thisSquad.SquadObjective) - ListDeployment[iDeployment].nPlayersOrdered);
-      }
+  if (TimeDeployment != Level.TimeSeconds)
+    return;  // no deployment orders available
 
-  for (iDeployment = ListDeployment.Length - 1; iDeployment >= 0; iDeployment--) {
-    ListDeployment[iDeployment].nPlayersCurrent = CountPlayersAtObjective(ListDeployment[iDeployment].Objective);
-    if (ListDeployment[iDeployment].nPlayersCurrent >=
-        ListDeployment[iDeployment].nPlayersOrdered)
-      ListDeployment.Remove(iDeployment, 1);
-    }
+  firstTagObjective = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagObjective;        
 
   while (True) {
-    BotNearest = None;
+    BotDeploy = None;
   
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-      if (Bot(thisController) != None &&
-          thisController.PlayerReplicationInfo != None &&
-          thisController.PlayerReplicationInfo.Team == Team &&
-          JBBotSquad(Bot(thisController).Squad) != None &&
-          JBBotSquad(Bot(thisController).Squad).nPlayersRemove > 0)
+      if (IsDeployable(thisController))
+        for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
+          if (thisTagObjective.nPlayersDeployed > 0 &&
+              thisTagObjective.nPlayersDeployed > thisTagObjective.nPlayersCurrent) {
 
-        for (iDeployment = 0; iDeployment < ListDeployment.Length; iDeployment++) {
-          Distance = CalcDistance(thisController, ListDeployment[iDeployment].Objective);
-          if (BotNearest == None || Distance < DistanceNearest) {
-            BotNearest = Bot(thisController);
-            DistanceNearest = Distance;
-            iDeploymentNearest = iDeployment;
+            DistanceObjective = CalcDistance(thisController, thisTagObjective.GetObjective());
+
+            if (BotDeploy == None || DistanceObjective < DistanceObjectiveDeploy) {
+              BotDeploy = Bot(thisController);
+              TagObjectiveDeploy = thisTagObjective;
+              DistanceObjectiveDeploy = DistanceObjective;
+              }
             }
-          }
+    
+    if (BotDeploy == None)
+      break;  // no more bots to deploy to objectives
 
-    if (BotNearest == None)
-      break;
+    TagObjectiveBot = Class'JBTagObjective'.Static.FindFor(BotDeploy.Squad.SquadObjective);
+    if (TagObjectiveBot != None)
+      TagObjectiveBot.nPlayersCurrent -= 1;
+    TagObjectiveDeploy.nPlayersCurrent += 1;
 
-    JBBotSquad(BotNearest.Squad).nPlayersRemove--;
-    PutOnSquad(BotNearest, ListDeployment[iDeploymentNearest].Objective);
-
-    ListDeployment[iDeploymentNearest].nPlayersCurrent++;
-    if (ListDeployment[iDeploymentNearest].nPlayersCurrent >=
-        ListDeployment[iDeploymentNearest].nPlayersOrdered)
-      ListDeployment.Remove(iDeploymentNearest, 1);
+    PutOnSquad(BotDeploy, TagObjectiveDeploy.GetObjective());
     }
 
-  for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
-    if (JBBotSquad(thisSquad) != None && thisSquad.bFreelance)
-      JBBotSquad(thisSquad).nPlayersRemove = 0;
-
   for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
-    if (Bot(thisController) != None &&
-        thisController.PlayerReplicationInfo != None &&
-        thisController.PlayerReplicationInfo.Team == Team &&
-        JBBotSquad(Bot(thisController).Squad) != None &&
-        JBBotSquad(Bot(thisController).Squad).nPlayersRemove > 0)
-      PutOnFreelance(Bot(thisController));
+    if (IsDeployable(thisController) &&
+        Bot(thisController).Squad.SquadObjective != None) {
 
-  ListDeployment.Length = 0;
+      TagObjectiveBot = Class'JBTagObjective'.Static.FindFor(Bot(thisController).Squad.SquadObjective);
+      if (TagObjectiveBot != None)
+        TagObjectiveBot.nPlayersCurrent -= 1;
+
+      PutOnFreelance(Bot(thisController));
+      }
+  }
+
+
+// ============================================================================
+// GetPriorityAttackObjective
+//
+// Finds the objective that should be attacked. Selects the objective where
+// most players can be released with the least required amount of attacking
+// players.
+// ============================================================================
+
+function GameObjective GetPriorityAttackObjective() {
+
+  local int nPlayersReleasable;
+  local int nPlayersReleasableMax;
+  local int nPlayersAttacking;
+  local int nPlayersAttackingMin;
+  local GameObjective thisObjective;
+  local GameObjective ObjectiveAttack;
+  
+  for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    if (IsObjectiveAttack(thisObjective)) {
+      nPlayersAttacking = SuggestStrengthAttack(thisObjective);
+      if (nPlayersAttacking == 0)
+        continue;
+
+      if (ObjectiveAttack == None || nPlayersAttacking < nPlayersAttackingMin) {
+        nPlayersReleasable = CountPlayersReleasable(thisObjective);
+        if (ObjectiveAttack == None || nPlayersReleasable > nPlayersReleasableMax) {
+          nPlayersAttackingMin  = nPlayersAttacking;
+          nPlayersReleasableMax = nPlayersReleasable;
+          ObjectiveAttack = thisObjective;
+          }
+        }
+      }
+  
+  return ObjectiveAttack;
   }
 
 
@@ -771,85 +984,65 @@ function GameObjective GetPriorityFreelanceObjective() {
 
 
 // ============================================================================
-// state TacticsNormal
+// state TacticsDefensive
 //
-// Normal team tactics. Bots try to defend their bases and attack enemies in
-// order to kill them and to release their teammates. Nothing fancy here.
+// Defensive team tactics. Bots try to defend their bases as well as they can,
+// abandoning attack if they must and only sending bots on freelance or attack
+// if all bases are well guarded.
 // ============================================================================
 
-auto state TacticsNormal {
+state TacticsDefensive {
 
   // ================================================================
-  // SetBotOrders
+  // ReAssessOrders
   //
-  // Finds the objective that needs more players most urgently and
-  // assigns the new bot to that objective's squad.
+  // Fills up the defense and sends the remaining undeployed players
+  // on freelance or attack. Sends at least two players on defense
+  // for every objective.
   // ================================================================
 
-  function SetBotOrders(Bot Bot, RosterEntry RosterEntry) {
+  function ReAssessOrders() {
 
-    local GameObjective thisObjective;
-    local GameObjective ObjectiveWeakest;
-    local int nPlayersNeeded;
-    local int nPlayersNeededWeakest;
-
-    for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective) {
-      if (IsObjectiveAttack(thisObjective))
-        nPlayersNeeded = SuggestStrengthAttack(thisObjective) - CountPlayersAtObjective(thisObjective);
-      else if (IsObjectiveDefense(thisObjective))
-        nPlayersNeeded = SuggestStrengthDefense(thisObjective) - CountPlayersAtObjective(thisObjective);
-      else
-        continue;
-      
-      if (ObjectiveWeakest == None || nPlayersNeeded > nPlayersNeededWeakest) {
-        ObjectiveWeakest = thisObjective;
-        nPlayersNeededWeakest = nPlayersNeeded;
-        }
-      }
-
-    if (nPlayersNeededWeakest > 0)
-      PutOnSquad(Bot, ObjectiveWeakest);
-    else
-      PutOnFreelance(Bot);
-    }
-  
-
-  // ================================================================
-  // GetPriorityAttackObjective
-  //
-  // Finds the objective that should be attacked. Selects the
-  // objective where most players can be released with the least
-  // required amount of attacking players.
-  // ================================================================
-
-  function GameObjective GetPriorityAttackObjective() {
-
-    local int nPlayersReleasable;
-    local int nPlayersReleasableMax;
+    local int nPlayersFree;
+    local int nPlayersJailed;
     local int nPlayersAttacking;
-    local int nPlayersAttackingMin;
+    local int nPlayersDefending;
     local GameObjective thisObjective;
     local GameObjective ObjectiveAttack;
     
-    for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
-      if (IsObjectiveAttack(thisObjective)) {
-        nPlayersAttacking = SuggestStrengthAttack(thisObjective);
-        if (nPlayersAttacking == 0)
-          continue;
+    nPlayersFree   = JBReplicationInfoTeam(Team).CountPlayersFree();
+    nPlayersJailed = JBReplicationInfoTeam(Team).CountPlayersJailed();
 
-        if (ObjectiveAttack == None || nPlayersAttacking < nPlayersAttackingMin) {
-          nPlayersReleasable = CountPlayersReleasable(thisObjective);
-          if (ObjectiveAttack == None || nPlayersReleasable > nPlayersReleasableMax) {
-            nPlayersAttackingMin  = nPlayersAttacking;
-            nPlayersReleasableMax = nPlayersReleasable;
-            ObjectiveAttack = thisObjective;
-            }
-          }
-        }
+    for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+      if (IsObjectiveDefense(thisObjective))
+        nPlayersDefending += Max(2, SuggestStrengthDefense(thisObjective));
+
+    nPlayersDefending = Min(nPlayersDefending, nPlayersFree);
     
-    return ObjectiveAttack;
+    if (nPlayersJailed > 0) {
+      ObjectiveAttack = GetPriorityAttackObjective();
+      nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
+      }
+
+    if (nPlayersAttacking + nPlayersDefending > nPlayersFree)
+      nPlayersAttacking = Max(0, nPlayersFree - nPlayersDefending);
+    
+    DeployToObjective(ObjectiveAttack, nPlayersAttacking);
+    DeployToDefense(nPlayersDefending);
+    DeployExecute();
     }
 
+  } // state TacticsDefensive
+
+
+// ============================================================================
+// state TacticsNormal
+//
+// Normal team tactics. Bots try to defend their bases and attack enemies in
+// order to kill them and to release their teammates.
+// ============================================================================
+
+auto state TacticsNormal {
 
   // ================================================================
   // ReAssessOrders
@@ -910,8 +1103,8 @@ auto state TacticsNormal {
             }
           }
 
-      DeployPlayers(ObjectiveAttack,  nPlayersAttacking);
-      DeployPlayers(ObjectiveDefense, nPlayersDefending);
+      DeployToObjective(ObjectiveAttack,  nPlayersAttacking);
+      DeployToObjective(ObjectiveDefense, nPlayersDefending);
       DeployExecute();
       }
     
@@ -921,8 +1114,8 @@ auto state TacticsNormal {
       if (nPlayersAttacking > 0)
         nPlayersAttacking = nPlayersFree - nPlayersDefending;  // attack with full force
 
-      DeployPlayers(ObjectiveAttack, nPlayersAttacking);
-      DeployPlayersDefense(nPlayersDefending);
+      DeployToObjective(ObjectiveAttack, nPlayersAttacking);
+      DeployToDefense(nPlayersDefending);
       DeployExecute();  // rest goes on freelance
       }
     }
@@ -931,10 +1124,106 @@ auto state TacticsNormal {
 
 
 // ============================================================================
+// state TacticsAggressive
+//
+// Aggressive team tactics. Bots will attack even at the expense of defending
+// their own bases if they must.
+// ============================================================================
+
+state TacticsAggressive {
+
+  // ================================================================
+  // ReAssessOrders
+  //
+  // Puts as many players as required on attack. The remaining
+  // players are distributed on defended objectives. If there are
+  // barely enough players to defend one objective, abandons defense
+  // of all other objectives. If there are not enough bots even for
+  // that, abandons defense altogether.
+  // ================================================================
+  
+  function ReAssessOrders() {
+
+    local int nPlayersFree;
+    local int nPlayersJailed;
+    local int nPlayersAttacking;
+    local int nPlayersDefending;
+    local int nPlayersDefendingMax;
+    local int nPlayersDefendingMin;
+    local int nPlayersReleasable;
+    local int nPlayersReleasableMax;
+    local GameObjective thisObjective;
+    local GameObjective ObjectiveAttack;
+    local GameObjective ObjectiveDefense;
+
+    nPlayersFree   = JBReplicationInfoTeam(Team).CountPlayersFree();
+    nPlayersJailed = JBReplicationInfoTeam(Team).CountPlayersJailed();
+
+    for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+      if (IsObjectiveDefense(thisObjective)) {
+        nPlayersDefending = SuggestStrengthDefense(thisObjective);
+        nPlayersDefendingMax += nPlayersDefending;
+        if (nPlayersDefendingMin == 0 ||
+            nPlayersDefendingMin > nPlayersDefending)
+          nPlayersDefendingMin = nPlayersDefending;
+        }
+    
+    if (nPlayersJailed > 0) {
+      ObjectiveAttack = GetPriorityAttackObjective();
+      nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
+      }
+
+    if (nPlayersAttacking + nPlayersDefendingMax <= nPlayersFree) {
+      DeployToObjective(ObjectiveAttack, nPlayersAttacking);
+      DeployToDefense(nPlayersDefendingMax);
+      DeployExecute();  // rest go on freelance
+      }
+      
+    else if (nPlayersAttacking + nPlayersDefendingMin / 2 <= nPlayersFree) {
+      nPlayersDefending = nPlayersFree - nPlayersAttacking;
+
+      for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+        if (IsObjectiveDefense(thisObjective)) {
+          nPlayersReleasable = CountPlayersReleasable(thisObjective);
+          if (nPlayersReleasable > nPlayersReleasableMax &&
+              nPlayersDefendingMin >= SuggestStrengthDefense(thisObjective)) {
+            ObjectiveDefense = thisObjective;
+            nPlayersReleasableMax = nPlayersReleasable;
+            }
+          }
+      
+      DeployToObjective(ObjectiveAttack,  nPlayersAttacking);
+      DeployToObjective(ObjectiveDefense, nPlayersDefending);
+      DeployExecute();
+      }
+
+    else {
+      DeployToObjective(ObjectiveAttack, nPlayersFree);
+      DeployExecute();
+      }
+    }
+
+  } // state TacticsAggressive
+
+
+// ============================================================================
+// state TacticsEvasive
+// state TacticsSuicidal
+//
+// Dummy states pending implementation.
+// ============================================================================
+
+state TacticsEvasive  extends TacticsDefensive  {}
+state TacticsSuicidal extends TacticsAggressive {}
+
+
+// ============================================================================
 // Defaults
 // ============================================================================
 
 defaultproperties {
+
+  bTacticsAuto = True;
 
   ClassSquadArena = Class'JBBotSquadArena';
   ClassSquadJail  = Class'JBBotSquadJail';

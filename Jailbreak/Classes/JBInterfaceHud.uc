@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.5 2003/01/03 23:22:48 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.6 2003/01/05 21:08:31 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -325,6 +325,46 @@ simulated function ShowTeamScorePassA(Canvas Canvas) {
   ShowCompass(Canvas);
   ShowDisposition(Canvas);
   ShowBuild(Canvas);
+  }
+
+
+// ============================================================================
+// GetTagClientOwner
+//
+// Return the JBTagClient actor for the local player.
+// ============================================================================
+
+simulated function JBTagClient GetTagClientOwner() {
+
+  return Class'JBTagClient'.Static.FindFor(PlayerOwner);
+  }
+
+
+// ============================================================================
+// exec TeamTactics
+//
+// Allows the player to change the current team tactics from the console.
+// Replicated to the server via ExecTeamTactics in JBTagPlayer.
+// ============================================================================
+
+simulated exec function TeamTactics(string TextTactics, optional string TextTeam) {
+
+  local name Tactics;
+  local TeamInfo Team;
+
+       if (TextTeam ~= Left("red",  Len(TextTeam))) Team = PlayerOwner.GameReplicationInfo.Teams[0];
+  else if (TextTeam ~= Left("blue", Len(TextTeam))) Team = PlayerOwner.GameReplicationInfo.Teams[1];
+  
+       if (TextTactics ~= Left("auto",       Len(TextTactics))) Tactics = 'Auto';
+  else if (TextTactics ~= Left("up",         Len(TextTactics))) Tactics = 'MoreAggressive';
+  else if (TextTactics ~= Left("down",       Len(TextTactics))) Tactics = 'MoreDefensive';
+  else if (TextTactics ~= Left("evasive",    Len(TextTactics))) Tactics = 'Evasive';
+  else if (TextTactics ~= Left("defensive",  Len(TextTactics))) Tactics = 'Defensive';
+  else if (TextTactics ~= Left("normal",     Len(TextTactics))) Tactics = 'Normal';
+  else if (TextTactics ~= Left("aggressive", Len(TextTactics))) Tactics = 'Aggressive';
+  else if (TextTactics ~= Left("suicidal",   Len(TextTactics))) Tactics = 'Suicidal';
+
+  GetTagClientOwner().ExecTeamTactics(Tactics, Team);
   }
 
 

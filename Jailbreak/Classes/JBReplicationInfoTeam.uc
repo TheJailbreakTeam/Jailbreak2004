@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.6 2002/12/23 00:40:45 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.7 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -18,35 +18,21 @@ class JBReplicationInfoTeam extends xTeamRoster
 replication {
 
   reliable if (Role == ROLE_Authority)
-    nPlayers, nPlayersFree, nPlayersJailed, bTacticsAuto, Tactics;
+    Tactics, bTacticsAuto, nPlayers, nPlayersFree, nPlayersJailed;
   }
-
-
-// ============================================================================
-// Types
-// ============================================================================
-
-enum ETactics {
-
-  Tactics_Evasive,
-  Tactics_Defensive,
-  Tactics_Normal,
-  Tactics_Aggressive,
-  Tactics_Suicidal,
-  };
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
+var private name Tactics;       // currently selected team tactics
+var private bool bTacticsAuto;  // team tactics are currently auto-selected
+
 var private float TimeCountPlayers;  // time of last CountPlayers call
 var private int nPlayers;            // replicated total number of players
 var private int nPlayersFree;        // number of free players
 var private int nPlayersJailed;      // number of jailed players
-
-var private bool bTacticsAuto;  // automatically select appropriate tactics
-var private ETactics Tactics;   // currently selected team tactics
 
 
 // ============================================================================
@@ -64,11 +50,15 @@ event PostBeginPlay() {
 // ============================================================================
 // Timer
 //
-// Updates the number of jailed and free players in this team for replication.
+// Updates the currently selected team tactics and counts jailed and free
+// players for replication.
 // ============================================================================
 
 event Timer() {
 
+  Tactics      = JBBotTeam(AI).GetTactics();
+  bTacticsAuto = JBBotTeam(AI).GetTacticsAuto();
+  
   CountPlayers();
   }
 
@@ -153,41 +143,10 @@ simulated function int CountPlayersTotal() {
 
 
 // ============================================================================
-// SetTactics
-//
-// Sets the current team tactics.
-// ============================================================================
-
-function SetTactics(coerce ETactics NewTactics, optional bool bNewTacticsAuto) {
-
-  Tactics = NewTactics;
-  bTacticsAuto = bNewTacticsAuto;
-  
-  switch (Tactics) {
-    case Tactics_Evasive:     AI.GotoState('TacticsEvasive');     break;
-    case Tactics_Defensive:   AI.GotoState('TacticsDefensive');   break;
-    case Tactics_Normal:      AI.GotoState('TacticsNormal');      break;
-    case Tactics_Aggressive:  AI.GotoState('TacticsAggressive');  break;
-    case Tactics_Suicidal:    AI.GotoState('TacticsSuicidal');    break;
-    }
-  }
-
-
-// ============================================================================
 // Accessors
 // ============================================================================
 
-simulated function ETactics GetTactics() {
+simulated function name GetTactics() {
   return Tactics; }
 simulated function bool GetTacticsAuto() {
   return bTacticsAuto; }
-
-
-// ============================================================================
-// Defaults
-// ============================================================================
-
-defaultproperties {
-
-  bTacticsAuto = True;
-  }

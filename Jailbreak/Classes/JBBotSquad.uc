@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.2 2002/12/22 02:06:13 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.3 2003/01/08 20:27:16 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -17,18 +17,16 @@ class JBBotSquad extends SquadAI
 
 struct TInfoEnemy {
 
-  var float TimeUpdate;             // time of last info update
-  var bool bIsApproaching;          // enemy is approaching the objective
-  var bool bIsVisible;              // enemy was visible at last update
-  var float DistanceObjective;      // distance of enemy to defended objective
+  var float TimeUpdate;         // time of last info update
+  var bool bIsApproaching;      // enemy is approaching the objective
+  var bool bIsVisible;          // enemy was visible at last update
+  var float DistanceObjective;  // distance of enemy to defended objective
   };
 
 
 // ============================================================================
 // Variables
 // ============================================================================
-
-var transient int nPlayersRemove;  // used by DeployExecute in JBBotTeam
 
 var private TInfoEnemy ListInfoEnemy[8];  // indexed after the Enemies array
 
@@ -94,6 +92,25 @@ function int CountEnemies() {
   
   TimeCacheCountEnemies = Level.TimeSeconds;
   return CacheCountEnemies;
+  }
+
+
+// ============================================================================
+// ClearEnemies
+//
+// Clears the list of enemies acquired by this squad.
+// ============================================================================
+
+function ClearEnemies() {
+
+  local int iEnemy;
+  local Bot thisBot;
+  
+  for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
+    Enemies[iEnemy] = None;
+
+  for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
+    thisBot.Enemy = None;
   }
 
 
@@ -183,6 +200,37 @@ function bool AddEnemy(Pawn PawnEnemy) {
     }
 
   return bEnemyAdded;
+  }
+
+
+// ============================================================================
+// ModifyThreat
+//
+// For defending squads, increases the perceived threat posed through an enemy
+// player approaching the defended objective and for enemies closer to the
+// defended objective than the inquiring bot itself.
+// ============================================================================
+
+function float ModifyThreat(float Threat, Pawn PawnThreat, bool bThreatVisible, Bot Bot) {
+
+  local int iEnemy;
+  local float DistanceObjectiveBot;
+  
+  if (GetOrders() == 'Defend') {
+    for (iEnemy = 0; iEnemy < ArrayCount(Enemies); iEnemy++)
+      if (Enemies[iEnemy] == PawnThreat)
+        break;
+  
+    if (ListInfoEnemy[iEnemy].bIsApproaching &&
+       !ListInfoEnemy[iEnemy].bIsVisible)
+      Threat += 0.3;
+    
+    DistanceObjectiveBot = Class'JBBotTeam'.Static.CalcDistance(Bot, SquadObjective);
+    if (DistanceObjectiveBot > ListInfoEnemy[iEnemy].DistanceObjective)
+      Threat += 0.1;
+    }
+  
+  return Super.ModifyThreat(Threat, PawnThreat, bThreatVisible, Bot);
   }
 
 

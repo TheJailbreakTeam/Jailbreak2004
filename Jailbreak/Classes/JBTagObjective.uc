@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTagObjective.uc,v 1.2 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -28,10 +28,14 @@ replication {
 
 var float ScaleDot;  // used to pulse dot in compass
 
+var transient int nPlayersCurrent;    // used by deployment functions to keep
+var transient int nPlayersDeployed;   // track of available and ordered players
+
 var private GameObjective Objective;  // replicated associated objective
 
-var private float TimeCountPlayersReleasable;  // time of last update
-var private int nPlayersReleasable;            // number of releasable players
+var private transient float TimeCountPlayersReleasable;
+var private transient int nPlayersReleasable;
+
 
 
 // ============================================================================
