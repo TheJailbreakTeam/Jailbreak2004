@@ -396,7 +396,7 @@ function TriggerEventRelease(name Event, Actor ActorSender, Pawn PawnInstigator)
   if (Event == '')
     return;
 
-  foreach DynamicActors(Class'Actor', thisActor)
+  foreach DynamicActors(Class'Actor', thisActor, Event)
     if (Mover(thisActor) == None)
            thisActor.Trigger(ActorSender, PawnInstigator);
       else thisActor.Trigger(ActorSender, None);  // hide instigator from mover
