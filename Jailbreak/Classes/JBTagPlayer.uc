@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.11 2003/01/03 22:33:32 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.12 2003/01/05 20:48:50 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -398,6 +398,7 @@ function GameObjective GuessObjective() {
   local float DistanceApproached;
   local float DistanceApproachedMax;
   local float DistanceClosest;
+  local float DistanceClosestPrev;
   local float DistanceTravelledMax;
   local GameObjective thisObjective;
   local GameObjective ObjectiveApproachedMax;
@@ -422,6 +423,7 @@ function GameObjective GuessObjective() {
     
     if (ObjectiveClosest == None || Distance < DistanceClosest) {
       ObjectiveClosest = thisObjective;
+      DistanceClosestPrev = DistanceClosest;
       DistanceClosest = Distance;
       }
     
@@ -444,7 +446,11 @@ function GameObjective GuessObjective() {
   if (DistanceApproachedMax > DistanceTravelledMax * 0.8)
     ObjectiveGuessed = ObjectiveApproachedMax;  // moving towards objective
   else
-    ObjectiveGuessed = ObjectiveClosest;  // located in vicinity of objective
+    if (DistanceClosestPrev == 0.0 ||
+        DistanceClosestPrev > DistanceClosest * 2.0)
+      ObjectiveGuessed = ObjectiveClosest;  // located in vicinity of objective
+    else
+      ObjectiveGuessed = None;  // located between objectives, freelancing
   
   TimeObjectiveGuessed = Level.TimeSeconds;
   return ObjectiveGuessed;  
