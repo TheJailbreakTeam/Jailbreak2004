@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.3 2004/04/20 13:28:41 mychaeel Exp $
+// $Id$
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -181,12 +181,24 @@ event bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float 
   if (PlayerController.Pawn == None) {
     Camera = JBCamera(PlayerController.ViewTarget);
     if (Camera != None && Camera.Switching.bAllowManual) {
-      if (bool(bIsBoundToPrevWeapon[InputKey])) { Camera.SwitchToPrev(PlayerController, True);  return True; }
-      if (bool(bIsBoundToNextWeapon[InputKey])) { Camera.SwitchToNext(PlayerController, True);  return True; }
+      if (bool(bIsBoundToPrevWeapon[InputKey])) { GetTagClientLocal().ServerSwitchToPrevCamera(Camera, True);  return True; }
+      if (bool(bIsBoundToNextWeapon[InputKey])) { GetTagClientLocal().ServerSwitchToNextCamera(Camera, True);  return True; }
     }
   }
   
   return False;
+}
+
+
+// ============================================================================
+// GetTagClientLocal
+//
+// Returns a reference to the JBTagClient actor of the local player.
+// ============================================================================
+
+function JBTagClient GetTagClientLocal()
+{
+  return Class'JBTagClient'.Static.FindFor(ViewportOwner.Actor);
 }
 
 
