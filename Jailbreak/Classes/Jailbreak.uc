@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.38 2003/03/15 22:18:30 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.39 2003/03/16 10:16:52 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -277,8 +277,8 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator,
   TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
   TagPlayerVictim     = Class'JBTagPlayer'.Static.FindFor(PawnVictim    .PlayerReplicationInfo);
 
-  if (TagPlayerVictim.IsInArena() &&
-      TagPlayerVictim.GetArena() != TagPlayerInstigator.GetArena()) {
+  if (TagPlayerVictim    .GetArena() !=
+      TagPlayerInstigator.GetArena()) {
     MomentumHit = vect(0,0,0);
     return 0;
     }
