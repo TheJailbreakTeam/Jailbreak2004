@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecution
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecution.uc,v 1.3 2003/06/27 11:11:57 crokx Exp $
+// $Id: JBExecution.uc,v 1.4 2003/06/30 06:54:02 crokx Exp $
 //
 // Base of all triggered execution.
 // ============================================================================
@@ -12,6 +12,15 @@ class JBExecution extends Triggers abstract;
 // Variables
 // ============================================================================
 var private JBInfoJail TargetJail;
+var private JBTagPlayer DispatchedPlayer;
+
+struct _DispatchExecution {
+    var() bool bUseDispatch;
+    var() float MaxExecutionInterval;
+    var() float MinExecutionInterval;
+    var bool bInstantKill;
+    var class<DamageType> InstantKillType; };
+var() _DispatchExecution DispatchExecution;
 
 
 // ============================================================================
@@ -60,6 +69,8 @@ event ExecuteAllJailedPlayers(optional bool bInstantKill, optional class<DamageT
 {
     local JBTagPlayer JailedPlayer;
 
+    Disable('Trigger');
+
     for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
         if((JailedPlayer.GetJail() == TargetJail)
@@ -69,6 +80,32 @@ event ExecuteAllJailedPlayers(optional bool bInstantKill, optional class<DamageT
             else ExecuteJailedPlayer(JailedPlayer.GetPawn());
         }
     }
+
+    Enable('Trigger');
+}
+
+// ============================================================================
+// ExecutionDispatching
+//
+// Dispatch the execution.
+// ============================================================================
+state ExecutionDispatching
+{
+    ignores Trigger;
+
+    Begin:
+    for(DispatchedPlayer=GetFirstTagPlayer(); DispatchedPlayer!=None; DispatchedPlayer=DispatchedPlayer.NextTag)
+    {
+        if((DispatchedPlayer.GetJail() == TargetJail)
+        && (DispatchedPlayer.GetPawn() != None))
+        {
+            if(DispatchExecution.bInstantKill) DispatchedPlayer.GetPawn().Died(None, DispatchExecution.InstantKillType, vect(0,0,0));
+            else ExecuteJailedPlayer(DispatchedPlayer.GetPawn());
+            Sleep(FMax(RandRange(DispatchExecution.MinExecutionInterval, DispatchExecution.MaxExecutionInterval), 0.10));
+        }
+    }
+
+    GoToState('');
 }
 
 
@@ -79,7 +116,8 @@ event ExecuteAllJailedPlayers(optional bool bInstantKill, optional class<DamageT
 // ============================================================================
 function Trigger(Actor A, Pawn P)
 {
-    ExecuteAllJailedPlayers();
+    if(DispatchExecution.bUseDispatch) GoToState('ExecutionDispatching');
+    else ExecuteAllJailedPlayers();
 }
 
 
@@ -115,11 +153,11 @@ final function DestroyAllDamagers()
 // ============================================================================
 // Accessors
 // ============================================================================
-simulated final function JBInfoJail GetFirstJail() {
+final function JBInfoJail GetFirstJail() {
     return (JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstJail); }
-simulated final function JBTagPlayer GetFirstTagPlayer() {
+final function JBTagPlayer GetFirstTagPlayer() {
     return (JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstTagPlayer); }
-simulated final function JBInfoJail GetTargetJail() {
+final function JBInfoJail GetTargetJail() {
     return (TargetJail); }
 final function bool HasSkelete(Pawn P) {
     return ((P.IsA('xPawn')) && (xPawn(P).SkeletonMesh != None)); }
@@ -131,4 +169,5 @@ final function bool HasSkelete(Pawn P) {
 defaultproperties
 {
     Texture=Texture'S_SpecialEvent'
+    DispatchExecution=(MaxExecutionInterval=0.750000,MinExecutionInterval=0.250000)
 }
