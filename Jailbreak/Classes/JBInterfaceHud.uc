@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.35.2.16 2004/07/25 15:18:17 mychaeel Exp $
+// $Id$
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -245,7 +245,8 @@ simulated event PostRender(Canvas Canvas)
     ViewTargetPrev = PlayerOwner.ViewTarget;
   }
 
-  CheckLastMan();
+  if (!JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).bIsExecuting && !bHasGameEnded)
+    CheckLastMan();
 
   ShowWidescreen(Canvas);
   ShowBlackout  (Canvas);
