@@ -279,7 +279,7 @@ event PostRender(Canvas Canvas)
   Canvas.TextSize(TextDialogBottom, SizeText.X, SizeText.Y);  if (SizeText.X > SizeDialog.X) SizeDialog.X = SizeText.X;
 
   SizeDialog += Dialog.Margins * 2;
-  SizeDialog.Y *= Alpha;
+  SizeDialog.Y *= 0.5 + Alpha * 0.5;
 
   LocationDialog.X = int((Canvas.ClipX - SizeDialog.X) / 2);
   LocationDialog.Y = int((Canvas.ClipY - SizeDialog.Y) / 2);
