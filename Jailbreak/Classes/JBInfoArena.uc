@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.39 2004/05/19 01:23:43 mychaeel Exp $
+// $Id$
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -427,7 +427,7 @@ simulated function int CountPlayers()
 
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetArena() == Self &&
-        thisTagPlayer.GetPawn() != None)
+        thisTagPlayer.GetHealth() > 0)
       nPlayers += 1;
 
   return nPlayers;
