@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.34 2004/06/01 12:38:18 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.35 2004/08/17 16:52:23 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -725,6 +725,9 @@ simulated function RenderOverlayMaterial(Canvas Canvas)
 
   if (Overlay.Material == None)
     return;
+
+  if (Texture(Overlay.Material) != None)
+    Texture(Overlay.Material).LODSet = LODSET_Interface;
 
   Canvas.DrawColor = Overlay.Color;
 
