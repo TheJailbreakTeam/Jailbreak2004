@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.2.2.1 2004/04/06 13:06:13 tarquin Exp $
+// $Id: JBGameRulesProtection.uc,v 1.2.2.2 2004/04/06 18:38:17 tarquin Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -185,6 +185,18 @@ function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
 
 
 // ============================================================================
+// IsProtected
+//
+// Returns True if given Pawn has protection
+// ============================================================================
+
+function bool IsProtected(Pawn thisPawn)
+{
+  return thisPawn.ReducedDamageType == class'JBDamageTypeNone';
+}
+
+
+// ============================================================================
 // HitShieldEffect
 //
 // Make a shield effect for see the damage absorption.
@@ -210,19 +222,21 @@ function HitShieldEffect(Pawn ProtectedPawn)
 // NetDamage
 //
 // Called when a player receives damage.
+// No damage is done to a protected player, and if the damage *would* have
+// been lethal, then the attacker is made a llama.
+// A protected player who attacks does no damage or has protection removed
 // ============================================================================
 
 function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn InstigatedBy, vector HitLocation, out vector Momentum, class<DamageType> DamageType)
 {
   local JBInfoProtection MyProtection;
 
-  // no damage is done to a protected player
-  if(Injured.ReducedDamageType == class'JBDamageTypeNone')
+  if( IsProtected(Injured) )
   {
-    // ... but if damage is lethal, make attacker a llama
     if( class'JBAddonProtection'.default.bLlamaizeCampers == True
-        && Damage >= Injured.Default.Health 
         && InstigatedBy != None 
+        && InstigatedBy != Injured
+        && Damage >= Injured.Default.Health 
         && InstigatedBy.Controller != None )
       Llamaize(InstigatedBy.Controller);
     
@@ -231,10 +245,9 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
     return 0;
   }
 
-  // a protected player either does no damage or has protection removed
-  if((InstigatedBy != None)
-    && (InstigatedBy.ReducedDamageType == class'JBDamageTypeNone')
-    && (InstigatedBy != Injured))
+  if( InstigatedBy != None
+    && IsProtected(InstigatedBy)
+    && InstigatedBy != Injured )
   {
     if(class'JBAddonProtection'.default.ProtectionType == 0)
     {
@@ -248,8 +261,7 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
     }
   }
 
-  if(NextGameRules != None)
-      return NextGameRules.NetDamage(OriginalDamage, Damage, Injured, InstigatedBy, HitLocation, Momentum, DamageType);
+  return super.NetDamage(OriginalDamage, Damage, Injured, InstigatedBy, HitLocation, Momentum, DamageType);
 }
 
 
@@ -270,8 +282,38 @@ function Llamaize(Controller ControllerPlayer)
 
 
 // ============================================================================
+// CanBotAttackEnemy
+//
+// Called when a bot looks for a new enemy. Return false if the enemy is
+// protected. Return false if the bot is protected -- unless protection is
+// droppable and the bot has a superior weapon to the enemy.
+// ============================================================================
+
+function bool CanBotAttackEnemy(Bot Bot, Pawn PawnEnemy)
+{
+  local JBGameRules nextJBGameRules;
+  
+  if( IsProtected(Bot.Pawn) ) {
+    if( class'JBAddonProtection'.default.ProtectionType == 1 
+      && Bot.RateWeapon(Bot.Pawn.Weapon) >= Bot.RateWeapon(PawnEnemy.Weapon)) {
+      return True;
+    }
+    else {
+      return False;
+    }
+  }
+  
+  if( IsProtected(PawnEnemy) )
+    return False;
+  
+  return super.CanBotAttackEnemy(Bot, PawnEnemy);
+}
+
+
+// ============================================================================
 // Accessors
 // ============================================================================
+
 final function JBTagPlayer GetFirstTagPlayer() {
     return (JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstTagPlayer); }
 
