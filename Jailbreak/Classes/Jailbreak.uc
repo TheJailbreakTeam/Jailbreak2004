@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.10 2002/11/24 20:27:52 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.11 2002/11/24 20:54:28 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -448,19 +448,18 @@ function bool IsReleaseActive(byte Team) {
 
 function bool ExecutionInit() {
 
-  local int iInfoJail;
   local int iTeam;
   local int TeamCaptured;
-  local Controller thisController;
-  local JBReplicationInfoGame InfoGame;
   
   if (IsInState('MatchInProgress')) {
     TeamCaptured = -1;
     
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
       if (IsCaptured(iTeam))
-        if (TeamCaptured < 0)
+        if (TeamCaptured < 0) {
           TeamCaptured = iTeam;
+          }
+
         else {
           RestartAll();
           BroadcastLocalizedMessage(ClassLocalMessage, 300);
@@ -470,21 +469,46 @@ function bool ExecutionInit() {
     if (TeamCaptured < 0 || IsReleaseActive(TeamCaptured))
       return False;
   
+    ExecutionCommit(TeamCaptured);
+    return True;
+    }
+  
+  else {
+    Log("Warning: Cannot initiate execution while in state" @ GetStateName());
+    return False;
+    }
+  }
+
+
+// ============================================================================
+// ExecutionCommit
+//
+// Prepares and commits a team's execution. Respawns all other players, scores
+// and announces the capture.
+// ============================================================================
+
+function ExecutionCommit(byte TeamExecuted) {
+
+  local int iInfoJail;
+  local int iTeam;
+  local Controller thisController;
+  local JBReplicationInfoGame InfoGame;
+
+  if (IsInState('MatchInProgress')) {
     GotoState('Executing');
     
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-      if (iTeam != TeamCaptured) {
-        if (Teams[iTeam] != None)
-          Teams[iTeam].Score += 1;
+      if (iTeam != TeamExecuted && Teams[iTeam] != None) {
+        Teams[iTeam].Score += 1;
         RestartTeam(iTeam);
         }
-
+  
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
       if (thisController.PlayerReplicationInfo      != None &&
           thisController.PlayerReplicationInfo.Team != None &&
-          thisController.PlayerReplicationInfo.Team.TeamIndex != TeamCaptured)
+          thisController.PlayerReplicationInfo.Team.TeamIndex != TeamExecuted)
         ScoreEvent(thisController, 'Capture');
-
+  
     CameraExecution = FindCameraExecution();
     if (CameraExecution == None)
       Log("Warning: No execution camera found");
@@ -493,13 +517,11 @@ function bool ExecutionInit() {
     for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
       InfoGame.ListInfoJail[iInfoJail].ExecutionInit();
     
-    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , Teams[TeamCaptured]);
-    return True;
+    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , Teams[TeamExecuted]);
     }
   
   else {
-    Log("Warning: Cannot initiate execution while in state" @ GetStateName());
-    return False;
+    Log("Warning: Cannot commit execution while in state" @ GetStateName());
     }
   }
 
