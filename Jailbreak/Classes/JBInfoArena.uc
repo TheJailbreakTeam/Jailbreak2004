@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.25 2004/03/28 17:18:42 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.26 2004/03/28 22:45:38 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -27,8 +27,11 @@ class JBInfoArena extends Info
 replication
 {
   reliable if (Role == ROLE_Authority)
-    TimeStart, TimeCountdownStart, TimeCountdownTie,
-    PlayerReplicationInfoRed, PlayerReplicationInfoBlue;
+    TimeStart,
+    TimeCountdownStart,
+    TimeCountdownTie,
+    PlayerReplicationInfoRed,
+    PlayerReplicationInfoBlue;
 }
 
 
@@ -66,6 +69,7 @@ struct TDisplayPlayer
 // Properties
 // ============================================================================
 
+var(Events) name TagCamera;
 var(Events) name TagRequest;
 var(Events) name TagExclude;
 
@@ -94,6 +98,7 @@ var private float TimeCountdownTie;                // countdown to match tie
 
 var private JBProbeEvent ProbeEventRequest;        // probe for TagRequest
 var private JBProbeEvent ProbeEventExclude;        // probe for TagExclude
+var private JBProbeEvent ProbeEventCamera;         // probe for TagCamera
 var private array<Controller> ListControllerExclude;  // excluded players
 
 var private PlayerReplicationInfo PlayerReplicationInfoRed;   // for display
@@ -121,17 +126,24 @@ event PostBeginPlay()
 {
   local JBCamera thisCamera;
 
+  if (TagCamera != '' &&
+      TagCamera != 'None') {
+    ProbeEventCamera = Spawn(Class'JBProbeEvent', Self, TagCamera);
+    ProbeEventCamera.OnTrigger   =   TriggerCamera;
+    ProbeEventCamera.OnUnTrigger = UnTriggerCamera;
+  }
+
   if (TagRequest != '' &&
       TagRequest != 'None') {
     ProbeEventRequest = Spawn(Class'JBProbeEvent', Self, TagRequest);
-    ProbeEventRequest.OnTrigger   = TriggerRequest;
+    ProbeEventRequest.OnTrigger   =   TriggerRequest;
     ProbeEventRequest.OnUnTrigger = UnTriggerRequest;
   }
 
   if (TagExclude != '' &&
       TagExclude != 'None') {
     ProbeEventExclude = Spawn(Class'JBProbeEvent', Self, TagExclude);
-    ProbeEventExclude.OnTrigger   = TriggerExclude;
+    ProbeEventExclude.OnTrigger   =   TriggerExclude;
     ProbeEventExclude.OnUnTrigger = UnTriggerExclude;
   }
 
@@ -149,6 +161,7 @@ event PostBeginPlay()
 
 event Destroyed()
 {
+  if (ProbeEventCamera  != None) ProbeEventCamera .Destroy();
   if (ProbeEventRequest != None) ProbeEventRequest.Destroy();
   if (ProbeEventExclude != None) ProbeEventExclude.Destroy();
 }
@@ -682,6 +695,41 @@ function Controller FindWinner()
     Log("Warning: Can't find winner in" @ Self @ "because arena is in state" @ GetStateName());
     return None;
   }
+}
+
+
+// ============================================================================
+// TriggerCamera
+//
+// If an arena fight is in progress, activates the arena cam for the given
+// player.
+// ============================================================================
+
+function TriggerCamera(Actor ActorOther, Pawn PawnInstigator)
+{
+  if (IsInState('MatchRunning') && PawnInstigator.Controller != None)
+    ActivateCameraFor(PawnInstigator.Controller);
+}
+
+
+// ============================================================================
+// UnTriggerCamera
+//
+// Deactivates the arena cam for the given player.
+// ============================================================================
+
+function UnTriggerCamera(Actor ActorOther, Pawn PawnInstigator)
+{
+  local PlayerController PlayerController;
+  local JBCamera CameraCurrent;
+
+  PlayerController = PlayerController(PawnInstigator.Controller);
+  if (PlayerController == None)
+    return;
+  
+  CameraCurrent = JBCamera(PlayerController.ViewTarget);
+  if (CameraCurrent != None && ContainsActor(CameraCurrent))
+    CameraCurrent.DeactivateFor(PlayerController);
 }
 
 
