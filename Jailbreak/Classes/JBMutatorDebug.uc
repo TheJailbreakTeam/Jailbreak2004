@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.7.2.1 2004/04/11 17:09:46 mychaeel Exp $
+// $Id$
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -98,6 +98,14 @@ function Mutate(string TextMutate, PlayerController Sender)
     foreach DynamicActors(Class'Actor', thisActor)
       if (string(thisActor.Tag) ~= TextMutate)
         thisActor.Trigger(Sender.Pawn, Sender.Pawn);
+  }
+
+  else if (TextCommand ~= "DestroyActor") {
+    foreach DynamicActors(Class'Actor', thisActor)
+      if (string(thisActor.Name) ~= TextMutate) {
+        Log("Jailbreak Debugging: Destroying actor" @ thisActor @ "at" @ thisActor.Location);
+        thisActor.Destroy();
+      }
   }
 
   else if (TextCommand ~= "SetSwitch") {
