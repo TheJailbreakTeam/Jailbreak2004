@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.11 2003/01/06 16:03:38 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.12 2003/01/08 20:47:48 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -242,6 +242,7 @@ protected simulated function ActivateForLocal() {
     }
 
   bIsActiveLocal = True;
+  UpdateLocal();
   }
 
 
@@ -302,7 +303,7 @@ simulated event Tick(float TimeDelta) {
   if (Level.NetMode == NM_DedicatedServer)
     return;
 
-  bIsActiveLocalNew = Level.GetLocalPlayerController().ViewTarget == Self;
+  bIsActiveLocalNew = (Level.GetLocalPlayerController().ViewTarget == Self);
 
   if (bIsActiveLocalNew != bIsActiveLocal)
     if (bIsActiveLocalNew)
