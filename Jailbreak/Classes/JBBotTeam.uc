@@ -975,7 +975,8 @@ function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander)
 
   if (TagPlayerBot.IsFree() ||
      (TagPlayerBot.IsInJail() &&
-      TagPlayerBot.GetJail().IsReleaseActive(Team))) {
+       (TagPlayerBot.GetJail().IsReleaseOpening(Team) ||
+        TagPlayerBot.GetJail().IsReleaseOpen   (Team)))) {
 
     Super.SetOrders(Bot, OrderName, ControllerCommander);
     RequestReAssessment();
