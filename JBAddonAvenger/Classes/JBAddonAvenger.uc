@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBAddonAvenger.uc,v 1.1 2004/04/09 19:16:34 tarquin Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -87,12 +87,12 @@ static function ResetConfiguration()
 
 defaultproperties
 {
-  Build = "2003-07-24 19:41";
+  Build = "%%%%-%%-%% %%:%%";
   PowerTimeMultiplier = 100;
   PowerTimeMaximum    = 25;
   PowerComboIndex     = 1;
   FriendlyName        = "Arena Avenger"
-  Description="The arena winner is mad... he's out to get his revenge on those who imprisonned him with the help of a power-up!"
+  Description="The arena winner is mad... he's out to get his revenge on those who imprisoned him with the help of a power-up!"
   ConfigMenuClassName="JBAddonAvenger.JBGUIPanelConfigAvenger"
     
   ComboClasses(0)=class'XGame.ComboSpeed'
