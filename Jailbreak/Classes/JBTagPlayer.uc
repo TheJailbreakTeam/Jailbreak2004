@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.20 2003/02/11 08:28:03 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.21 2003/02/17 21:18:20 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -68,6 +68,7 @@ var private int TimeElapsedConnect;     // elapsed time at player connect
 var private int TimeElapsedDisconnect;  // elapsed time at player disconnect
 var private TInfoScore InfoScore;       // persistent score over reconnects
 
+var float TimeRestart;                  // time of next restart
 var private ERestart Restart;           // restart location for this player
 var private Pawn PawnRestarted;         // last known pawn of this player
 
@@ -445,10 +446,12 @@ private function RestartPlayer(ERestart RestartCurrent) {
     }
   
   Restart = RestartCurrent;
+
+  TimeRestart = Level.TimeSeconds;
   Level.Game.RestartPlayer(GetController());
-  Restart = Restart_Jail;
-  
   PawnRestarted = GetController().Pawn;
+
+  Restart = Restart_Jail;
   }
 
 

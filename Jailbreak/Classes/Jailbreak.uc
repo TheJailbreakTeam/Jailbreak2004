@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.32 2003/02/16 20:00:08 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.33 2003/02/17 07:26:57 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -247,7 +247,8 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
 // ============================================================================
 
 function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator,
-                          vector LocationHit, out vector MomentumHit, Class<DamageType> ClassDamageType) {
+                          vector LocationHit, out vector MomentumHit,
+                          Class<DamageType> ClassDamageType) {
 
   local JBTagPlayer TagPlayerInstigator;
   local JBTagPlayer TagPlayerVictim;
@@ -273,6 +274,25 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator,
       return 0;
 
   return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
+  }
+
+
+// ============================================================================
+// Killed
+//
+// Sets the killed player's restart time with a short delay for effect.
+// ============================================================================
+
+function Killed(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim,
+                Class<DamageType> ClassDamageType) {
+
+  local JBTagPlayer TagPlayerVictim;
+  
+  TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
+  if (TagPlayerVictim != None)
+    TagPlayerVictim.TimeRestart = Level.TimeSeconds + 2.0;
+  
+  Super.Killed(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
   }
 
 
@@ -903,6 +923,12 @@ state MatchInProgress {
 
   function RestartPlayer(Controller Controller) {
   
+    local JBTagPlayer TagPlayer;
+  
+    TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+    if (TagPlayer.TimeRestart > Level.TimeSeconds)
+      return;
+  
     Super.RestartPlayer(Controller);
 
     if (Controller != None) {
@@ -946,7 +972,7 @@ state Executing {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
         nPlayersJailed += CountPlayersJailed(Teams[iTeam]);
       if (nPlayersJailed == 0)
-        TimeRestart = Level.TimeSeconds + 3.0;
+        TimeRestart = Level.TimeSeconds + 1.0;
       }
 
     else if (Level.TimeSeconds > TimeRestart) {
@@ -956,7 +982,8 @@ state Executing {
 
     firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.IsInJail() &&
+      if (thisTagPlayer.TimeRestart <= Level.TimeSeconds &&
+          thisTagPlayer.IsInJail() &&
           thisTagPlayer.GetController().Pawn == None)
         thisTagPlayer.RestartFreedom();
     }
