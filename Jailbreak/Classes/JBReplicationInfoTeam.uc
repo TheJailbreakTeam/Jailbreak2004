@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.4 2002/11/24 20:30:05 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.5 2002/12/20 20:54:29 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBReplicationInfoTeam extends xTeamRoster
 replication {
 
   reliable if (Role == ROLE_Authority)
-    nPlayersFree, nPlayersJailed, bTacticsAuto, Tactics;
+    nPlayers, nPlayersFree, nPlayersJailed, bTacticsAuto, Tactics;
   }
 
 
@@ -40,11 +40,13 @@ enum ETactics {
 // Variables
 // ============================================================================
 
-var private int nPlayersFree;    // number of free players
-var private int nPlayersJailed;  // number of jailed players
+var private float TimeCountPlayers;  // time of last CountPlayers call
+var private int nPlayers;            // replicated total number of players
+var private int nPlayersFree;        // number of free players
+var private int nPlayersJailed;      // number of jailed players
 
-var private bool bTacticsAuto;   // automatically select appropriate tactics
-var private ETactics Tactics;    // currently selected team tactics
+var private bool bTacticsAuto;  // automatically select appropriate tactics
+var private ETactics Tactics;   // currently selected team tactics
 
 
 // ============================================================================
@@ -62,14 +64,49 @@ event PostBeginPlay() {
 // ============================================================================
 // Timer
 //
-// Updates the number of jailed players in this team for replication.
+// Updates the number of jailed and free players in this team for replication.
 // ============================================================================
 
 event Timer() {
 
-  CountPlayersFree();
-  CountPlayersJailed();
+  CountPlayers();
   }
+
+
+// ============================================================================
+// CountPlayers
+//
+// Counts free and jailed players in this team and updates the corresponding
+// variables. Updated only once per tick.
+// ============================================================================
+
+private function CountPlayers() {
+
+  local int iInfoPlayer;
+  local JBReplicationInfoGame InfoGame;
+  local JBReplicationInfoPlayer InfoPlayer;
+
+  if (TimeCountPlayers == Level.TimeSeconds)
+    return;
+  
+  InfoGame = JBReplicationInfoGame(Level.GRI);
+
+  nPlayers = Size;
+  nPlayersFree   = 0;
+  nPlayersJailed = 0;
+  
+  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
+    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
+    if (InfoPlayer.GetPlayerReplicationInfo().Team == Self)
+      if (InfoPlayer.IsInJail())
+        nPlayersJailed++;
+      else if (InfoPlayer.IsFree())
+        nPlayersFree++;
+    }
+
+  TimeCountPlayers = Level.TimeSeconds;
+  }
+  
 
 
 // ============================================================================
@@ -79,22 +116,10 @@ event Timer() {
 // them, client-side by reading the replicated value.
 // ============================================================================
 
-simulated function int CountPlayersFree() {
+simulated function int CountPlayersFree(optional bool bCached) {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
-
-  if (Role == ROLE_Authority) {
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    nPlayersFree = 0;
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-      InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-      if (InfoPlayer.IsFree() && InfoPlayer.GetPlayerReplicationInfo().Team == Self)
-        nPlayersFree++;
-      }
-    }
+  if (Role == ROLE_Authority && !bCached)
+    CountPlayers();
   
   return nPlayersFree;
   }
@@ -107,24 +132,11 @@ simulated function int CountPlayersFree() {
 // them, client-side by reading the replicated value.
 // ============================================================================
 
-simulated function int CountPlayersJailed() {
+simulated function int CountPlayersJailed(optional bool bCached) {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  if (Role == ROLE_Authority && !bCached)
+    CountPlayers();
 
-  if (Role == ROLE_Authority) {
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    nPlayersJailed = 0;
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-      InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-      if (InfoPlayer.GetPlayerReplicationInfo().Team == Self &&
-          InfoPlayer.IsInJail())
-        nPlayersJailed++;
-      }
-    }
-  
   return nPlayersJailed;
   }
 
@@ -132,12 +144,15 @@ simulated function int CountPlayersJailed() {
 // ============================================================================
 // CountPlayersTotal
 //
-// Returns the total number of players in this team. Kinda redundant, agreed.
+// Returns the total number of players in this team client- and server-side.
 // ============================================================================
 
 simulated function int CountPlayersTotal() {
 
-  return Size;
+  if (Role == ROLE_Authority)
+    return Size;
+  else
+    return nPlayers;  // replicated value
   }
 
 
