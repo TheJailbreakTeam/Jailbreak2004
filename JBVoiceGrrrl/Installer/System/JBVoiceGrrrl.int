@@ -1,19 +1,11 @@
-; $Id$
+; $Id: JBVoiceGrrrl.int,v 1.1.1.1 2004/05/17 03:22:43 mychaeel Exp $
 
 [Public]
-Object=(Name=JBVoiceGrrrl.Normal,Class=Class,MetaClass=Jailbreak.JBVoice,Description="UnrealGrrl")
-Object=(Name=JBVoiceGrrrl.Echo,Class=Class,MetaClass=Jailbreak.JBVoice,Description="UnrealGrrl (Echo)")
+Object=(Name=JBVoiceGrrrl.Classic,Class=Class,MetaClass=Jailbreak.JBVoice,Description="UnrealGrrl Classic")
+Object=(Name=JBVoiceGrrrl.Warden,Class=Class,MetaClass=Jailbreak.JBVoice,Description="UnrealGrrl Warden")
 
 [Settings]
 Volume=2.0
-
-[Settings.Normal]
-Pause=-0.150
-
-[Settings.Echo]
-Pause=-0.180
-
-[Settings.Robot]
 Pause=-0.150
 
 [Macros]
@@ -27,6 +19,8 @@ TeamCapturedBoth="Tied"
 TeamReleasedRed="$TeamRed Released"
 TeamReleasedBlue="$TeamBlue Released"
 ArenaWarning="ArenaWarning"
+ArenaStart="ArenaStart"
+ArenaCancelled="ArenaCancelled"
 ArenaEndTimeout="ArenaEndLoser"
 ArenaEndWinner="ArenaEndWinner"
 ArenaEndLoser="ArenaEndLoser"
