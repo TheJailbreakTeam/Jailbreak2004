@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id$
+// $Id: JBMonsterSpawner.uc,v 1.8 2004/04/11 20:27:04 tarquin Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -31,11 +31,13 @@ Var() ENum EMonsterType
   WarLord,
   Custom,
 } MonsterType;
-Var() String CustomMonster;
-Var() Mesh MonsterMesh;
-Var() Material MonsterSkin[8];
-var() Bool bMonsterControllable;
-
+Var() String    CustomMonster;
+Var() Mesh      MonsterMesh;
+Var() Material  MonsterSkin[8];
+var() bool      bMonsterControllable;
+var(Events) name TagExecutionCommit; // tag for start of execution 
+var(Events) name TagExecutionEnd;    // tag for end of execution: reset the monster
+var(Events) bool bUseExecutionTags;  // use above tags or Tag property
 
 // ============================================================================
 // Variables
@@ -45,7 +47,6 @@ Var Vector StartSpot;
 Var xPawn MyMonster;
 Var Controller MonsterController;
 Var Class<xPawn> MonsterClass;
-
 
 // ============================================================================
 // PostBeginPlay
@@ -76,6 +77,7 @@ Function PostBeginPlay()
     }
 
   StartSpot = Self.Location;
+  
 }
 
 
@@ -219,6 +221,8 @@ State MonsterWait
   Function BeginState()
   {
     SpawnMonster();
+    if(bUseExecutionTags)
+      Tag = TagExecutionCommit;
     SetTimer(0.05, true);
   }
   
@@ -277,6 +281,8 @@ State MonsterAttack
   
   Function BeginState()
   {
+    if(bUseExecutionTags)
+      Tag = TagExecutionEnd;
     SetTimer(0.05, true);
   }
   
@@ -293,6 +299,7 @@ DefaultProperties
   bHidden     = True
   bDirectional= True
   bHiddenEd   = False
+  bUseExecutionTags = True;
   bStatic     = False /* override Keypoint */
   InitialState= MonsterWait
   DrawType    = DT_Sprite
