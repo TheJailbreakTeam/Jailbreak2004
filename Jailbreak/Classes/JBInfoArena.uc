@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.27.2.11 2004/05/20 17:04:36 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.27.2.12 2004/05/25 14:21:59 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -152,8 +152,6 @@ event PostBeginPlay()
   foreach DynamicActors(Class'JBCamera', thisCamera)
     if (ContainsActor(thisCamera))
       thisCamera.Overlay.Actor = Self;
-
-  TimeStart = 0.0;  // trigger PostNetBeginPlay
 }
 
 
