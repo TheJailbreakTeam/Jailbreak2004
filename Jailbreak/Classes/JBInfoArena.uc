@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.15 2003/03/22 18:39:41 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.16 2003/03/22 19:24:10 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -590,7 +590,8 @@ function MatchFinish() {
     
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetArena() == Self)
+      if (thisTagPlayer.GetArena() == Self &&
+          thisTagPlayer.GetController().Pawn != None)
         thisTagPlayer.RestartInJail();
 
     if (Jailbreak(Level.Game).firstJBGameRules != None)
