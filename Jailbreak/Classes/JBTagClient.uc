@@ -222,6 +222,7 @@ function ExecViewTeam(optional name Whom)
 {
   local Pawn PawnViewTarget;
   local TeamInfo Team;
+  local Controller ControllerViewTarget;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
@@ -252,12 +253,14 @@ function ExecViewTeam(optional name Whom)
     Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
   }
   else {
-    PlayerController(Keeper).SetViewTarget(thisTagPlayer.GetPawn());
+    ControllerViewTarget = thisTagPlayer.GetController();
+  
+    PlayerController(Keeper).SetViewTarget(ControllerViewTarget);
     PlayerController(Keeper).bBehindView = True;
     PlayerController(Keeper).ViewTarget.BecomeViewTarget();
     
-    PlayerController(Keeper).ClientSetViewTarget(PlayerController(Keeper).ViewTarget);
-    PlayerController(Keeper).ClientSetBehindView(PlayerController(Keeper).bBehindView);
+    PlayerController(Keeper).ClientSetViewTarget(ControllerViewTarget);
+    PlayerController(Keeper).ClientSetBehindView(True);
   }
 }
 
