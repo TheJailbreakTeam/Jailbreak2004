@@ -1,19 +1,26 @@
 // ============================================================================
 // JBAddonHunt
+// $Id$
 // ============================================================================
-class JBAddonHunt extends JBAddon config(JBAddons);
+
+
+class JBAddonHunt extends JBAddon;
+
 
 // ============================================================================
 // Variables
 // ============================================================================
+
 var() const editconst string Build;
 //var int RoundTime;
+
 
 // ============================================================================
 // PostBeginPlay
 //
 // Register the additional rules.
 // ============================================================================
+
 function PostBeginPlay()
 {
     local JBGameRulesHunt HuntRules;
@@ -37,14 +44,16 @@ function PostBeginPlay()
 /*
 function CheckRounds()
 {
-	if ( JailBreak(Level.Game) != None )
-		JailBreak(Level.Game).RestartAll();
+  if ( JailBreak(Level.Game) != None )
+    JailBreak(Level.Game).RestartAll();
 }
 */
+
 
 // ============================================================================
 // Default properties
 // ============================================================================
+
 defaultproperties
 {
     Build="2004-04-26 15:24"

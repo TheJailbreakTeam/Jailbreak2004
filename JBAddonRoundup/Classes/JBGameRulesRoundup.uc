@@ -1,33 +1,39 @@
 // ============================================================================
 // JBGameRulesHunt
 //
+// $Id$
+//
 // The rules for the hunt add-on.
 // ============================================================================
+
+
 class JBGameRulesHunt extends JBGameRules;
+
 
 // ============================================================================
 // Variables
 // ============================================================================
+
 var byte around;
 
 function AddGameRules(GameRules GR)
 {
-	around = 1;
-	Super.AddGameRules(GR);
+  around = 1;
+  Super.AddGameRules(GR);
 }
 
 function NotifyExecutionCommit(TeamInfo Team)
 {
-	around++;
-	Super.NotifyExecutionCommit(Team);
+  around++;
+  Super.NotifyExecutionCommit(Team);
 }
 
 function int HuntingTeam()
 {
-	if( around % 2 == 1 )
-		return 0;
-	else
-		return 1;
+  if( around % 2 == 1 )
+    return 0;
+  else
+    return 1;
 }
 
 // ============================================================================
@@ -38,13 +44,15 @@ function int HuntingTeam()
 // objectives for this jail will remain disabled for a short time before
 // they are activated again.
 // ============================================================================
+
 function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objective)
 {
-	if( UnrealTeamInfo(PawnInstigator.GetTeam()).TeamIndex == HuntingTeam() )
-		return false;
-	else
-  		return Super.CanRelease(Team, PawnInstigator, Objective);
+  if( UnrealTeamInfo(PawnInstigator.GetTeam()).TeamIndex == HuntingTeam() )
+    return false;
+  else
+      return Super.CanRelease(Team, PawnInstigator, Objective);
 }
+
 
 // ============================================================================
 // CanSendToJail
@@ -53,17 +61,19 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
 // for players who simply physically enter jail or are sent back to jail after
 // losing an arena fight. Returning False will restart the player in freedom.
 // ============================================================================
+
 function bool CanSendToJail(JBTagPlayer TagPlayer)
 {
 
-	if( UnrealTeamInfo(TagPlayer.GetTeam()).TeamIndex == HuntingTeam() )
-	{
-		JBBotTeam(UnrealTeamInfo(TagPlayer.GetTeam()).AI).SetTactics('Suicidal');
-		return false;
-	}
-	else
-		return Super.CanSendToJail(TagPlayer);
+  if( UnrealTeamInfo(TagPlayer.GetTeam()).TeamIndex == HuntingTeam() )
+  {
+    JBBotTeam(UnrealTeamInfo(TagPlayer.GetTeam()).AI).SetTactics('Suicidal');
+    return false;
+  }
+  else
+    return Super.CanSendToJail(TagPlayer);
 }
+
 
 // ============================================================================
 // CanSendToArena
@@ -72,20 +82,23 @@ function bool CanSendToJail(JBTagPlayer TagPlayer)
 // this function returns False during the arena countdown for a player already
 // scheduled for a fight in the given arena, the match will be cancelled.
 // ============================================================================
+
 function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena, out byte bForceSendToArena)
 {
-	if( UnrealTeamInfo(TagPlayer.GetTeam()).TeamIndex == HuntingTeam() )
-	{
-		bForceSendToArena = 1;
-    		return true;
-	}  	
-	else
-		return Super.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
+  if( UnrealTeamInfo(TagPlayer.GetTeam()).TeamIndex == HuntingTeam() )
+  {
+    bForceSendToArena = 1;
+        return true;
+  }   
+  else
+    return Super.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
 }
+
 
 // ============================================================================
 // Default properties
 // ============================================================================
+
 defaultproperties
 {
 }
