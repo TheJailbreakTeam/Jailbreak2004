@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.67.2.29 2004/06/01 12:04:17 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.67.2.30 2004/06/01 17:13:21 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1446,9 +1446,34 @@ state MatchInProgress {
 
     InfoGame.StartMatchTimer();
     InfoGame.SynchronizeMatchTimer(ElapsedTime);
+    
+    RespawnPickups();
   }
 
 
+  // ================================================================
+  // RespawnPickups
+  //
+  // Respawns all pickups and resets the initial spawning delay for
+  // super pickups.
+  // ================================================================
+  
+  function RespawnPickups()
+  {
+    local Pickup thisPickup;
+  
+    foreach DynamicActors(Class'Pickup', thisPickup) {
+      if (thisPickup.PickupBase != None &&
+          thisPickup.PickupBase.bDelayedSpawn)
+             thisPickup.GotoState('Sleeping');
+        else thisPickup.GotoState('Pickup');
+    
+      if (thisPickup.PickupBase != None)
+        thisPickup.PickupBase.TurnOn();
+    }
+  }
+  
+  
   // ================================================================
   // Timer
   //
