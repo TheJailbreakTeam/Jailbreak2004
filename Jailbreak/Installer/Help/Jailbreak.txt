@@ -51,7 +51,6 @@ Zip Installation
 
     ServerPackages=Jailbreak
     ServerPackages=JBAddonAvenger
-    ServerPackages=JBAddonBerserker
     ServerPackages=JBAddonCelebration
     ServerPackages=JBAddonLlama
     ServerPackages=JBAddonProtection
