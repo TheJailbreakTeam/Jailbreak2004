@@ -561,7 +561,11 @@ print MANIFEST "[GroupSetup]\n";
 print MANIFEST "Copy=(Src=System\\Manifest.ini,Flags=3)\n";
 
 foreach my $ext qw(int det est frt itt kot smt tmt) {
-  print MANIFEST "Copy=(Src=System\\Manifest.$ext,Master=System\\Manifest.int,Flags=3)\n";
+  if (-e "Manifest-$product.$ext") {
+    print MANIFEST "Copy=(Src=System\\Manifest.$ext,Flags=3)\n";
+  } else {
+    print MANIFEST "Copy=(Src=System\\Manifest.$ext,Master=System\\Manifest.int,Flags=3)\n";
+  }
 }
 
 
