@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.4 2002/11/24 09:05:18 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.5 2002/11/24 11:15:23 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -210,9 +210,11 @@ function Release(byte Team, optional Controller ControllerInstigator) {
       }
 
     if (CanRelease(Team)) {
-      TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
-      BroadcastLocalizedMessage(Class'JBLocalMessage', 200, ControllerInstigator.PlayerReplicationInfo, ,
-                                                            ControllerInstigator.PlayerReplicationInfo.Team);
+      if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
+        BroadcastLocalizedMessage(Class'JBLocalMessage', 200, ControllerInstigator.PlayerReplicationInfo, ,
+                                                              ControllerInstigator.PlayerReplicationInfo.Team);
+        TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
+        }
       
       ListInfoReleaseByTeam[Team].bIsActive = True;
       ListInfoReleaseByTeam[Team].Time = Level.TimeSeconds;
@@ -270,6 +272,9 @@ function ExecutionEnd() {
       if (InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
         Controller(InfoGame.ListInfoPlayer[iInfoPlayer].Owner).Pawn.GibbedBy(None);
       TriggerEvent(EventExecutionEnd, Self, None);
+    
+    GotoState('Waiting');
+    }
   
   else {
     Log("Warning: Called ExecutionEnd for" @ Self @ "in state" @ GetStateName());
@@ -367,6 +372,9 @@ state ExecutionStarting {
   Begin:
     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionInit, True))
       TriggerEvent(EventExecutionInit, Self, None);
+  
+    Sleep(ExecutionDelayCommit);
+    GotoState('ExecutionRunning');
 
   } // state ExecutionStarting
 
@@ -383,6 +391,9 @@ state ExecutionRunning {
   Begin:
     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionCommit, True))
       TriggerEvent(EventExecutionCommit, Self, None);
+  
+    Sleep(ExecutionDelayFallback);
+    GotoState('ExecutionFallback');
   
   } // state ExecutionRunning
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.4 2002/11/24 09:13:54 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.5 2002/11/24 11:15:23 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -15,10 +15,13 @@ class Jailbreak extends TeamGame
 // Variables
 // ============================================================================
 
-var private JBCamera CameraExecution;  // camera for execution sequence
+var private JBCamera CameraExecution;    // camera for execution sequence
 
-var private float TimeExecution;       // time when execution starts
-var private float TimeRestart;         // time when next round starts
+var private float TimeExecution;         // time when execution starts
+var private float TimeRestart;           // time when next round starts
+
+var private array<name> ListEventFired;  // events fired in this tick
+var private float TimeEventFired;        // update time of event list
 
 
 // ============================================================================
@@ -143,6 +146,34 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
 function ScoreEvent(Controller Controller, name Event) {
 
   // TODO: implement
+  }
+
+
+// ============================================================================
+// CanFireEvent
+//
+// Checks whether the given event has been fired already within this tick and
+// returns True if not, False otherwise. Thus makes sure that certain events
+// are only fired once per tick.
+// ============================================================================
+
+function bool CanFireEvent(name EventFire, optional bool bFire) {
+
+  local int iEventFired;
+  
+  if (TimeEventFired < Level.TimeSeconds)
+    ListEventFired.Length = 0;
+  
+  for (iEventFired = 0; iEventFired < ListEventFired.Length; iEventFired++)
+    if (ListEventFired[iEventFired] == EventFire)
+      return False;
+  
+  if (bFire) {
+    ListEventFired[ListEventFired.Length] = EventFire;
+    TimeEventFired = Level.TimeSeconds;
+    }
+  
+  return True;
   }
 
 
