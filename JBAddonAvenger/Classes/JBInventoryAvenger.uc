@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInventoryAvenger
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBInventoryAvenger.uc,v 1.1.2.3 2004/05/13 12:12:34 tarquin Exp $
+// $Id: JBInventoryAvenger.uc,v 1.1.2.4 2004/05/17 12:07:46 tarquin Exp $
 //
 // Spawned for each avenger player. Gives the player the combo and then 
 // destroys it after set time.
@@ -36,7 +36,10 @@ var private HudBase.NumericWidget   AvengerRemainingCount;
 // ============================================================================
 // PostNetBeginPlay
 //
-// Registers the HUD overlay client-side.
+// Notifies the Avenger of his status: registers the HUD overlay client-side, 
+// and plays a voice announcement. 
+// Replication: this doesn't happen on a server (with no PlayerControllerLocal)
+// and for standalone and listen servers, check the local player is the owner.
 // ============================================================================
 
 simulated event PostNetBeginPlay()
@@ -44,7 +47,7 @@ simulated event PostNetBeginPlay()
     local PlayerController PlayerControllerLocal;
 
     PlayerControllerLocal = Level.GetLocalPlayerController();
-    if (PlayerControllerLocal != None )
+    if (PlayerControllerLocal != None && PlayerControllerLocal.Pawn == Pawn(Owner))
     {
         LocalHUD = JBInterfaceHud(PlayerControllerLocal.myHUD);
         LocalHUD.RegisterOverlay(Self);
