@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.2 2004/03/06 15:58:28 mychaeel Exp $
+// $Id: JBSpeechManager.uc,v 1.3 2004/05/17 02:59:06 mychaeel Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -114,8 +114,10 @@ static function SetVoicePack(string VoicePackNew)
 {
   local JBSpeechManager thisSpeechManager;
 
-  foreach Default.Class.AllObjects(Class'JBSpeechManager', thisSpeechManager)
+  foreach Default.Class.AllObjects(Class'JBSpeechManager', thisSpeechManager) {
+    thisSpeechManager.VoicePack =   VoicePackNew;
     thisSpeechManager.LoadVoicePack(VoicePackNew);
+  }
 
   Default.VoicePack = VoicePackNew;
   StaticSaveConfig();
