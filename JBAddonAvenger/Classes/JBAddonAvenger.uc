@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBAddonAvenger.uc,v 1.4 2004/05/19 15:53:33 tarquin Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -35,9 +35,10 @@ var class<Combo> ComboClasses[4];
 // Localization
 //=============================================================================
 
-var localized string PowerTimeMultiplierText;
-var localized string PowerTimeMaximumText;
-var localized string PowerComboIndexText;
+var localized string PowerTimeMultiplierText, PowerTimeMultiplierDesc;
+var localized string PowerTimeMaximumText,    PowerTimeMaximumDesc;
+var localized string PowerComboIndexText,     PowerComboIndexDesc;
+var localized string PowerComboIndexOptions;
 
 
 // ============================================================================
@@ -79,12 +80,28 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddClass(default.Class);
   
   // now register any mutator settings
-  PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMultiplier", default.PowerTimeMultiplierText,  0, 0, "Text", "3;1:200");
-  PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMaximum",    default.PowerTimeMaximumText,     0, 0, "Text", "3;10:60");
-  PlayInfo.AddSetting(PlayInfoGroup(), "PowerComboIndex",     default.PowerComboIndexText,      0, 0, "Select", "0;Speed;1;Berserk;2;Booster;3;Invisible;");
+  PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMultiplier", default.PowerTimeMultiplierText, 0, 0, "Text", "3;1:200");
+  PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMaximum",    default.PowerTimeMaximumText,    0, 0, "Text", "3;10:60");
+  PlayInfo.AddSetting(PlayInfoGroup(), "PowerComboIndex",     default.PowerComboIndexText,     0, 0, "Select", default.PowerComboIndexOptions);
 
   // remove mutator class from class stack
   PlayInfo.PopClass();
+}
+
+
+//=============================================================================
+// GetDescriptionText
+//
+// Returns a description text for the specified property.
+//=============================================================================
+
+static event string GetDescriptionText(string PropName)
+{
+  Switch (PropName) {
+    Case "PowerTimeMultiplier": return default.PowerTimeMultiplierDesc;
+    Case "PowerTimeMaximum":    return default.PowerTimeMaximumDesc;
+    Case "PowerComboIndex":     return default.PowerComboIndexDesc;
+  }
 }
 
 
@@ -125,9 +142,15 @@ defaultproperties
   Description="The arena winner is mad... he's out to get his revenge on those who imprisoned him with the help of a power-up!"
   ConfigMenuClassName="JBAddonAvenger.JBGUIPanelConfigAvenger"
 
-  PowerTimeMultiplierText = "Percentage to multiply arena remaining time by to give avenger time";
-  PowerTimeMaximumText    = "Maximum avenger time allowable";
-  PowerComboIndexText     = "Combo awarded to the avenger";
+  PowerTimeMultiplierText = "Avenger time multiplier";
+  PowerTimeMaximumText    = "Maximum avenger time";
+  PowerComboIndexText     = "Avenger power";
+  
+  PowerTimeMultiplierDesc = "Percentage to multiply arena remaining time by to give avenger time.";
+  PowerTimeMaximumDesc    = "Maximum avenger time allowable.";
+  PowerComboIndexDesc     = "Combo awarded to the avenger.";
+  
+  PowerComboIndexOptions = "0;Speed;1;Berserk;2;Booster;3;Invisible";
     
   ComboClasses(0)=class'XGame.ComboSpeed'
   ComboClasses(1)=class'XGame.ComboBerserk'
