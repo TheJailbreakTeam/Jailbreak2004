@@ -1,7 +1,7 @@
 // ============================================================================
 // JBRelease
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBRelease.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
 //
 // Marks a spot bots approach to release their teammates.
 // ============================================================================
@@ -23,16 +23,16 @@ var() name TagAttachJails;
 // Variables
 // ============================================================================
 
-var array<JBInfoJail> Jails;
+var array<JBInfoJail> ListInfoJail;  // jails opened by this release
 
 
 // ============================================================================
 // PostBeginPlay
 //
-// Initializes the Jails array. If not owned by an actor (true for JBRelease
-// actors placed in the map by level designers), uses the TagAttachJails
-// property; otherwise, uses the owner's Tag property to find attached jails.
-// Resets the actor's owner to None afterwards.
+// Initializes the ListInfoJail array. If not owned by an actor (true for
+// JBRelease actors placed in the map by level designers), uses the
+// TagAttachJails property; otherwise, uses the owner's Tag property to find
+// attached jails. Resets the actor's owner to None afterwards.
 // ============================================================================
 
 event PostBeginPlay() {
@@ -49,7 +49,7 @@ event PostBeginPlay() {
 // ============================================================================
 // FindJails
 // 
-// Fills the Jails array with references to JBInfoJail actors whose Tag
+// Fills the ListInfoJail array with references to JBInfoJail actors whose Tag
 // property matches the given name. If none are found, takes the value of the
 // given name out of consideration.
 // ============================================================================
@@ -58,18 +58,18 @@ function FindJails(name TagAttach) {
 
   local JBInfoJail thisJail;
 
-  Jails.Length = 0;
+  ListInfoJail.Length = 0;
 
   foreach DynamicActors(Class'JBInfoJail', thisJail, TagAttach)
     if (ThisJail.CanRelease(Team))
-      Jails[Jails.Length] = thisJail;
+      ListInfoJail[ListInfoJail.Length] = thisJail;
   
-  if (Jails.Length > 0)
+  if (ListInfoJail.Length > 0)
     return;
   
   foreach DynamicActors(Class'JBInfoJail', thisJail)
     if (ThisJail.CanRelease(Team))
-      Jails[Jails.Length] = thisJail;
+      ListInfoJail[ListInfoJail.Length] = thisJail;
   }
 
 
@@ -88,8 +88,8 @@ function int CountPlayersJailed() {
   
   nPlayersJailed = 0;
   
-  for (iJail = 0; iJail < Jails.Length; iJail++)
-    nPlayersJailed += Jails[iJail].CountPlayers(Team);
+  for (iJail = 0; iJail < ListInfoJail.Length; iJail++)
+    nPlayersJailed += ListInfoJail[iJail].CountPlayers(Team);
   
   return nPlayersJailed;
   }

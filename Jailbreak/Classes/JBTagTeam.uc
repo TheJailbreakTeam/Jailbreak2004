@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBReplicationInfoTeam.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -26,15 +26,15 @@ replication {
 // Variables
 // ============================================================================
 
-var private int nPlayersJailed;         // number of jailed players
-var private array<JBRelease> Releases;  // releases this team will attack
+var private int nPlayersJailed;            // number of jailed players
+var private array<JBRelease> ListRelease;  // releases this team will attack
 
 
 // ============================================================================
 // PostNetBeginPlay
 //
-// Initializes the Releases array, spawns JBRelease actors where necessary and
-// sets the timer.
+// Initializes the ListRelease array, spawns JBRelease actors where necessary
+// and sets the timer.
 // ============================================================================
 
 simulated event PostNetBeginPlay() {
@@ -45,16 +45,16 @@ simulated event PostNetBeginPlay() {
   
   foreach DynamicActors(Class'JBRelease', thisRelease)
     if (thisRelease.Team == TeamIndex)
-      Releases[Releases.Length] = thisRelease;
+      ListRelease[ListRelease.Length] = thisRelease;
   
   if (Role < ROLE_Authority)
     return;
 
-  if (Releases.Length == 0)
+  if (ListRelease.Length == 0)
     foreach DynamicActors(Class'Trigger', thisTrigger)
       foreach DynamicActors(Class'JBInfoJail', thisJail, thisTrigger.Event)
         if (thisJail.CanRelease(TeamIndex)) {
-          Releases[Releases.Length] = Spawn(Class'JBRelease', thisTrigger, , thisTrigger.Location);
+          ListRelease[ListRelease.Length] = Spawn(Class'JBRelease', thisTrigger, , thisTrigger.Location);
           break;
           }
 

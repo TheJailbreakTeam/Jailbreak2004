@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInfoJail.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -32,7 +32,7 @@ var() name TagAttachZones;
 // Types
 // ============================================================================
 
-struct TRelease {
+struct TInfoRelease {
 
   var bool bIsActive;
   var float Time;
@@ -44,7 +44,7 @@ struct TRelease {
 // Variables
 // ============================================================================
 
-var private TRelease ListRelease[2];
+var private TInfoRelease ListInfoReleaseByTeam[2];
 
 
 // ============================================================================
@@ -232,7 +232,7 @@ function Release(byte Team, optional Controller ControllerInstigator) {
   local JBReplicationInfoGame InfoGame;
 
   if (IsInState('Waiting')) {
-    if (ListRelease[Team].bIsActive)
+    if (ListInfoReleaseByTeam[Team].bIsActive)
       return;
     
     if (ControllerInstigator != None &&
@@ -245,9 +245,9 @@ function Release(byte Team, optional Controller ControllerInstigator) {
     
     TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
     
-    ListRelease[Team].bIsActive = True;
-    ListRelease[Team].Time = Level.TimeSeconds;
-    ListRelease[Team].ControllerInstigator = ControllerInstigator;
+    ListInfoReleaseByTeam[Team].bIsActive = True;
+    ListInfoReleaseByTeam[Team].Time = Level.TimeSeconds;
+    ListInfoReleaseByTeam[Team].ControllerInstigator = ControllerInstigator;
     
     InfoGame = JBReplicationInfoGame(Level.GRI);
     
@@ -355,19 +355,19 @@ auto state Waiting {
     
     local Mover thisMover;
       Team = TeamGame(Level.Game).Teams[iTeam];
-    for (iTeam = 0; iTeam < ArrayCount(ListRelease); iTeam++)
-      if (ListRelease[iTeam].bIsActive) {
-        ListRelease[iTeam].bIsActive = False;
+    for (iTeam = 0; iTeam < ArrayCount(ListInfoReleaseByTeam); iTeam++)
+      if (ListInfoReleaseByTeam[iTeam].bIsActive) {
+        ListInfoReleaseByTeam[iTeam].bIsActive = False;
 
         foreach DynamicActors(Class'Mover', thisMover, GetEventRelease(iTeam))
           if (!IsMoverClosed(thisMover)) {
-            ListRelease[iTeam].bIsActive = True;
+            ListInfoReleaseByTeam[iTeam].bIsActive = True;
             break;
             }
 
-        if (!ListRelease[iTeam].bIsActive) {
-          ListRelease[iTeam].Time = 0.0;
-          ListRelease[iTeam].ControllerInstigator = None;
+        if (!ListInfoReleaseByTeam[iTeam].bIsActive) {
+          ListInfoReleaseByTeam[iTeam].Time = 0.0;
+          ListInfoReleaseByTeam[iTeam].ControllerInstigator = None;
           }
     }
 
@@ -478,15 +478,15 @@ state ExecutionFallback {
 function bool IsReleaseActive(TeamInfo Team) {
   return InfoReleaseByTeam[Team.TeamIndex].bIsActive; }
 function bool IsReleaseActive(byte Team) {
-  return ListRelease[Team].bIsActive;
+  return ListInfoReleaseByTeam[Team].bIsActive;
   }
   return InfoReleaseByTeam[Team.TeamIndex].ControllerInstigator; }
 function Controller GetReleaseInstigator(byte Team) {
-  return ListRelease[Team].ControllerInstigator;
+  return ListInfoReleaseByTeam[Team].ControllerInstigator;
   }
 
 function float GetReleaseTime(byte Team) {
-  return ListRelease[Team].Time;
+  return ListInfoReleaseByTeam[Team].Time;
   }
 // ============================================================================
 // Defaults
