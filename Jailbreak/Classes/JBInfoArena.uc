@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.11 2003/02/17 21:18:20 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.12 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -525,7 +525,7 @@ function MatchFinish() {
 
   if (IsInState('MatchFinished')) {
     ControllerWinner = FindWinner();
-  
+
     if (ControllerWinner != None) {
       switch (ControllerWinner.PlayerReplicationInfo.Team.TeamIndex) {
         case 0:
@@ -584,7 +584,8 @@ function Controller FindWinner() {
     
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetArena() == Self)
+      if (thisTagPlayer.GetArena() == Self &&
+          thisTagPlayer.GetController().Pawn != None)
         if (ControllerWinner == None)
           ControllerWinner = thisTagPlayer.GetController();
         else
@@ -878,7 +879,7 @@ state MatchRunning {
 state MatchFinished {
 
   Begin:
-    Sleep(1.0);
+    Sleep(3.0);
     MatchFinish();
 
   } // state MatchFinished
