@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBInfoProtection.uc,v 1.2 2004/01/15 07:25:40 crokx Exp $
+// $Id: JBInfoProtection.uc,v 1.2.2.1 2004/04/28 19:59:54 mychaeel Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -33,9 +33,8 @@ var private float EndProtectionTime;
 var private float ProtectionCharge;
 
 var private JBInterfaceHud LocalHUD;
-var private HUDBase.SpriteWidget ProtectionFill;
-var private HUDBase.SpriteWidget ProtectionTint;
-var private HUDBase.SpriteWidget ProtectionTrim;
+var private HUDBase.SpriteWidget  ProtectionIcon;
+var private HUDBase.NumericWidget ProtectionDigits;
 
 
 // ============================================================================
@@ -125,14 +124,13 @@ simulated function RenderOverlays(Canvas C)
     if(ProtectionTime != 0 && EndProtectionTime == 0)
       EndProtectionTime = Level.TimeSeconds + ProtectionTime;
 
-    if(ProtectionTime == 0)
-        ProtectionFill.Scale = 1.0;
-    else
-        ProtectionFill.Scale = (EndProtectionTime - Level.TimeSeconds) / ProtectionTime;
+    LocalHUD.DrawSpriteWidget(C, ProtectionIcon);
 
-    LocalHUD.DrawSpriteWidget(C, ProtectionFill);
-    LocalHUD.DrawSpriteWidget(C, ProtectionTint);
-    LocalHUD.DrawSpriteWidget(C, ProtectionTrim);
+    if(ProtectionTime != 0)
+    {
+        ProtectionDigits.Value = Ceil(EndProtectionTime - Level.TimeSeconds);
+        LocalHUD.DrawNumericWidget(C, ProtectionDigits, LocalHUD.DigitsBig);
+    }
 }
 
 
@@ -154,14 +152,14 @@ event Destroyed()
     }
 
     if(LocalHUD != None)
-        LocalHUD.UnregisterOverlay(Self);
+        LocalHUD.UnRegisterOverlay(Self);
 
     Super.Destroyed();
 }
 
 
 // ============================================================================
-// Default properties
+// Defaults
 // ============================================================================
 
 defaultproperties
@@ -171,7 +169,6 @@ defaultproperties
     bHidden=True
     bStatic=False
 
-    ProtectionFill=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=490,X1=836,Y2=454),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.0,PosY=0.835,OffsetX=137,OffsetY=15,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=0,B=0,A=255),Tints[1]=(R=0,G=0,B=255,A=255))
-    ProtectionTint=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=490,X1=836,Y2=454),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.0,PosY=0.835,OffsetX=137,OffsetY=15,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150))
-    ProtectionTrim=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=453,X1=836,Y2=415),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.0,PosY=0.835,OffsetX=137,OffsetY=15,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+    ProtectionIcon=(WidgetTexture=Texture'HUDContent.Generic.HUD',RenderStyle=STY_Alpha,TextureCoords=(X1=126,Y1=165,X2=164,Y2=226),TextureScale=0.8,DrawPivot=DP_MiddleMiddle,PosX=0.05,PosY=0.75,OffsetY=7,Tints[0]=(B=255,G=255,R=255,A=255),Tints[1]=(B=255,G=255,R=255,A=255))
+    ProtectionDigits=(RenderStyle=STY_Alpha,TextureScale=0.490000,DrawPivot=DP_MiddleMiddle,PosX=0.05,PosY=0.75,Tints[0]=(B=255,G=255,R=255,A=255),Tints[1]=(B=255,G=255,R=255,A=255))
 }
