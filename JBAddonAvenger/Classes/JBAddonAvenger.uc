@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonAvenger.uc,v 1.1 2004/04/09 19:16:34 tarquin Exp $
+// $Id$
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -31,6 +31,15 @@ var() config int PowerComboIndex;
 var class<Combo> ComboClasses[4]; 
 
 
+//=============================================================================
+// Localization
+//=============================================================================
+
+var localized string PowerTimeMultiplierText;
+var localized string PowerTimeMaximumText;
+var localized string PowerComboIndexText;
+
+
 // ============================================================================
 // PostBeginPlay
 //
@@ -55,6 +64,27 @@ function PostBeginPlay()
         LOG("!!!!!"@name$".PostBeginPlay() : Fail to register the JBGameRulesAvenger !!!!!");
         Destroy();
     }
+}
+
+
+//=============================================================================
+// FillPlayInfo
+//
+// Adds configurable Avenger properties to the web admin interface.
+//=============================================================================
+
+static function FillPlayInfo(PlayInfo PlayInfo)
+{
+  // add current class to stack
+  PlayInfo.AddClass(default.Class);
+  
+  // now register any mutator settings
+  PlayInfo.AddSetting(default.FriendlyName, "PowerTimeMultiplier", default.PowerTimeMultiplierText,  0, 0, "Text", "3;1:200");
+  PlayInfo.AddSetting(default.FriendlyName, "PowerTimeMaximum",    default.PowerTimeMaximumText,     0, 0, "Text", "3;10:60");
+  PlayInfo.AddSetting(default.FriendlyName, "PowerComboIndex",     default.PowerComboIndexText,      0, 0, "Select", "0;Speed;1;Berserk;2;Booster;3;Invisible;");
+
+  // remove mutator class from class stack
+  PlayInfo.PopClass();
 }
 
 
@@ -94,6 +124,10 @@ defaultproperties
   FriendlyName        = "Arena Avenger"
   Description="The arena winner is mad... he's out to get his revenge on those who imprisoned him with the help of a power-up!"
   ConfigMenuClassName="JBAddonAvenger.JBGUIPanelConfigAvenger"
+
+  PowerTimeMultiplierText = "Percentage to multiply arena remaining time by to give avenger time";
+  PowerTimeMaximumText    = "Maximum avenger time allowable";
+  PowerComboIndexText     = "Combo awarded to the avenger";
     
   ComboClasses(0)=class'XGame.ComboSpeed'
   ComboClasses(1)=class'XGame.ComboBerserk'
