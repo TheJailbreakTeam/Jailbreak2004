@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.87 2004/05/18 00:12:50 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.88 2004/05/19 02:24:34 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -48,6 +48,13 @@ var(LoadingHints) localized array<string> TextHintJailbreak;
 var localized string TextDescriptionEnableJailFights;
 var localized string TextWebAdminEnableJailFights;
 var localized string TextWebAdminPrefixAddon;
+
+
+// ============================================================================
+// Properties
+// ============================================================================
+
+var(LoadingScreens) array<string> LoadingScreens;
 
 
 // ============================================================================
@@ -129,6 +136,43 @@ function AddMutator(string NameMutator, optional bool bUserAdded)
       return;
 
   Super.AddMutator(NameMutator, bUserAdded);
+}
+
+
+// ============================================================================
+// GetLoadingHint
+//
+// Used to hook into the loading screen. Replaces the image there by one of
+// our own loading images. Tries to use the image matching the loaded map. If
+// the loaded map contains a MyLevel texture named LoadingScreen, uses that.
+// ============================================================================
+
+static function string GetLoadingHint(PlayerController PlayerController, string MapName, Color ColorHint)
+{
+  local int iLoadingScreen;
+  local string NameLoadingScreen;
+  local Material MaterialLoadingScreen;
+  local UT2K4ServerLoading UT2K4ServerLoading;
+
+  MaterialLoadingScreen = Material(DynamicLoadObject(MapName $ ".LoadingScreen", Class'Material', True));
+
+  if (MaterialLoadingScreen == None) {
+    for (iLoadingScreen = 0; iLoadingScreen < Default.LoadingScreens.Length; iLoadingScreen++) {
+      NameLoadingScreen = GetItemName(Default.LoadingScreens[iLoadingScreen]);
+      if (NameLoadingScreen ~= Mid(MapName, 3, Len(NameLoadingScreen)))
+        break;
+    }
+  
+    if (iLoadingScreen >= Default.LoadingScreens.Length)
+      iLoadingScreen = Rand(Default.LoadingScreens.Length);
+  
+    MaterialLoadingScreen = Material(DynamicLoadObject(Default.LoadingScreens[iLoadingScreen], Class'Material', False));
+  }
+
+  foreach PlayerController.AllObjects(Class'UT2K4ServerLoading', UT2K4ServerLoading)
+    DrawOpImage(UT2K4ServerLoading.Operations[0]).Image = MaterialLoadingScreen;
+
+  return Super.GetLoadingHint(PlayerController, MapName, ColorHint);
 }
 
 
@@ -1709,6 +1753,21 @@ defaultproperties
   Build = "%%%%-%%-%% %%:%%";
 
   Description = "Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
+
+  LoadingScreens[ 0] = "JBTexLoading.Arlon";
+  LoadingScreens[ 1] = "JBTexLoading.Baruro";
+  LoadingScreens[ 2] = "JBTexLoading.BabylonTemple";
+  LoadingScreens[ 3] = "JBTexLoading.Cavern";
+  LoadingScreens[ 4] = "JBTexLoading.Conduit";
+  LoadingScreens[ 5] = "JBTexLoading.Heights";
+  LoadingScreens[ 6] = "JBTexLoading.IndusRage";
+  LoadingScreens[ 7] = "JBTexLoading.Isolated";
+  LoadingScreens[ 8] = "JBTexLoading.MoonCraters";
+  LoadingScreens[ 9] = "JBTexLoading.NoSenseOfReality";
+  LoadingScreens[10] = "JBTexLoading.Poseidon";
+  LoadingScreens[11] = "JBTexLoading.SavoIsland";
+  LoadingScreens[12] = "JBTexLoading.Solamander";
+  LoadingScreens[13] = "JBTexLoading.SpyGlass";
 
   TextHintJailbreak[ 0] = "Watch the compass dots: The faster they pulse, the more players can be released by the corresponding switch."
   TextHintJailbreak[ 1] = "Use %PREVWEAPON% and %NEXTWEAPON% to switch view points when watching through a surveillance camera."
