@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.14 2003/01/27 08:59:58 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.15 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -439,7 +439,7 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
 // ============================================================================
 // CountPlayersReleasable
 //
-// Returns the number of players of this team that could be released by
+// Returns the number of players on this team that could be released by
 // attacking the given objective. Works for both teams.
 // ============================================================================
 
@@ -581,18 +581,6 @@ function bool IsEnemyAcquiredAtObjective(Controller Controller, GameObjective Ga
 
 
 // ============================================================================
-// CountEnemiesFree
-//
-// Returns the total number of free enemies.
-// ============================================================================
-
-function int CountEnemiesFree() {
-
-  return JBReplicationInfoTeam(EnemyTeam).CountPlayersFree();
-  }
-
-
-// ============================================================================
 // CountEnemiesAccounted
 //
 // Returns the number of free enemies that are currently engaged in a fight
@@ -632,7 +620,8 @@ function int CountEnemiesUnaccounted() {
   if (CacheCountEnemiesUnaccounted.Time == Level.TimeSeconds)
     return CacheCountEnemiesUnaccounted.Result;
   
-  CacheCountEnemiesUnaccounted.Result = CountEnemiesFree() - CountEnemiesAccounted();
+  CacheCountEnemiesUnaccounted.Result =
+    JBReplicationInfoTeam(EnemyTeam).CountPlayersFree() - CountEnemiesAccounted();
   
   CacheCountEnemiesUnaccounted.Time = Level.TimeSeconds;
   return CacheCountEnemiesUnaccounted.Result;
@@ -745,7 +734,48 @@ function int SuggestStrengthDefense(GameObjective GameObjective) {
 
 function ReAssessStrategy() {
 
-  // TODO: implement
+  local int nRounds;
+  local int nRoundsLeft;
+  local int ScoreLead;
+  local int ScoreTeamEnemy;
+  local int ScoreTeamSelf;
+  local name Strategy;
+  local name Tactics;
+  
+  ScoreTeamEnemy = TeamGame(Level.Game).OtherTeam(Team).Score;
+  ScoreTeamSelf  = Team.Score;
+
+  nRounds   = ScoreTeamSelf + ScoreTeamEnemy;
+  ScoreLead = ScoreTeamSelf - ScoreTeamEnemy;
+
+  Strategy = 'Scorelimit';
+  Tactics  = 'TacticsNormal';
+
+  if (nRounds > 0 && DeathMatch(Level.Game).RemainingTime > 0) {
+    nRoundsLeft = DeathMatch(Level.Game).RemainingTime / (DeathMatch(Level.Game).ElapsedTime / nRounds);
+    if (nRoundsLeft < Abs(ScoreLead))
+      Strategy = 'Timelimit';
+    }
+
+  switch (Strategy) {
+    case 'Scorelimit':
+           if (ScoreLead > 2) Tactics = 'TacticsSuicidal';  // even out a bit
+      else if (ScoreLead > 1) Tactics = 'TacticsDefensive';
+      else if (ScoreLead < 0) Tactics = 'TacticsAggressive';
+      break;
+  
+    case 'Timelimit':
+           if (ScoreLead > 0) Tactics = 'TacticsEvasive';
+      else if (ScoreLead < 0) Tactics = 'TacticsAggressive';
+      break;
+    }
+
+  if (Tactics == 'TacticsDefensive' &&
+      JBReplicationInfoTeam(EnemyTeam).CountPlayersFree() >
+      JBReplicationInfoTeam(     Team).CountPlayersFree())
+    Tactics = 'TacticsNormal';  // defensive tactics not working out
+
+  GotoState(Tactics);
   }
 
 
@@ -1431,7 +1461,7 @@ auto state TacticsNormal {
 
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
-        nPlayersDefending = SuggestStrengthDefense(thisObjective);
+        nPlayersDefending = Max(1, SuggestStrengthDefense(thisObjective));
         nPlayersDefendingMax += nPlayersDefending;
         if (nPlayersDefendingMin == 0 ||
             nPlayersDefendingMin > nPlayersDefending)
