@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.73 2004/04/22 10:41:50 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.74 2004/04/22 13:48:13 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1508,5 +1508,6 @@ defaultproperties
   TeamAIType[1]            = Class'JBBotTeam';
 
   bSpawnInTeamArea = True;
-  bScoreTeamKills = False;
+  bScoreTeamKills  = False;
+  bAllowVehicles   = True;
 }
