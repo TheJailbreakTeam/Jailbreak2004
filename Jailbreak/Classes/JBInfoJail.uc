@@ -357,8 +357,8 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
         }
 
         if (ControllerInstigator != None)
-               TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
-          else TriggerEvent(GetEventRelease(Team), Self, None);
+               TriggerEventRelease(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
+          else TriggerEventRelease(GetEventRelease(Team), Self, None);
       }
 
       InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
@@ -378,6 +378,35 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
   else {
     Log("Warning: Release for" @ Self @ "should not be called in state" @ GetStateName());
   }
+}
+
+
+// ============================================================================
+// TriggerEventRelease
+//
+// Works like TriggerEvent, but hides the instigator from movers to avoid
+// getting team kills when a jail door crushes a teammate.
+// ============================================================================
+
+function TriggerEventRelease(name Event, Actor ActorSender, Pawn PawnInstigator)
+{
+  local Actor thisActor;
+  local NavigationPoint thisNavigationPoint;
+
+  if (Event == '')
+    return;
+
+  foreach DynamicActors(Class'Actor', thisActor)
+    if (Mover(thisActor) == None)
+           thisActor.Trigger(ActorSender, PawnInstigator);
+      else thisActor.Trigger(ActorSender, None);  // hide instigator from mover
+
+  for (thisNavigationPoint = Level.NavigationPointList;
+       thisNavigationPoint != None;
+       thisNavigationPoint = thisNavigationPoint.NextNavigationPoint)
+    if (thisNavigationPoint.bStatic &&
+        thisNavigationPoint.Tag == Event)
+      thisNavigationPoint.Trigger(ActorSender, PawnInstigator);
 }
 
 
