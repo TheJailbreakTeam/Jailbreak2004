@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupJail.uc,v 1.7 2004/04/05 22:27:56 mychaeel Exp $
+// $Id: JBDispositionGroupJail.uc,v 1.8 2004/04/07 01:13:55 mychaeel Exp $
 //
 // Manages the icons of jailed players on a team, arranging them in the circle
 // displayed next to the team status widget.
@@ -32,7 +32,6 @@ var TFormation Formation[6];         // icon formations
 var string FontCounter;              // font for counter for six or more icons
 var float ScaleCounter;              // relative font scale
 var vector LocationCounter;          // relative location of counter
-var Color ColorCounter[2];           // team colors for counter
 
 var private float FadeCounter;       // transparency of counter
 var private string TextCounter;      // last displayed counter text
@@ -127,15 +126,18 @@ function Draw(Canvas Canvas)
   local float ScaleCanvas;
   local float ScaleWidget;
   local vector LocationScreenCounter;
+  local HudCTeamDeathMatch HudCTeamDeathMatch;
 
   if (ListDispositionPlayer.Length >= ArrayCount(Formation))
     TextCounter = string(ListDispositionPlayer.Length);
 
   if (FadeCounter > 0.0) {
-    ScaleCanvas = Canvas.Viewport.Actor.myHUD.HudCanvasScale;
-    ScaleWidget = Canvas.Viewport.Actor.myHUD.HudScale;
+    HudCTeamDeathMatch = HudCTeamDeathMatch(Canvas.Viewport.Actor.myHUD);
 
-    Canvas.DrawColor = ColorCounter[DispositionTeam.Team.TeamIndex];
+    ScaleCanvas = HudCTeamDeathMatch.HudCanvasScale;
+    ScaleWidget = HudCTeamDeathMatch.HudScale;
+
+    Canvas.DrawColor = HudCTeamDeathMatch.TeamSymbols[DispositionTeam.Team.TeamIndex].Tints[HudCTeamDeathMatch.TeamIndex];
     Canvas.DrawColor.A = FadeCounter * Canvas.DrawColor.A;
     Canvas.Font = FontObjectCounter;
     Canvas.FontScaleX = Scale * ScaleCounter * ScaleWidget * ScaleCanvas * Canvas.ClipX / 1600.0;
@@ -171,8 +173,6 @@ defaultproperties
   FontCounter = "UT2003Fonts.FontEurostile37";
   ScaleCounter = 0.7;
   LocationCounter = (X=0.006,Y=0.011);
-  ColorCounter[0] = (R=255,G=0,B=0,A=255);
-  ColorCounter[1] = (R=0,G=0,B=255,A=255);
 
   LocationFormation = (X=0.056,Y=0.043);
   Formation[0] = (Scale=1.0,Location[0]=(X=+0.000,Y=+0.000,Z=1));

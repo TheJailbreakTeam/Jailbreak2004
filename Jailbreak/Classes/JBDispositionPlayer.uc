@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionPlayer.uc,v 1.8 2003/06/15 21:41:18 mychaeel Exp $
+// $Id: JBDispositionPlayer.uc,v 1.9 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -19,7 +19,6 @@ struct SpriteWidget
   var Material WidgetTexture;
   var IntBox TextureCoords;
   var float TextureScale;
-  var Color Tints[2];
 };
 
 
@@ -129,6 +128,7 @@ function bool Fadeout(float TimeDelta)
 // Draw
 //
 // Renders the icon at its current location and scale on the given canvas.
+// Takes the rendering color from the team symbols displayed on the screen.
 // ============================================================================
 
 function Draw(Canvas Canvas)
@@ -139,9 +139,12 @@ function Draw(Canvas Canvas)
   local vector LocationIcon;
   local vector SizeIcon;
   local vector SizeIconTexture;
+  local HudCTeamDeathMatch HudCTeamDeathMatch;
 
-  ScaleCanvas = Canvas.Viewport.Actor.myHUD.HudCanvasScale;
-  ScaleWidget = Canvas.Viewport.Actor.myHUD.HudScale;
+  HudCTeamDeathMatch = HudCTeamDeathMatch(Canvas.Viewport.Actor.myHUD);
+
+  ScaleCanvas = HudCTeamDeathMatch.HudCanvasScale;
+  ScaleWidget = HudCTeamDeathMatch.HudScale;
 
   SizeIconTexture.X = SpriteWidgetPlayer.TextureCoords.X2 - SpriteWidgetPlayer.TextureCoords.X1;
   SizeIconTexture.Y = SpriteWidgetPlayer.TextureCoords.Y2 - SpriteWidgetPlayer.TextureCoords.Y1;
@@ -155,7 +158,7 @@ function Draw(Canvas Canvas)
   LocationIcon.Y =  Location.Y * ScaleWidget        - SizeIcon.Y / 2.0 / Canvas.ClipY;
 
   Canvas.Style = 5;  // ERenderStyle.STY_Alpha
-  Canvas.DrawColor = SpriteWidgetPlayer.Tints[DispositionTeam.Team.TeamIndex];
+  Canvas.DrawColor = HudCTeamDeathMatch.TeamSymbols[DispositionTeam.Team.TeamIndex].Tints[HudCTeamDeathMatch.TeamIndex];
 
   Canvas.SetPos(
     Canvas.ClipX * (ScaleCanvas * (LocationIcon.X - 0.5) + 0.5),
@@ -176,6 +179,6 @@ function Draw(Canvas Canvas)
 
 defaultproperties
 {
-  SpriteWidgetPlayer = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=16,Y1=352,X2=50,Y2=418),TextureScale=0.21,Tints[0]=(R=255,G=0,B=0,A=255),Tints[1]=(R=0,G=0,B=255,A=255));
+  SpriteWidgetPlayer = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=16,Y1=352,X2=50,Y2=418),TextureScale=0.21);
   bInitial = True;
 }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.37 2004/04/06 23:57:43 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.38 2004/04/07 01:13:55 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -605,18 +605,12 @@ simulated function ShowCompass(Canvas Canvas)
   for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
     Objective = thisTagObjective.GetObjective();
 
-    switch (Objective.DefenderTeamIndex) {
-      case 0:
-        SpriteWidgetCompassDot.Tints[TeamIndex] = RedColor;
-        SpriteWidgetCompassDot.PosX = -LocationCompass.X;
-        SpriteWidgetCompassDot.PosY =  LocationCompass.Y;
-        break;
+    SpriteWidgetCompassDot.Tints[TeamIndex] = TeamSymbols[Objective.DefenderTeamIndex].Tints[TeamIndex];
+    SpriteWidgetCompassDot.PosY = LocationCompass.Y;
 
-      case 1:
-        SpriteWidgetCompassDot.Tints[TeamIndex] = BlueColor;
-        SpriteWidgetCompassDot.PosX =  LocationCompass.X;
-        SpriteWidgetCompassDot.PosY =  LocationCompass.Y;
-        break;
+    switch (Objective.DefenderTeamIndex) {
+      case 0:  SpriteWidgetCompassDot.PosX = -LocationCompass.X;  break;
+      case 1:  SpriteWidgetCompassDot.PosX =  LocationCompass.X;  break;
     }
 
     nPlayersReleasable = thisTagObjective.CountPlayersReleasable(True);
@@ -1051,7 +1045,7 @@ defaultproperties
 
   FontArenaNotifier          = "2K4Fonts.Verdana20";
   TextArenaNotifier          = "arena match";
-  LocationTextArenaNotifier  = (X=0.500,Y=0.075);
+  LocationTextArenaNotifier  = (X=0.500,Y=0.084);
   SizeTextArenaNotifier      = (X=0.400,Y=0.450);
   ColorTextArenaNotifier     = (R=176,G=176,B=176);
 
@@ -1077,7 +1071,7 @@ defaultproperties
   ColorTactics[3]            = (R=255,G=112,B=000,A=192);
   ColorTactics[4]            = (R=255,G=112,B=000,A=192);
 
-  SpriteWidgetArenaNotifier  = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.40,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=86,RenderStyle=STY_Alpha,Tints[0]=(R=000,G=000,B=000,A=150),Tints[1]=(R=000,G=000,B=000,A=150));
+  SpriteWidgetArenaNotifier  = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.40,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=97,RenderStyle=STY_Alpha,Tints[0]=(R=000,G=000,B=000,A=150),Tints[1]=(R=000,G=000,B=000,A=150));
   SpriteWidgetCompass[0]     = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.60,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-32,OffsetY=7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   SpriteWidgetCompass[1]     = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.60,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=32,OffsetY=7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   SpriteWidgetCompassDot     = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=340,Y1=432,X2=418,Y2=510),TextureScale=0.12,DrawPivot=DP_MiddleMiddle,RenderStyle=STY_Alpha);
