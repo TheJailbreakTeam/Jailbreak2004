@@ -318,6 +318,42 @@ event PlayerController Login(string Portal, string Options, out string Error)
 
 
 // ============================================================================
+// NeedPlayers
+//
+// Adds a bot when teams are not balanced even if the total number of players
+// currently exceeds the minimum number normally filled up by bots.
+// ============================================================================
+
+function bool NeedPlayers()
+{
+  if (Super.NeedPlayers())
+    return True;
+  
+  if (!bBalanceTeams || NumBots > 0 || NumPlayers == 1 || NumPlayers % 2 == 0)
+    return False;
+
+  return (Abs(CountPlayersTotal(Teams[0]) -
+              CountPlayersTotal(Teams[1])) == 1);
+}
+
+
+// ============================================================================
+// TooManyBots
+//
+// Does not remove the last bot if teams are currently balanced.
+// ============================================================================
+
+function bool TooManyBots(Controller BotToRemove)
+{
+  if (!bBalanceTeams || NumBots > 1)
+    return Super.TooManyBots(BotToRemove);
+
+  return (CountPlayersTotal(Teams[0]) !=
+          CountPlayersTotal(Teams[1]));
+}
+
+
+// ============================================================================
 // SpawnBot
 //
 // Gives every new bot a JBTagPlayer actor and fills the OrderNames slots used
