@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.36 2004/08/19 11:01:05 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.37 2004/08/19 11:03:37 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -90,7 +90,8 @@ function MatchStarting()
 // SetTactics
 //
 // Sets the current team tactics for this team and returns the selected
-// tactics. The following input values are supported:
+// tactics. Resets all bots to follow the selected tactics. The following input
+// values are supported:
 //
 //   Auto             Enables auto-selection of team tactics.
 //
@@ -107,8 +108,18 @@ function MatchStarting()
 
 function name SetTactics(name Tactics)
 {
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+
   if (TimeTacticsSelected == Level.TimeSeconds)
     return GetTactics();  // set tactics only once per tick
+
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetTeam() == Team &&
+         (thisTagPlayer.OrderNameFixed == 'Attack' ||
+          thisTagPlayer.OrderNameFixed == 'Defend'))
+      SetOrders(Bot(thisTagPlayer.GetController()), 'Freelance', None);
 
   bTacticsAuto = False;
 
