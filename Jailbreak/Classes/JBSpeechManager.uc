@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.2.2.2 2004/05/25 12:51:05 mychaeel Exp $
+// $Id$
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -132,13 +132,14 @@ static function SetVoicePack(string VoicePackNew)
 // voice pack was successfully loaded and activated.
 // ============================================================================
 
-simulated function bool LoadVoicePack(string VoicePackNew)
+simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFallbackToDefault)
 {
   local int iCharSeparator;
   local int iInfoVoicePack;
   local string Package;
   local string Group;
   
+log("LoadVoicePack"@VoicePackNew@bNoFallbackToDefault);
   if (InfoVoicePack.Package ~= VoicePackNew)
     return True;
 
@@ -150,23 +151,47 @@ simulated function bool LoadVoicePack(string VoicePackNew)
     InfoVoicePack = ListInfoVoicePack[iInfoVoicePack];
   }
   else {
-    iCharSeparator = InStr(VoicePackNew $ ".", ".");
-    Package = Left(VoicePackNew, iCharSeparator);
-    Group   = Mid (VoicePackNew, iCharSeparator + 1);
-    
-    if (Localize("Public", "Object", Package) == "")
-      return False;  // no valid .int file found for package
-    
-    InfoVoicePack.Package = Package;
-    InfoVoicePack.Group   = Group;
-    InfoVoicePack.Volume  = float(GetSetting("Settings", "Volume", 1.0));
-    InfoVoicePack.Pause   = float(GetSetting("Settings", "Pause"));
-    InfoVoicePack.ListCacheSegment.Length = 0;
-
-    ListInfoVoicePack[iInfoVoicePack] = InfoVoicePack;
+    if (IsVoicePackInstalled(VoicePackNew)) {
+      iCharSeparator = InStr(VoicePackNew $ ".", ".");
+  
+      InfoVoicePack.Package = Left(VoicePackNew, iCharSeparator);
+      InfoVoicePack.Group   = Mid (VoicePackNew, iCharSeparator + 1);
+      InfoVoicePack.Volume  = float(GetSetting("Settings", "Volume", 1.0));
+      InfoVoicePack.Pause   = float(GetSetting("Settings", "Pause"));
+      InfoVoicePack.ListCacheSegment.Length = 0;
+  
+      ListInfoVoicePack[iInfoVoicePack] = InfoVoicePack;
+    }
+    else {
+      if (bNoFallbackToDefault)
+        return False;
+      return LoadVoicePack("JBVoiceGrrrl.Classic", True);
+    }
   }
 
   return True;
+}
+
+
+// ============================================================================
+// IsVoicePackInstalled
+//
+// Returns whether a voice pack with the given name is installed.
+// ============================================================================
+
+simulated function bool IsVoicePackInstalled(string VoicePackTest)
+{
+  local int iEntry;
+  local string Entry;
+
+  if (DynamicLoadObject("Jailbreak.JBVoice", Class'Class', False) == None)
+    return False;
+
+  for (iEntry = 0; True; iEntry++) {
+    Entry = GetNextInt("Jailbreak.JBVoice", iEntry);
+    if (Entry ~= "")            return False;
+    if (Entry ~= VoicePackTest) return True; 
+  }
 }
 
 
