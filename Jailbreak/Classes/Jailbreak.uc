@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.53 2003/06/15 18:46:19 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.54 2003/06/16 21:37:55 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -47,9 +47,26 @@ var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 
 event InitGame(string Options, out string Error) {
 
+  local int iCharSeparator;
+  local string OptionAddon;
   local string OptionJailFights;
 
   Super.InitGame(Options, Error);
+
+  if (HasOption(Options, "Addon"))
+    OptionAddon = ParseOption(Options, "Addon");
+  else
+    OptionAddon = "JBAddonProtection.JBAddonProtection," $
+                  "JBAddonLlama.JBAddonLlama";
+  
+  while (OptionAddon != "") {
+    iCharSeparator = InStr(OptionAddon, ",");
+    if (iCharSeparator < 0)
+      iCharSeparator = Len(OptionAddon);
+    
+    AddMutator(Left(OptionAddon, iCharSeparator));
+    OptionAddon = Mid(OptionAddon, iCharSeparator + 1);
+    }
   
   OptionJailFights = ParseOption(Options, "JailFights");
   if (OptionJailFights != "")
