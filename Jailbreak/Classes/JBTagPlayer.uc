@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.38 2003/07/19 22:02:25 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.39 2003/12/15 21:41:48 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -683,13 +683,16 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 // NotifyJailOpening
 //
 // Called when the doors of the jail this player is in start opening. Resets
-// the player's health.
+// the player's health and cancels an upcoming arena match.
 // ============================================================================
 
 function NotifyJailOpening() {
 
   if (Controller.Pawn != None)
     Controller.Pawn.Health = Controller.Pawn.Default.Health;
+
+  if (ArenaPending != None)
+    ArenaPending.MatchCancel();
   }
 
 
