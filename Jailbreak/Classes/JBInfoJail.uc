@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.9 2002/12/20 20:54:30 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.10 2002/12/22 02:06:13 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -55,9 +55,7 @@ struct TInfoRelease {
 var class<LocalMessage> ClassLocalMessage;
 
 var private TInfoRelease ListInfoReleaseByTeam[2];
-
-var private array<Door> ListDoor;
-var private array<NavigationPoint> ListNavigationPointExit;
+var private array<Door> ListDoor;  // list of Door actors for jail exits
 
 
 // ============================================================================
