@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.42 2004/04/14 17:54:01 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.43 2004/04/19 12:13:21 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -819,6 +819,24 @@ simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas)
 
   if (JBCamera(PlayerOwner.ViewTarget) == None)
     Message.PosY = FMax(Message.PosY, 0.16 * HudScale);
+}
+
+
+// ============================================================================
+// ClearMessageByClass
+//
+// Clears all messages of the given class (and optional switch) from the list
+// of local messages.
+// ============================================================================
+
+simulated function ClearMessageByClass(Class<LocalMessage> ClassLocalMessage, optional int Switch)
+{
+  local int iLocalMessage;
+  
+  for (iLocalMessage = 0; iLocalMessage < ArrayCount(LocalMessages); iLocalMessage++)
+    if (LocalMessages[iLocalMessage].Message == ClassLocalMessage &&
+       (LocalMessages[iLocalMessage].Switch == Switch || Switch == 0))
+      ClearMessage(LocalMessages[iLocalMessage]);
 }
 
 

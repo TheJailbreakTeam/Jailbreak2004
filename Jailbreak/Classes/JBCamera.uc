@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.28 2004/04/05 20:32:15 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.29 2004/04/21 17:10:55 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -592,16 +592,21 @@ protected simulated function ActivateForLocal()
 protected simulated function DeactivateForLocal()
 {
   local PlayerController ControllerPlayer;
+  local JBInterfaceHud JBInterfaceHud;
 
   ControllerPlayer = Level.GetLocalPlayerController();
 
-  if (JBInterfaceHud(ControllerPlayer.myHUD) != None)
-    JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = False;
+  JBInterfaceHud = JBInterfaceHud(ControllerPlayer.myHUD);
+  if (JBInterfaceHud != None)
+    JBInterfaceHud.bWidescreen = False;
 
   if (CameraEffectMotionBlur != None) {
     RemoveCameraEffect(CameraEffectMotionBlur);
     CameraEffectMotionBlur = None;
   }
+
+  if (JBInterfaceHud != None)
+    JBInterfaceHud.ClearMessageByClass(Class'JBLocalMessageScreen', 510);
 
   bIsActiveLocal = False;
 }
