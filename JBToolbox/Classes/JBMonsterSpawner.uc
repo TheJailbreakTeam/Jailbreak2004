@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.7.2.3 2004/04/12 16:40:30 tarquin Exp $
+// $Id$
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -102,9 +102,6 @@ Function SpawnMonster()
 
   MyMonster = Spawn(MonsterClass, , , StartSpot, Self.Rotation);
   
-  If (MyMonster == None)
-    MyMonster = Spawn(MonsterClass, , , StartSpot, Self.Rotation);
-  
   If (MyMonster != None)
     {
     If (MonsterMesh != None)
@@ -117,6 +114,7 @@ Function SpawnMonster()
       }
 
     MyMonster.DamageScaling = 6.5;
+    MyMonster.PlayTeleportEffect(True, True);
     }
 }
 
