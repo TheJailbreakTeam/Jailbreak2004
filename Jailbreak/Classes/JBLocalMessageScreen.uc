@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageScreen
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessageScreen.uc,v 1.2 2004/03/30 16:17:54 mychaeel Exp $
+// $Id: JBLocalMessageScreen.uc,v 1.3 2004/04/20 15:13:12 mychaeel Exp $
 //
 // Displays on-screen messages.
 // ============================================================================
@@ -133,6 +133,6 @@ defaultproperties
   LifetimeKeyboard   = 6;
 
   bFadeMessage       = True;
-  bIsUnique          = True;
+  bIsPartiallyUnique = True;
   bIsSpecial         = True;
 }
