@@ -1,0 +1,28 @@
+; $Id$
+
+[Public]
+Object=(Name=JBVoiceBullwinkle,Class=Class,MetaClass=Jailbreak.JBVoice,Description="Bullwinkle")
+
+[Settings]
+Volume=2.0
+Pause=-0.150
+
+[Macros]
+LastMan="LastMan"
+TeamRed="(red: TeamSelf) (blue: TeamEnemy) (spectator: TeamRed)"
+TeamBlue="(red: TeamEnemy) (blue: TeamSelf) (spectator: TeamBlue)"
+TeamCapturedRed="$TeamRed Captured"
+TeamCapturedBlue="$TeamBlue Captured"
+TeamCapturedBoth="Tied"
+TeamReleasedRed="$TeamRed Released"
+TeamReleasedBlue="$TeamBlue Released"
+ArenaWarning="ArenaWarning"
+ArenaEndTimeout="ArenaEndLoser"
+ArenaEndWinner="ArenaEndWinner"
+ArenaEndLoser="ArenaEndLoser"
+GameOverWinnerRed="$TeamRed GameOverTeam"
+GameOverWinnerBlue="$TeamBlue GameOverTeam"
+AddonLlamaStart="LlamaStart"
+AddonLlamaDisconnect="LlamaDisconnect"
+AddonLlamaFragged="LlamaFragged"
+AddonVengeance="Vengeance"
