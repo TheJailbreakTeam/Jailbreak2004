@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.10 2004/04/04 11:52:52 mychaeel Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.11 2004/05/11 10:53:10 wormbo Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -11,20 +11,17 @@ class JBGUIPanelConfigLlama extends JBGUIPanelConfig;
 
 
 //=============================================================================
-// Constants
-//=============================================================================
-
-const CONTROL_REWARD_ADRENALINE  = 1;
-const CONTROL_REWARD_HEALTH      = 2;
-const CONTROL_REWARD_SHIELD      = 3;
-const CONTROL_MAX_LLAMA_DURATION = 4;
-
-
-//=============================================================================
 // Variables
 //=============================================================================
 
 var private bool bInitialized;  // used to prevent executing SaveINISettings() during initialization
+
+var automated GUILabel               RewardLabel;
+var automated JBGUIComponentTrackbar RewardAdrenaline;
+var automated JBGUIComponentTrackbar RewardHealth;
+var automated JBGUIComponentTrackbar RewardShield;
+var automated JBGUIComponentTrackbar MaxLlamaDuration;
+var automated moCheckbox             LlamaizeOnJailDisconnect;
 
 
 //=============================================================================
@@ -49,10 +46,11 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 function LoadINISettings()
 {
   bInitialized = False;
-  JBGUIComponentTrackbar(Controls[CONTROL_REWARD_ADRENALINE]).SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
-  JBGUIComponentTrackbar(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
-  JBGUIComponentTrackbar(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
-  JBGUIComponentTrackbar(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
+  RewardAdrenaline.SetValue(class'JBAddonLlama'.default.RewardAdrenaline);
+  RewardHealth.SetValue(class'JBAddonLlama'.default.RewardHealth);
+  RewardShield.SetValue(class'JBAddonLlama'.default.RewardShield);
+  MaxLlamaDuration.SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
+  LlamaizeOnJailDisconnect.Checked(class'JBAddonLlama'.default.bLlamaizeOnJailDisconnect);
   bInitialized = True;
 }
 
@@ -69,10 +67,11 @@ function SaveINISettings(GUIComponent Sender)
   if ( !bInitialized )
     return;
   
-  class'JBAddonLlama'.default.RewardAdrenaline     = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
-  class'JBAddonLlama'.default.RewardHealth         = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_HEALTH]).GetValue();
-  class'JBAddonLlama'.default.RewardShield         = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_SHIELD]).GetValue();
-  class'JBAddonLlama'.default.MaximumLlamaDuration = JBGUIComponentTrackbar(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
+  class'JBAddonLlama'.default.RewardAdrenaline          = RewardAdrenaline.GetValue();
+  class'JBAddonLlama'.default.RewardHealth              = RewardHealth.GetValue();
+  class'JBAddonLlama'.default.RewardShield              = RewardShield.GetValue();
+  class'JBAddonLlama'.default.MaximumLlamaDuration      = MaxLlamaDuration.GetValue();
+  class'JBAddonLlama'.default.bLlamaizeOnJailDisconnect = LlamaizeOnJailDisconnect.IsChecked();
   class'JBAddonLlama'.static.StaticSaveConfig();
 }
 
@@ -96,6 +95,24 @@ function ResetConfiguration()
 
 defaultproperties
 {
+  Begin Object Class=JBGUIComponentTrackbar Name=trkMaximumLlamaDuration
+    WinTop    =0.0 // row 1
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    CaptionWidth  = -1;
+    SliderWidth   = 0.34;
+    EditBoxWidth  = 0.18;
+  
+    Caption="Llama Hunt duration"
+    Hint="Maximum duration of a llama hunt."
+    MinValue=10
+    MaxValue=120
+    bIntegerOnly=True
+    OnChange=SaveINISettings
+  End Object
+  MaxLlamaDuration = trkMaximumLlamaDuration
+  
   Begin Object Class=GUILabel Name=LlamaKillRewardLabel
     WinTop    =0.2 // row 2
     WinLeft   =0.0
@@ -104,9 +121,9 @@ defaultproperties
     Caption="Rewards for killing a Llama:"
     TextColor = (R=255,G=255,B=255);
   End Object
-  Controls(0)=GUILabel'LlamaKillRewardLabel'
+  RewardLabel = LlamaKillRewardLabel
   
-  Begin Object Class=JBGUIComponentTrackbar Name=RewardAdrenaline
+  Begin Object Class=JBGUIComponentTrackbar Name=trkRewardAdrenaline
     WinTop=0.3
     WinLeft   =0.0
     WinHeight =0.1
@@ -123,9 +140,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(1)=JBGUIComponentTrackbar'RewardAdrenaline'
+  RewardAdrenaline = trkRewardAdrenaline
   
-  Begin Object Class=JBGUIComponentTrackbar Name=RewardHealth
+  Begin Object Class=JBGUIComponentTrackbar Name=trkRewardHealth
     WinTop=0.45
     WinLeft   =0.0
     WinHeight =0.1
@@ -142,9 +159,9 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(2)=JBGUIComponentTrackbar'RewardHealth'
+  RewardHealth = trkRewardHealth
   
-  Begin Object Class=JBGUIComponentTrackbar Name=RewardShield
+  Begin Object Class=JBGUIComponentTrackbar Name=trkRewardShield
     WinTop=0.6
     WinLeft   =0.0
     WinHeight =0.1
@@ -161,25 +178,18 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(3)=JBGUIComponentTrackbar'RewardShield'
+  RewardShield = trkRewardShield
   
-  Begin Object Class=JBGUIComponentTrackbar Name=MaximumLlamaDuration
-    WinTop    =0.0 // row 1
+  Begin Object Class=moCheckbox Name=chkLlamaizeOnJailDisconnect
+    WinTop    =0.8
     WinLeft   =0.0
     WinHeight =0.1
     WinWidth  =1.0
-    CaptionWidth  = -1;
-    SliderWidth   = 0.34;
-    EditBoxWidth  = 0.18;
-  
-    Caption="Llama Hunt duration"
-    Hint="Maximum duration of a llama hunt."
-    MinValue=10
-    MaxValue=120
-    bIntegerOnly=True
+    Caption="Llamaize on jail disconnect"
+    Hint="Llamaize players who disconnect and reconnect to get out of jail."
     OnChange=SaveINISettings
   End Object
-  Controls(4)=JBGUIComponentTrackbar'MaximumLlamaDuration'
+  LlamaizeOnJailDisconnect = chkLlamaizeOnJailDisconnect
   
   WinTop=0.330
   WinLeft=0.360

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.8 2004/05/20 14:08:29 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.9 2004/05/24 10:29:13 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -19,15 +19,18 @@ var config int RewardHealth;
 var config int RewardShield;
 var config int MaximumLlamaDuration;
 
+var config bool bLlamaizeOnJailDisconnect;
+
 
 //=============================================================================
 // Localization
 //=============================================================================
 
-var localized string RewardAdrenalineText,     RewardAdrenalineDesc;
-var localized string RewardHealthText,         RewardHealthDesc;
-var localized string RewardShieldText,         RewardShieldDesc;
-var localized string MaximumLlamaDurationText, MaximumLlamaDurationDesc;
+var localized string RewardAdrenalineText,         RewardAdrenalineDesc;
+var localized string RewardHealthText,             RewardHealthDesc;
+var localized string RewardShieldText,             RewardShieldDesc;
+var localized string MaximumLlamaDurationText,     MaximumLlamaDurationDesc;
+var localized string LlamaizeOnJailDisconnectText, LlamaizeOnJailDisconnectDesc;
 
 
 //=============================================================================
@@ -237,16 +240,19 @@ function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
 // Checks whether a is a llama or is about to become a llama.
 //=============================================================================
 
-function bool IsLlama(Controller C)
+function bool IsLlama(Controller ControllerPlayer)
 {
   local JBLlamaPendingTag thisLlamaPendingTag;
   
-  if ( C == None )
+  if ( ControllerPlayer == None )
     return False;
-  else if ( C.Pawn != None )
-    return C.Pawn.FindInventoryType(class'JBLlamaTag') != None;
+  else if ( ControllerPlayer.Pawn != None ) {
+    if ( Vehicle(ControllerPlayer.Pawn) != None && Vehicle(ControllerPlayer.Pawn).Driver != None )
+      return Vehicle(ControllerPlayer.Pawn).Driver.FindInventoryType(class'JBLlamaTag') != None;
+    return ControllerPlayer.Pawn.FindInventoryType(class'JBLlamaTag') != None;
+  }
   else {
-    foreach C.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
+    foreach ControllerPlayer.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
       return true;
   }
   
@@ -279,7 +285,10 @@ function UnLlamaize(Controller ControllerPlayer)
   local JBLlamaPendingTag thisLlamaPendingTag;
   
   if ( ControllerPlayer.Pawn != None ) {
-    LlamaTag = ControllerPlayer.Pawn.FindInventoryType(class'JBLlamaTag');
+    if ( Vehicle(ControllerPlayer.Pawn) != None && Vehicle(ControllerPlayer.Pawn).Driver != None )
+      LlamaTag = Vehicle(ControllerPlayer.Pawn).Driver.FindInventoryType(class'JBLlamaTag');
+    if ( LlamaTag == None )
+      LlamaTag = ControllerPlayer.Pawn.FindInventoryType(class'JBLlamaTag');
     if ( LlamaTag != None )
       LlamaTag.Destroy();
   }
@@ -302,10 +311,11 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddClass(default.Class);
   
   // now register any mutator settings
-  PlayInfo.AddSetting(PlayInfoGroup(), "MaximumLlamaDuration", default.MaximumLlamaDurationText, 0, 1, "Text", "3;0:120");
-  PlayInfo.AddSetting(PlayInfoGroup(), "RewardAdrenaline",     default.RewardAdrenalineText,     0, 2, "Text", "3;0:100");
-  PlayInfo.AddSetting(PlayInfoGroup(), "RewardHealth",         default.RewardHealthText,         0, 3, "Text", "3;0:199");
-  PlayInfo.AddSetting(PlayInfoGroup(), "RewardShield",         default.RewardShieldText,         0, 4, "Text", "3;0:150");
+  PlayInfo.AddSetting(PlayInfoGroup(), "MaximumLlamaDuration",      default.MaximumLlamaDurationText, 0, 1, "Text", "3;0:120");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardAdrenaline",          default.RewardAdrenalineText,     0, 2, "Text", "3;0:100");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardHealth",              default.RewardHealthText,         0, 3, "Text", "3;0:199");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardShield",              default.RewardShieldText,         0, 4, "Text", "3;0:150");
+  PlayInfo.AddSetting(PlayInfoGroup(), "bLlamaizeOnJailDisconnect", default.LlamaizeOnJailDisconnectText, 0, 5, "Check");
   
   // remove mutator class from class stack
   PlayInfo.PopClass();
@@ -321,10 +331,11 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 static event string GetDescriptionText(string PropName)
 {
   Switch (PropName) {
-    Case "MaximumLlamaDuration": return default.MaximumLlamaDurationDesc;
-    Case "RewardAdrenaline":     return default.RewardAdrenalineDesc;
-    Case "RewardHealth":         return default.RewardHealthDesc;
-    Case "RewardShield":         return default.RewardShieldDesc;
+    Case "MaximumLlamaDuration":      return default.MaximumLlamaDurationDesc;
+    Case "RewardAdrenaline":          return default.RewardAdrenalineDesc;
+    Case "RewardHealth":              return default.RewardHealthDesc;
+    Case "RewardShield":              return default.RewardShieldDesc;
+    Case "bLlamaizeOnJailDisconnect": return default.LlamaizeOnJailDisconnectDesc;
   }
 }
 
@@ -344,13 +355,16 @@ defaultproperties
   RewardAdrenaline=100
   RewardHealth=25
   MaximumLlamaDuration=60
-  RewardAdrenalineText     = "Adrenaline gained for killing a Llama"
-  RewardHealthText         = "Health gained for killing a Llama"
-  RewardShieldText         = "Shield gained for killing a Llama"
-  MaximumLlamaDurationText = "Maximum duration of the llama hunt"
+  bLlamaizeOnJailDisconnect=True
+  RewardAdrenalineText         = "Adrenaline gained for killing a Llama"
+  RewardHealthText             = "Health gained for killing a Llama"
+  RewardShieldText             = "Shield gained for killing a Llama"
+  MaximumLlamaDurationText     = "Maximum duration of the llama hunt"
+  LlamaizeOnJailDisconnectText = "Llamaize players who disconnect in jail"
   
-  RewardAdrenalineDesc     = "Players who kill a llama are awarded this ammount of adrenaline."
-  RewardHealthDesc         = "Players who kill a llama are awarded this ammount of health."
-  RewardShieldDesc         = "Players who kill a llama are awarded this ammount of shield."
-  MaximumLlamaDurationDesc = "Maximum time a llama will last. The llama is killed if it has not been fragged by the end of the llama hunt."
+  RewardAdrenalineDesc         = "Players who kill a llama are awarded this ammount of adrenaline."
+  RewardHealthDesc             = "Players who kill a llama are awarded this ammount of health."
+  RewardShieldDesc             = "Players who kill a llama are awarded this ammount of shield."
+  MaximumLlamaDurationDesc     = "Maximum time a llama will last. The llama is killed if it has not been fragged by the end of the llama hunt."
+  LlamaizeOnJailDisconnectDesc = "Llamaize players who disconnect while jailed and reconnect to gain freedom."
 }

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.11 2004/05/24 10:29:13 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.12 2004/05/28 15:27:51 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -36,6 +36,7 @@ var JBLlamaArrow               LlamaArrow;      // client-side spinning arrow ov
 var JBTagPlayer                TagPlayer;       // the llama's JBTagPlayer
 var float                      LlamaStartTime;  // Level.TimeSeconds when this player was llamaized
 var JBInterfaceHUD             LocalHUD;        // the Llama's HUD
+var JBInterfaceScores          LocalScoreboard; // the local scoreboard
 var array<Sound>               LlamaSounds;
 var bool                       bNotYetRegistered;
 var bool                       bShiftedView;
@@ -63,13 +64,19 @@ replication
 
 simulated event PostBeginPlay()
 {
+  local PlayerController PlayerControllerLocal;
+  
   Super.PostBeginPlay();
   
   LlamaStartTime = Level.TimeSeconds;
   if ( Role == ROLE_Authority )
     LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
   HUDOverlay = class'JBInterfaceLlamaHUDOverlay'.static.FindLlamaHUDOverlay(Self);
-  LlamaArrow = Spawn(class'JBLlamaArrow', Self);
+  LlamaArrow = Spawn(class'JBLlamaArrow', Self,,,rot(0,0,0));
+  
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+  if ( PlayerControllerLocal != None && PlayerControllerLocal.MyHud != None )
+    LocalScoreboard = JBInterfaceScores(PlayerControllerLocal.MyHud.ScoreBoard);
 }
 
 
@@ -97,14 +104,16 @@ simulated event PostNetBeginPlay()
 
 function GiveTo(Pawn Other, optional Pickup Pickup)
 {
+  if ( Vehicle(Other) != None && Vehicle(Other).Driver != None )
+    Other = Vehicle(Other).Driver;
+  
   Super.GiveTo(Other, Pickup);
   
   Trail = Spawn(class'JBLlamaTrailer', Owner);
   
   //log("Tagged"@Owner@"as llama.", Name);
   
-  //if ( Level.NetMode != NM_DedicatedServer )
-    InitLlamaTag();
+  InitLlamaTag();
   
   Timer();
   BroadcastLocalizedMessage(class'JBLlamaMessage', 1, Other.PlayerReplicationInfo);
@@ -127,7 +136,10 @@ simulated function InitLlamaTag()
   PlayerControllerLocal = Level.GetLocalPlayerController();
   
   if ( TagPlayer == None && Pawn(Owner) != None ) {
-    TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner).PlayerReplicationInfo);
+    if ( Vehicle(Owner.Owner) != None )
+      TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner.Owner).PlayerReplicationInfo);
+    else
+      TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner).PlayerReplicationInfo);
     bNotYetRegistered = False;
   }
   else if ( TagPlayer == None ) {
@@ -139,7 +151,7 @@ simulated function InitLlamaTag()
     bNotYetRegistered = False;
   
   // make sure that the local player owns the llama tag
-  if ( Pawn(Owner) != None && PlayerControllerLocal == Pawn(Owner).Controller ) {
+  if ( TagPlayer != None && PlayerControllerLocal == TagPlayer.GetController() ) {
     HUDOverlay.SetLocalLlamaTag(Self);
     LocalHUD = JBInterfaceHUD(PlayerControllerLocal.myHUD);
   }
@@ -191,6 +203,9 @@ simulated event Destroyed()
   if ( LocalHUD != None )
     ResetCrosshairLocations();
   
+  if ( LocalScoreboard != None && TagPlayer != None )
+    LocalScoreboard.ResetEntryColor(TagPlayer);
+  
   if ( Trail != None ) {
     Trail.Destroy();
   }
@@ -234,6 +249,10 @@ simulated function Tick(float DeltaTime)
   local int CurrentCrosshair;
   local PlayerController MyController;
   
+  if ( LocalScoreboard != None && TagPlayer != None )
+    LocalScoreboard.OverrideEntryColor(TagPlayer,
+        class'JBInterfaceLlamaHUDOverlay'.static.HueToRGB(int(Level.TimeSeconds * 150.0) % 256));
+  
   if ( bNotYetRegistered && Owner != None )
     InitLlamaTag();
   if ( bNotYetRegistered || Owner == None )
@@ -276,7 +295,10 @@ simulated function Tick(float DeltaTime)
   
   if ( Role == ROLE_Authority
       && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration ) {
-    Pawn(Owner).Died(None, class'JBDamageTypeLlamaDied', Owner.Location);
+    if ( MyController != None )
+      Spawn(class'JBLlamaKillAutoSelect', MyController);
+    else
+      Pawn(Owner).Died(None, class'JBDamageTypeLlamaDied', Owner.Location);
   }
 }
 

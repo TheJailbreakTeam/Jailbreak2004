@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaArrow
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaArrow.uc,v 1.4 2003/08/11 20:34:25 wormbo Exp $
+// $Id: JBLlamaArrow.uc,v 1.5 2004/05/24 10:29:13 wormbo Exp $
 //
 // A spinning arrow hovering above a llama's head.
 //=============================================================================
@@ -71,10 +71,10 @@ simulated function LlamaDied()
 
 simulated function Pawn GetArrowOwner()
 {
-  if ( LlamaTag != None && Pawn(LlamaTag.Owner) != None )
-    return Pawn(LlamaTag.Owner);
-  else if ( LlamaTag != None && LlamaTag.TagPlayer != None )
+  if ( LlamaTag != None && LlamaTag.TagPlayer != None )
     return LlamaTag.TagPlayer.GetPawn();
+  else if ( LlamaTag != None && Pawn(LlamaTag.Owner) != None )
+    return Pawn(LlamaTag.Owner);
   else
     return None;
 }

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaPendingTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaPendingTag.uc,v 1.1 2003/07/26 20:20:35 wormbo Exp $
+// $Id: JBLlamaPendingTag.uc,v 1.2 2003/11/11 17:48:49 wormbo Exp $
 //
 // Spawned for Controllers without a Pawn to make the next xPawn possessed by
 // that Controller a Llama.
@@ -53,6 +53,11 @@ function Tick(float DeltaTime)
   else if ( xPawn(Controller(Owner).Pawn) != None ) {
     //log("Spawning JBLlamaTag for"@Controller(Owner).Pawn, Name);
     Controller(Owner).Pawn.CreateInventory("JBAddonLlama.JBLlamaTag");
+    Destroy();
+  }
+  else if ( Vehicle(Controller(Owner).Pawn) != None && xPawn(Vehicle(Controller(Owner).Pawn).Driver) != None ) {
+    //log("Spawning JBLlamaTag for"@Controller(Owner).Pawn, Name);
+    Vehicle(Controller(Owner).Pawn).Driver.CreateInventory("JBAddonLlama.JBLlamaTag");
     Destroy();
   }
 }
