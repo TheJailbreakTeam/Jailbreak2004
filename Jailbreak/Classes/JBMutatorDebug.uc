@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.3 2003/03/22 10:21:11 mychaeel Exp $
+// $Id: JBMutatorDebug.uc,v 1.4 2003/07/19 22:02:25 mychaeel Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -124,4 +124,15 @@ function string GetParam(out string TextParam) {
     TextParam = Mid(TextParam, 1);
   
   return TextResult;
+  }
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
+defaultproperties {
+
+  FriendlyName = "Jailbreak Debug";
+  Description  = "Provides helper functions for debugging Jailbreak maps and code.";
   }
