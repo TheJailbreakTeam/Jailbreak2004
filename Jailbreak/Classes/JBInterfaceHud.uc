@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.6 2003/01/05 21:08:31 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.7 2003/01/11 22:17:46 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -316,11 +316,13 @@ simulated function ShowTeamScorePassA(Canvas Canvas) {
   LTeamHud[1].OffsetX = -95;  RTeamHud[1].OffsetX = 95;
   LTeamHud[2].OffsetX = -95;  RTeamHud[2].OffsetX = 95;
   
+  TeamSymbols[0].OffsetX      =  -600;  TeamSymbols[1].OffsetX      =   600;
+  TeamSymbols[0].OffsetY      =    90;  TeamSymbols[1].OffsetY      =    90;
+  TeamSymbols[0].PosY         = 0.014;  TeamSymbols[1].PosY         = 0.014;
   TeamSymbols[0].TextureScale = 0.075;  TeamSymbols[1].TextureScale = 0.075;
-  TeamSymbols[0].OffsetX      = -600;   TeamSymbols[1].OffsetX      = 600;
-  TeamSymbols[0].OffsetY      =   90;   TeamSymbols[1].OffsetY      =  90;
-  ScoreTeam  [0].OffsetX      = -270;   ScoreTeam  [1].OffsetX      = 180;
-  ScoreTeam  [0].OffsetY      =   75;   ScoreTeam  [1].OffsetY      =  75;
+
+  ScoreTeam[0].OffsetX = -270;  ScoreTeam[1].OffsetX = 180;
+  ScoreTeam[0].OffsetY =   75;  ScoreTeam[1].OffsetY =  75;
   
   ShowCompass(Canvas);
   ShowDisposition(Canvas);
@@ -329,9 +331,23 @@ simulated function ShowTeamScorePassA(Canvas Canvas) {
 
 
 // ============================================================================
+// LayoutMessage
+//
+// Makes sure that no message overlaps the player icons at the screen top.
+// ============================================================================
+
+simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas) {
+
+  Super.LayoutMessage(Message, Canvas);
+  
+  Message.PosY = FMax(Message.PosY, 0.16 * HUDScale);
+  }
+
+
+// ============================================================================
 // GetTagClientOwner
 //
-// Return the JBTagClient actor for the local player.
+// Returns the JBTagClient actor for the local player.
 // ============================================================================
 
 simulated function JBTagClient GetTagClientOwner() {
