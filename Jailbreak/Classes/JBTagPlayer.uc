@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.22 2003/02/17 22:55:18 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.23 2003/02/23 12:33:59 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBTagPlayer extends JBTag
 replication {
 
   reliable if (Role == ROLE_Authority)
-    PlayerReplicationInfo, Arena, ArenaPending, Jail;
+    Arena, ArenaPending, Jail;
   }
 
 
@@ -60,7 +60,6 @@ struct TInfoLocation {
 
 var name OrderNameFixed;                // bot should stick to these orders
 
-var private PlayerReplicationInfo PlayerReplicationInfo;  // info actor
 var private string HashIdPlayer;        // key hash for later recognition
 
 var private bool bIsLlama;              // player disconnected in jail
@@ -136,26 +135,24 @@ function Register() {
 
   Super.Register();
 
-  PlayerReplicationInfo = PlayerReplicationInfo(Owner);
-
-  PlayerReplicationInfo.Score       = InfoScore.Score;
-  PlayerReplicationInfo.Deaths      = InfoScore.Deaths;
-  PlayerReplicationInfo.GoalsScored = InfoScore.GoalsScored;
-  PlayerReplicationInfo.Kills       = InfoScore.Kills;
+  PlayerReplicationInfo(Keeper).Score       = InfoScore.Score;
+  PlayerReplicationInfo(Keeper).Deaths      = InfoScore.Deaths;
+  PlayerReplicationInfo(Keeper).GoalsScored = InfoScore.GoalsScored;
+  PlayerReplicationInfo(Keeper).Kills       = InfoScore.Kills;
   
-  TeamPlayerReplicationInfo(PlayerReplicationInfo).Suicides   = InfoScore.Suicides;
-  TeamPlayerReplicationInfo(PlayerReplicationInfo).FlakCount  = InfoScore.FlakCount;
-  TeamPlayerReplicationInfo(PlayerReplicationInfo).ComboCount = InfoScore.ComboCount;
-  TeamPlayerReplicationInfo(PlayerReplicationInfo).HeadCount  = InfoScore.HeadCount;
+  TeamPlayerReplicationInfo(Keeper).Suicides   = InfoScore.Suicides;
+  TeamPlayerReplicationInfo(Keeper).FlakCount  = InfoScore.FlakCount;
+  TeamPlayerReplicationInfo(Keeper).ComboCount = InfoScore.ComboCount;
+  TeamPlayerReplicationInfo(Keeper).HeadCount  = InfoScore.HeadCount;
 
   TimeElapsedConnect += Level.Game.GameReplicationInfo.ElapsedTime - TimeElapsedDisconnect;
-  PlayerReplicationInfo.StartTime = TimeElapsedConnect;
+  PlayerReplicationInfo(Keeper).StartTime = TimeElapsedConnect;
 
   if (Jailbreak(Level.Game).firstJBGameRules != None && TimeElapsedDisconnect > 0)
     Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReconnect(PlayerController(GetController()), bIsLlama);
 
-  if (PlayerController(Owner.Owner) != None)
-    HashIdPlayer = PlayerController(Owner.Owner).GetPlayerIDHash();
+  if (PlayerController(GetController()) != None)
+    HashIdPlayer = PlayerController(GetController()).GetPlayerIDHash();
   
   SetTimer(RandRange(0.18, 0.22), True);
   }
@@ -179,15 +176,15 @@ function Unregister() {
   ArenaRequest = None;
   Jail         = None;
 
-  InfoScore.Score       = PlayerReplicationInfo.Score;
-  InfoScore.Deaths      = PlayerReplicationInfo.Deaths;
-  InfoScore.GoalsScored = PlayerReplicationInfo.GoalsScored;
-  InfoScore.Kills       = PlayerReplicationInfo.Kills;
+  InfoScore.Score       = PlayerReplicationInfo(Keeper).Score;
+  InfoScore.Deaths      = PlayerReplicationInfo(Keeper).Deaths;
+  InfoScore.GoalsScored = PlayerReplicationInfo(Keeper).GoalsScored;
+  InfoScore.Kills       = PlayerReplicationInfo(Keeper).Kills;
   
-  InfoScore.Suicides    = TeamPlayerReplicationInfo(PlayerReplicationInfo).Suicides + 1;
-  InfoScore.FlakCount   = TeamPlayerReplicationInfo(PlayerReplicationInfo).FlakCount;
-  InfoScore.ComboCount  = TeamPlayerReplicationInfo(PlayerReplicationInfo).ComboCount;
-  InfoScore.HeadCount   = TeamPlayerReplicationInfo(PlayerReplicationInfo).HeadCount;
+  InfoScore.Suicides    = TeamPlayerReplicationInfo(Keeper).Suicides + 1;
+  InfoScore.FlakCount   = TeamPlayerReplicationInfo(Keeper).FlakCount;
+  InfoScore.ComboCount  = TeamPlayerReplicationInfo(Keeper).ComboCount;
+  InfoScore.HeadCount   = TeamPlayerReplicationInfo(Keeper).HeadCount;
 
   TimeElapsedDisconnect = Level.Game.GameReplicationInfo.ElapsedTime;
 
@@ -296,7 +293,7 @@ function NotifyRound() {
 function NotifyArenaEntered() {
 
   if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadArena(Bot(GetController()));
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadArena(Bot(GetController()));
   }
 
 
@@ -326,7 +323,7 @@ function NotifyArenaLeft(JBInfoArena ArenaPrev) {
 function NotifyJailEntered() {
 
   if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(GetController()));
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(GetController()));
 
   Jail.NotifyJailEntered(Self);
   }
@@ -356,12 +353,12 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
   for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
     thisArena.ExcludeRemove(GetController());
 
-  if (JailPrev.GetReleaseTime(PlayerReplicationInfo.Team) != TimeRelease) {
-    ControllerInstigator = JailPrev.GetReleaseInstigator(PlayerReplicationInfo.Team);
+  if (JailPrev.GetReleaseTime(GetTeam()) != TimeRelease) {
+    ControllerInstigator = JailPrev.GetReleaseInstigator(GetTeam());
     if (ControllerInstigator != None)
       Jailbreak(Level.Game).ScorePlayer(ControllerInstigator, 'Release');
 
-    TimeRelease = JailPrev.GetReleaseTime(PlayerReplicationInfo.Team);
+    TimeRelease = JailPrev.GetReleaseTime(GetTeam());
     }
 
   JailPrev.NotifyJailLeft(Self);
@@ -395,7 +392,7 @@ function NotifyJailOpening() {
 function NotifyJailOpened() {
 
   if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).ResumeBotOrders(Bot(GetController()));
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).ResumeBotOrders(Bot(GetController()));
   }
 
 
@@ -409,7 +406,7 @@ function NotifyJailOpened() {
 function NotifyJailClosed() {
 
   if (Bot(GetController()) != None)
-    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(GetController()));
+    JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(GetController()));
   }
 
 
@@ -763,7 +760,7 @@ function GameObjective GuessObjective() {
     ListDistanceObjective.Length = 0;  // clear list after respawn
   PawnObjectiveGuessed = GetController().Pawn;
 
-  for (thisObjective = UnrealTeamInfo(PlayerReplicationInfo.Team).AI.Objectives;
+  for (thisObjective = UnrealTeamInfo(GetTeam()).AI.Objectives;
        thisObjective != None;
        thisObjective = thisObjective.NextObjective) {
 
@@ -810,11 +807,11 @@ function GameObjective GuessObjective() {
 // ============================================================================
 
 simulated function PlayerReplicationInfo GetPlayerReplicationInfo() {
-  return PlayerReplicationInfo; }
+  return PlayerReplicationInfo(Keeper); }
 simulated function Controller GetController() {
-  return Controller(PlayerReplicationInfo.Owner); }
+  if (Keeper == None) return None; return Controller(Keeper.Owner); }
 simulated function TeamInfo GetTeam() {
-  return PlayerReplicationInfo.Team; }
+  if (Keeper == None) return None; return PlayerReplicationInfo(Keeper).Team; }
 
 function JBInfoArena GetArenaRestart() {
   return ArenaRestart; }
