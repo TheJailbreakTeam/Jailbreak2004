@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.51 2003/06/11 17:00:45 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.52 2003/06/14 21:52:32 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -368,7 +368,9 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
 // ============================================================================
 // Killed
 //
-// Sets the killed player's restart time with a short delay for effect.
+// Sets the killed player's restart time with a short delay for effect. If the
+// victim was killed in jail, forwards further handling to a special function
+// instead of the default handling.
 // ============================================================================
 
 function Killed(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim,
@@ -378,10 +380,35 @@ function Killed(Controller ControllerKiller, Controller ControllerVictim, Pawn P
   
   if (ControllerVictim != None)
     TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
+
   if (TagPlayerVictim != None)
     TagPlayerVictim.TimeRestart = Level.TimeSeconds + 2.0;
   
-  Super.Killed(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
+  if (TagPlayerVictim != None &&
+      TagPlayerVictim.IsInJail())
+    KilledInJail(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
+  else
+    Super.Killed(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
+  }
+
+
+// ============================================================================
+// KilledInJail
+//
+// Called when a player is killed in jail. Unlike the normal Killed event,
+// skips all statistics and spree logging and does not award adrenaline.
+// ============================================================================
+
+function KilledInJail(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim,
+                      Class<DamageType> ClassDamageType) {
+
+  BroadcastDeathMessage(ControllerKiller, ControllerVictim, ClassDamageType);
+
+  if (ControllerVictim != None)
+    ScoreKill(ControllerKiller, ControllerVictim);
+
+  DiscardInventory(PawnVictim);
+  NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
   }
 
 
