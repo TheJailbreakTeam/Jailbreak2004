@@ -20,7 +20,7 @@ class JBInventoryAvenger extends Inventory;
 
 function StartAvenger(int AvengerTime) 
 {
-  // do this in GiveTo instead?
+  // could be done in GiveTo() instead but we need to receive the time value
   local Combo AvengerCombo;
   local class<Combo> ComboClass;
 
@@ -28,10 +28,6 @@ function StartAvenger(int AvengerTime)
   if( xPawn(Owner) == None )
     return; // daft but just in case
     
-  xPawn(Owner).Controller.Adrenaline = 1; 
-  // cheat adrenaline for now. 
-  // arena winner should be awarded adrenaline by core game rules.    
-
   ComboClass = class'JBAddonAvenger'.default.ComboClasses[class'JBAddonAvenger'.default.PowerComboIndex];
 
   if( ComboClass == None )
@@ -47,21 +43,9 @@ function StartAvenger(int AvengerTime)
 
 
 // ============================================================================
-// SetAvengerTime
-// 
-// Called by JBGameRulesAvenger. Sets the timer. Owned by the avenger combo
-// ============================================================================
-
-function SetAvengerTime(int AvengerTime) 
-{
-  SetTimer(AvengerTime, False);
-}
-
-
-// ============================================================================
 // Timer
 //
-// Stop the avenger effect after the AvengerTime delay.
+// Destroy self after the AvengerTime delay: will stop the avenger effect
 // ============================================================================
 
 function Timer()
@@ -73,7 +57,7 @@ function Timer()
 // ============================================================================
 // Destroyed
 //
-// Stop the avenger effect by destroying the owner combo
+// Stop the avenger effect by destroying the owner's combo
 // ============================================================================
 
 event Destroyed() {
