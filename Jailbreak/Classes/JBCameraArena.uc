@@ -83,7 +83,7 @@ function DeactivateFor(Controller Controller)
 {
   Super.DeactivateFor(Controller);
   
-  if (ListInfoViewer.Length == 0)
+  if (!HasViewers())
     Destroy();
 }
 
