@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBCamera.uc,v 1.2 2002/11/17 13:12:02 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -23,6 +23,30 @@ var() bool bOverlayDistort;      // overlay may be distorted to fit screen
 // ============================================================================
 
 var private array<PlayerController> ListControllerViewer;
+
+
+// ============================================================================
+// Trigger
+//
+// Activates this camera for the instigator.
+// ============================================================================
+
+event Trigger(Actor ActorOther, Pawn PawnInstigator) {
+
+  ActivateFor(PawnInstigator.Controller);
+  }
+
+
+// ============================================================================
+// UnTrigger
+//
+// Deactivates this camera for the instigator.
+// ============================================================================
+
+event UnTrigger(Actor ActorOther, Pawn PawnInstigator) {
+
+  DeactivateFor(PawnInstigator.Controller);
+  }
 
 
 // ============================================================================
@@ -85,7 +109,8 @@ function DeactivateFor(Controller Controller) {
   if (PlayerController(Controller) == None)
     return;
 
-  PlayerController(Controller).SetViewTarget(Controller.Pawn);
+  if (PlayerController(Controller).ViewTarget == Self)
+    PlayerController(Controller).SetViewTarget(Controller.Pawn);
   
   for (iController = ListControllerViewer.Length - 1; iController >= 0; iController--)
     if (ListControllerViewer[iController] == Controller)
