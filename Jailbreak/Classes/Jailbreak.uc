@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.5 2002/11/24 11:15:23 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.6 2002/11/24 12:38:23 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -267,6 +267,29 @@ function bool IsCaptured(byte Team) {
 
 
 // ============================================================================
+// RateCameraExecution
+//
+// Rates the given camera in terms of a good view on an execution sequence.
+// The higher the returned value, the better.
+// ============================================================================
+
+function int RateCameraExecution(JBCamera CameraExecution) {
+
+  local int iInfoJail;
+  local int nPlayersJailed;
+  local JBReplicationInfoGame InfoGame;
+  
+  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
+  
+  for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
+    if (InfoGame.ListInfoJail[iInfoJail].Event == CameraExecution.Tag)
+      nPlayersJailed += InfoGame.ListInfoJail[iInfoJail].CountPlayersTotal();
+  
+  return nPlayersJailed;
+  }
+
+
+// ============================================================================
 // FindCameraExecution
 //
 // Finds the execution camera with the best view on the execution sequence.
@@ -274,14 +297,30 @@ function bool IsCaptured(byte Team) {
 
 function JBCamera FindCameraExecution() {
 
+  local int RatingCamera;
+  local int RatingCameraSelected;
+  local int RatingCameraTotal;
+  local array<int> ListRatingCamera;
   local JBCamera thisCamera;
-  local JBInfoJail Jail;
 
-  // TODO: implement properly
+  foreach DynamicActors(Class'JBCamera', thisCamera) {
+    RatingCamera = RateCameraExecution(thisCamera);
+    RatingCameraTotal += RatingCamera;
+    ListRatingCamera[ListRatingCamera.Length] = RatingCamera;
+    }
   
-  foreach DynamicActors(Class'JBCamera', thisCamera)
-    if (ContainsActorJail(thisCamera, Jail) && Jail.CountPlayersTotal() > 0)
+  if (RatingCameraTotal == 0)
+    return None;
+  
+  RatingCameraSelected = Rand(RatingCameraTotal);
+  RatingCameraTotal = 0;
+  
+  foreach DynamicActors(Class'JBCamera', thisCamera) {
+    RatingCameraTotal += ListRatingCamera[0];
+    if (RatingCameraSelected < RatingCameraTotal)
       return thisCamera;
+    ListRatingCamera.Remove(0, 1);
+    }
   
   return None;
   }
@@ -369,8 +408,8 @@ function bool ExecutionInit() {
         if (TeamCaptured < 0)
           TeamCaptured = iTeam;
         else {
-          BroadcastLocalizedMessage(Class'JBLocalMessage', 300);
           RestartAll();
+          BroadcastLocalizedMessage(Class'JBLocalMessage', 300);
           return False;
           }
   
@@ -384,6 +423,8 @@ function bool ExecutionInit() {
         RestartTeam(iTeam);
 
     CameraExecution = FindCameraExecution();
+    if (CameraExecution == None)
+      Log("Warning: No execution camera found");
   
     InfoGame = JBReplicationInfoGame(GameReplicationInfo);
     for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
@@ -501,18 +542,25 @@ state Executing {
   
     local int iTeam;
     local int nPlayersJailed;
+    local Controller thisController;
     
     if (TimeRestart == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
         nPlayersJailed += CountPlayersJailed(iTeam);
       if (nPlayersJailed == 0)
-        TimeRestart = Level.TimeSeconds + 2.0;
+        TimeRestart = Level.TimeSeconds + 3.0;
       }
 
     else if (Level.TimeSeconds > TimeRestart) {
       TimeRestart = 0.0;
       ExecutionEnd();
       }
+
+    for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+        if (PlayerController(thisController) != None &&
+           !thisController.PlayerReplicationInfo.bOnlySpectator &&
+            thisController.Pawn == None)
+          PlayerController(thisController).ServerReStartPlayer();
     }
 
 
