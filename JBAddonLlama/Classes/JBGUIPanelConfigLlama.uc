@@ -1,23 +1,23 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.5 2004/03/09 18:57:08 wormbo Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.6 2004/03/18 12:31:39 mychaeel Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
 
 
-class JBGUIPanelConfigLlama extends GUIPanel;
+class JBGUIPanelConfigLlama extends JBGUIPanelConfig;
 
 
 //=============================================================================
 // Constants
 //=============================================================================
 
-const CONTROL_REWARD_ADRENALINE  = 2;
-const CONTROL_REWARD_HEALTH      = 3;
-const CONTROL_REWARD_SHIELD      = 4;
-const CONTROL_MAX_LLAMA_DURATION = 5;
+const CONTROL_REWARD_ADRENALINE  = 1;
+const CONTROL_REWARD_HEALTH      = 2;
+const CONTROL_REWARD_SHIELD      = 3;
+const CONTROL_MAX_LLAMA_DURATION = 4;
 
 
 //=============================================================================
@@ -83,12 +83,10 @@ function SaveINISettings(GUIComponent Sender)
 // Resets the configurable properties to their default values.
 //=============================================================================
 
-function bool ResetConfiguration(GUIComponent Sender)
+function ResetConfiguration()
 {
   class'JBAddonLlama'.static.ResetConfiguration();
   LoadINISettings();
-  
-  return True;
 }
 
 
@@ -98,17 +96,6 @@ function bool ResetConfiguration(GUIComponent Sender)
 
 defaultproperties
 {
-  Begin Object Class=GUIButton Name=ResetButton
-    Caption="RESET"
-    WinWidth=0.3
-    WinHeight=0.1
-    WinLeft=0.7
-    WinTop=0.9
-    Hint="Reset Llama Hunt options."
-    OnClick=ResetConfiguration
-  End Object
-  Controls(0)=GUIButton'ResetButton'
-
   Begin Object Class=GUILabel Name=LlamaKillRewardLabel
     WinTop=0.2
     WinLeft=0.05
@@ -116,7 +103,7 @@ defaultproperties
     WinWidth=0.8
     Caption="Rewards for killing a Llama:"
   End Object
-  Controls(1)=GUILabel'LlamaKillRewardLabel'
+  Controls(0)=GUILabel'LlamaKillRewardLabel'
   
   Begin Object Class=JBGUIEditSlider Name=RewardAdrenaline
     WinTop=0.3
@@ -133,7 +120,7 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(2)=JBGUIEditSlider'RewardAdrenaline'
+  Controls(1)=JBGUIEditSlider'RewardAdrenaline'
   
   Begin Object Class=JBGUIEditSlider Name=RewardHealth
     WinTop=0.45
@@ -150,7 +137,7 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(3)=JBGUIEditSlider'RewardHealth'
+  Controls(2)=JBGUIEditSlider'RewardHealth'
   
   Begin Object Class=JBGUIEditSlider Name=RewardShield
     WinTop=0.6
@@ -167,7 +154,7 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(4)=JBGUIEditSlider'RewardShield'
+  Controls(3)=JBGUIEditSlider'RewardShield'
   
   Begin Object Class=JBGUIEditSlider Name=MaximumLlamaDuration
     WinTop=0.0
@@ -184,7 +171,7 @@ defaultproperties
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object
-  Controls(5)=JBGUIEditSlider'MaximumLlamaDuration'
+  Controls(4)=JBGUIEditSlider'MaximumLlamaDuration'
   
   WinTop=0.330
   WinLeft=0.360
