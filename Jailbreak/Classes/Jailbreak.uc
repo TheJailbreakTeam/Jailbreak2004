@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.29 2003/02/08 22:44:22 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.30 2003/02/09 18:18:45 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -602,10 +602,13 @@ function RestartAll() {
 
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
+  local JBTagPlayer nextTagPlayer;
   
   firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
-  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
+    nextTagPlayer = thisTagPlayer.nextTag;
     thisTagPlayer.RestartFreedom();
+    }
   }
 
 
@@ -619,11 +622,14 @@ function RestartTeam(TeamInfo Team) {
 
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
+  local JBTagPlayer nextTagPlayer;
   
   firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
-  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
+    nextTagPlayer = thisTagPlayer.nextTag;
     if (thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.RestartFreedom();
+    }
   }
 
 
@@ -855,8 +861,10 @@ state MatchInProgress {
   
     Super.RestartPlayer(Controller);
 
-    JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
-    JBBotTeam(Teams[1].AI).NotifySpawn(Controller);
+    if (Controller != None) {
+      JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
+      JBBotTeam(Teams[1].AI).NotifySpawn(Controller);
+      }
     }
 
   } // state MatchInProgress
