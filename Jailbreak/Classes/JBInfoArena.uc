@@ -1015,6 +1015,9 @@ auto state Waiting {
   {
     local bool bStarted;
 
+    if (!Level.Game.IsInState('MatchInProgress'))
+      return;
+
     if (Tag == TagRequest) TriggerRequest(ActorOther, PawnInstigator);
     if (Tag == TagExclude) TriggerExclude(ActorOther, PawnInstigator);
 
