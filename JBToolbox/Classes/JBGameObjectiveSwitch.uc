@@ -82,7 +82,8 @@ function DisableObjective(Pawn PawnInstigator)
   local JBGameObjectiveSwitch ObjectiveSwitch;
   local JBInfoJail thisJail;
   
-  if (PawnInstigator                            == None ||
+  if (bDisabled                                         ||
+      PawnInstigator                            == None ||
       PawnInstigator.PlayerReplicationInfo      == None ||
       PawnInstigator.PlayerReplicationInfo.Team == None ||
       PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex)
