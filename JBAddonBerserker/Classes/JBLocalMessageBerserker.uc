@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageBerserker
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBLocalMessageBerserker.uc,v 1.1 2003/06/27 11:14:32 crokx Exp $
+// $Id: JBLocalMessageBerserker.uc,v 1.1 2003/07/27 03:21:17 crokx Exp $
 //
 // The message of berserker add-on.
 // ============================================================================
@@ -44,7 +44,7 @@ static simulated function ClientReceive(
 {
     Super.ClientReceive(PC, Switch, RelatedPRI_1, RelatedPRI_2, OptionalObject);
 
-    PC.PlayAnnouncement(Sound'AnnouncerMain.Berzerk', 1, TRUE);
+    PC.PlayRewardAnnouncement('Berzerk', 1, True);
     PC.ClientFlash(0.25, vect(800,400,100));
 }
 
