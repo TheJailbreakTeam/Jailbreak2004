@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.6 2004/05/11 10:53:11 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.5.2.1 2004/05/11 11:16:53 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -68,6 +68,8 @@ function Timer()
 function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsLlama)
 {
   //log("Disconnect:"@ControllerPlayer@ControllerPlayer.Pawn);
+  if ( !class'JBAddonLlama'.default.bLlamaizeOnJailDisconnect && bIsLlama != 0 )
+    bIsLlama = 0;
   
   if ( bIsLlama == 0 && ControllerPlayer == LlamaSuicidedLast ) {
     bIsLlama = 1;

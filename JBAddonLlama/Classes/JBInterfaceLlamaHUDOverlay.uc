@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.8 2004/05/24 10:29:13 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6.2.3 2004/05/24 10:39:34 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -30,6 +30,7 @@ var private JBInterfaceHud       JailbreakHUD;          // local player's Jailbr
 var private array<JBLlamaArrow>  LlamaArrows;           // a spinning arrow over the Llama's head
 var private JBLlamaTag           LocalLlamaTag;         // llama tag of local player (if any)
 var private float                TimeIndexLocalLlamaStart;
+var GameEngine                   GameEngine;            // reference to the GameEngine object
 var MotionBlur                   MotionBlur;            // a motion blur effect for the llama
 var CameraOverlay                CameraOverlay;         // an overlay camera effect for the llama
 var bool                         bCameraEffectsEnabled; // whether the motion blur and overlay is active
@@ -58,7 +59,7 @@ var private float LlamaIconPulseRateB;
 // http://wiki.beyondunreal.com/wiki/HLS_To_RGB_Conversion
 //=============================================================================
 
-simulated function color HueToRGB(float Hue)
+static final function color HueToRGB(float Hue)
 {
   local color C;
   local float R,G,B;
@@ -204,9 +205,10 @@ simulated event Tick(float DeltaTime)
     }
   }
   
-  if ( LocalLlamaTag != None && PlayerControllerLocal.ViewTarget == PlayerControllerLocal.Pawn
-      && (MotionBlur == None || CameraOverlay == None) ) {
-    if ( MotionBlur == None ) {
+  if ( LocalLlamaTag != None && Pawn(PlayerControllerLocal.ViewTarget) != None
+      && Pawn(PlayerControllerLocal.ViewTarget).Controller == PlayerControllerLocal
+      && (MotionBlur == None && MotionBlurWanted() || CameraOverlay == None) ) {
+    if ( MotionBlur == None && MotionBlurWanted() ) {
       MotionBlur = MotionBlur(FindCameraEffect(class'MotionBlur'));
       MotionBlur.Alpha = 1.0;
       MotionBlur.BlurAlpha = 128;
@@ -222,10 +224,12 @@ simulated event Tick(float DeltaTime)
     if ( JailbreakHUD != None )
       HUDCanvasScale = JailbreakHUD.HUDCanvasScale;
   }
-  else if ( (LocalLlamaTag == None || PlayerControllerLocal.ViewTarget != PlayerControllerLocal.Pawn)
-      && bCameraEffectsEnabled ) {
-    RemoveCameraEffect(CameraOverlay);
-    RemoveCameraEffect(MotionBlur);
+  else if ( bCameraEffectsEnabled && (LocalLlamaTag == None || Pawn(PlayerControllerLocal.ViewTarget) == None
+      || Pawn(PlayerControllerLocal.ViewTarget).Controller != PlayerControllerLocal) ) {
+    if ( CameraOverlay != None )
+      RemoveCameraEffect(CameraOverlay);
+    if ( MotionBlur != None )
+      RemoveCameraEffect(MotionBlur);
     MotionBlur = None;
     CameraOverlay = None;
     bCameraEffectsEnabled = False;
@@ -260,6 +264,26 @@ simulated event Tick(float DeltaTime)
   
   if ( CameraOverlay != None )
     CameraOverlay.OverlayColor = HueToRGB((Level.TimeSeconds * 100.0) % 256);
+}
+
+
+//=============================================================================
+// MotionBlurWanted
+//
+// Returns whether MotionBlur should be used.
+//=============================================================================
+
+simulated function bool MotionBlurWanted()
+{
+  if ( GameEngine == None )
+    foreach AllObjects(class'GameEngine', GameEngine)
+      break;
+  
+  if ( GameEngine != None && GameEngine.GRenDev != None && !GameEngine.GRenDev.IsA('D3DRenderDevice')
+      && !GameEngine.GRenDev.IsA('D3D9RenderDevice') )
+    return false;
+  
+  return true;
 }
 
 

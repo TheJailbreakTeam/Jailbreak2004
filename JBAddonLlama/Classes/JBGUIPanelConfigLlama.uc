@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGUIPanelConfigLlama.uc,v 1.8.2.1 2004/04/04 11:54:22 mychaeel Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -14,10 +14,11 @@ class JBGUIPanelConfigLlama extends JBGUIPanelConfig;
 // Constants
 //=============================================================================
 
-const CONTROL_REWARD_ADRENALINE  = 1;
-const CONTROL_REWARD_HEALTH      = 2;
-const CONTROL_REWARD_SHIELD      = 3;
-const CONTROL_MAX_LLAMA_DURATION = 4;
+const CONTROL_REWARD_ADRENALINE        = 1;
+const CONTROL_REWARD_HEALTH            = 2;
+const CONTROL_REWARD_SHIELD            = 3;
+const CONTROL_MAX_LLAMA_DURATION       = 4;
+const CONTROL_LLAMAIZE_JAIL_DISCONNECT = 5;
 
 
 //=============================================================================
@@ -53,6 +54,7 @@ function LoadINISettings()
   JBGUIComponentTrackbar(Controls[CONTROL_REWARD_HEALTH]).SetValue(class'JBAddonLlama'.default.RewardHealth);
   JBGUIComponentTrackbar(Controls[CONTROL_REWARD_SHIELD]).SetValue(class'JBAddonLlama'.default.RewardShield);
   JBGUIComponentTrackbar(Controls[CONTROL_MAX_LLAMA_DURATION]).SetValue(class'JBAddonLlama'.default.MaximumLlamaDuration);
+  moCheckbox(Controls[CONTROL_LLAMAIZE_JAIL_DISCONNECT]).Checked(class'JBAddonLlama'.default.bLlamaizeOnJailDisconnect);
   bInitialized = True;
 }
 
@@ -69,10 +71,13 @@ function SaveINISettings(GUIComponent Sender)
   if ( !bInitialized )
     return;
   
-  class'JBAddonLlama'.default.RewardAdrenaline     = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
-  class'JBAddonLlama'.default.RewardHealth         = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_HEALTH]).GetValue();
-  class'JBAddonLlama'.default.RewardShield         = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_SHIELD]).GetValue();
-  class'JBAddonLlama'.default.MaximumLlamaDuration = JBGUIComponentTrackbar(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
+  class'JBAddonLlama'.default.RewardAdrenaline = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_ADRENALINE]).GetValue();
+  class'JBAddonLlama'.default.RewardHealth     = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_HEALTH]).GetValue();
+  class'JBAddonLlama'.default.RewardShield     = JBGUIComponentTrackbar(Controls[CONTROL_REWARD_SHIELD]).GetValue();
+  class'JBAddonLlama'.default.MaximumLlamaDuration
+      = JBGUIComponentTrackbar(Controls[CONTROL_MAX_LLAMA_DURATION]).GetValue();
+  class'JBAddonLlama'.default.bLlamaizeOnJailDisconnect
+      = moCheckbox(Controls[CONTROL_LLAMAIZE_JAIL_DISCONNECT]).IsChecked();
   class'JBAddonLlama'.static.StaticSaveConfig();
 }
 
@@ -179,6 +184,17 @@ defaultproperties
     OnChange=SaveINISettings
   End Object
   Controls(4)=JBGUIComponentTrackbar'MaximumLlamaDuration'
+  
+  Begin Object Class=moCheckbox Name=chkLlamaizeOnJailDisconnect
+    WinTop    =0.8
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    Caption="Llamaize when disconnecting from jail"
+    Hint="Llamaize players who disconnect while jailed and reconnect to gain freedom."
+    OnChange=SaveINISettings
+  End Object
+  Controls(5)=moCheckbox'chkLlamaizeOnJailDisconnect'
   
   WinTop=0.330
   WinLeft=0.360

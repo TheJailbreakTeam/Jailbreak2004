@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaKillAutoSelect
 // Copyright 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBLlamaKillAutoSelect.uc,v 1.1 2004/05/31 11:14:58 wormbo Exp $
 //
 // Automatically selects the best method to kill the player immediately.
 //=============================================================================

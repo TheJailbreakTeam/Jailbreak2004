@@ -27,5 +27,4 @@ defaultproperties
   bNeverSevers=true
   bCausesBlood=false
   bLocationalHit=false
-  bCausedByWorld=True
 }

@@ -1,12 +1,9 @@
 [JBAddonLlama]
 RewardAdrenalineText="Adrenalin-Gewinn beim Töten eines Lamas"
-RewardAdrenalineDesc="Spieler, die ein Lama töten, erhalten diese Menge an Adrenalin."
 RewardHealthText="Gesundheits-Gewinn beim Töten eines Lamas"
-RewardHealthDesc="Spieler, die ein Lama töten, erhalten diese Menge an Gesundheit zurück."
 RewardShieldText="Schildenergie-Gewinn beim Töten eines Lamas"
-RewardShieldDesc="Spieler, die ein Lama töten, erhalten diese Menge an Schildenergie."
 MaximumLlamaDurationText="Maximaldauer einer Lama-Jagd"
-MaximumLlamaDurationDesc="Zeit, die eine Lama-Jagd höchstens dauern kann. Das Lama wird getötet, wenn es innerhalb dieser Zeit nicht gefraggt wurde."
+LlamaizeOnJailDisconnectText="Trennen als Gefangener macht zum Lama"
 FriendlyName="Lama-Jagd"
 Description="Verwandelt betrügende Spieler in ein Lama und erlaubt anderen Spielern, fröhlich Jagd auf sie zu machen."
 
@@ -14,6 +11,16 @@ Description="Verwandelt betrügende Spieler in ein Lama und erlaubt anderen Spiel
 DeathString="%o wollte kein Lama mehr sein."
 FemaleSuicide="%o wollte kein Lama mehr sein."
 MaleSuicide="%o wollte kein Lama mehr sein."
+
+[JBDamageTypeLlamaLaser]
+DeathString="%o wurde getoastet."
+FemaleSuicide="%o wurde getoastet."
+MaleSuicide="%o wurde getoastet."
+
+[JBDamageTypeLlamaLightning]
+DeathString="%o wurde vom Blitz erschlagen."
+FemaleSuicide="%o wurde vom Blitz erschlagen."
+MaleSuicide="%o wurde vom Blitz erschlagen."
 
 [JBGUIPanelConfigLlama]
 LlamaKillRewardLabel.Caption="Belohnung fürs Töten eines Lamas:"
@@ -25,6 +32,8 @@ RewardHealth.Caption="Gesundheit"
 RewardHealth.Hint="Gesundheits-Gewinn beim Töten eines Lamas."
 RewardShield.Caption="Schildenergie"
 RewardShield.Hint="Schildenergie-Gewinn beim Töten eines Lamas."
+chkLlamaizeOnJailDisconnect.Caption="Trennen als Gefangener macht zum Lama"
+chkLlamaizeOnJailDisconnect.Hint="Spieler, die sich neu verbinden, um aus dem Gefängnis entkommen, zum Lama machen."
 
 [JBLlamaHelpMessage]
 HelpMessageLines[0]="Verwendung: 'mutate llama <Parameter>' oder 'mutate unllama <Spielername>'"

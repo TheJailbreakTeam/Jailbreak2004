@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.8 2004/05/20 14:08:29 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.10 2004/05/31 11:14:57 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -14,10 +14,11 @@ class JBAddonLlama extends JBAddon config;
 // Constants
 //=============================================================================
 
-const DEFAULT_REWARD_ADRENALINE  = 100;
-const DEFAULT_REWARD_HEALTH      = 25;
-const DEFAULT_REWARD_SHIELD      = 0;
-const DEFAULT_MAX_LLAMA_DURATION = 60;
+const DEFAULT_REWARD_ADRENALINE        = 100;
+const DEFAULT_REWARD_HEALTH            = 25;
+const DEFAULT_REWARD_SHIELD            = 0;
+const DEFAULT_MAX_LLAMA_DURATION       = 60;
+const DEFAULT_LLAMAIZE_JAIL_DISCONNECT = True;
 
 
 //=============================================================================
@@ -29,6 +30,8 @@ var config int RewardHealth;
 var config int RewardShield;
 var config int MaximumLlamaDuration;
 
+var config bool bLlamaizeOnJailDisconnect;
+
 
 //=============================================================================
 // Localization
@@ -38,6 +41,7 @@ var localized string RewardAdrenalineText;
 var localized string RewardHealthText;
 var localized string RewardShieldText;
 var localized string MaximumLlamaDurationText;
+var localized string LlamaizeOnJailDisconnectText;
 
 
 //=============================================================================
@@ -247,16 +251,17 @@ function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
 // Checks whether a is a llama or is about to become a llama.
 //=============================================================================
 
-function bool IsLlama(Controller C)
+function bool IsLlama(Controller ControllerPlayer)
 {
   local JBLlamaPendingTag thisLlamaPendingTag;
   
-  if ( C == None )
+  if ( ControllerPlayer == None )
     return False;
-  else if ( C.Pawn != None )
-    return C.Pawn.FindInventoryType(class'JBLlamaTag') != None;
+  else if ( ControllerPlayer.Pawn != None ) {
+    return ControllerPlayer.Pawn.FindInventoryType(class'JBLlamaTag') != None;
+  }
   else {
-    foreach C.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
+    foreach ControllerPlayer.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
       return true;
   }
   
@@ -312,10 +317,11 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddClass(default.Class);
   
   // now register any mutator settings
-  PlayInfo.AddSetting(PlayInfoGroup(), "MaximumLlamaDuration", default.MaximumLlamaDurationText, 0, 1, "Text", "3;0:120");
-  PlayInfo.AddSetting(PlayInfoGroup(), "RewardAdrenaline",     default.RewardAdrenalineText,     0, 2, "Text", "3;0:100");
-  PlayInfo.AddSetting(PlayInfoGroup(), "RewardHealth",         default.RewardHealthText,         0, 3, "Text", "3;0:199");
-  PlayInfo.AddSetting(PlayInfoGroup(), "RewardShield",         default.RewardShieldText,         0, 4, "Text", "3;0:150");
+  PlayInfo.AddSetting(PlayInfoGroup(), "MaximumLlamaDuration",      default.MaximumLlamaDurationText, 0, 1, "Text", "3;0:120");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardAdrenaline",          default.RewardAdrenalineText,     0, 2, "Text", "3;0:100");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardHealth",              default.RewardHealthText,         0, 3, "Text", "3;0:199");
+  PlayInfo.AddSetting(PlayInfoGroup(), "RewardShield",              default.RewardShieldText,         0, 4, "Text", "3;0:150");
+  PlayInfo.AddSetting(PlayInfoGroup(), "bLlamaizeOnJailDisconnect", default.LlamaizeOnJailDisconnectText, 0, 5, "Check");
   
   // remove mutator class from class stack
   PlayInfo.PopClass();
@@ -330,10 +336,11 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 
 static function ResetConfiguration()
 {
-  default.RewardAdrenaline     = DEFAULT_REWARD_ADRENALINE;
-  default.RewardHealth         = DEFAULT_REWARD_HEALTH;
-  default.RewardShield         = DEFAULT_REWARD_SHIELD;
-  default.MaximumLlamaDuration = DEFAULT_MAX_LLAMA_DURATION;
+  default.RewardAdrenaline          = DEFAULT_REWARD_ADRENALINE;
+  default.RewardHealth              = DEFAULT_REWARD_HEALTH;
+  default.RewardShield              = DEFAULT_REWARD_SHIELD;
+  default.MaximumLlamaDuration      = DEFAULT_MAX_LLAMA_DURATION;
+  default.bLlamaizeOnJailDisconnect = DEFAULT_LLAMAIZE_JAIL_DISCONNECT;
   StaticSaveConfig();
 }
 
@@ -353,8 +360,10 @@ defaultproperties
   RewardAdrenaline=100
   RewardHealth=25
   MaximumLlamaDuration=60
-  RewardAdrenalineText="Adrenaline gained for killing a Llama"
-  RewardHealthText="Health gained for killing a Llama"
-  RewardShieldText="Shield gained for killing a Llama"
-  MaximumLlamaDurationText="Maximum duration of the llama hunt"
+  bLlamaizeOnJailDisconnect=True
+  RewardAdrenalineText         = "Adrenaline gained for killing a Llama"
+  RewardHealthText             = "Health gained for killing a Llama"
+  RewardShieldText             = "Shield gained for killing a Llama"
+  MaximumLlamaDurationText     = "Maximum duration of the llama hunt"
+  LlamaizeOnJailDisconnectText = "Llamaize when disconnecting from jail"
 }

@@ -34,5 +34,4 @@ defaultproperties
   GibPerterbation=0.5
   GibModifier=2.0
   bLocationalHit=false
-  bCausedByWorld=True
 }

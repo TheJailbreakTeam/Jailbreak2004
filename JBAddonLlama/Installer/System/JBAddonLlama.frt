@@ -1,12 +1,9 @@
 [JBAddonLlama]
 RewardAdrenalineText="Adrénaline obtenue pour avoir tué un lama"
-RewardAdrenalineDesc="Les joueurs qui tuent un lama gagnent autant en adrénaline."
 RewardHealthText="Santé obtenue pour avoir tué un lama"
-RewardHealthDesc="Les joueurs qui tuent un lama gagnent autant en santé."
 RewardShieldText="Bouclier obtenu pour avoir tué un lama"
-RewardShieldDesc="Les joueurs qui tuent un lama gagnent autant en bouclier."
 MaximumLlamaDurationText="Durée maximum d'une chasse au lama"
-MaximumLlamaDurationDesc="Durée de vie maximum d'un lama. Le lama meurt s'il n'est pas tué avant la fin de la chasse."
+LlamaizeOnJailDisconnectText="Rendre lama les prisonniers déconnectants"
 FriendlyName="Chasse au Lama"
 Description="Transforme les tricheurs en lamas et permet aux autres joueurs de leur faire joyeusement la chasse."
 
@@ -14,6 +11,16 @@ Description="Transforme les tricheurs en lamas et permet aux autres joueurs de l
 DeathString="%o ne voulait plus jouer au lama."
 FemaleSuicide="%o ne voulait plus jouer à la femelle lama."
 MaleSuicide="%o ne voulait plus jouer au lama."
+
+[JBDamageTypeLlamaLaser]
+DeathString="%o a été roti"
+FemaleSuicide="%o a été roti"
+MaleSuicide="%o a été roti"
+
+[JBDamageTypeLlamaLightning]
+DeathString="%o a eu le coup de foudre"
+FemaleSuicide="%o a eu le coup de foudre"
+MaleSuicide="%o a eu le coup de foudre"
 
 [JBGUIPanelConfigLlama]
 LlamaKillRewardLabel.Caption="Récompenses pour avoir tué un Lama :"
@@ -25,6 +32,8 @@ RewardHealth.Caption="Santé"
 RewardHealth.Hint="Santé obtenue pour avoir tué un lama."
 RewardShield.Caption="Bouclier"
 RewardShield.Hint="Bouclier obtenu pour avoir tué un lama."
+chkLlamaizeOnJailDisconnect.Caption="Rendre lama les prisonniers déconnectants"
+chkLlamaizeOnJailDisconnect.Hint="Rendre lama un joueur qui tente de déconnecter pour échapper à la prison."
 
 [JBLlamaHelpMessage]
 HelpMessageLines[0]="Syntaxe: 'mutate llama <parameter>' ou 'mutate unllama <playername>'"

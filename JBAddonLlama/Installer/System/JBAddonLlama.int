@@ -6,6 +6,7 @@ RewardAdrenalineText="Adrenaline gained for killing a Llama"
 RewardHealthText="Health gained for killing a Llama"
 RewardShieldText="Shield gained for killing a Llama"
 MaximumLlamaDurationText="Maximum duration of the llama hunt"
+LlamaizeOnJailDisconnectText="Llamaize when disconnecting from jail"
 FriendlyName="Llama Hunt"
 Description="Turns cheating players into llamas and lets other players perform a jolly hunt on them."
 
@@ -13,6 +14,16 @@ Description="Turns cheating players into llamas and lets other players perform a
 DeathString="%o didn't want to be a llama anymore."
 FemaleSuicide="%o didn't want to be a llama anymore."
 MaleSuicide="%o didn't want to be a llama anymore."
+
+[JBDamageTypeLlamaLaser]
+DeathString="%o was toasted"
+FemaleSuicide="%o was toasted"
+MaleSuicide="%o was toasted"
+
+[JBDamageTypeLlamaLightning]
+DeathString="%o was struck by lightning"
+FemaleSuicide="%o was struck by lightning"
+MaleSuicide="%o was struck by lightning"
 
 [JBLlamaHelpMessage]
 HelpMessageLines[0]="Syntax: 'mutate llama <parameter>' or 'mutate unllama <playername>'"
@@ -25,11 +36,9 @@ TextLlamaCaught="%llama% was caught by %killer%!"
 TextLlamaDied="%llama% was busted!"
 TextLlamaDisconnected="%llama% ran away!"
 
-[JBGUILlamaConfigPanel]
-ResetButton.Caption="RESET"
-ResetButton.Hint="Reset Llama Hunt options."
+[JBGUIPanelConfigLlama]
 LlamaKillRewardLabel.Caption="Rewards for killing a Llama:"
-MaximumLlamaDuration.Caption="Llama Hunt Duration"
+MaximumLlamaDuration.Caption="Llama Hunt duration"
 MaximumLlamaDuration.Hint="Maximum duration of a llama hunt."
 RewardAdrenaline.Caption="Adrenaline"
 RewardAdrenaline.Hint="Adrenaline gained for killing a llama."
@@ -37,4 +46,6 @@ RewardHealth.Caption="Health"
 RewardHealth.Hint="Health gained for killing a llama."
 RewardShield.Caption="Shield"
 RewardShield.Hint="Shield gained for killing a llama."
+chkLlamaizeOnJailDisconnect.Caption="Llamaize when disconnecting from jail"
+chkLlamaizeOnJailDisconnect.Hint="Llamaize players who disconnect while jailed and reconnect to gain freedom."
 

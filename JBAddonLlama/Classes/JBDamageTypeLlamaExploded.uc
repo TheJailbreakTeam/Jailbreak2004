@@ -21,5 +21,4 @@ defaultproperties
   GibPerterbation=1.0
   GibModifier=5.0
   bAlwaysSevers=True
-  bCausedByWorld=True
 }
