@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.1 2004/03/12 20:35:05 tarquin Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.2 2004/03/12 20:38:32 tarquin Exp $
 //
 // Option of protection mutator.
 // ============================================================================
@@ -42,19 +42,19 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     Super.InitComponent(MyController, MyOwner);
 
     // Protection time
-    ProtectionTime = GUISlider(Controls[2]);
+    ProtectionTime = GUISlider(Controls[1]);
     ProtectionTime.SetValue(int(class'JBAddonProtection'.default.ProtectionTime));
     ProtectionTime.OnDrawCaption = ProtectionTimeValueText;
-    Controls[2].FriendlyLabel = GUILabel(Controls[1]);
+    Controls[1].FriendlyLabel = GUILabel(Controls[0]);
 
     // Protection type
-    ProtectionType = moComboBox(Controls[3]);
+    ProtectionType = moComboBox(Controls[2]);
     for(index=0; index<2; index++) Protectiontype.AddItem(ProtectionTypeText[index]);
     Protectiontype.ReadOnly(True);
     Protectiontype.SetIndex(class'JBAddonProtection'.default.ProtectionType);
 
     // Protect the arena winner
-    ProtectArenaWinner = moCheckBox(Controls[4]);
+    ProtectArenaWinner = moCheckBox(Controls[3]);
     ProtectArenaWinner.Checked(class'JBAddonProtection'.default.bProtectArenaWinner);
 }
 
@@ -82,7 +82,7 @@ function ChangeOptions(GUIComponent Sender)
 //
 // When you click on Reset button.
 // ============================================================================
-function bool ClickReset(GUIComponent Sender)
+function ClickReset(coerce string Msg, float MsgLife)
 {
     ProtectionTime.SetValue(3);
     ProtectionType.SetIndex(0);
@@ -93,7 +93,6 @@ function bool ClickReset(GUIComponent Sender)
     class'JBAddonProtection'.default.bProtectArenaWinner = TRUE;
     class'JBAddonProtection'.static.StaticSaveConfig();
 
-    return TRUE;
 }
 
 
@@ -106,22 +105,7 @@ defaultproperties
     ProtectionTypeText(1)="Drop when you inflict damage"
     SecondText="second"
     SecondsText="seconds"
-
-////////////////////////////////////////////////////////////////
-
-    Begin Object Class=GUIButton Name=ResetButton
-        Caption="RESET"
-        WinWidth=0.200000
-        WinHeight=0.100000
-        WinLeft=0.775000
-        WinTop=0.900000
-        Hint="Reset options"
-        OnClick=ClickReset
-    End Object
-    Controls(0)=GUIButton'ResetButton'
-
-////////////////////////////////////////////////////////////////
-
+    OnMessage=ClickReset;
     Begin Object class=GUILabel Name=ProtectionTimeLabel
         Caption="Protection time :"
         TextALign=TXTA_Left
@@ -132,7 +116,7 @@ defaultproperties
         WinTop=0.100000
         StyleName="TextLabel"
     End Object
-    Controls(1)=GUILabel'ProtectionTimeLabel'
+    Controls(0)=GUILabel'ProtectionTimeLabel'
     
     Begin Object class=GUISlider Name=ProtectionTimeSlider
         WinWidth=0.650000
@@ -144,7 +128,7 @@ defaultproperties
         OnChange=ChangeOptions
         Hint="This delay begin when you are released"
     End Object
-    Controls(2)=GUISlider'ProtectionTimeSlider'
+    Controls(1)=GUISlider'ProtectionTimeSlider'
 
     Begin Object class=moComboBox Name=ProtectionTypeComboBox
         WinWidth=1.000000
@@ -156,7 +140,7 @@ defaultproperties
         Caption="Protection type :"
         Hint="Choose the type of protection"
     End Object
-    Controls(3)=moComboBox'ProtectionTypeComboBox'
+    Controls(2)=moComboBox'ProtectionTypeComboBox'
 
     Begin Object class=moCheckBox Name=ProtectArenaWinnerCheckBox
         WinWidth=1.000000
@@ -170,5 +154,5 @@ defaultproperties
         bSquare=true
         ComponentJustification=TXTA_Left
     End Object
-    Controls(4)=moCheckBox'ProtectArenaWinnerCheckBox'
+    Controls(3)=moCheckBox'ProtectArenaWinnerCheckBox'
 }
