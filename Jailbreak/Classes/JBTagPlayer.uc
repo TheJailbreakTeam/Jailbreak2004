@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.52 2004/05/30 21:44:27 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.53 2004/05/30 23:29:51 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -319,6 +319,14 @@ event Tick(float TimeDelta)
       Pawn.bCanBeBaseForPawns = Pawn.bIsCrouched;
       bCanBeBaseForPawns = Pawn.bCanBeBaseForPawns;
     }
+
+    // hack to fix the hack that fixes a hack
+
+    if (ASTurret(Pawn)                          != None &&
+        Pawn.Controller                         == None &&
+        PlayerController(Controller)            != None &&
+        PlayerController(Controller).ViewTarget == Pawn)
+      Pawn.Controller = Controller;
 
     // As the player has now restarted, make sure that the next game-induced
     // restart sends him to a random starting spot in jail.
