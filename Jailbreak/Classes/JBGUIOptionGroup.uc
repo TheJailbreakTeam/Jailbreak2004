@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIOptionGroup
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGUIOptionGroup.uc,v 1.1 2004/03/26 20:42:17 tarquin Exp $
+// $Id$
 //
 // A group of radio button options
 //=============================================================================
@@ -17,10 +17,16 @@ class JBGUIOptionGroup extends GUIMultiComponent;
 var(Menu) array<string> OptionText;   // text for each option
 var(Menu) array<string> OptionHint;   // hint for each option
 var(Menu) string        GroupCaption; // requests label for the entire group
+var(Menu) string        GroupCaptionFont;
+var(Menu) Color         GroupCaptionColor;
+var(Menu) string        GroupCaptionStyleName;
 var(Menu) bool          bHasBorder;   // doesn't quite work yet... :)
 var(Menu) int           DefaultOption;
 var(Menu) float         ButtonHeightInRow; // relative to one row
 var(Menu) float         LabelWidth;
+var(Menu) string        LabelFont;
+var(Menu) Color         LabelColor;
+var(Menu) string        LabelStyleName;
 var(Menu) float         ButtonWidth;
 var(Menu) float         ItemIndent; // option indent from label
 var(Menu) float         LeftIndent; // ident of whole component (TBI)
@@ -62,10 +68,18 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     
     GroupLabel.bBoundToParent = True;
     GroupLabel.bScaleToParent = True;
-    GroupLabel.WinTop   = 0.0;
-    GroupLabel.WinLeft  = 0.0;
-    GroupLabel.WinWidth = 1.0;
-    GroupLabel.WinHeight = RowHeight;
+    GroupLabel.WinTop      = 0.0;
+    GroupLabel.WinLeft     = 0.0;
+    GroupLabel.WinWidth    = 1.0;
+    GroupLabel.WinHeight   = RowHeight;
+    
+    // style
+    if ( GroupCaptionStyleName == "" ) {
+      GroupLabel.TextColor = GroupCaptionColor;
+      GroupLabel.TextFont  = GroupCaptionFont;
+    } else {
+      GroupLabel.Style = Controller.GetStyle(GroupCaptionStyleName);
+    }
     
     Controls[1] = GroupLabel;
     GroupLabel.InitComponent(MyController, Self);
@@ -99,6 +113,14 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     OptionLabel[i].WinWidth   = LabelWidth - ItemIndent;
     OptionLabel[i].WinLeft    = ItemIndent;
     
+    // style
+    if ( LabelStyleName == "" ) {
+      OptionLabel[i].TextColor = LabelColor;
+      OptionLabel[i].TextFont  = LabelFont;
+    } else {
+      OptionLabel[i].Style = Controller.GetStyle(LabelStyleName);
+    }
+
     // create buttons
     OptionButton[i] = new class'JBGUIRadioButton';
     Controls[2 * i + 2 + iGroupLabel] = OptionButton[i];
@@ -119,12 +141,13 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     OptionButton[i].WinWidth  = ButtonWidth;
     OptionButton[i].WinHeight = ButtonHeightInRow / numRows;
     
+    //OptionButton[i].SetFriendlyLabel(OptionLabel[i]);
+    
     OptionLabel[i].InitComponent(MyController, Self); // try here for friendly?
     OptionButton[i].InitComponent(MyController, Self);
     OptionButton[i].IndexInParent = i;
-    
-    OptionButton[i].FriendlyLabel = OptionLabel[i]; // why not work?
-    
+
+    OptionButton[i].FriendlyLabel = OptionLabel[i];
   }
   
   // set default
@@ -162,18 +185,21 @@ function int GetIndex()
 
 
 //=============================================================================
-// default properties
+// Defaults
 //=============================================================================
 
 defaultproperties
 {
-  bHasBorder = False;
-  ButtonHeightInRow = 0.7;
-  ButtonWidth   = 0.2;
   DefaultOption = 0;
-  GroupCaption  = "";
-  LabelWidth    = 0.6;
-  ItemIndent    = 0.0;
+
+  ButtonHeightInRow = 0.7;
+  ButtonWidth       = 0.2;
+  LabelWidth        = 0.6;
+  ItemIndent        = 0.0;
+
+  GroupCaptionStyleName = "TextLabel";
+  LabelStyleName        = "TextLabel";
+
   Begin Object Class=GUIButton name=GroupBackground
     WinWidth=1.0
     WinHeight=1.0
@@ -183,7 +209,6 @@ defaultproperties
     bNeverFocus=True
     bBoundToParent=True
     bScaleToParent=True
-    // StyleName="STY_SquareButton"
   End Object
   Controls(0)=GUIButton'GroupBackground'
 }
