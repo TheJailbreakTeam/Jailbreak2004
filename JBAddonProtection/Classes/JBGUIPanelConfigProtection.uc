@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelProtectionConfig
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelProtectionConfig.uc,v 1.1 2003/06/27 11:14:32 crokx Exp $
+// $Id: JBGUIPanelProtectionConfig.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
 //
 // Option of protection mutator.
 // ============================================================================
