@@ -160,11 +160,11 @@ defaultproperties
   ColorTextKeyboard  = (R=255,G=255,B=255,A=255);
   ColorTextLastMan   = (R=255,G=255,B=000,A=255);
 
-  PosYTeam           = 0.12;
+  PosYTeam           = 0.13;
   PosYArena          = 0.70;
-  PosYKeyboardArena  = 0.12;
+  PosYKeyboardArena  = 0.13;
   PosYKeyboardCamera = 0.04;
-  PosYLastMan        = 0.10;
+  PosYLastMan        = 0.13;
 
   LifetimeTeam       = 3;
   LifetimeArena      = 3;
