@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.23 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.24 2003/06/02 17:36:12 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -262,7 +262,7 @@ simulated function MoveChat(bool bIsScoreboardDisplayed) {
   LocationChatDelta = LocationChatScoreboard - LocationChatNormal;
   LocationChatInterpolated =
     LocationChatNormal + AlphaLocationChat * LocationChatDelta +
-    LocationChatDelta cross vect(0.0, 0.0, 0.2) * (Square(AlphaLocationChat - 0.5) - 0.25);
+    LocationChatDelta cross vect(0.0, 0.0, 0.1) * (0.25 - Square(AlphaLocationChat - 0.5));
   
   ConsoleMessagePosX = LocationChatInterpolated.X;
   ConsoleMessagePosY = LocationChatInterpolated.Y;
