@@ -1,7 +1,7 @@
 // ============================================================================
 // JBPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBPanorama.uc,v 1.3.2.1 2004/05/17 19:35:30 mychaeel Exp $
 //
 // Marks the viewpoint for the panoramic map overview in the scoreboard.
 // ============================================================================
@@ -155,6 +155,8 @@ simulated protected function PrepareMaterial()
 
     SizeMaterialPanorama.X = TexturePanorama.USize;
     SizeMaterialPanorama.Y = TexturePanorama.VSize;
+
+    TexturePanorama.LODSet = LODSET_Interface;
   }
 
   else {
