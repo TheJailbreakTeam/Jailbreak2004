@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.43.2.7 2004/05/29 12:48:42 mychaeel Exp $
+// $Id$
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -302,6 +302,10 @@ event Tick(float TimeDelta)
   local Pawn thisPawn;
 
   Pawn = Controller.Pawn;
+
+  // fixes replicating over and over when referenced actor has been destroyed
+  if (PawnObjectiveGuessed == None)
+    PawnObjectiveGuessed = None;
 
   if (Pawn != None) {
     LocationPawnLast = Pawn.Location;
@@ -1162,9 +1166,10 @@ function GameObjective GuessObjective()
   if (TimeObjectiveGuessed + 3.0 > Level.TimeSeconds && Controller.Pawn == PawnObjectiveGuessed)
     return ObjectiveGuessed;
 
-  if (Controller.Pawn != PawnObjectiveGuessed)
+  if (Controller.Pawn != PawnObjectiveGuessed) {
     ListDistanceObjective.Length = 0;  // clear list after respawn
-  PawnObjectiveGuessed = Controller.Pawn;
+    PawnObjectiveGuessed = Controller.Pawn;
+  }
 
   for (thisObjective = UnrealTeamInfo(GetTeam()).AI.Objectives;
        thisObjective != None;
