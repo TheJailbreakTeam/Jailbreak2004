@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.3 2003/07/19 10:12:20 mychaeel Exp $
+// $Id: JBAddon.uc,v 1.4 2004/02/16 17:17:01 mychaeel Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -20,6 +20,7 @@ class JBAddon extends Mutator
 // ============================================================================
 
 var const bool bIsOverlay;  // set to have RenderOverlays called client-side
+var const bool bCanResetConfig; // requests a button in JBGUITabPanelAddons
 
 
 // ============================================================================
