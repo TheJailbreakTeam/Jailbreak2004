@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.19 2003/02/08 22:44:22 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.20 2003/02/11 08:28:03 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -69,6 +69,7 @@ var private int TimeElapsedDisconnect;  // elapsed time at player disconnect
 var private TInfoScore InfoScore;       // persistent score over reconnects
 
 var private ERestart Restart;           // restart location for this player
+var private Pawn PawnRestarted;         // last known pawn of this player
 
 var private JBInfoArena Arena;          // arena player is currently in
 var private JBInfoArena ArenaRestart;   // arena player will be restarted in
@@ -203,22 +204,34 @@ function Unregister() {
 
 event Timer() {
 
+  local Pawn PawnCurrent;
+  local JBInfoArena ArenaPrev;
   local JBInfoJail firstJail;
   local JBInfoJail JailPrev;
 
-  if (GetController().Pawn == None)
+  PawnCurrent = GetController().Pawn;
+  if (PawnCurrent == None)
     return;
 
-  JailPrev = Jail;
+  ArenaPrev = Arena;
+  JailPrev  = Jail;
+
   Jail = None;
+
+  if (PawnCurrent != PawnRestarted) {
+    PawnRestarted = PawnCurrent;
+    Arena = None;
+    }
 
   if (Arena == None) {
     firstJail = JBReplicationInfoGame(GetGameReplicationInfo()).firstJail;
     for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)    
-      if (Jail.ContainsActor(GetController().Pawn))
+      if (Jail.ContainsActor(PawnCurrent))
         break;
     }
-    
+
+  if (ArenaPrev != None && Arena == None) NotifyArenaLeft(ArenaPrev);
+
        if (JailPrev == None && Jail != None) NotifyJailEntered();
   else if (JailPrev != None && Jail == None) NotifyJailLeft(JailPrev);
   }
@@ -274,6 +287,35 @@ function NotifyRound() {
 
 
 // ============================================================================
+// NotifyArenaEntered
+//
+// Called when the player entered an arena. Puts bots on the arena squad.
+// ============================================================================
+
+function NotifyArenaEntered() {
+
+  if (Bot(GetController()) != None)
+    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadArena(Bot(GetController()));
+  }
+
+
+// ============================================================================
+// NotifyArenaLeft
+//
+// Called when the player left the arena for jail or for freedom.
+// ============================================================================
+
+function NotifyArenaLeft(JBInfoArena ArenaPrev) {
+
+  if (IsInJail())
+    return;
+
+  JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifySpawn(GetController());
+  JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifySpawn(GetController());
+  }
+
+
+// ============================================================================
 // NotifyJailEntered
 //
 // Called when the player entered the jail from an arena or from freedom.
@@ -301,6 +343,9 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
   local Controller ControllerInstigator;
   local JBInfoArena firstArena;
   local JBInfoArena thisArena;
+
+  if (IsInArena())
+    return;
 
   if (ArenaPending != None)
     ArenaPending.MatchCancel();
@@ -383,6 +428,7 @@ private function RestartPlayer(ERestart RestartCurrent) {
       break;
 
     xPawnPlayer = xPawn(PawnPlayer);
+
     if (xPawnPlayer != None) {
       if (xPawnPlayer.CurrentCombo != None) {
         xPawnPlayer.CurrentCombo.Destroy();
@@ -401,6 +447,44 @@ private function RestartPlayer(ERestart RestartCurrent) {
   Restart = RestartCurrent;
   Level.Game.RestartPlayer(GetController());
   Restart = Restart_Jail;
+  
+  PawnRestarted = GetController().Pawn;
+  }
+
+
+// ============================================================================
+// LeftArena
+//
+// Resets the Arena reference and triggers the appropriate notifications.
+// ============================================================================
+
+private function LeftArena() {
+
+  local JBInfoArena ArenaPrev;
+  
+  ArenaPrev = Arena;
+  Arena = None;
+  
+  if (ArenaPrev != None)
+    NotifyArenaLeft(ArenaPrev);
+  }
+
+
+// ============================================================================
+// LeftJail
+//
+// Resets the Jail reference and triggers the appropriate notifications.
+// ============================================================================
+
+private function LeftJail() {
+
+  local JBInfoJail JailPrev;
+  
+  JailPrev = Jail;
+  Jail = None;
+  
+  if (JailPrev != None)
+    NotifyJailLeft(JailPrev);
   }
 
 
@@ -420,16 +504,8 @@ function RestartFreedom() {
   
   RestartPlayer(Restart_Freedom);
 
-  Arena = None;
-
-  // Auto-detection of player leaving jail would be delayed until the player
-  // has actually physically respawned in freedom, and that can take too long
-  // during the execution sequence.
-
-  JailPrev = Jail;
-  Jail = None;
-  if (JailPrev != None)
-    NotifyJailLeft(JailPrev);
+  LeftArena();
+  LeftJail();
   }
 
 
@@ -447,7 +523,7 @@ function RestartJail() {
   
   RestartPlayer(Restart_Jail);
   
-  Arena = None;
+  LeftArena();
   }
 
 
@@ -467,6 +543,9 @@ function RestartArena(JBInfoArena NewArenaRestart) {
   
   Arena = ArenaRestart;
   ArenaRestart = None;
+  
+  LeftJail();
+  NotifyArenaEntered();
   }
 
 

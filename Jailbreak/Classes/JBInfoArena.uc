@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.9 2003/01/30 20:04:33 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.10 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -185,6 +185,9 @@ function bool CanStart() {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local TeamInfo TeamPlayer;
+  
+  if (!Level.Game.IsInState('MatchInProgress'))
+    return False;
   
   firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -552,6 +555,8 @@ function MatchFinish() {
 
     if (Jailbreak(Level.Game).firstJBGameRules != None)
       Jailbreak(Level.Game).firstJBGameRules.NotifyArenaEnd(Self, TagPlayerWinner);
+
+    GotoState('Waiting');
     }
   
   else {
@@ -601,7 +606,7 @@ function Controller FindWinner() {
 // Arena waits for a match to be triggered.
 // ============================================================================
 
-state Waiting {
+auto state Waiting {
 
   // ================================================================
   // BeginState
@@ -741,7 +746,8 @@ state MatchCountdown {
 
     firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetArenaPending() == Self)
+      if (thisTagPlayer.GetArenaPending() == Self &&
+          PlayerController(thisTagPlayer.GetController()) != None)
         Level.Game.BroadcastHandler.BroadcastLocalized(
           Self,
           PlayerController(thisTagPlayer.GetController()),
