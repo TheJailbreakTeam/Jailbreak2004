@@ -1,4 +1,4 @@
-; $Id: JBVoiceFreak.int,v 1.1.1.1 2004/05/17 03:21:43 mychaeel Exp $
+; $Id: JBVoiceFreak.int,v 1.2 2004/05/18 18:01:20 mychaeel Exp $
 
 [Public]
 Object=(Name=JBVoiceFreak,Class=Class,MetaClass=Jailbreak.JBVoice,Description="HyperFreak")
@@ -22,6 +22,7 @@ ArenaEndTimeout="ArenaEndLoser"
 ArenaEndWinner="ArenaEndWinner"
 ArenaEndLoser="ArenaEndLoser"
 GameStart="GameStart"
+GameOvertime="GameOvertime"
 GameOverWinnerRed="(red: GameOverWinner) (blue: GameOverLoser) (spectator: $TeamRed GameOverTeam)"
 GameOverWinnerBlue="(red: GameOverLoser) (blue: GameOverWinner) (spectator: $TeamBlue GameOverTeam)"
 AddonLlamaStart="LlamaStart"
