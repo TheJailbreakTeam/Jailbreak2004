@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBBotSquad.uc,v 1.16.2.1 2004/04/14 15:24:30 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -358,6 +358,23 @@ function bool MustKeepEnemy(Pawn PawnEnemy)
   }
 
   return Super.MustKeepEnemy(PawnEnemy);
+}
+
+
+// ============================================================================
+// PriorityObjective
+//
+// If this squad is currently attacking a switch, returns the number of
+// players who could be released by a successful attack; otherwise, returns
+// zero to indicate no particular priority.
+// ============================================================================
+
+function byte PriorityObjective(Bot Bot)
+{
+  if (SquadObjective != None && JBBotTeam(Team.AI).IsObjectiveAttack(SquadObjective))
+    return JBBotTeam(Team.AI).CountPlayersReleasable(SquadObjective);
+ 
+  return 0;
 }
 
 
