@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.6 2004/03/27 21:57:28 tarquin Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.7 2004/03/28 16:14:08 tarquin Exp $
 //
 // Option of protection mutator.
 // ============================================================================
@@ -60,12 +60,14 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 // ============================================================================
 function ChangeOptions(GUIComponent Sender)
 {
-  class'JBAddonProtection'.default.ProtectionTime = int(ProtectionTime.GetValue());
+  if (ProtectionTime == None ||
+      ProtectionType == None)
+    return;
+
+  class'JBAddonProtection'.default.ProtectionTime = int (ProtectionTime.GetValue());
   class'JBAddonProtection'.default.ProtectionType = byte(ProtectionType.GetIndex());
   class'JBAddonProtection'.default.bProtectArenaWinner = ProtectArenaWinner.IsChecked();
   
-  //log("JB saved config protection:"@byte(ProtectionType.GetIndex()));
-
   class'JBAddonProtection'.static.StaticSaveConfig();
 }
 
