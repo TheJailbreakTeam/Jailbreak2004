@@ -311,7 +311,7 @@ simulated function LinkActors()
 simulated function CheckLastMan()
 {
   local int nPlayersFree;
-  local int nPlayersCaptured;
+  local int nPlayersJailed;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
@@ -328,12 +328,12 @@ simulated function CheckLastMan()
   
     firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetTeam() == PawnOwner.PlayerReplicationInfo.Team)
-        if (thisTagPlayer.IsFree())
-               nPlayersFree     += 1;
-          else nPlayersCaptured += 1;
+      if (thisTagPlayer.GetTeam() == PawnOwner.PlayerReplicationInfo.Team) {
+             if (thisTagPlayer.IsFree())   nPlayersFree   += 1;
+        else if (thisTagPlayer.IsInJail()) nPlayersJailed += 1;
+      }
 
-    if (nPlayersFree == 1 && nPlayersCaptured > 0) {
+    if (nPlayersFree == 1 && nPlayersJailed > 0) {
       if (!bIsLastMan)
              PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 600);
         else PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 610);
