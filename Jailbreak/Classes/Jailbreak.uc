@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: Jailbreak.uc,v 1.91 2004/05/20 21:03:09 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -360,6 +360,25 @@ event PostBeginPlay()
 
 
 // ============================================================================
+// Login
+//
+// Gives every player new JBTagPlayer and JBTagClient actors.
+// ============================================================================
+
+event PlayerController Login(string Portal, string Options, out string Error)
+{
+  local PlayerController PlayerLogin;
+
+  PlayerLogin = Super.Login(Portal, Options, Error);
+
+  if (PlayerLogin != None)
+    Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
+
+  return PlayerLogin;
+}
+
+
+// ============================================================================
 // RegisterPlayer
 //
 // Registers the given player for active gameplay. Called whenever a player
@@ -400,9 +419,6 @@ function RegisterPlayer(Controller Controller)
       Class'JBTagPlayer'.Static.SpawnFor(Controller.PlayerReplicationInfo);
     }
   }
-
-  if (PlayerController(Controller) != None)
-    Class'JBTagClient'.Static.SpawnFor(PlayerController(Controller));
 }
 
 
