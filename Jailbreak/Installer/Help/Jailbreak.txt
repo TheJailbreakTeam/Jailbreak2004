@@ -42,7 +42,8 @@ Zip Installation
     *.txt   Help\
     *.bmp   Help\
     *.html  Help\Jailbreak\
-    *.jpg   Help\Jailbreak\Images\
+    *.css  Help\Jailbreak\Styles
+    *.jpeg   Help\Jailbreak\Images\
     *.gif   Help\Jailbreak\Images\
 
 
