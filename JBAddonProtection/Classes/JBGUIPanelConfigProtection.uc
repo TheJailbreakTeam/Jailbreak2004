@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.5 2004/03/26 20:47:40 tarquin Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.6 2004/03/27 21:57:28 tarquin Exp $
 //
 // Option of protection mutator.
 // ============================================================================
@@ -44,7 +44,8 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 
     // Protection type
     ProtectionType = JBGUIOptionGroup(Controls[CONTROL_PROTECTION_TYPE]);
-    Protectiontype.SetIndex(class'JBAddonProtection'.default.ProtectionType);
+    ProtectionType.SetIndex(class'JBAddonProtection'.default.ProtectionType);
+    //log("JB set protection type to"@ class'JBAddonProtection'.default.ProtectionType);
 
     // Protect the arena winner
     ProtectArenaWinner = moCheckBox(Controls[CONTROL_PROTECT_ARENA]);
@@ -59,14 +60,13 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 // ============================================================================
 function ChangeOptions(GUIComponent Sender)
 {
-    if(Sender == ProtectionTime)
-        class'JBAddonProtection'.default.ProtectionTime = int(ProtectionTime.GetValue());
-    else if(Sender == ProtectionType)
-        class'JBAddonProtection'.default.ProtectionType = ProtectionType.GetIndex();
-    else if(Sender == ProtectArenaWinner)
-        class'JBAddonProtection'.default.bProtectArenaWinner = ProtectArenaWinner.IsChecked();
+  class'JBAddonProtection'.default.ProtectionTime = int(ProtectionTime.GetValue());
+  class'JBAddonProtection'.default.ProtectionType = byte(ProtectionType.GetIndex());
+  class'JBAddonProtection'.default.bProtectArenaWinner = ProtectArenaWinner.IsChecked();
+  
+  //log("JB saved config protection:"@byte(ProtectionType.GetIndex()));
 
-    class'JBAddonProtection'.static.StaticSaveConfig();
+  class'JBAddonProtection'.static.StaticSaveConfig();
 }
 
 
