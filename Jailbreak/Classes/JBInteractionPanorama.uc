@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionPanorama.uc,v 1.1 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: JBInteractionPanorama.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Provides a special interactive adjustment mode for the scoreboard overlook
 // map. Use the SetupPanorama console command to enter this mode.
@@ -202,7 +202,7 @@ function CopyPanorama()
 // Intercepts special key events used by this interaction.
 // ============================================================================
 
-function bool KeyEvent( out EInputKey InputKey, out EInputAction InputAction, float Delta)
+function bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float Delta)
 {
   if (InputKey == IK_Shift)
     if (InputAction == IST_Press)
@@ -347,7 +347,7 @@ defaultproperties
   TextInstructions[16] = "Press Shift+X to exit adjustment mode.";
 
   TextStatusCopy       = "JBPanorama actor copied to the clipboard.";
-  TextStatusScreenshot = "Screenshot saved to the last Shot?????.bmp file in your System directory.";
+  TextStatusScreenshot = "Screenshot saved to the last Shot?????.bmp file in your ScreenShots directory.";
 
   bVisible      = True;
   bRequiresTick = True;
