@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.37 2004/05/13 18:50:35 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.38 2004/05/18 23:38:36 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -846,6 +846,10 @@ simulated function ShowCountdown(Canvas Canvas, HudBase HudBase)
          NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale * 2/3;
     else NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale;
 
+  NumericWidgetCountdown.OffsetY = Default.NumericWidgetCountdown.OffsetY *
+    Default.NumericWidgetCountdown.TextureScale /
+            NumericWidgetCountdown.TextureScale;
+
   HudBase.DrawSpriteWidget(Canvas, SpriteWidgetCountdown);
 
   if (NumericWidgetCountdown.Value > 10)
@@ -1310,7 +1314,7 @@ defaultproperties
   TagAttachPickups      = Auto;
 
   SpriteWidgetCountdown = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.7,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
-  NumericWidgetCountdown = (TextureScale=0.36,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=54,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  NumericWidgetCountdown = (TextureScale=0.36,DrawPivot=DP_MiddleMiddle,PosX=0.500,PosY=0.004,OffsetX=-2,OffsetY=50,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
 
   FontNames = "2K4Fonts.Verdana20";
   SizeFontNames = (X=0.400,Y=0.450);
