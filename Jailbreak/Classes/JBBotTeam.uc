@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.32 2004/04/25 21:22:16 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.33 2004/05/18 13:53:10 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -975,7 +975,8 @@ function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander)
 
   if (TagPlayerBot.IsFree() ||
      (TagPlayerBot.IsInJail() &&
-      TagPlayerBot.GetJail().IsReleaseActive(Team))) {
+       (TagPlayerBot.GetJail().IsReleaseOpening(Team) ||
+        TagPlayerBot.GetJail().IsReleaseOpen   (Team)))) {
 
     Super.SetOrders(Bot, OrderName, ControllerCommander);
     RequestReAssessment();
