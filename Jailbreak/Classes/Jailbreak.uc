@@ -45,8 +45,9 @@ var private JBTagPlayer firstTagPlayerInactive;  // disconnected player chain
 
 var private float TimeExecution;         // time for pending execution
 var private float TimeRestart;           // time for pending round restart
+var private JBInfoJail JailExecution;    // jail viewed during execution
+
 var private float DilationTimePrev;      // last synchronized time dilation
-var private JBCamera CameraExecution;    // camera for execution sequence
 
 var private float TimeEventFired;        // time of last fired singular event
 var private array<name> ListEventFired;  // singular events fired this tick
@@ -949,61 +950,30 @@ function bool IsCaptured(TeamInfo Team)
 
 
 // ============================================================================
-// RateCameraExecution
+// FindJailExecution
 //
-// Rates the given camera in terms of a good view on an execution sequence.
-// The higher the returned value, the better.
+// Finds the jail which contains most players from the executed team. Used to
+// select which camera array to activate for the execution sequence.
 // ============================================================================
 
-function int RateCameraExecution(JBCamera CameraExecution, TeamInfo TeamExecuted)
+function JBInfoJail FindJailExecution(TeamInfo TeamExecuted)
 {
   local int nPlayersJailed;
+  local int nPlayersJailedBest;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
+  local JBInfoJail JailBest;
 
-  firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
-  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
-    if (thisJail.Event == CameraExecution.Tag)
-      nPlayersJailed += thisJail.CountPlayers(TeamExecuted);
-
-  return nPlayersJailed;
-}
-
-
-// ============================================================================
-// FindCameraExecution
-//
-// Finds the execution camera with the best view on the execution sequence.
-// ============================================================================
-
-function JBCamera FindCameraExecution(TeamInfo TeamExecuted)
-{
-  local int RatingCamera;
-  local int RatingCameraSelected;
-  local int RatingCameraTotal;
-  local array<int> ListRatingCamera;
-  local JBCamera thisCamera;
-
-  foreach DynamicActors(Class'JBCamera', thisCamera) {
-    RatingCamera = RateCameraExecution(thisCamera, TeamExecuted);
-    RatingCameraTotal += RatingCamera;
-    ListRatingCamera[ListRatingCamera.Length] = RatingCamera;
+  firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail) {
+    nPlayersJailed = thisJail.CountPlayers(TeamExecuted);
+    if (JailBest == None || nPlayersJailed > nPlayersJailedBest) {
+      JailBest = thisJail;
+      nPlayersJailedBest = nPlayersJailed;
+    }
   }
 
-  if (RatingCameraTotal == 0)
-    return None;
-
-  RatingCameraSelected = Rand(RatingCameraTotal);
-  RatingCameraTotal = 0;
-
-  foreach DynamicActors(Class'JBCamera', thisCamera) {
-    RatingCameraTotal += ListRatingCamera[0];
-    if (RatingCameraSelected < RatingCameraTotal)
-      return thisCamera;
-    ListRatingCamera.Remove(0, 1);
-  }
-
-  return None;
+  return JailBest;
 }
 
 
@@ -1072,8 +1042,7 @@ function bool IsReleaseActive(TeamInfo Team)
 // ExecutionInit
 //
 // Checks how many teams are captured. If none, fails. If more than one,
-// announces a tie and starts a new round. If exactly one, respawns all other
-// players in freedom, selects an execution camera and initiates execution.
+// announces a tie and starts a new round. If exactly one, commits execution.
 // Can only be called in the default state.
 // ============================================================================
 
@@ -1114,8 +1083,9 @@ function bool ExecutionInit()
 // ============================================================================
 // ExecutionCommit
 //
-// Prepares and commits a team's execution. Respawns all other players, scores
-// and announces the capture.
+// Prepares and commits a team's execution. Selects a jail to view during the
+// execution sequence, respawns all other players, scores and announces the
+// capture.
 // ============================================================================
 
 function ExecutionCommit(TeamInfo TeamExecuted)
@@ -1141,15 +1111,13 @@ function ExecutionCommit(TeamInfo TeamExecuted)
     foreach DynamicActors(Class'JBCamera', thisCamera)
       thisCamera.DeactivateForAll();
 
-    CameraExecution = FindCameraExecution(TeamExecuted);
-    if (CameraExecution == None)
-      Log("Warning: No execution camera found");
+    JailExecution = FindJailExecution(TeamExecuted);
 
-    if (bEnableSpectatorDeathCam && CameraExecution != None)
+    if (bEnableSpectatorDeathCam)
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (thisController.PlayerReplicationInfo != None &&
             thisController.PlayerReplicationInfo.bOnlySpectator)
-          CameraExecution.ActivateFor(thisController);
+          JailExecution.ActivateCameraFor(thisController);
 
     TeamCapturer = OtherTeam(TeamExecuted);
     TeamCapturer.Score += 1;
@@ -1180,6 +1148,7 @@ function ExecutionCommit(TeamInfo TeamExecuted)
 function ExecutionEnd()
 {
   local Controller thisController;
+  local JBCamera Camera;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
   local JBGameRules firstJBGameRules;
@@ -1196,11 +1165,14 @@ function ExecutionEnd()
     GotoState('MatchInProgress');
     RestartAll();
 
-    if (bEnableSpectatorDeathCam && CameraExecution != None)
+    if (bEnableSpectatorDeathCam)
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (thisController.PlayerReplicationInfo != None &&
-            thisController.PlayerReplicationInfo.bOnlySpectator)
-          CameraExecution.DeactivateFor(thisController);
+            thisController.PlayerReplicationInfo.bOnlySpectator) {
+          Camera = JBCamera(PlayerController(thisController).ViewTarget);
+          if (Camera != None)
+            Camera.DeactivateFor(thisController);
+        }
 
     if ((Teams[0].Score >= GoalScore ||
          Teams[1].Score >= GoalScore) && GoalScore > 0)
@@ -1400,16 +1372,15 @@ state Executing {
   // ================================================================
   // RestartPlayer
   //
-  // Puts the given player in spectator mode and sets his or her
-  // ViewTarget to the currently selected execution camera.
+  // Puts the given player in spectator mode and activates the
+  // execution cam for him or her.
   // ================================================================
 
   function RestartPlayer(Controller Controller)
   {
     local JBTagPlayer TagPlayer;
 
-    if (CameraExecution != None)
-      CameraExecution.ActivateFor(Controller);
+    JailExecution.ActivateCameraFor(Controller);
 
     TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
     TagPlayer.NotifyRestarted();

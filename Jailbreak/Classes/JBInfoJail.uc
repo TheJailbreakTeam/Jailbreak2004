@@ -604,6 +604,22 @@ function ResetObjectives(TeamInfo Team)
 
 
 // ============================================================================
+// ActivateCameraFor
+//
+// Activates the attached camera or camera array for the given player.
+// ============================================================================
+
+function ActivateCameraFor(Controller Controller)
+{
+  local JBCamera thisCamera;
+  
+  if (PlayerController(Controller) != None)
+    foreach DynamicActors(Class'JBCamera', thisCamera, Event)
+      thisCamera.TriggerForController(Self, Controller);
+}
+
+
+// ============================================================================
 // ExecutePlayer
 //
 // Executes the given player. Used for fallback execution.
