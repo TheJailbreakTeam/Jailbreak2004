@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.8 2004/04/14 10:29:14 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.9 2004/04/21 19:14:52 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -287,13 +287,18 @@ simulated function UpdatePrecacheMaterials()
 // ============================================================================
 // Init
 //
-// Finds the JBPanorama actor if there is one.
+// Finds the JBPanorama actor if there is one, and takes certain localized
+// strings from other classes.
 // ============================================================================
 
 simulated function Init()
 {
   foreach DynamicActors(Class'JBPanorama', Panorama)
     break;
+
+  TextOrdersAttack      = Class'SquadAI'.Default.AttackString;
+  TextOrdersDefense     = Class'SquadAI'.Default.DefendString;
+  TextOrdersFreelance   = Class'SquadAI'.Default.FreelanceString;
 
   Super.Init();
 }
