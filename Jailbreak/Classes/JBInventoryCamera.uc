@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInventoryCamera
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInventoryCamera.uc,v 1.1 2004/03/14 16:19:13 mychaeel Exp $
 //
 // Inventory item used to track use of the PrevWeapon and NextWeapon console
 // commands to switch cameras within a camera array.
@@ -50,8 +50,8 @@ simulated function Weapon NextWeapon(Weapon WeaponChoice, Weapon WeaponCurrent) 
 // Send switching commands to the attached camera.
 // ============================================================================
 
-function ServerPrevWeapon() { Camera.SwitchToPrev(Instigator.Controller); }
-function ServerNextWeapon() { Camera.SwitchToNext(Instigator.Controller); }
+function ServerPrevWeapon() { Camera.SwitchToPrev(Instigator.Controller, True); }
+function ServerNextWeapon() { Camera.SwitchToNext(Instigator.Controller, True); }
 
 
 // ============================================================================

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.41 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.42 2004/03/09 01:24:36 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -131,9 +131,11 @@ var transient bool bIsInScoreboard;       // scores listed; used by scoreboard
 // Caches
 // ============================================================================
 
-struct TCacheGetRestart { var float Time; var ERestart Result; };
+struct TCacheGetRestart       { var float Time; var ERestart Result; };
+struct TCacheRateViewOnPlayer { var float Time; var float    Result; var vector LocationViewpoint; };
 
-var private transient TCacheGetRestart CacheGetRestart;
+var private transient TCacheGetRestart       CacheGetRestart;
+var private transient TCacheRateViewOnPlayer CacheRateViewOnPlayer;
 
 
 // ============================================================================
@@ -979,7 +981,6 @@ function RecordLocation(optional NavigationPoint NavigationPoint)
   if (NavigationPoint == None) {
     ListInfoLocation.Length = 0;
   }
-
   else {
     ListInfoLocation.Length = 1;
     ListInfoLocation[0].NavigationPoint = NavigationPoint;
@@ -1158,6 +1159,31 @@ function GameObjective GuessObjective()
 
   TimeObjectiveGuessed = Level.TimeSeconds;
   return ObjectiveGuessed;
+}
+
+
+// ============================================================================
+// RateViewOnPlayer
+//
+// Calculates and returns a rating for the view from the given location on
+// this player, not taking into account the viewer's field of view, if any.
+// The higher the return value, the better the view. Results are cached.
+// ============================================================================
+
+simulated function float RateViewOnPlayer(vector LocationViewpoint)
+{
+  if (CacheRateViewOnPlayer.Time == Level.TimeSeconds &&
+      CacheRateViewOnPlayer.LocationViewpoint == LocationViewpoint)
+    return CacheRateViewOnPlayer.Result;
+  
+  CacheRateViewOnPlayer.Time = Level.TimeSeconds;
+  CacheRateViewOnPlayer.Result = 0.0;
+  CacheRateViewOnPlayer.LocationViewpoint = LocationViewpoint;
+
+  if (Pawn != None && FastTrace(Pawn.Location, LocationViewpoint))
+    CacheRateViewOnPlayer.Result = Exp(-Square((VSize(Pawn.Location - LocationViewpoint) - 64.0) / 1024.0));
+
+  return CacheRateViewOnPlayer.Result;
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.22 2004/03/05 20:17:27 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.23 2004/03/14 16:19:13 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -52,6 +52,7 @@ struct TInfoOverlay
 
 struct TInfoSwitching
 {
+  var() bool bAllowAuto;            // auto-switching based on view rating
   var() bool bAllowManual;          // manual switching by Prev/NextWeapon
   var() bool bAllowTriggered;       // another camera triggered by TagSwitch
   var() bool bAllowTimed;           // auto-switching when view time runs out
@@ -65,8 +66,10 @@ struct TInfoSwitching
 struct TInfoViewer
 {
   var PlayerController Controller;  // player viewing this camera
+  var bool bManual;                 // player is switching manually
 
   var bool bBehindViewPrev;         // previous behind-view setting
+  var float FieldOfViewPrev;        // previous field of view
   var Actor ViewTargetPrev;         // previous view target
 
   var float TimeToSwitch;           // time to next camera switch
@@ -77,43 +80,48 @@ struct TInfoViewer
 // Properties
 // ============================================================================
 
-var(Events) name TagSwitch;         // trigger to switch to this camera
+var(Events) name TagSwitch;                      // switch to this camera
 
-var() TInfoCaption Caption;         // camera caption text
-var() TInfoOverlay Overlay;         // camera material overlay
-var() TInfoSwitching Switching;     // switching within camera array
+var() editinline JBCamController CamController;  // movement controller
 
-var() bool bWidescreen;             // display camera widescreen bars
-var() byte MotionBlur;              // amount of camera motion blur
+var() TInfoCaption Caption;                      // camera caption text
+var() TInfoOverlay Overlay;                      // camera material overlay
+var() TInfoSwitching Switching;                  // switching in camera array
+
+var() bool bWidescreen;                          // display widescreen bars
+var() float FieldOfView;                         // field of view for zooming
+var() byte MotionBlur;                           // amount of motion blur
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var private JBCamManager CamManager;            // camera array manager actor
+var private JBCamManager CamManager;             // camera array manager actor
+var float TimeUpdateMovement;                    // last movement update
 
-var private bool bIsActiveLocal;                // local player using camera
-var private array<TInfoViewer> ListInfoViewer;  // all players using camera
+var private bool bIsActiveLocal;                 // local player using camera
+var private array<TInfoViewer> ListInfoViewer;   // all players using camera
 
-var private MotionBlur CameraEffectMotionBlur;  // MotionBlur object in use
+var private MotionBlur CameraEffectMotionBlur;   // MotionBlur object in use
 
 
 // ============================================================================
 // PostBeginPlay
 //
-// Disables the Tick event server-side. ActivateFor will enable it again as
-// soon as a player starts viewing through this camera. On clients, loads the
-// caption font. Initializes the camera array, if any.
+// Initializes the camera array, if any. On clients, loads the caption font. 
 // ============================================================================
 
 simulated event PostBeginPlay()
 {
-  if (Role == ROLE_Authority)
-    Disable('Tick');
-
   if (Level.NetMode != NM_DedicatedServer)
     Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
+
+  if (CamController == None)
+    CamController = new Class'JBCamController';
+
+  CamController.Camera = Self;
+  CamController.Init();
 
   InitCameraArray();
 }
@@ -143,6 +151,23 @@ function InitCameraArray()
 
 
 // ============================================================================
+// SetInitialState
+//
+// Disables the Tick event server-side. It must remain enabled client-side to
+// pick up when a player starts viewing from this camera, and ActivateFor will
+// reactivate it server-side.
+// ============================================================================
+
+simulated event SetInitialState()
+{
+  Super.SetInitialState();
+  
+  if (Role == ROLE_Authority)
+    Disable('Tick');
+}
+
+
+// ============================================================================
 // Trigger
 //
 // Activates this camera for the instigator; for a camera which is part of a
@@ -151,9 +176,21 @@ function InitCameraArray()
 
 event Trigger(Actor ActorOther, Pawn PawnInstigator)
 {
-  if (CamManager == None ||
-      CamManager.FindCameraFirst() == Self)
-    ActivateFor(PawnInstigator.Controller);
+  local JBCamera CameraActivate;
+
+  if (CamManager == None) {
+    CameraActivate = Self;
+  }
+  
+  else if (CamManager.FindCameraFirst() == Self) {
+    if (Switching.bAllowAuto)
+      CameraActivate = CamManager.FindCameraBest();
+    if (CameraActivate == None)
+      CameraActivate = Self;
+  }
+
+  if (CameraActivate != None)
+    CameraActivate.ActivateFor(PawnInstigator.Controller);
 }
 
 
@@ -200,7 +237,8 @@ function SwitchTo(JBCamera Camera, optional bool bOverrideManual)
   local int iInfoViewer;
   
   for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--)
-    Camera.ActivateFor(ListInfoViewer[iInfoViewer].Controller);
+    if (bOverrideManual || !ListInfoViewer[iInfoViewer].bManual)
+      Camera.ActivateFor(ListInfoViewer[iInfoViewer].Controller);
 }
 
 
@@ -211,15 +249,16 @@ function SwitchTo(JBCamera Camera, optional bool bOverrideManual)
 // is called. Switches the player to the previous camera in the array.
 // ============================================================================
 
-function SwitchToPrev(Controller Controller)
+function SwitchToPrev(Controller Controller, optional bool bManual)
 {
+  local int iInfoPlayer;
   local JBCamera CameraPrev;
 
   if (CamManager == None)
     return;
 
   CameraPrev = CamManager.FindCameraPrev(Self);
-  CameraPrev.ActivateFor(Controller);
+  CameraPrev.ActivateFor(Controller, bManual);
 }
 
 
@@ -230,7 +269,7 @@ function SwitchToPrev(Controller Controller)
 // is called. Switches the player to the next camera in the array.
 // ============================================================================
 
-function SwitchToNext(Controller Controller)
+function SwitchToNext(Controller Controller, optional bool bManual)
 {
   local JBCamera CameraNext;
   
@@ -238,7 +277,69 @@ function SwitchToNext(Controller Controller)
     return;
   
   CameraNext = CamManager.FindCameraNext(Self);
-  CameraNext.ActivateFor(Controller);
+  CameraNext.ActivateFor(Controller, bManual);
+}
+
+
+// ============================================================================
+// AutoSwitchTimed
+//
+// Decrements the timers of all viewers and switches them to the next camera
+// if appropriate. Assumes a camera array. Executed only on the server.
+// ============================================================================
+
+function AutoSwitchTimed(float TimeDelta)
+{
+  local int iInfoViewer;
+
+  if (!Switching.bAllowTimed)
+    return;
+
+  for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--) {
+    ListInfoViewer[iInfoViewer].TimeToSwitch -= TimeDelta;
+    if (ListInfoViewer[iInfoViewer].TimeToSwitch <= 0.0 &&
+       !ListInfoViewer[iInfoViewer].bManual)
+      SwitchToNext(ListInfoViewer[iInfoViewer].Controller);
+  }
+}
+
+
+// ============================================================================
+// AutoSwitchBest
+//
+// Finds the most suitable camera and switches all viewers to it. Assumes a
+// camera array. Executed only on the server.
+// ============================================================================
+
+function AutoSwitchBest()
+{
+  local JBCamera CameraBest;
+
+  if (!Switching.bAllowAuto || ListInfoViewer.Length == 0)
+    return;
+
+  CameraBest = CamManager.FindCameraBest();
+
+  if (CameraBest != None &&
+      CameraBest != Self)
+    SwitchTo(CameraBest);
+}
+
+
+// ============================================================================
+// RateCurrentView
+//
+// Rates the view a player would have from this camera based on the rating
+// returned by its JBCamController. The higher the return value, the better
+// the view from this camera. Used to automatically switch cameras.
+// ============================================================================
+
+function float RateCurrentView()
+{
+  if (CamController == None)
+    return 0.0;
+
+  return CamController.RateCurrentView();
 }
 
 
@@ -273,12 +374,11 @@ function bool IsViewer(Controller Controller)
 // Tick event.
 // ============================================================================
 
-function ActivateFor(Controller Controller)
+function ActivateFor(Controller Controller, optional bool bManual)
 {
   local int iInfoViewer;
   local Actor ViewTargetPrev;
   local PlayerController ControllerPlayer;
-  local JBInventoryCamera InventoryCamera;
 
   ControllerPlayer = PlayerController(Controller);
   if (IsViewer(Controller) || ControllerPlayer == None)
@@ -296,10 +396,15 @@ function ActivateFor(Controller Controller)
 
     iInfoViewer = ListInfoViewer.Length;
     ListInfoViewer.Insert(iInfoViewer, 1);
-    ListInfoViewer[iInfoViewer].Controller      = ControllerPlayer;
+
+    ListInfoViewer[iInfoViewer].Controller = ControllerPlayer;
+    ListInfoViewer[iInfoViewer].bManual    = bManual;
+    
     ListInfoViewer[iInfoViewer].bBehindViewPrev = ControllerPlayer.bBehindView;
+    ListInfoViewer[iInfoViewer].FieldOfViewPrev = ControllerPlayer.FOVAngle;
     ListInfoViewer[iInfoViewer].ViewTargetPrev  = ViewTargetPrev;
-    ListInfoViewer[iInfoViewer].TimeToSwitch    = Switching.Time;
+
+    ListInfoViewer[iInfoViewer].TimeToSwitch = Switching.Time;
 
     if (CamManager != None && Switching.bAllowManual)
       CamManager.AddInventoryCamera(Controller, Self);
@@ -314,6 +419,7 @@ function ActivateFor(Controller Controller)
     ActivateForLocal();
 
   Enable('Tick');
+  UpdateMovement();
 }
 
 
@@ -329,10 +435,7 @@ function DeactivateFor(Controller Controller)
 {
   local int iInfoViewer;
   local Actor ViewTargetPrev;
-  local Actor thisActor;
-  local Actor nextActor;
   local PlayerController ControllerPlayer;
-  local JBInventoryCamera InventoryCamera;
 
   ControllerPlayer = PlayerController(Controller);
   if (ControllerPlayer == None)
@@ -353,12 +456,14 @@ function DeactivateFor(Controller Controller)
 
     ControllerPlayer.SetViewTarget      (ViewTargetPrev);
     ControllerPlayer.ClientSetViewTarget(ViewTargetPrev);
+    
     ControllerPlayer.bBehindView =       ListInfoViewer[iInfoViewer].bBehindViewPrev;
     ControllerPlayer.ClientSetBehindView(ListInfoViewer[iInfoViewer].bBehindViewPrev);
-
-    if (CamManager != None)
-      CamManager.RemoveInventoryCamera(Controller);
+    ControllerPlayer.SetFOVAngle        (ListInfoViewer[iInfoViewer].FieldOfViewPrev);
   }
+
+  if (CamManager != None)
+    CamManager.RemoveInventoryCamera(Controller);
 
   ListInfoViewer.Remove(iInfoViewer, 1);
 
@@ -449,7 +554,33 @@ protected simulated function DeactivateForLocal()
 
 protected simulated function UpdateLocal()
 {
-  Level.GetLocalPlayerController().bBehindView = False;
+  local PlayerController ControllerPlayer;
+
+  ControllerPlayer = Level.GetLocalPlayerController();
+  ControllerPlayer.bBehindView = False;
+  ControllerPlayer.FOVAngle = FieldOfView;
+}
+
+
+// ============================================================================
+// UpdateMovement
+//
+// Called both server-side and client-side once a tick as long as this camera
+// is being used by at least once player. Executed only once a tick.
+// ============================================================================
+
+simulated function UpdateMovement()
+{
+  local float TimeDelta;
+  
+  if (CamController == None || TimeUpdateMovement == Level.TimeSeconds)
+    return;
+    
+  if (TimeUpdateMovement > 0.0)
+    TimeDelta = Level.TimeSeconds - TimeUpdateMovement;
+  TimeUpdateMovement = Level.TimeSeconds;
+  
+  CamController.UpdateMovement(TimeDelta);
 }
 
 
@@ -457,7 +588,8 @@ protected simulated function UpdateLocal()
 // Tick
 //
 // Checks whether all viewers listed in ListControllerViewer are actually
-// viewing from this camera and calls DeactivateFor for those that don't.
+// viewing from this camera and calls DeactivateFor for those who do not.
+// Also checks whether players should be auto-switched to a different camera.
 // ============================================================================
 
 simulated event Tick(float TimeDelta)
@@ -485,12 +617,13 @@ simulated event Tick(float TimeDelta)
       UpdateLocal();
   }
 
-  if (Role == ROLE_Authority && Switching.bAllowTimed)
-    for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++) {
-      ListInfoViewer[iInfoViewer].TimeToSwitch -= TimeDelta;
-      if (ListInfoViewer[iInfoViewer].TimeToSwitch <= 0.0)
-        SwitchToNext(ListInfoViewer[iInfoViewer].Controller);
-    }
+  if (Role == ROLE_Authority || bIsActiveLocal)
+    UpdateMovement();
+
+  if (CamManager != None) {
+    AutoSwitchTimed(TimeDelta);
+    AutoSwitchBest();
+  }
 }
 
 
@@ -649,6 +782,10 @@ simulated function RemoveCameraEffect(CameraEffect CameraEffect)
 
 defaultproperties
 {
+  bWidescreen = False;
+  MotionBlur  = 0;
+  FieldOfView = 85.0;
+
   Caption   = (bBlinking=True,Color=(R=255,G=255,B=255,A=255),Font="UT2003Fonts.FontEurostile12",Position=0.8);
   Overlay   = (Color=(R=255,G=255,B=255,A=255),Style=OverlayStyle_ScaleProportional);
   Switching = (bAllowManual=True,bAllowTriggered=True,Time=5.0,Tag="(set TagSwitch under Events instead)");

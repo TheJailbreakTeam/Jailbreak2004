@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBCamManager.uc,v 1.1 2004/03/14 16:19:13 mychaeel Exp $
 //
 // Provides management functions for an array of cameras sharing the same Tag.
 // ============================================================================
@@ -12,11 +12,14 @@ class JBCamManager extends Info
 
 
 // ============================================================================
-// Variables
+// Caches
 // ============================================================================
 
-var private JBCamera CacheFindCameraFirst;  // cached first camera in array
-var private JBCamera CacheFindCameraLast;   // cached last  camera in array
+struct TCacheFindCameraBest { var float Time; var JBCamera Result; };
+
+var private TCacheFindCameraBest CacheFindCameraBest;  // best  camera in array
+var private JBCamera CacheFindCameraFirst;             // first camera in array
+var private JBCamera CacheFindCameraLast;              // last  camera in array
 
 var private array<JBInventoryCamera> CacheInventoryCamera;  // reusable items
 
@@ -166,6 +169,49 @@ function RefreshCameraOrder()
 {
   CacheFindCameraFirst = None;
   CacheFindCameraLast  = None;
+}
+
+
+// ============================================================================
+// FindCameraBest
+//
+// Finds the best camera in the array based on their self-rating and returns
+// it. If no suitable camera can be found, returns None. Caches its results
+// for one second.
+// ============================================================================
+
+function JBCamera FindCameraBest()
+{
+  local JBCamera CameraBest;
+  local JBCamera thisCamera;
+  local float Rating;
+  local float RatingPrev;
+  local float RatingBest;
+
+  if (CacheFindCameraBest.Time + 1.0 > Level.TimeSeconds)
+    return CacheFindCameraBest.Result;
+
+  CacheFindCameraBest.Time = Level.TimeSeconds;
+  
+  foreach DynamicActors(Class'JBCamera', thisCamera, Tag) {
+    thisCamera.UpdateMovement();
+    
+    Rating = thisCamera.RateCurrentView();
+    
+    if (Rating > RatingBest) {
+      RatingBest = Rating;
+      CameraBest = thisCamera;
+    }
+  
+    if (thisCamera == CacheFindCameraBest.Result)
+      RatingPrev = Rating;
+  }
+
+  if (RatingPrev == 0.0 ||
+      RatingPrev < RatingBest / 1.2)
+    CacheFindCameraBest.Result = CameraBest;
+
+  return CacheFindCameraBest.Result;
 }
 
 
