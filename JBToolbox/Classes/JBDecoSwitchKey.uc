@@ -1,7 +1,7 @@
 //=============================================================================
 // JBDecoSwitchKey
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBDecoSwitchKey.uc,v 1.1 2004/03/15 12:47:22 tarquin Exp $
+// $Id$
 //
 // Displays the Jailbreak release switch key
 //=============================================================================
@@ -10,6 +10,22 @@
 class JBDecoSwitchKey extends Decoration
   notplaceable;
   
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec obj load file=StaticMeshes\JBReleaseKey.usx      package=JBToolbox.SwitchMeshes
+#exec obj load file=Textures\JBReleaseTexturesKey.utx  package=JBToolbox.SwitchSkins
+
+
+// ============================================================================
+// Properties
+// ============================================================================
+
+var() Material MaterialSkinRed;
+var() Material MaterialSkinBlue;
+
   
 // ============================================================================
 // PostBeginPlay
@@ -19,16 +35,9 @@ class JBDecoSwitchKey extends Decoration
 
 event PostBeginPlay()
 {
-  local JBGameObjectiveSwitch MySwitch;
-  MySwitch = JBGameObjectiveSwitch( Owner );
-  
-  SetStaticMesh( MySwitch.StaticMeshKey );
-
-  if( MySwitch.DefenderTeamIndex == 0 ) {
-    Skins[0] = MySwitch.SkinKeyBlue;
-  }
-  else {
-    Skins[0] = MySwitch.SkinKeyRed;
+  switch (GameObjective(Owner).DefenderTeamIndex) {
+    case 0:  Skins[0] = MaterialSkinBlue;  break;
+    case 1:  Skins[0] = MaterialSkinRed;   break;
   }
 }
 
@@ -39,8 +48,15 @@ event PostBeginPlay()
 
 defaultproperties
 {
+  RemoteRole  = ROLE_None;
+
   DrawType    = DT_StaticMesh;
   DrawScale   = 0.500;
+  StaticMesh  = StaticMesh'JBReleaseKey';
+  Location    = (Z=40.0);
+  
+  MaterialSkinRed  = Shader'JBKeyFinalRed';
+  MaterialSkinBlue = Shader'JBKeyFinalBlue';
   
   /* blame xDomA */
   bCollideWorld=false

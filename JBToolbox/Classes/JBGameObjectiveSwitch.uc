@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.3.2.1 2004/04/05 21:32:41 tarquin Exp $
+// $Id$
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -15,15 +15,8 @@ class JBGameObjectiveSwitch extends GameObjective
 // Imports
 // ============================================================================
 
-// static meshes
-#exec obj load file=StaticMeshes\JBReleaseBase.usx  package=JBToolbox.SwitchMeshes
-#exec obj load file=StaticMeshes\JBReleaseRing.usx  package=JBToolbox.SwitchMeshes
-#exec obj load file=StaticMeshes\JBReleaseKey.usx   package=JBToolbox.SwitchMeshes
-
-// textures
-#exec obj load file=Textures\JBReleaseTexturesBase.utx  package=JBToolbox.SwitchSkins
-#exec obj load file=Textures\JBReleaseTexturesRing.utx  package=JBToolbox.SwitchSkins
-#exec obj load file=Textures\JBReleaseTexturesKey.utx   package=JBToolbox.SwitchSkins
+#exec obj load file=StaticMeshes\JBReleaseBase.usx     package=JBToolbox.SwitchMeshes
+#exec obj load file=Textures\JBReleaseTexturesBase.utx package=JBToolbox.SwitchSkins
 
 
 // ============================================================================
@@ -41,19 +34,7 @@ replication
 // Properties
 // ============================================================================
 
-var() class<Decoration> ClassRing;      // class for ring (not yet used)
-var() class<Decoration> ClassKey;       // class for key (not yet used)
-
-var() StaticMesh      StaticMeshRing;   // static mesh to display for ring
-var() StaticMesh      StaticMeshKey;    // static mesh to display for key
-
-var() Material        SkinRingNeutral;  // skin for ring mesh: neutral 
-
-var() Material        SkinKeyRed;       // skin for the red key
-var() Material        SkinKeyBlue;      // skin for the blue key
-
-var() vector          OffsetRing;       // offset from the switch of the ring 
-var() vector          OffsetKey;        // offset from the switch of the key
+var() array<Class<Decoration> > ListClassDecoration;
 
 
 // ============================================================================
@@ -63,8 +44,7 @@ var() vector          OffsetKey;        // offset from the switch of the key
 var bool bDisabledRep;                  // replicated flag
 var bool bDisabledPrev;                 // previous state of flag
 
-var Decoration SwitchRing;       // reference to the ring
-var Decoration SwitchKey;        // reference to the key
+var array<Decoration> ListDecoration;   // references to the decoration actors
 
 
 // ============================================================================
@@ -75,19 +55,16 @@ var Decoration SwitchKey;        // reference to the key
 
 simulated function PostBeginPlay()
 {
-  Super.PostBeginPlay();
-  
-  // should probably check all the Material vars are actually materials
-  // replace them with defaults if None?
+  local int iDecoration;
 
-  if (Level.NetMode != NM_DedicatedServer) {
-    SwitchRing = Spawn(
-      ClassRing, self, , 
-      Location + OffsetRing, Rotation );
-    SwitchKey = Spawn(
-      ClassKey, self, , 
-      Location + OffsetKey, Rotation );
-  }
+  if (Level.NetMode != NM_DedicatedServer)
+    for (iDecoration = 0; iDecoration < ListClassDecoration.Length; iDecoration++)
+      ListDecoration[iDecoration] = Spawn(
+        ListClassDecoration[iDecoration], Self, ,
+        ListClassDecoration[iDecoration].Default.Location + Location,
+        ListClassDecoration[iDecoration].Default.Rotation + Rotation);
+
+  Super.PostBeginPlay();
 }
 
 
@@ -173,8 +150,10 @@ simulated event PostNetReceive()
 
 simulated function DoEffectDisabled()
 {
-  if (SwitchRing != None) SwitchRing.Trigger(Self, Instigator);
-  if (SwitchKey  != None) SwitchKey .Trigger(Self, Instigator);
+  local int iDecoration;
+  
+  for (iDecoration = 0; iDecoration < ListDecoration.Length; iDecoration++)
+    ListDecoration[iDecoration].Trigger(Self, Instigator);
 }
 
 
@@ -186,8 +165,10 @@ simulated function DoEffectDisabled()
 
 simulated function DoEffectReset()
 {
-  if (SwitchRing != None) SwitchRing.UnTrigger(Self, Instigator);
-  if (SwitchKey  != None) SwitchKey .UnTrigger(Self, Instigator);
+  local int iDecoration;
+  
+  for (iDecoration = 0; iDecoration < ListDecoration.Length; iDecoration++)
+    ListDecoration[iDecoration].UnTrigger(Self, Instigator);
 }
 
 
@@ -211,64 +192,35 @@ event Touch(Actor ActorOther)
 defaultproperties 
 {
   /* touchability */
-  bCollideActors  = True;
-  bBlockActors    = False;
-  bBlockPlayers   = False;
-  bUseCylinderCollision = True;
-  CollisionRadius     = 60.000000;
-  CollisionHeight     = 40.000000;
-  
-  /* slurped from xDomPoint */
-  DrawType            = DT_StaticMesh;
-  Style=STY_Normal  
-  
-  LightType       = LT_SubtlePulse;
-  LightEffect     = LE_QuadraticNonIncidence;
-  LightRadius     = 6;
-  LightBrightness = 128;
-  LightHue        = 255;
-  LightSaturation = 255;
-  
-  /* DDOM base mesh */
-  //StaticMesh          = XGame_rc.DominationPointMesh;
-  //DrawScale           = 0.60000;
-  //Skins(0)=Texture'XGameTextures.DominationPointTex'            
-  //Skins(1)=XGameShaders.DomShaders.DomPointACombiner
+  bCollideActors         = True;
+  bBlockActors           = False;
+  bBlockPlayers          = False;
+  bUseCylinderCollision  = True;
+  CollisionRadius        = 60.0;
+  CollisionHeight        = 40.0;
   
   /* mapper convenience */
-  bEdShouldSnap = True;
-  PrePivot        = (X=0.0,Y=0.0,Z=44.0); // for BSP. some static meshes like 49
+  bEdShouldSnap          = True;
+  PrePivot               = (Z=44.0);
+
+  /* remove destruction message */
+  DestructionMessage     = "";
   
-  /* parent overrides */
-  DestructionMessage  = "";
+  /* base */
+  bHidden                = False;
+  DrawType               = DT_StaticMesh;
+  StaticMesh             = StaticMesh'JBReleaseBase';
+  Skins[0]               = Texture'JBReleaseBaseNeutral';
   
-  /* display */
-  bHidden       = False;
-  
-  /* base  */
-  StaticMesh    = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseBase';
-  Skins(0)      = Texture'JBToolbox.SwitchSkins.JBReleaseBaseNeutral';
-  
-  /* ring  */
-  ClassRing     = class'JBToolbox.JBDecoSwitchRing';
-  OffsetRing    = (X=0.0,Y=0.0,Z=40.0); 
-  StaticMeshRing  = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseRing';
-  SkinRingNeutral = Texture'JBToolbox.SwitchSkins.JBReleaseRingWhite'; 
-  
-  /* key  */
-  ClassKey      = class'JBToolbox.JBDecoSwitchKey';
-  OffsetKey     = (X=0.0,Y=0.0,Z=40.0); // = 40 (from base) 
-  StaticMeshKey   = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseKey';
-  SkinKeyRed    = Shader'JBToolbox.SwitchSkins.JBKeyFinalRed';
-  SkinKeyBlue   = Shader'JBToolbox.SwitchSkins.JBKeyFinalBlue';
-  
+  /* visible animated parts */
+  ListClassDecoration[0] = Class'JBDecoSwitchBasket';
+  ListClassDecoration[1] = Class'JBDecoSwitchPadlock';
 
   /* network */
-  RemoteRole = ROLE_SimulatedProxy;
-
-  bStatic              = False;
-  bNoDelete            = True;
-  bNetNotify           = True;
-  bReplicateInstigator = True;
+  RemoteRole             = ROLE_SimulatedProxy;
+  bStatic                = False;
+  bNoDelete              = True;
+  bNetNotify             = True;
+  bReplicateInstigator   = True;
 }
   

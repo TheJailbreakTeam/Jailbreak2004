@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDecoSwitchPadlock
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDecoSwitchPadlock.uc,v 1.1 2004/05/09 16:19:37 mychaeel Exp $
+// $Id$
 //
 // Animated padlock for standard release switch.
 // ============================================================================

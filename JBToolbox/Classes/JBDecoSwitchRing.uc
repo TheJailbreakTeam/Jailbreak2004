@@ -1,7 +1,7 @@
 //=============================================================================
 // JBDecoSwitchRing
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBDecoSwitchRing.uc,v 1.1 2004/03/15 12:47:22 tarquin Exp $
+// $Id$
 //
 // Displays the Jailbreak release switch ring
 //=============================================================================
@@ -11,6 +11,14 @@ class JBDecoSwitchRing extends Decoration
   notplaceable;
   
   
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec obj load file=StaticMeshes\JBReleaseRing.usx     package=JBToolbox.SwitchMeshes
+#exec obj load file=Textures\JBReleaseTexturesRing.utx package=JBToolbox.SwitchSkins
+
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -46,8 +54,6 @@ simulated function PostBeginPlay()
   TeamNormal  = MySwitch.DefenderTeamIndex;
   TeamEffect  = 1 - TeamNormal;
   
-  SetStaticMesh( MySwitch.StaticMeshRing );
-  
   // create materials for this object
   myConstantColor = ConstantColor(Level.ObjectPool.AllocateObject(class'ConstantColor'));
   myCombiner      = Combiner(Level.ObjectPool.AllocateObject(class'Combiner'));
@@ -56,7 +62,7 @@ simulated function PostBeginPlay()
   // set up materials
   myConstantColor.Color = TeamColor[TeamNormal];
   
-  myCombiner.Material1  = MySwitch.SkinRingNeutral;
+  myCombiner.Material1  = Skins[0];
   myCombiner.Material2  = myConstantColor;
   myCombiner.CombineOperation = CO_Multiply;
   myCombiner.AlphaOperation   = AO_Use_Mask;
@@ -151,11 +157,14 @@ state Effect {
 
 defaultproperties
 {
-  DrawType    = DT_StaticMesh;
-  DrawScale   = 0.500;
-  
   RemoteRole  = ROLE_None;
 
+  DrawType    = DT_StaticMesh;
+  DrawScale   = 0.500;
+  StaticMesh  = StaticMesh'JBReleaseRing';
+  Skins[0]    = Texture'JBReleaseRingWhite';
+  Location    = (Z=40.0);
+  
   /* blame xDomA */
   bCollideWorld=false
   
