@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.2 2004/03/17 16:22:55 tarquin Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.3 2004/03/30 22:51:01 mychaeel Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -108,19 +108,25 @@ simulated function PostBeginPlay()
 
 function DisableObjective(Pawn PawnInstigator) 
 {
+  local JBGameObjectiveSwitch ObjectiveSwitch;
+  
   if (PawnInstigator                            == None ||
       PawnInstigator.PlayerReplicationInfo      == None ||
       PawnInstigator.PlayerReplicationInfo.Team == None ||
       PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex)
     return;
 
-  SetCollision(False, False, False);
-
   bDisabledRep = True;
   Super.DisableObjective(PawnInstigator);
 
   Instigator = PawnInstigator;
-  DoEffectDisabled();
+  
+  foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch) {
+    if(ObjectiveSwitch.Event == Event) {
+      ObjectiveSwitch.SetCollision(False, False, False);
+      ObjectiveSwitch.DoEffectDisabled();
+    }
+  }
 }
 
 
@@ -132,14 +138,20 @@ function DisableObjective(Pawn PawnInstigator)
 
 function Reset() 
 {
+  local JBGameObjectiveSwitch ObjectiveSwitch;
+  
   Super.Reset();
   bDisabledRep = False;
 
-  SetCollision(Default.bCollideActors,  // resetting the collision will
-               Default.bBlockActors,    // implicitly call Touch again if a
-               Default.bBlockPlayers);  // player is still touching this actor
-               
-  DoEffectReset();
+  foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch) {
+    if(ObjectiveSwitch.Event == Event) {
+      ObjectiveSwitch.DoEffectReset();
+      ObjectiveSwitch.SetCollision(
+        Default.bCollideActors,  // resetting the collision will
+        Default.bBlockActors,    // implicitly call Touch again if a
+        Default.bBlockPlayers);  // player is still touching this actor
+    }
+  }
 }
 
 
@@ -151,7 +163,6 @@ function Reset()
 
 simulated event PostNetReceive()
 {
-Log("PostNetReceive");
   if (bDisabledRep == bDisabledPrev)
     return;
   
@@ -263,6 +274,8 @@ defaultproperties
   
   SkinKeyRed    = Shader'JBToolbox.SwitchSkins.JBKeyFinalRed';
   SkinKeyBlue   = Shader'JBToolbox.SwitchSkins.JBKeyFinalBlue';
+  
+  // prepivot of Z=44 works nicely on BSP surfaces. consider setting this as default
 
   /* network */
   RemoteRole = ROLE_SimulatedProxy;
