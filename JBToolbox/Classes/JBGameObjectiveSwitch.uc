@@ -1,10 +1,10 @@
-//=============================================================================
+// ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.1 2004/03/15 12:47:22 tarquin Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.2 2004/03/17 16:22:55 tarquin Exp $
 //
 // Visible release switch that must be touched to be disabled.
-//=============================================================================
+// ============================================================================
 
 
 class JBGameObjectiveSwitch extends GameObjective
@@ -27,34 +27,53 @@ class JBGameObjectiveSwitch extends GameObjective
 
 
 // ============================================================================
+// Replication
+// ============================================================================
+
+replication
+{
+  reliable if (Role == ROLE_Authority)
+    bDisabledRep;
+}
+
+
+// ============================================================================
+// Properties
+// ============================================================================
+
+var() class<Decoration> ClassRing;      // class for ring (not yet used)
+var() class<Decoration> ClassKey;       // class for key (not yet used)
+
+var() StaticMesh      StaticMeshRing;   // static mesh to display for ring
+var() StaticMesh      StaticMeshKey;    // static mesh to display for key
+
+var() Material        SkinBaseRed;      // skin for base mesh: red
+var() Material        SkinBaseBlue;     // skin for base mesh: blue
+
+var() Material        SkinRingNeutral;  // skin for ring mesh: neutral 
+
+var() Material        SkinKeyRed;       // skin for the red key
+var() Material        SkinKeyBlue;      // skin for the blue key
+
+var() vector          OffsetRing;       // offset from the switch of the ring 
+var() vector          OffsetKey;        // offset from the switch of the key
+
+
+// ============================================================================
 // Variables
 // ============================================================================
 
-var() class<Decoration> ClassRing;    // class for ring (not yet used)
-var() class<Decoration> ClassKey;     // class for key (not yet used)
+var bool bDisabledRep;                  // replicated flag
+var bool bDisabledPrev;                 // previous state of flag
 
-var() StaticMesh      StaticMeshRing; // static mesh to display for ring
-var() StaticMesh      StaticMeshKey;  // static mesh to display for key
-
-var() Material        SkinBaseRed;    // skin for base mesh: red
-var() Material        SkinBaseBlue;   // skin for base mesh: blue
-
-var() Material        SkinRingNeutral;// skin for ring mesh: neutral 
-
-var() Material        SkinKeyRed;     //
-var() Material        SkinKeyBlue;    //
-
-var() vector          OffsetRing;     // offset from the switch of the ring 
-var() vector          OffsetKey;      // offset from the switch of the key
-
-var JBDecoSwitchRing  SwitchRing;     // reference to the ring
-var JBDecoSwitchKey   SwitchKey;      // reference to the key
+var JBDecoSwitchRing  SwitchRing;       // reference to the ring
+var JBDecoSwitchKey   SwitchKey;        // reference to the key
 
 
 // ============================================================================
 // PostBeginPlay
 //
-// 
+// Spawns the visible parts of the switch client-side.
 // ============================================================================
 
 simulated function PostBeginPlay()
@@ -78,9 +97,6 @@ simulated function PostBeginPlay()
   else {
     Skins[0] = SkinBaseBlue;
   }
-
-  // what does this do? (slurped from xDom...)
-  // SetShaderStatus(CNeutralState[0],SNeutralState,CNeutralState[1]);
 }
 
 
@@ -100,11 +116,11 @@ function DisableObjective(Pawn PawnInstigator)
 
   SetCollision(False, False, False);
 
+  bDisabledRep = True;
   Super.DisableObjective(PawnInstigator);
-  
-  // cause visual effects 
-  SwitchRing.Trigger( self, PawnInstigator );
-  SwitchKey.Trigger( self, PawnInstigator );
+
+  Instigator = PawnInstigator;
+  DoEffectDisabled();
 }
 
 
@@ -117,14 +133,59 @@ function DisableObjective(Pawn PawnInstigator)
 function Reset() 
 {
   Super.Reset();
+  bDisabledRep = False;
 
   SetCollision(Default.bCollideActors,  // resetting the collision will
                Default.bBlockActors,    // implicitly call Touch again if a
                Default.bBlockPlayers);  // player is still touching this actor
                
-  // reset visual effects 
-  SwitchRing.UnTrigger( self, none );
-  SwitchKey.UnTrigger( self, none );
+  DoEffectReset();
+}
+
+
+// ============================================================================
+// PostNetReceive
+//
+// Triggers the visual effects client-side when the flag changes its status.
+// ============================================================================
+
+simulated event PostNetReceive()
+{
+Log("PostNetReceive");
+  if (bDisabledRep == bDisabledPrev)
+    return;
+  
+  if (bDisabledRep)
+         DoEffectDisabled();
+    else DoEffectReset();
+  
+  bDisabledPrev = bDisabledRep;
+}
+
+
+// ============================================================================
+// DoEffectDisabled
+//
+// Triggers the visual key and ring actors.
+// ============================================================================
+
+simulated function DoEffectDisabled()
+{
+  if (SwitchRing != None) SwitchRing.Trigger(Self, Instigator);
+  if (SwitchKey  != None) SwitchKey .Trigger(Self, Instigator);
+}
+
+
+// ============================================================================
+// DoEffectReset
+//
+// Untriggers the visual key and ring actors.
+// ============================================================================
+
+simulated function DoEffectReset()
+{
+  if (SwitchRing != None) SwitchRing.UnTrigger(Self, Instigator);
+  if (SwitchKey  != None) SwitchKey .UnTrigger(Self, Instigator);
 }
 
 
@@ -173,8 +234,9 @@ defaultproperties
   //Skins(1)=XGameShaders.DomShaders.DomPointACombiner
   
   /* JB base mesh */
+  // this is just to give the mapper something pretty to look at
   StaticMesh    = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseBase';
-  Skins(0)      = Texture'JBToolbox.SwitchSkins.JBReleaseBaseRed'; // this is just to give the mapper something pretty to look at         
+  Skins(0)      = Texture'JBToolbox.SwitchSkins.JBReleaseBaseRed';
 
   /* */
   bEdShouldSnap = True;
@@ -202,5 +264,12 @@ defaultproperties
   SkinKeyRed    = Shader'JBToolbox.SwitchSkins.JBKeyFinalRed';
   SkinKeyBlue   = Shader'JBToolbox.SwitchSkins.JBKeyFinalBlue';
 
+  /* network */
+  RemoteRole = ROLE_SimulatedProxy;
+
+  bStatic              = False;
+  bNoDelete            = True;
+  bNetNotify           = True;
+  bReplicateInstigator = True;
 }
   
