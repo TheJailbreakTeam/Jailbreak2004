@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.111 2004/06/02 00:31:35 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.112 2004/06/02 12:08:59 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1146,6 +1146,54 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
   else {
     Super.BroadcastDeathMessage(ControllerKiller, ControllerVictim, DamageType);
   }
+}
+
+
+// ============================================================================
+// DriverEnteredVehicle
+//
+// Called when a player enters a vehicle. Sets the view target of all other
+// players currently spectating this player to the vehicle.
+// ============================================================================
+
+function DriverEnteredVehicle(Vehicle Vehicle, Pawn PawnDriver)
+{
+  local Controller thisController;
+
+  for (thisController = Level.ControllerList; thisController != None; thisController = thisController.nextController)
+    if (PlayerController(thisController)            != None    &&
+        PlayerController(thisController).Pawn       != Vehicle &&
+        PlayerController(thisController).ViewTarget == PawnDriver) {
+
+      PlayerController(thisController).      SetViewTarget(Vehicle);
+      PlayerController(thisController).ClientSetViewTarget(Vehicle);
+    }
+
+  Super.DriverEnteredVehicle(Vehicle, PawnDriver);
+}
+
+
+// ============================================================================
+// DriverLeftVehicle
+//
+// Called when a player leaves a vehicle. Sets the view target of all other
+// players currently spectating the vehicle to the player.
+// ============================================================================
+
+function DriverLeftVehicle(Vehicle Vehicle, Pawn PawnDriver)
+{
+  local Controller thisController;
+
+  for (thisController = Level.ControllerList; thisController != None; thisController = thisController.nextController)
+    if (PlayerController(thisController)            != None       &&
+        PlayerController(thisController).Pawn       != PawnDriver &&
+        PlayerController(thisController).ViewTarget == Vehicle) {
+
+      PlayerController(thisController).      SetViewTarget(PawnDriver);
+      PlayerController(thisController).ClientSetViewTarget(PawnDriver);
+    }
+
+  Super.DriverLeftVehicle(Vehicle, PawnDriver);
 }
 
 
