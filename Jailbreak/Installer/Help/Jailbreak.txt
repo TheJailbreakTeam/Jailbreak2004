@@ -40,6 +40,7 @@ Zip Installation
     *.uax   Sounds\
     *.xml   Speech\
     *.usx   StaticMeshes\
+    *.utx   Textures\
 
     *.txt   Help\
     *.bmp   Help\
@@ -53,7 +54,6 @@ Zip Installation
 
     ServerPackages=Jailbreak
     ServerPackages=JBAddonAvenger
-    ServerPackages=JBAddonBerserker
     ServerPackages=JBAddonCelebration
     ServerPackages=JBAddonLlama
     ServerPackages=JBAddonProtection
