@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagTeam.uc,v 1.13 2003/06/25 18:46:48 mychaeel Exp $
+// $Id$
 //
 // Replicated information for one team.
 // ============================================================================
@@ -33,6 +33,7 @@ var private float TimeCountPlayers;  // time of last CountPlayers call
 var private int nPlayers;            // replicated total number of players
 var private int nPlayersFree;        // number of free players
 var private int nPlayersJailed;      // number of jailed players
+var private int nPlayersArena;       // number of players in an arena
 
 var private array<PlayerStart> ListPlayerStart;  // spawn points for this team
 
@@ -95,14 +96,14 @@ private function CountPlayers()
   nPlayers = TeamInfo(Keeper).Size;
   nPlayersFree   = 0;
   nPlayersJailed = 0;
+  nPlayersArena  = 0;
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetTeam() == Keeper)
-      if (thisTagPlayer.IsInJail())
-        nPlayersJailed++;
-      else if (thisTagPlayer.IsFree())
-        nPlayersFree++;
+           if (thisTagPlayer.IsInArena()) nPlayersArena  += 1;
+      else if (thisTagPlayer.IsInJail())  nPlayersJailed += 1;
+      else                                nPlayersFree   += 1;
 
   TimeCountPlayers = Level.TimeSeconds;
 }
@@ -137,6 +138,22 @@ simulated function int CountPlayersJailed(optional bool bCached)
     CountPlayers();
 
   return nPlayersJailed;
+}
+
+
+// ============================================================================
+// CountPlayersArena
+//
+// Returns the number of players in an arena in this team, server-side by
+// counting them, client-side by reading the replicated value.
+// ============================================================================
+
+simulated function int CountPlayersArena(optional bool bCached)
+{
+  if (Role == ROLE_Authority && !bCached)
+    CountPlayers();
+
+  return nPlayersArena;
 }
 
 
