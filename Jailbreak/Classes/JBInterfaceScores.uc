@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.5 2003/06/28 11:43:51 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -252,15 +252,10 @@ var SpriteWidget SpriteWidgetGradient;  // background gradient for scoreboard
 var SpriteWidget SpriteWidgetPlayer;    // icon for player on minimap
 var SpriteWidget SpriteWidgetDamage;    // damage fadeout for player on minimap
 
-var Color ColorFill[2];                 // color for widget fills by team
-var Color ColorTint[2];                 // color for widget tints by team
-
 var Color ColorMarkerTie;               // color for marker on tie
 var Color ColorMarkerCaptured[2];       // color for marker when team captured
 
-var SpriteWidget SpriteWidgetClockAnchorFill;    // visual clock anchor fill
-var SpriteWidget SpriteWidgetClockAnchorTint;    // visual clock anchor tint
-var SpriteWidget SpriteWidgetClockAnchorFrame;   // visual clock anchor frame
+var SpriteWidget SpriteWidgetClockAnchor;        // visual clock anchor
 var SpriteWidget SpriteWidgetClockCircle;        // clock background circle
 var SpriteWidget SpriteWidgetClockFillFirst;     // complete fill, first half
 var RotatedWidget RotatedWidgetClockFillFirst;   // gradual fill, first half
@@ -316,8 +311,10 @@ simulated event UpdateScoreBoard(Canvas Canvas)
   local int iTable;
   local int HeightTables;
   local float TimeDelta;
+  local HudCTeamDeathMatch HudCTeamDeathMatch;
 
   UpdateGRI();
+  HudCTeamDeathMatch = HudCTeamDeathMatch(PlayerController(Owner).myHUD);
 
   if (TimeUpdateDisplay > 0.0)
     TimeDelta = Level.TimeSeconds - TimeUpdateDisplay;
@@ -330,6 +327,7 @@ simulated event UpdateScoreBoard(Canvas Canvas)
 
   for (iTable = 0; iTable < ArrayCount(Table); iTable++) {
     MoveTable(Table[iTable], TimeDelta);
+    Table[iTable].ColorMain = HudCTeamDeathMatch.TeamSymbols[iTable].Tints[HudCTeamDeathMatch.TeamIndex];
     Table[iTable].Layout = CalcTableLayout(Canvas, Table[iTable]);
     HeightTables = Max(HeightTables, Canvas.ClipY - Table[iTable].Layout.Location.Y);
   }
@@ -525,17 +523,12 @@ simulated function DrawClock(Canvas Canvas)
   local string TextTime;
   local string TextRelation;
   local TeamInfo TeamCaptured;
+  local HudCTeamDeathMatch HudCTeamDeathMatch;
 
   if (PlayerController(Owner).PlayerReplicationInfo.Team != None)
     iTeam = PlayerController(Owner).PlayerReplicationInfo.Team.TeamIndex;
 
-  SpriteWidgetClockAnchorFill.Color = ColorFill[iTeam];
-  SpriteWidgetClockAnchorTint.Color = ColorTint[iTeam];
-
-  DrawSpriteWidget(Canvas, SpriteWidgetClockAnchorFill);
-  DrawSpriteWidget(Canvas, SpriteWidgetClockAnchorTint);
-  DrawSpriteWidget(Canvas, SpriteWidgetClockAnchorFrame);
-
+  DrawSpriteWidget(Canvas, SpriteWidgetClockAnchor);
   DrawSpriteWidget(Canvas, SpriteWidgetClockCircle);
 
   if (GRI.TimeLimit > 0) {
@@ -577,6 +570,11 @@ simulated function DrawClock(Canvas Canvas)
     DrawSpriteWidget(Canvas, SpriteWidgetClockFillFirst);
     DrawRotatedWidget(Canvas, RotatedWidgetClockFillSecond);
   }
+
+  HudCTeamDeathMatch = HudCTeamDeathMatch(PlayerController(Owner).myHUD);
+
+  ColorMarkerCaptured[0] = HudCTeamDeathMatch.TeamSymbols[0].Tints[HudCTeamDeathMatch.TeamIndex];
+  ColorMarkerCaptured[1] = HudCTeamDeathMatch.TeamSymbols[1].Tints[HudCTeamDeathMatch.TeamIndex];
 
   Canvas.SetDrawColor(255, 255, 255);
   Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
@@ -773,7 +771,6 @@ simulated function SetEntryPosition(out TEntry Entry, int iTable, int iRow, opti
 
         Entry.PositionPending.bIsSet   = False;
       }
-
       else {
         Entry.PositionPending.bIsSet   = True;
         Entry.PositionPending.iTable   = iTable;
@@ -1772,8 +1769,8 @@ defaultproperties
   TextRelationRemaining = "to play";
   TextRelationOvertime  = "overtime";
 
-  Table[0] = (iTable=0,ColorMain=(R=255,G=000,B=000,A=255),ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
-  Table[1] = (iTable=1,ColorMain=(R=000,G=000,B=255,A=255),ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
+  Table[0] = (iTable=0,ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
+  Table[1] = (iTable=1,ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
 
   ColorLineStats[0] = (R=255,G=000,B=000,A=064);
   ColorLineStats[1] = (R=255,G=255,B=000,A=064);
@@ -1782,6 +1779,8 @@ defaultproperties
   ColorBarStats[0]  = (R=128,G=000,B=000,A=255);
   ColorBarStats[1]  = (R=128,G=128,B=000,A=255);
   ColorBarStats[2]  = (R=000,G=128,B=000,A=255);
+
+  ColorMarkerTie    = (R=128,G=128,B=128,A=255);
 
   SpriteWidgetIconStats[0] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=272,Y1=400,X2=351,Y2=488),TextureScale=0.10,OffsetX=06,OffsetY=10,Color=(R=255,G=000,B=000,A=128));
   SpriteWidgetIconStats[1] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=128,X2=496,Y2=223),TextureScale=0.10,OffsetX=06,OffsetY=10,Color=(R=255,G=255,B=000,A=128));
@@ -1792,18 +1791,7 @@ defaultproperties
   SpriteWidgetDamage   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09,OffsetX=-32,OffsetY=-32);
   SpriteWidgetGradient = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=128,Y1=351,X2=129,Y2=353),Color=(R=0,G=0,B=0,A=128));
 
-  ColorFill[0] = (R=100,G=000,B=000,A=200);
-  ColorFill[1] = (R=048,G=075,B=120,A=200);
-  ColorTint[0] = (R=100,G=000,B=000,A=100);
-  ColorTint[1] = (R=037,G=066,B=102,A=150);
-
-  ColorMarkerTie         = (R=128,G=128,B=128,A=255);
-  ColorMarkerCaptured[0] = (R=000,G=000,B=255,A=255);
-  ColorMarkerCaptured[1] = (R=255,G=000,B=000,A=255);
-
-  SpriteWidgetClockAnchorFill  = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=610,Y1=763,X2=455,Y2=891),TextureScale=0.3,PosX=1.00,PosY=0.00,OffsetX=-153,OffsetY=000);
-  SpriteWidgetClockAnchorTint  = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=454,Y1=763,X2=299,Y2=891),TextureScale=0.3,PosX=1.00,PosY=0.00,OffsetX=-155,OffsetY=000);
-  SpriteWidgetClockAnchorFrame = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=298,Y1=763,X2=143,Y2=891),TextureScale=0.3,PosX=1.00,PosY=0.00,OffsetX=-153,OffsetY=000,Color=(R=255,G=255,B=255,A=255));
+  SpriteWidgetClockAnchor      = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=210,Y2=255),TextureScale=1.40,PosX=1.0,PosY=0,OffsetX=-042,OffsetY=012,Color=(R=000,G=000,B=000,A=150));
   SpriteWidgetClockCircle      = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=016,Y1=016,X2=272,Y2=272),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-256,OffsetY=000,Color=(R=255,G=255,B=255,A=255));
   SpriteWidgetClockFillFirst   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=400,Y1=496,X2=288,Y2=272),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-128,OffsetY=016,Color=(R=056,G=056,B=056,A=255));
   RotatedWidgetClockFillFirst  = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=400,Y1=272,X2=512,Y2=496),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-127,OffsetY=128,OffsetCenterX=000,OffsetCenterY=112,Color=(R=056,G=056,B=056,A=255));
