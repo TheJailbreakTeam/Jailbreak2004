@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.88 2004/05/19 02:24:34 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.89 2004/05/19 12:19:00 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -9,13 +9,6 @@
 
 class Jailbreak extends xTeamGame
   notplaceable;
-
-
-// ============================================================================
-// Imports
-// ============================================================================
-
-#exec obj load file=Textures\Preview.utx package=Jailbreak group=Preview
 
 
 // ============================================================================
@@ -1752,6 +1745,7 @@ defaultproperties
 {
   Build = "%%%%-%%-%% %%:%%";
 
+  ScreenShotName = "JBTexPreview.Preview";
   Description = "Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
 
   LoadingScreens[ 0] = "JBTexLoading.Arlon";
@@ -1812,7 +1806,6 @@ defaultproperties
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
   MapListType              = "Jailbreak.JBMapList";
   HUDSettingsMenu          = "Jailbreak.JBGUICustomHUDMenu";
-  ScreenShotName           = "Jailbreak.Preview";
 
   MessageClass             = Class'JBLocalMessage';
   GameReplicationInfoClass = Class'JBGameReplicationInfo';
