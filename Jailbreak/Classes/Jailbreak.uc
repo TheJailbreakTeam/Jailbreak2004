@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.11 2002/11/24 20:54:28 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.12 2002/11/24 21:06:11 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -37,6 +37,7 @@ event InitGame(string Options, out string Error) {
   Super.InitGame(Options, Error);
   
   bForceRespawn = True;
+  MaxLives = 0;
   }
 
 
@@ -153,6 +154,12 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
   local JBReplicationInfoPlayer InfoPlayerVictim;
   local JBReplicationInfoTeam InfoTeamVictim;
 
+  if (GameRulesModifiers != None)
+    GameRulesModifiers.ScoreKill(ControllerKiller, ControllerVictim);
+
+  ScoreKillAdjust(ControllerKiller, ControllerVictim);
+  ScoreKillTaunt (ControllerKiller, ControllerVictim);
+
   InfoPlayerVictim = Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
   if (InfoPlayerVictim != None && InfoPlayerVictim.IsInJail())
     return;
@@ -184,6 +191,49 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
 
 
 // ============================================================================
+// ScoreKillAdjust
+//
+// Performs bot skill adjustments as implemented in ScoreKill in DeathMatch.
+// ============================================================================
+
+function ScoreKillAdjust(Controller ControllerKiller, Controller ControllerVictim) {
+
+  if (bAdjustSkill) {
+    if (AIController(ControllerKiller) != None && PlayerController(ControllerVictim) != None)
+      AdjustSkill(AIController(ControllerKiller), PlayerController(ControllerVictim), True);
+    if (AIController(ControllerVictim) != None && PlayerController(ControllerKiller) != None)
+      AdjustSkill(AIController(ControllerVictim), PlayerController(ControllerKiller), False);
+    }
+  }
+
+
+// ============================================================================
+// ScoreKillTaunt
+//
+// Performs auto-taunts as implemented in ScoreKill in DeathMatch.
+// ============================================================================
+
+function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim) {
+
+  local bool bNoHumanOnly;
+
+  if (bAllowTaunts &&
+      ControllerKiller != None &&
+      ControllerKiller != ControllerVictim &&
+      ControllerKiller.AutoTaunt() && 
+      ControllerKiller.PlayerReplicationInfo.VoiceType != None) {
+
+    bNoHumanOnly = PlayerController(ControllerKiller) == None;
+
+    ControllerKiller.SendMessage(
+      ControllerVictim.PlayerReplicationInfo, 'AutoTaunt',
+      ControllerKiller.PlayerReplicationInfo.VoiceType.Static.PickRandomTauntFor(
+        ControllerKiller, False, bNoHumanOnly), 10, 'Global');
+	}
+  }
+
+
+// ============================================================================
 // ScoreEvent
 //
 // Adds points to the given player's score according to the given game event.
@@ -198,6 +248,12 @@ function ScoreEvent(Controller Controller, name Event) {
     case 'Defense':   Controller.PlayerReplicationInfo.Score += 2;  break;
     case 'Release':   Controller.PlayerReplicationInfo.Score += 1;  break;
     case 'Capture':   Controller.PlayerReplicationInfo.Score += 1;  break;
+    }
+
+  switch (Event) {
+    case 'Defense':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'Release':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'Capture':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
     }
   }
 
@@ -456,10 +512,8 @@ function bool ExecutionInit() {
     
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
       if (IsCaptured(iTeam))
-        if (TeamCaptured < 0) {
+        if (TeamCaptured < 0)
           TeamCaptured = iTeam;
-          }
-
         else {
           RestartAll();
           BroadcastLocalizedMessage(ClassLocalMessage, 300);
@@ -493,15 +547,15 @@ function ExecutionCommit(byte TeamExecuted) {
   local int iTeam;
   local Controller thisController;
   local JBReplicationInfoGame InfoGame;
+  local JBReplicationInfoTeam InfoTeam;
 
   if (IsInState('MatchInProgress')) {
     GotoState('Executing');
+    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , Teams[TeamExecuted]);
     
-    for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-      if (iTeam != TeamExecuted && Teams[iTeam] != None) {
-        Teams[iTeam].Score += 1;
-        RestartTeam(iTeam);
-        }
+    InfoTeam = JBReplicationInfoTeam(OtherTeam(Teams[TeamExecuted]));
+    InfoTeam.Score += 1;
+    RestartTeam(InfoTeam.TeamIndex);
   
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
       if (thisController.PlayerReplicationInfo      != None &&
@@ -516,8 +570,6 @@ function ExecutionCommit(byte TeamExecuted) {
     InfoGame = JBReplicationInfoGame(GameReplicationInfo);
     for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
       InfoGame.ListInfoJail[iInfoJail].ExecutionInit();
-    
-    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , Teams[TeamExecuted]);
     }
   
   else {
