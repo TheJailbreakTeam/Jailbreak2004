@@ -1,7 +1,7 @@
 //=============================================================================
 // JBVehicleFactory
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBVehicleFactory.uc,v 1.1 2004/05/29 12:49:23 wormbo Exp $
+// $Id: JBVehicleFactory.uc,v 1.2 2004/06/03 00:07:01 wormbo Exp $
 //
 // Base class for Jailbreak vehicle factories.
 //=============================================================================
@@ -20,6 +20,7 @@ var() bool  bLockedForOpponent;
 var() bool  bInitiallyActive;
 var() int   TeamNum;
 var() float RespawnTime;
+var() name  EventVehicleDestroyed;
 
 
 //=============================================================================
@@ -28,7 +29,8 @@ var() float RespawnTime;
 
 var float   PreSpawnEffectTime;
 var bool    bPreSpawn;
-var Vehicle LastSpawned;
+var bool    bResetting;
+var array<Vehicle> LastSpawned;
 
 var class<Emitter> RedBuildEffectClass;
 var class<Emitter> BlueBuildEffectClass;
@@ -75,14 +77,24 @@ simulated function UpdatePrecacheMaterials()
 
 event VehicleDestroyed(Vehicle V)
 {
+  local int i;
+  
   Super.VehicleDestroyed(V);
   
-  bPreSpawn = True;
-  if ( RespawnTime > 0 ) {
-    if ( RespawnTime - PreSpawnEffectTime > 0 )
-      SetTimer(RespawnTime - PreSpawnEffectTime, False);
-    else
-      Timer();
+  for (i = 0; i < LastSpawned.Length; i++)
+    if ( LastSpawned[i] == V ) {
+      LastSpawned.Remove(i, 1);
+      break;
+    }
+  
+  if ( !bResetting ) {
+    bPreSpawn = True;
+    if ( RespawnTime > 0 ) {
+      if ( RespawnTime - PreSpawnEffectTime > 0 )
+        SetTimer(RespawnTime - PreSpawnEffectTime, False);
+      else
+        Timer();
+    }
   }
 }
 
@@ -107,16 +119,18 @@ function SpawnVehicle()
   if ( bBlocked )
     SetTimer(1, false); //try again later
   else {
-    LastSpawned = Spawn(VehicleClass,,, Location, Rotation);
+    LastSpawned[LastSpawned.Length] = Spawn(VehicleClass,,, Location, Rotation);
   
-    if ( LastSpawned != None ) {
+    if ( LastSpawned[LastSpawned.Length - 1] != None ) {
       VehicleCount++;
-      LastSpawned.SetTeamNum(TeamNum);
-      LastSpawned.Event = Tag;
-      LastSpawned.ParentFactory = Self;
+      LastSpawned[LastSpawned.Length - 1].SetTeamNum(TeamNum);
+      LastSpawned[LastSpawned.Length - 1].Event = EventVehicleDestroyed;
+      LastSpawned[LastSpawned.Length - 1].ParentFactory = Self;
       if ( !bLockedForOpponent )
-        LastSpawned.bTeamLocked = False;
+        LastSpawned[LastSpawned.Length - 1].bTeamLocked = False;
     }
+    else
+      LastSpawned.Remove(LastSpawned.Length - 1, 1);
   }
 }
 
@@ -174,6 +188,33 @@ event Trigger(Actor Other, Pawn EventInstigator)
     Timer();
 }
 
+
+//=============================================================================
+// Reset
+//
+// Resets the vehicle factory and all currently unused vehicles spawned by it.
+//=============================================================================
+
+function Reset()
+{
+  local int i;
+  
+  bResetting = true;
+  for (i = LastSpawned.Length - 1; i >= 0; i--)
+    if ( LastSpawned[i] != None ) {
+      if ( LastSpawned[i].Driver == None )
+        LastSpawned[i].Destroy();
+      else
+        LastSpawned[i].ParentFactory = None;
+    }
+  
+  VehicleCount = 0;
+  bResetting = false;
+  
+  // respawn a vehicle if the factory is set to be initially active
+  if ( bInitiallyActive )
+    Timer();
+}
 
 //=============================================================================
 // Default properties
