@@ -1,0 +1,37 @@
+/* colours */
+a {
+	color:black;
+}
+
+
+/* layout */
+#header {
+	display:none;
+}
+h1, h2, h3, h4, h5 {
+  font-family: Arial, sans-serif;
+	margin:0px;
+	font-weight:bold;
+	letter-spacing:0.02em;
+}
+em.em2 {
+	font-weight:bold;
+	font-style:normal;
+}
+dt {
+	font-family:monospace;
+}
+
+div.image {
+	float:right;
+	width:300px;
+	clear:both;
+	padding:10px;
+	margin-bottom:20px; /* anti-bump */
+}
+div.image p {
+	text-align:right;
+	margin:0px;
+	padding:2px;
+	font-style:italic;
+}
