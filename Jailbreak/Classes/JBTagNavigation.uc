@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagNavigation
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagNavigation.uc,v 1.7 2004/02/16 17:17:02 mychaeel Exp $
+// $Id$
 //
 // Caches information about an actor used for navigational purposes.
 // ============================================================================
@@ -70,20 +70,23 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
     if (TagNavigationFrom.ListInfoDistance[iDistance].NavigationPointTo == NavigationPointTo)
       return TagNavigationFrom.ListInfoDistance[iDistance].Distance;
 
-  Controller = TagNavigationFrom.GetController();
-
   ActorFrom = NavigationPointFrom;
   ActorTo   = NavigationPointTo;
   if (JBGameObjective(ActorFrom) != None) ActorFrom = JBGameObjective(ActorFrom).TriggerRelease;
   if (JBGameObjective(ActorTo)   != None) ActorTo   = JBGameObjective(ActorTo  ).TriggerRelease;
+
+  Distance = VSize(ActorFrom.Location - ActorTo.Location);
+
+  Controller = TagNavigationFrom.GetController();
+  if (Controller      == None ||
+      Controller.Pawn == None)
+    return Distance;
 
   Controller.Pawn.SetLocation(ActorFrom.Location);
   Controller.Pawn.SetRotation(ActorFrom.Rotation);
 
   if (Controller.FindPathToward(ActorTo) != None)
     Distance = Controller.RouteDist;
-  else
-    Distance = VSize(ActorFrom.Location - ActorTo.Location);
 
   Controller.Pawn.SetPhysics(PHYS_None);  // may be set to falling
 
@@ -105,24 +108,25 @@ static function float CalcDistance(NavigationPoint NavigationPointFrom, Navigati
 
 private function Controller GetController()
 {
-  local JBScout JBScout;
   local JBTagNavigation thisTagNavigation;
 
-  if (Controller != None)
+  if (Controller      != None &&
+      Controller.Pawn != None)
     return Controller;
 
   foreach DynamicActors(Class'JBTagNavigation', thisTagNavigation)
     if (thisTagNavigation.Controller != None) {
       Controller = thisTagNavigation.Controller;
-      return Controller;
+      break;
     }
 
-  JBScout = Spawn(Class'JBScout');
-  if (JBScout == None)
-    Log(Level.TimeSeconds @ "Unable to spawn JBScout at" @ Location);
-
-  Controller = Spawn(Class'ScriptedTriggerController');
-  Controller.Possess(JBScout);
+  if (Controller == None)
+    Controller = Spawn(Class'ScriptedTriggerController');
+  if (Controller.Pawn == None)
+    Controller.Possess(Spawn(Class'JBScout'));
+  
+  if (Controller.Pawn == None)
+    Log(Level.TimeSeconds @ "Unable to spawn JBScout at" @ Controller.Location);
 
   return Controller;
 }
