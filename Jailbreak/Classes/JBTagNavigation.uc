@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagNavigation
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagNavigation.uc,v 1.2 2003/01/26 12:41:32 mychaeel Exp $
+// $Id: JBTagNavigation.uc,v 1.3 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Caches information about an actor used for navigational purposes.
 // ============================================================================
@@ -116,7 +116,7 @@ private static function SpawnController(LevelInfo Level) {
         Default.Controller = thisController;
 
   if (Default.Controller == None)
-    Default.Controller = Level.Spawn(Class'AIController');
+    Default.Controller = Level.Spawn(Class'ScriptedTriggerController');
 
   if (Default.Controller.Pawn == None)
     Default.Controller.Possess(Level.Spawn(Class'JBScout'));
