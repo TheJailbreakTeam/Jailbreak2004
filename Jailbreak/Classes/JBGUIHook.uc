@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIHook
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIHook.uc,v 1.1 2004/04/04 00:41:42 mychaeel Exp $
+// $Id: JBGUIHook.uc,v 1.2 2004/04/15 20:28:37 mychaeel Exp $
 //
 // Hidden actor which hooks into the menu system in order to make the
 // Jailbreak theme music and the add-ons tab work.
@@ -199,6 +199,34 @@ function string PlaySong(string Song, optional float TimeFadeOut, optional float
   PlayerController.PlayMusic(Song, TimeFadeIn);
 
   return SongPrev;
+}
+
+
+// ============================================================================
+// Tick
+//
+// Sets the level-of-detail of map preview images to interface level to work
+// around blurred images at low texture detail settings.
+// ============================================================================
+
+event Tick(float TimeDelta)
+{
+  local int iSequenceItem;
+  local GUIImage GUIImagePreview;
+  local MaterialSequence MaterialSequencePreview;
+  
+  foreach AllObjects(Class'GUIImage', GUIImagePreview)
+    if (GUIImagePreview.PageOwner != None && GUIImagePreview.PageOwner.IsA('UT2K4GamePageBase') &&
+        GUIImagePreview.MenuOwner != None && GUIImagePreview.MenuOwner.IsA('UT2K4Tab_MainSP')) {
+
+      MaterialSequencePreview = MaterialSequence(GUIImagePreview.Image);
+      if (MaterialSequencePreview == None)
+        continue;
+
+      for (iSequenceItem = 0; iSequenceItem < MaterialSequencePreview.SequenceItems.Length; iSequenceItem++)
+        if (Texture(MaterialSequencePreview.SequenceItems[iSequenceItem].Material) != None)
+          Texture(MaterialSequencePreview.SequenceItems[iSequenceItem].Material).LODSet = LODSET_Interface;
+    }
 }
 
 
