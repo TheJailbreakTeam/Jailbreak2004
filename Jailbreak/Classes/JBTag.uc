@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTag.uc,v 1.5 2003/02/26 20:01:30 mychaeel Exp $
+// $Id$
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -79,8 +79,11 @@ protected simulated function InternalSetNext(JBTag TagNext) {
 
 replication
 {
+  reliable if (Role == ROLE_Authority && Keeper != None)
+    Keeper;
+
   reliable if (Role == ROLE_Authority)
-    Keeper, bIsRegisteredOnServer;
+    bIsRegisteredOnServer;
 }
 
 
@@ -295,7 +298,9 @@ private simulated function UnregisterFromList()
 // ============================================================================
 // UnregisterFromInventory
 //
-// Removes this item from its keeper actor's inventory.
+// Removes this item from its keeper actor's inventory and resets the keeper
+// actor reference. Note that the Keeper variable is not replicated to clients
+// when reset to the server.
 // ============================================================================
 
 private simulated function UnregisterFromInventory()
@@ -309,6 +314,8 @@ private simulated function UnregisterFromInventory()
       for (thisInventory = Keeper.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
         if (thisInventory.Inventory == Self)
           thisInventory.Inventory = Inventory;
+
+  Keeper = None;
 }
 
 
