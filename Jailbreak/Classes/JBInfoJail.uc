@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.29.2.6 2004/04/21 17:22:02 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.29.2.7 2004/05/24 13:33:12 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -753,7 +753,8 @@ auto state Waiting {
         ControllerInstigator = PawnInstigator.Controller;
 
       firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
-      if (CanReleaseBy(ControllerInstigator, TeamRelease) &&
+      if (Level.Game.IsInState('MatchInProgress') &&
+          CanReleaseBy(ControllerInstigator, TeamRelease) &&
           (firstJBGameRules == None ||
            firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease))) {
         Release(TeamRelease, ControllerInstigator);
