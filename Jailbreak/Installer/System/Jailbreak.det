@@ -4,8 +4,8 @@ TextArena="kämpft in der Arena"
 [JBBotSquadJail]
 TextJailed="gefangen"
 
-[JBGUICustomHUDMenu]
-WindowName="Jailbreak-Client-Optionen"
+[JBGUIPageClientOptions]
+DialogTitle.Caption="Jailbreak-Client-Optionen"
 CancelButton.Caption="Abbrechen"
 CancelButton.Hint="Hier klicken, um das Dialogfeld ohne Speicherung der Änderungen zu schließen."
 EnableScreens.Caption="Dynamische Texturen aktivieren"
@@ -16,6 +16,8 @@ ResetButton.Caption="Vorgaben"
 ResetButton.Hint="Alle Einstellungen auf ihre Vorgaben zurücksetzen."
 VoicePack.Caption="Sprachpaket"
 VoicePack.Hint="Sprachpaket, das für Jailbreak-Sprachmitteilungen verwendet wird."
+TestVoicePackButton.Caption="Test"
+TestVoicePackButton.Hint="Hier klicken, um eine Beispiel-Sprachmitteilung abzuspielen."
 
 [JBGUIHook]
 TextCaptionGoalScore="Runden-Limit"
