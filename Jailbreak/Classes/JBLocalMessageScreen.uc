@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageScreen
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessageScreen.uc,v 1.3 2004/04/20 15:13:12 mychaeel Exp $
+// $Id: JBLocalMessageScreen.uc,v 1.4 2004/04/27 17:01:52 mychaeel Exp $
 //
 // Displays on-screen messages.
 // ============================================================================
@@ -31,6 +31,33 @@ var Color ColorTextKeyboard;   // color for keyboard information messages
 var int LifetimeTeam;          // lifetime of capture and release messages
 var int LifetimeArena;         // lifetime of arena messages
 var int LifetimeKeyboard;      // lifetime of keyboard information messages
+
+
+// ============================================================================
+// ClientReceive
+//
+// Clears previous messages of the same message group from the screen.
+// ============================================================================
+
+static function ClientReceive(PlayerController PlayerController,
+                              optional int Switch,
+                              optional PlayerReplicationInfo PlayerReplicationInfo1,
+                              optional PlayerReplicationInfo PlayerReplicationInfo2,
+                              optional Object ObjectOptional)
+{
+  local JBInterfaceHud JBInterfaceHud;
+  
+  JBInterfaceHud = JBInterfaceHud(PlayerController.myHUD);
+
+  if (Switch >= 400 && Switch <= 403) {
+    JBInterfaceHud.ClearMessageByClass(Default.Class, 400);
+    JBInterfaceHud.ClearMessageByClass(Default.Class, 401);
+    JBInterfaceHud.ClearMessageByClass(Default.Class, 402);
+    JBInterfaceHud.ClearMessageByClass(Default.Class, 403);
+  }
+
+  Super.ClientReceive(PlayerController, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
+}
 
 
 // ============================================================================
