@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.78 2004/04/28 11:52:22 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.79 2004/04/29 10:34:47 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -314,56 +314,85 @@ event PostBeginPlay()
 
 
 // ============================================================================
-// Login
+// RegisterPlayer
 //
-// Gives every player new JBTagPlayer and JBTagClient actors.
+// Registers the given player for active gameplay. Called whenever a player
+// joins or switches teams or when a bot is spawned. Note that this function
+// will be called more than once during the lifetime of a player.
 // ============================================================================
 
-event PlayerController Login(string Portal, string Options, out string Error)
+function RegisterPlayer(Controller Controller)
 {
-  local PlayerController PlayerLogin;
   local JBTagPlayer thisTagPlayer;
-  local JBTagPlayer TagPlayerLogin;
+  local JBTagPlayer TagPlayerRegistering;
 
-  PlayerLogin = Super.Login(Portal, Options, Error);
+  if (Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo) != None)
+    return;
 
-  if (PlayerLogin                            != None &&
-      PlayerLogin.PlayerReplicationInfo      != None &&
-      PlayerLogin.PlayerReplicationInfo.Team != None) {
+  if (Controller                            != None &&
+      Controller.PlayerReplicationInfo      != None &&
+      Controller.PlayerReplicationInfo.Team != None) {
 
     for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.BelongsTo(PlayerLogin))
+      if (thisTagPlayer.BelongsTo(Controller))
         break;
 
     if (thisTagPlayer != None) {
-      TagPlayerLogin = thisTagPlayer;
+      TagPlayerRegistering = thisTagPlayer;
 
-      if (firstTagPlayerInactive == TagPlayerLogin)
+      if (firstTagPlayerInactive == TagPlayerRegistering)
         firstTagPlayerInactive = firstTagPlayerInactive.nextTag;
       else
         for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer.nextTag != None; thisTagPlayer = thisTagPlayer.nextTag)
-          if (thisTagPlayer.nextTag == TagPlayerLogin)
-            thisTagPlayer.nextTag = TagPlayerLogin.nextTag;
+          if (thisTagPlayer.nextTag == TagPlayerRegistering)
+            thisTagPlayer.nextTag = TagPlayerRegistering.nextTag;
 
-      TagPlayerLogin.SetOwner(PlayerLogin.PlayerReplicationInfo);
-      TagPlayerLogin.Register();
+      TagPlayerRegistering.SetOwner(Controller.PlayerReplicationInfo);
+      TagPlayerRegistering.Register();
     }
-
     else {
-      Class'JBTagPlayer'.Static.SpawnFor(PlayerLogin.PlayerReplicationInfo);
+      Class'JBTagPlayer'.Static.SpawnFor(Controller.PlayerReplicationInfo);
     }
   }
 
-  Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
+  if (PlayerController(Controller) != None)
+    Class'JBTagClient'.Static.SpawnFor(PlayerController(Controller));
+}
 
-  return PlayerLogin;
+
+// ============================================================================
+// UnregisterPlayer
+//
+// Unregisters the given player from active gameplay; called both when leaving
+// the game or switching to spectator mode.
+// ============================================================================
+
+function UnregisterPlayer(Controller Controller)
+{
+  local JBTagPlayer TagPlayerUnregistering;
+
+  if (Controller.PlayerReplicationInfo != None)
+    ReAssessTeam(Controller.PlayerReplicationInfo.Team);
+
+  if (PlayerController(Controller) != None) {
+    TagPlayerUnregistering = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+    
+    if (TagPlayerUnregistering != None) {
+      TagPlayerUnregistering.Unregister();
+      TagPlayerUnregistering.nextTag = firstTagPlayerInactive;
+      firstTagPlayerInactive = TagPlayerUnregistering;
+    }
+  }
+  else {
+    Class'JBTagPlayer'.Static.DestroyFor(Controller.PlayerReplicationInfo);
+  }
 }
 
 
 // ============================================================================
 // SpawnBot
 //
-// Gives every new bot a JBTagPlayer actor and fills the OrderNames slots used
+// Registers every bot as an active player and fills the OrderNames slots used
 // for the custom team tactics submenu of the speech menu.
 // ============================================================================
 
@@ -377,7 +406,7 @@ function Bot SpawnBot(optional string NameBot)
   if (BotSpawned == None)
     return None;
 
-  Class'JBTagPlayer'.Static.SpawnFor(BotSpawned.PlayerReplicationInfo);
+  RegisterPlayer(BotSpawned);
 
   InfoGame = JBGameReplicationInfo(GameReplicationInfo);
   for (iOrderNameTactics = 0; iOrderNameTactics < ArrayCount(InfoGame.OrderNameTactics); iOrderNameTactics++)
@@ -402,34 +431,42 @@ function InitPlacedBot(Controller Controller, RosterEntry RosterEntry)
 
 
 // ============================================================================
-// Logout
+// AllowBecomeActivePlayer
 //
-// Destroys the JBTagPlayer and JBTagClient actors for the given player or bot
-// if one exists. Reassesses the leaving player's team.
+// Disallows the transition from spectator to active player at any time except
+// before and during active gameplay.
 // ============================================================================
 
-function Logout(Controller ControllerExiting)
+function bool AllowBecomeActivePlayer(PlayerController PlayerController)
 {
-  local JBTagPlayer TagPlayerExiting;
+  if (!IsInState('PendingMatch') &&
+      !IsInState('MatchInProgress'))
+    return False;
+  
+  return Super.AllowBecomeActivePlayer(PlayerController);
+}
 
-  if (ControllerExiting.PlayerReplicationInfo != None)
-    ReAssessTeam(ControllerExiting.PlayerReplicationInfo.Team);
 
-  if (PlayerController(ControllerExiting) != None) {
-    Class'JBTagClient'.Static.DestroyFor(PlayerController(ControllerExiting));
+// ============================================================================
+// BecomeSpectator
+//
+// Unregisters the given player when they switch to spectator mode. Disallows
+// this transition at any time except before and during active gameplay.
+// ============================================================================
 
-    TagPlayerExiting = Class'JBTagPlayer'.Static.FindFor(ControllerExiting.PlayerReplicationInfo);
-    TagPlayerExiting.Unregister();
-
-    TagPlayerExiting.nextTag = firstTagPlayerInactive;
-    firstTagPlayerInactive = TagPlayerExiting;
+function bool BecomeSpectator(PlayerController PlayerController)
+{
+  if (!IsInState('PendingMatch') &&
+      !IsInState('MatchInProgress')) {
+    PlayerController.ReceiveLocalizedMessage(GameMessageClass, 12);
+    return False;
   }
 
-  else {
-    Class'JBTagPlayer'.Static.DestroyFor(ControllerExiting.PlayerReplicationInfo);
-  }
-
-  Super.Logout(ControllerExiting);
+  if (!Super.BecomeSpectator(PlayerController))
+    return False;
+  
+  UnregisterPlayer(PlayerController);
+  return True;
 }
 
 
@@ -440,16 +477,17 @@ function Logout(Controller ControllerExiting)
 // change if it is successful.
 // ============================================================================
 
-function bool ChangeTeam(Controller ControllerPlayer, int iTeam, bool bNewTeam)
+function bool ChangeTeam(Controller Controller, int iTeam, bool bNewTeam)
 {
   local TeamInfo TeamBefore;
 
-  if (ControllerPlayer.PlayerReplicationInfo != None)
-    TeamBefore = ControllerPlayer.PlayerReplicationInfo.Team;
+  if (Controller.PlayerReplicationInfo != None)
+    TeamBefore = Controller.PlayerReplicationInfo.Team;
 
-  if (Super.ChangeTeam(ControllerPlayer, iTeam, bNewTeam)) {
+  if (Super.ChangeTeam(Controller, iTeam, bNewTeam)) {
+    RegisterPlayer(Controller);
     ReAssessTeam(TeamBefore);
-    ReAssessTeam(ControllerPlayer.PlayerReplicationInfo.Team);
+    ReAssessTeam(Controller.PlayerReplicationInfo.Team);
     return True;
   }
 
@@ -477,6 +515,24 @@ function ReAssessTeam(TeamInfo Team)
       return;
 
   JBBotTeam(UnrealTeamInfo(Team).AI).SetTactics('Auto');
+}
+
+
+// ============================================================================
+// Logout
+//
+// Unregisters the exiting player from active gameplay and removes their
+// JBTagClient actor if a human player is exiting the game.
+// ============================================================================
+
+function Logout(Controller ControllerExiting)
+{
+  UnregisterPlayer(ControllerExiting);
+
+  if (PlayerController(ControllerExiting) != None)
+    Class'JBTagClient'.Static.DestroyFor(PlayerController(ControllerExiting));
+
+  Super.Logout(ControllerExiting);
 }
 
 
