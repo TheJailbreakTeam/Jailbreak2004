@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTag
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTag.uc,v 1.8 2004/05/24 15:09:01 mychaeel Exp $
+// $Id: JBTag.uc,v 1.9 2004/05/25 12:32:46 mychaeel Exp $
 //
 // Abstract base class for information-holding actors that can be attached to
 // arbitrary other actors. Actors of the same subclass of JBTag are linked as a
@@ -245,6 +245,7 @@ function Unregister()
   if (!bIsRegisteredOnServer)
     return;
 
+  UnregisterLocal();
   UnregisterFromList();
   UnregisterFromInventory();
 
@@ -392,8 +393,8 @@ simulated event Destroyed()
 // client, then registers itself.
 // ============================================================================
 
-simulated state Registering {
-
+simulated state Registering
+{
   Begin:
     while (Keeper == None || GetGameReplicationInfo() == None)
       Sleep(0.0);  // sleep for a tick
