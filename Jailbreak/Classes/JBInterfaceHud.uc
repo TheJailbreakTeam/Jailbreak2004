@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.21 2003/03/23 08:24:59 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.22 2003/03/29 12:58:26 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -38,12 +38,17 @@ var localized string TextTactics[5];          // tactics names for widget
 var bool bWidescreen;                         // display widescreen bars
 var private float RatioWidescreen;            // widescreen scroll-in progress
 
+var private transient JBTagClient TagClientOwner;  // client bridge head
 var private transient JBTagPlayer TagPlayerOwner;  // player state for owner
 
+var private float TimeUpdateLocationChat;     // last chat area movement
 var private float TimeUpdateCompass;          // last compass rendering
 var private float TimeUpdateDisposition;      // last disposition rendering
 var private float TimeUpdateTactics;          // last tactics rendering
 var private float TimeUpdateWidescreen;       // last widescreen bar rendering
+
+var vector LocationChatScoreboard;            // location of chat on scoreboard
+var private float AlphaLocationChat;          // relative chat area position
 
 var private byte SpeechMenuState;             // current speech menu state
 var private bool bSpeechMenuVisible;          // speech menu displayed
@@ -73,6 +78,19 @@ var SpriteWidget SpriteWidgetTacticsTint;     // tactics widget tint
 var SpriteWidget SpriteWidgetTacticsFrame;    // tactics widget frame
 var SpriteWidget SpriteWidgetTacticsIcon[5];  // tactics icons
 var SpriteWidget SpriteWidgetTacticsAuto;     // auto tactics display
+
+
+// ============================================================================
+// UpdatePrecacheMaterials
+//
+// Adds the sprite widget material to the global list of precached materials.
+// ============================================================================
+
+simulated function UpdatePrecacheMaterials() {
+
+  Level.AddPrecacheMaterial(Material'SpriteWidgetHud');
+  Super.UpdatePrecacheMaterials();
+  }
 
 
 // ============================================================================
@@ -152,14 +170,19 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 // PostRender
 //
 // Displays the overlays of the JBCamera actor the player is viewing from, if
-// applicable. Otherwise just does the usual.
+// applicable; otherwise renders the normal display. Synchronizes client time
+// with the server. Also moves chat area back to its normal position if it had
+// previously been moved away by the scoreboard.
 // ============================================================================
 
 simulated event PostRender(Canvas Canvas) {
 
   ShowWidescreen(Canvas);
+  MoveChat(bShowScoreBoard);
 
   if (JBCamera(PlayerOwner.ViewTarget) != None) {
+    LinkActors();
+
     PlayerOwner.ViewTarget.RenderOverlays(Canvas);
 
     if (bShowScoreBoard)
@@ -176,22 +199,89 @@ simulated event PostRender(Canvas Canvas) {
   
   else {
     Super.PostRender(Canvas);
+
+    if (bShowScoreBoard)
+      DisplayMessages(Canvas);
     }
+
+  if (Level.LevelAction == LEVACT_None)  // skip precaching
+    SynchronizeTime();
   }
 
 
 // ============================================================================
 // LinkActors
 //
-// Initializes the TagPlayerOwner actor for the current PawnOwner.
+// Initializes the TagPlayerOwner and TagClientOwner references.
 // ============================================================================
 
 simulated function LinkActors() {
 
   Super.LinkActors();
 
-  if (PawnOwner != None)
+  if (TagPlayerOwner == None && PawnOwner != None)
     TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PawnOwner.PlayerReplicationInfo);
+
+  if (TagClientOwner == None && PlayerOwner != None)
+    TagClientOwner = Class'JBTagClient'.Static.FindFor(PlayerOwner);
+  }
+
+
+// ============================================================================
+// MoveChat
+//
+// Moves the chat area in a slight arc from its normal position to its
+// position on the scoreboard or back.
+// ============================================================================
+
+simulated function MoveChat(bool bIsScoreboardDisplayed) {
+
+  local float TimeDelta;
+  local vector LocationChatDelta;
+  local vector LocationChatNormal;
+  local vector LocationChatInterpolated;
+  
+  TimeDelta = Level.TimeSeconds - TimeUpdateLocationChat;
+  TimeUpdateLocationChat = Level.TimeSeconds;
+  
+  if (bIsScoreboardDisplayed) {
+    if (AlphaLocationChat == 1.0)
+      return;
+    AlphaLocationChat = FMin(1.0, AlphaLocationChat + 3.0 * TimeDelta);
+    }
+
+  else {
+    if (AlphaLocationChat == 0.0)
+      return;
+    AlphaLocationChat = FMax(0.0, AlphaLocationChat - 3.0 * TimeDelta);
+    }
+
+  LocationChatNormal.X = Default.ConsoleMessagePosX;
+  LocationChatNormal.Y = Default.ConsoleMessagePosY;
+
+  LocationChatDelta = LocationChatScoreboard - LocationChatNormal;
+  LocationChatInterpolated =
+    LocationChatNormal + AlphaLocationChat * LocationChatDelta +
+    LocationChatDelta cross vect(0.0, 0.0, 0.2) * (Square(AlphaLocationChat - 0.5) - 0.25);
+  
+  ConsoleMessagePosX = LocationChatInterpolated.X;
+  ConsoleMessagePosY = LocationChatInterpolated.Y;
+  }
+
+
+// ============================================================================
+// SynchronizeTime
+//
+// Synchronizes the client with the server's actual game time.
+// ============================================================================
+
+simulated function SynchronizeTime() {
+
+  if (TagClientOwner == None ||
+      TagClientOwner.IsTimeSynchronized())
+    return;
+
+  TagClientOwner.SynchronizeTime();
   }
 
 
@@ -208,7 +298,9 @@ simulated function DrawSpectatingHud(Canvas Canvas) {
   local string TextPlayerRestartPrev;
 
   TextPlayerRestartPrev = Class'ScoreboardDeathMatch'.Default.Restart;
-  if (JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).bIsExecuting)
+
+  if (JBGameReplicationInfo(PlayerOwner.GameReplicationInfo) != None &&
+      JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).bIsExecuting)
     Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerExecuted;
   else
     Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerKilled;
@@ -793,6 +885,20 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
 
 
 // ============================================================================
+// exec SetupPanorama
+//
+// Allows mappers to interactively align the scoreboard overlook map. Creates
+// a JBInteractionSetupPanorama interaction and lets it handle the rest.
+// ============================================================================
+
+exec function SetupPanorama() {
+
+  if (Level.NetMode == NM_Standalone)
+    PlayerOwner.Player.InteractionMaster.AddInteraction("Jailbreak.JBInteractionPanorama", PlayerOwner.Player);
+  }
+
+
+// ============================================================================
 // Defaults
 // ============================================================================
 
@@ -810,6 +916,8 @@ defaultproperties {
   TextOrderName[3] = "Normal";
   TextOrderName[4] = "Defensive";
   TextOrderName[5] = "Evasive";
+
+  LocationChatScoreboard = (X=0.050,Y=0.300);
 
   LocationTextTactics = (X=0.155,Y=0.028);
   SizeIconTactics     = (X=0.042,Y=0.054);

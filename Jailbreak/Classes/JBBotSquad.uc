@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.10 2003/02/17 19:49:03 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.11 2003/03/22 18:27:31 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -377,6 +377,25 @@ function bool CheckSquadObjectives(Bot Bot) {
       return FindPathToObjective(Bot, InfoHunt.NavigationPoint);
   
   return False;
+  }
+
+
+// ============================================================================
+// GetOrderStringFor
+//
+// Returns a string describing the given player's current status. Unchanged in
+// respect to the function it overrides except that it uses a GameObjective's
+// actual ObjectiveName.
+// ============================================================================
+
+simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo) {
+
+  GetOrders();
+
+  if (CurrentOrders == 'defend') return DefendString @ SquadObjective.ObjectiveName;
+  if (CurrentOrders == 'attack') return AttackString @ SquadObjective.ObjectiveName;
+
+  return Super.GetOrderStringFor(TeamPlayerReplicationInfo);
   }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.29 2003/03/18 18:22:44 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.30 2003/03/22 18:03:27 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -18,10 +18,22 @@ class JBTagPlayer extends JBTag
 replication {
 
   reliable if (Role == ROLE_Authority)
-    Arena, ArenaPending, Jail, Health;
+    Arena,
+    ArenaPending,
+    Jail,
+    Controller,
+    Health,
+    ScorePartialAttack,
+    ScorePartialDefense,
+    ScorePartialRelease,
+    LocationPawn,
+    VelocityPawn,
+    ObjectiveGuessed,
+    PawnObjectiveGuessed;
 
   reliable if (Role == ROLE_Authority)
-    ClientSetArena, ClientSetJail;
+    ClientSetArena,
+    ClientSetJail;
   }
 
 
@@ -63,6 +75,10 @@ struct TInfoLocation {
 
 var name OrderNameFixed;                  // bot should stick to these orders
 
+var int ScorePartialAttack;               // score earned through attack frags
+var int ScorePartialDefense;              // score earned through defense frags
+var int ScorePartialRelease;              // score earned through releases
+
 var private string HashIdPlayer;          // key hash for later recognition
 
 var private bool bIsLlama;                // player disconnected in jail
@@ -83,7 +99,18 @@ var private bool bAdrenalineEnabledPrev;  // adrenaline state before arena
 var private JBInfoJail Jail;              // jail the player is currently in
 var private float TimeRelease;            // time of last release from jail
 
+var private Controller Controller;        // controller used by this player
 var private int Health;                   // current health and armor
+
+var private float TimeUpdateLocation;     // client-side location update time
+var private float VelocityPawn;           // replicated velocity of pawn
+var private float VelocityPawnBase;       // client-side extrapolation velocity
+var private vector LocationPawn[2];       // last two replicated pawn locations
+var private vector LocationPawnPrev[2];   // client-side acknowledged locations
+var private vector LocationPawnBase;      // client-side extrapolation base
+var private vector LocationPawnLast;      // server-side last known location
+var private vector DeviationPawn;         // deviation of extrapolated location
+var private vector DirectionPawn;         // client-side movement direction
 
 var private float TimeInfoLocation;                 // last known location time
 var private array<TInfoLocation> ListInfoLocation;  // location probabilities
@@ -92,6 +119,8 @@ var private float TimeObjectiveGuessed;             // time of last guess
 var private Pawn PawnObjectiveGuessed;              // pawn used at last guess
 var private GameObjective ObjectiveGuessed;         // last guessed objective
 var private array<float> ListDistanceObjective;     // distances to objectives
+
+var transient bool bIsInScoreboard;       // scores listed; used by scoreboard
 
 
 // ============================================================================
@@ -149,6 +178,8 @@ function Register() {
 
   Super.Register();
 
+  Controller = Controller(PlayerReplicationInfo(Keeper).Owner);
+
   PlayerReplicationInfo(Keeper).Score       = InfoScore.Score;
   PlayerReplicationInfo(Keeper).Deaths      = InfoScore.Deaths;
   PlayerReplicationInfo(Keeper).GoalsScored = InfoScore.GoalsScored;
@@ -168,6 +199,7 @@ function Register() {
   if (PlayerController(GetController()) != None)
     HashIdPlayer = PlayerController(GetController()).GetPlayerIDHash();
 
+  Enable('Tick');
   SetTimer(RandRange(0.18, 0.22), True);
   }
 
@@ -180,6 +212,7 @@ function Register() {
 
 function Unregister() {
 
+  Disable('Tick');
   SetTimer(0.0, False);  // stop timer
 
   bIsLlama = !IsFree();
@@ -209,12 +242,42 @@ function Unregister() {
 // ============================================================================
 // Timer
 //
-// Active only if the player is in jail or in freedom. Checks whether the
-// player has entered or left jail meanwhile and updates the Jail variable
-// accordingly, giving all necessary notifications.
+// Updates jail status, replicated location and health.
 // ============================================================================
 
 event Timer() {
+
+  UpdateJail();
+  UpdateLocation();
+
+  GetHealth();  // update Health variable
+  }
+
+
+// ============================================================================
+// Tick
+//
+// Updates the LocationPawnLast variables.
+// ============================================================================
+
+event Tick(float TimeDelta) {
+
+  local Pawn Pawn;
+
+  Pawn = GetController().Pawn;
+  if (Pawn != None)
+    LocationPawnLast = Pawn.Location;
+  }
+
+
+// ============================================================================
+// UpdateJail
+//
+// Checks whether the player has entered or left jail meanwhile and updates
+// the Jail variable accordingly, giving all necessary notifications.
+// ============================================================================
+
+private function UpdateJail() {
 
   local JBInfoJail JailPrev;
   
@@ -231,8 +294,143 @@ event Timer() {
     if (JailPrev != Jail)
       ClientSetJail(Jail);
     }
+  }
 
-  GetHealth();  // update Health variable
+
+// ============================================================================
+// UpdateLocation
+//
+// Replicates information about the player's movement to all clients. Does not
+// apply in standalone games.
+// ============================================================================
+
+private function UpdateLocation() {
+
+  local int iLocationPawn;
+  local vector DirectionPawnActual;
+  local vector DirectionPawnPrev;
+  local vector LocationPawnActual;
+  local vector LocationPawnExtrapolated;
+  local vector VelocityPawnActual;
+  local Pawn Pawn;
+
+  if (Level.NetMode == NM_Standalone)
+    return;
+
+  Pawn = GetController().Pawn;
+
+  if (Pawn == None) {
+    VelocityPawn = 0.0;
+    LocationPawn[0] = LocationPawnLast;
+    LocationPawn[1] = LocationPawnLast;
+    }
+
+  else {
+    DirectionPawnPrev = LocationPawn[1] - LocationPawn[0];
+    if (CalcOrientation(DirectionPawnPrev) * VelocityPawn < 0)
+      iLocationPawn = 1;
+
+    VelocityPawnActual = Pawn.Velocity;
+    if (Pawn.Base != None)
+      VelocityPawnActual += Pawn.Base.Velocity;
+
+    // quantize and round velocity to minimize replication
+    VelocityPawn = int(VSize(VelocityPawnActual) * 32.0 + 0.5) / 32.0;
+    VelocityPawnBase = VelocityPawn;  // used for server-side extrapolation
+
+    LocationPawnActual = Pawn.Location;
+
+    if (VelocityPawn == 0.0) {
+      LocationPawn[0] = LocationPawnActual;
+      LocationPawn[1] = LocationPawnActual;
+      }
+    
+    else {
+      LocationPawnExtrapolated = ExtrapolateLocationPawn();
+  
+      DirectionPawnActual = Normal(LocationPawnActual - LocationPawnBase);
+      if (CalcOrientation(DirectionPawnActual) < 0)
+        VelocityPawn = -VelocityPawn;  // resolve orientation ambiguity
+  
+      if (VSize(LocationPawnExtrapolated - LocationPawnActual) > 16.0) {
+        LocationPawn[    iLocationPawn] = LocationPawnActual;
+        LocationPawn[1 - iLocationPawn] = LocationPawnBase;
+
+        // used for server-side extrapolation
+        DirectionPawn = DirectionPawnActual;
+        LocationPawnBase = LocationPawnActual;
+  
+        TimeUpdateLocation = Level.TimeSeconds;
+        }
+      }
+    }
+  }
+
+
+// ============================================================================
+// PostNetReceive
+//
+// If new information about the Pawn's whereabouts is received, derives the
+// player's current movement direction from the last two location updates.
+// Calculates the deviation between the extrapolated and the actual location.
+// ============================================================================
+
+simulated event PostNetReceive() {
+
+  local vector LocationPawnSmoothed;
+
+  Super.PostNetReceive();
+
+  if (LocationPawn[0] != LocationPawnPrev[0] ||
+      LocationPawn[1] != LocationPawnPrev[1]) {
+
+    LocationPawnSmoothed = GetLocationPawn();
+
+    LocationPawnBase = LocationPawn[1];
+    DirectionPawn = Normal(LocationPawn[1] - LocationPawn[0]);
+
+    if (CalcOrientation(DirectionPawn) * VelocityPawn < 0) {
+      DirectionPawn = -DirectionPawn;  // switch orientation
+      LocationPawnBase = LocationPawn[0];
+      }    
+    
+    TimeUpdateLocation = Level.TimeSeconds;
+
+    DeviationPawn = LocationPawnSmoothed - LocationPawnBase;
+    if (VSize(DeviationPawn) > 1024.0)
+      DeviationPawn = vect(0, 0, 0);  // apparently sudden relocation
+
+    LocationPawnPrev[0] = LocationPawn[0];
+    LocationPawnPrev[1] = LocationPawn[1];
+    }
+  
+  VelocityPawnBase = Abs(VelocityPawn);
+  }
+
+
+// ============================================================================
+// CalcOrientation
+//
+// Calculates and returns an artificial value representing the orientation of
+// a vector. The returned value has the following properties:
+//
+//   * Non-zero for any non-zero vector. Zero for the zero vector.
+//   * Negating the argument yields the negative result.
+//
+// Those properties allow to use this function to make any difference between
+// two given points in space unambiguous by passing a single additional binary
+// bit of information.
+// ============================================================================
+
+simulated function float CalcOrientation(vector VectorInput) {
+
+  local vector VectorTranslated;
+
+  VectorTranslated.X = VectorInput dot vect(1, 1, 0);  if (VectorTranslated.X != 0.0) return VectorTranslated.X;
+  VectorTranslated.Y = VectorInput dot vect(1,-1, 0);  if (VectorTranslated.Y != 0.0) return VectorTranslated.Y;
+  VectorTranslated.Z = VectorInput dot vect(0, 0, 1);  if (VectorTranslated.Z != 0.0) return VectorTranslated.Z;
+
+  return 0.0;
   }
 
 
@@ -692,6 +890,37 @@ simulated function int GetHealth(optional bool bCached) {
 
 
 // ============================================================================
+// ExtrapolateLocationPawn
+//
+// Extrapolates and returns the current location of the player's pawn based on
+// the information sent by the server. Does not attempt to smooth the pawn's
+// movement in any other way.
+// ============================================================================
+
+private simulated function vector ExtrapolateLocationPawn() {
+
+  return LocationPawnBase + DirectionPawn * VelocityPawnBase * (Level.TimeSeconds - TimeUpdateLocation);
+  }
+
+
+// ============================================================================
+// GetLocationPawn
+//
+// Gets the last known location of the player's pawn. If the pawn is not
+// replicated to this client, uses the client-side extrapolated location and
+// applies time-based smoothing on it.
+// ============================================================================
+
+simulated function vector GetLocationPawn() {
+
+  if (Role == ROLE_Authority)
+    return LocationPawnLast;
+
+  return ExtrapolateLocationPawn() + DeviationPawn * FMax(0.0, 1.0 - (Level.TimeSeconds - TimeUpdateLocation) / 2.0);
+  }
+
+
+// ============================================================================
 // RecordLocation
 //
 // Records a known location of this player. Later calls of GuessLocation will
@@ -888,7 +1117,7 @@ function GameObjective GuessObjective() {
 simulated function PlayerReplicationInfo GetPlayerReplicationInfo() {
   return PlayerReplicationInfo(Keeper); }
 simulated function Controller GetController() {
-  if (Keeper == None) return None; return Controller(Keeper.Owner); }
+  return Controller; }
 simulated function TeamInfo GetTeam() {
   if (Keeper == None) return None; return PlayerReplicationInfo(Keeper).Team; }
 
@@ -903,6 +1132,9 @@ function JBInfoArena GetArenaRequest() {
   return ArenaRequest; }
 function float GetArenaRequestTime() {
   return TimeArenaRequest; }
+
+simulated function GameObjective GetObjectiveGuessed() {
+  return ObjectiveGuessed; }
 
 
 // ============================================================================

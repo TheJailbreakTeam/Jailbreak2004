@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.43 2003/03/18 18:22:44 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.44 2003/03/23 09:49:43 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -30,6 +30,7 @@ var private JBTagPlayer firstTagPlayerInactive;  // disconnected player chain
 
 var private float TimeExecution;         // time for pending execution
 var private float TimeRestart;           // time for pending round restart
+var private float DilationTimePrev;      // last synchronized time dilation
 var private JBCamera CameraExecution;    // camera for execution sequence
 
 var private float TimeEventFired;        // time of last fired singular event
@@ -415,12 +416,18 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
 
 function ScorePlayer(Controller Controller, name Event) {
 
+  local JBTagPlayer TagPlayer;
+
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+  if (TagPlayer == None)
+    return;
+
   switch (Event) {
     case 'Suicide':   ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
     case 'Teamkill':  ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
-    case 'Attack':    ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
-    case 'Defense':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  break;
-    case 'Release':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
+    case 'Attack':    ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialAttack  += 1;  break;
+    case 'Defense':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  TagPlayer.ScorePartialDefense += 1;  break;
+    case 'Release':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialRelease += 1;  break;
     case 'Capture':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
     }
 
@@ -752,6 +759,7 @@ function bool ExecutionInit() {
         if (bFoundCaptured) {
           RestartAll();
           BroadcastLocalizedMessage(MessageClass, 300);
+          JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, None);
           return False;
           }
       
@@ -790,7 +798,9 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
 
   if (IsInState('MatchInProgress')) {
     GotoState('Executing');
+    
     BroadcastLocalizedMessage(MessageClass, 100, , , TeamExecuted);
+    JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, TeamExecuted);
     
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
       if (thisController.PlayerReplicationInfo != None &&
@@ -881,13 +891,15 @@ state MatchInProgress {
   // BeginState
   //
   // Only calls the superclass function if this state is entered the
-  // first time. Resets the orders all bots.
+  // first time. Resets the orders for all bots, and restarts the
+  // client-side match time counters.
   // ================================================================
 
   event BeginState() {
 
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
+    local JBGameReplicationInfo InfoGame;
   
     if (bWaitingToStartMatch)
       Super.BeginState();
@@ -898,11 +910,16 @@ state MatchInProgress {
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyRound();
     
-    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+    InfoGame = JBGameReplicationInfo(Level.Game.GameReplicationInfo);
+    
+    firstTagPlayer = InfoGame.firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       thisTagPlayer.NotifyRound();
     for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       thisTagPlayer.NotifyRound();
+    
+    InfoGame.StartMatchTimer();
+    InfoGame.SynchronizeMatchTimer(ElapsedTime);
     }
 
 
@@ -912,11 +929,14 @@ state MatchInProgress {
   // Periodically checks whether at least one team is completely
   // jailed and sets TimeExecution if so. If TimeExecution is set
   // and has passed, resets it and calls the ExecutionInit function.
+  // Synchronizes the client match timers.
   // ================================================================
   
   event Timer() {
   
     local int iTeam;
+  
+    Super.Timer();
     
     if (TimeExecution == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
@@ -928,8 +948,11 @@ state MatchInProgress {
       TimeExecution = 0.0;
       ExecutionInit();
       }
-  
-    Super.Timer();
+
+    if (ElapsedTime % 30 == 0 || DilationTimePrev != Level.TimeDilation) {
+      DilationTimePrev = Level.TimeDilation;
+      JBGameReplicationInfo(GameReplicationInfo).SynchronizeMatchTimer(ElapsedTime);
+      }
     }
 
 
@@ -954,6 +977,22 @@ state MatchInProgress {
       JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
       JBBotTeam(Teams[1].AI).NotifySpawn(Controller);
       }
+    }
+
+
+  // ================================================================
+  // EndState
+  //
+  // Interrupts the client-side match time counters.
+  // ================================================================
+
+  event EndState() {
+  
+    local JBGameReplicationInfo InfoGame;
+  
+    InfoGame = JBGameReplicationInfo(GameReplicationInfo);
+    InfoGame.StopMatchTimer();
+    InfoGame.SynchronizeMatchTimer(ElapsedTime);
     }
 
   } // state MatchInProgress
