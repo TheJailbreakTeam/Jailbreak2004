@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameReplicationInfo
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGameReplicationInfo.uc,v 1.13.2.1 2004/04/22 13:51:37 mychaeel Exp $
 //
 // Replicated information for the entire game.
 // ============================================================================
@@ -45,7 +45,7 @@ struct TOrderName
 struct TInfoCapture
 {
   var int Time;        // elapsed game time on capture
-  var TeamInfo Team;   // captured team or None on tie
+  var byte iTeam;      // captured team index or 255 on tie
 };
 
 
@@ -264,7 +264,9 @@ function AddCapture(int TimeCapture, TeamInfo TeamCaptured)
   iInfoCapture = (iInfoCaptureFirst + nInfoCaptures - 1) % ArrayCount(ListInfoCapture);
 
   ListInfoCapture[iInfoCapture].Time = TimeCapture;
-  ListInfoCapture[iInfoCapture].Team = TeamCaptured;
+  if (TeamCaptured != None)
+         ListInfoCapture[iInfoCapture].iTeam = TeamCaptured.TeamIndex;
+    else ListInfoCapture[iInfoCapture].iTeam = 255;
 }
 
 
@@ -295,6 +297,7 @@ simulated function int GetCaptureTime(int iCapture)
     return -1;
 
   iInfoCapture = (iInfoCaptureFirst + iCapture) % ArrayCount(ListInfoCapture);
+
   return ListInfoCapture[iInfoCapture].Time;
 }
 
@@ -314,7 +317,10 @@ simulated function TeamInfo GetCaptureTeam(int iCapture)
     return None;
 
   iInfoCapture = (iInfoCaptureFirst + iCapture) % ArrayCount(ListInfoCapture);
-  return ListInfoCapture[iInfoCapture].Team;
+
+  if (ListInfoCapture[iInfoCapture].iTeam < 255)
+         return Teams[ListInfoCapture[iInfoCapture].iTeam];
+    else return None;
 }
 
 
