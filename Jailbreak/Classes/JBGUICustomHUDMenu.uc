@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUICustomHUDMenu
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUICustomHUDMenu.uc,v 1.2 2004/05/17 19:14:58 mychaeel Exp $
+// $Id: JBGUICustomHUDMenu.uc,v 1.3 2004/05/25 12:52:21 mychaeel Exp $
 //
 // custom HUD configuration menu for Jailbreak's clientside settings.
 // ============================================================================
@@ -110,7 +110,7 @@ function SaveSettings()
 
 function RestoreDefaults()
 {
-  co_VoicePack.Find("JBVoiceGrrrl.Echo", , True);
+  co_VoicePack.Find("JBVoiceGrrrl.Classic", , True);
   ch_EnableScreens.Checked(True);
 }
 
