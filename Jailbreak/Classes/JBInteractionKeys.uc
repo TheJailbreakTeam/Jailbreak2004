@@ -434,12 +434,18 @@ event PostRender(Canvas Canvas)
 // ============================================================================
 // NotifyLevelChange
 //
-// Removes this Interaction before level change.
+// Removes this Interaction before level change. Calls NotifyLevelChange in
+// all JBAddon actors which are around.
 // ============================================================================
 
 event NotifyLevelChange()
 {
+  local JBAddon thisAddon;
+
   Master.RemoveInteraction(Self);
+  
+  foreach ViewportOwner.Actor.DynamicActors(Class'JBAddon', thisAddon)
+    thisAddon.NotifyLevelChange();
 }
 
 

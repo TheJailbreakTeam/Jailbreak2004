@@ -88,6 +88,15 @@ simulated function RenderOverlays(Canvas Canvas);
 
 
 // ============================================================================
+// NotifyLevelChange
+//
+// Called client-side and on listen servers when the level changes.
+// ============================================================================
+
+simulated function NotifyLevelChange();
+
+
+// ============================================================================
 // PlayInfoGroup
 //
 // Returns the name to be used for this add-on in FillPlayInfo.
