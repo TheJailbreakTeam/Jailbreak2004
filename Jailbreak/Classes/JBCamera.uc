@@ -592,16 +592,21 @@ protected simulated function ActivateForLocal()
 protected simulated function DeactivateForLocal()
 {
   local PlayerController ControllerPlayer;
+  local JBInterfaceHud JBInterfaceHud;
 
   ControllerPlayer = Level.GetLocalPlayerController();
 
-  if (JBInterfaceHud(ControllerPlayer.myHUD) != None)
-    JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = False;
+  JBInterfaceHud = JBInterfaceHud(ControllerPlayer.myHUD);
+  if (JBInterfaceHud != None)
+    JBInterfaceHud.bWidescreen = False;
 
   if (CameraEffectMotionBlur != None) {
     RemoveCameraEffect(CameraEffectMotionBlur);
     CameraEffectMotionBlur = None;
   }
+
+  if (JBInterfaceHud != None)
+    JBInterfaceHud.ClearMessageByClass(Class'JBLocalMessageScreen', 510);
 
   bIsActiveLocal = False;
 }

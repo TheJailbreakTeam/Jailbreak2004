@@ -844,6 +844,24 @@ simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas)
 
 
 // ============================================================================
+// ClearMessageByClass
+//
+// Clears all messages of the given class (and optional switch) from the list
+// of local messages.
+// ============================================================================
+
+simulated function ClearMessageByClass(Class<LocalMessage> ClassLocalMessage, optional int Switch)
+{
+  local int iLocalMessage;
+  
+  for (iLocalMessage = 0; iLocalMessage < ArrayCount(LocalMessages); iLocalMessage++)
+    if (LocalMessages[iLocalMessage].Message == ClassLocalMessage &&
+       (LocalMessages[iLocalMessage].Switch == Switch || Switch == 0))
+      ClearMessage(LocalMessages[iLocalMessage]);
+}
+
+
+// ============================================================================
 // GetTagClientOwner
 //
 // Returns the JBTagClient actor for the local player.
