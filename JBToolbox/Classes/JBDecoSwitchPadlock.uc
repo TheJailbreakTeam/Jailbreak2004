@@ -138,6 +138,7 @@ defaultproperties
   Location                  = (Z=8.0);
   
   bStatic                   = False;
+  bStasis                   = False;
   bBlockActors              = False;
   bBlockNonZeroExtentTraces = False;
   bBlockPlayers             = False;
