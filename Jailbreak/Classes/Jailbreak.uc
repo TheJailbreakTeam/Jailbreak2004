@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.114 2004/08/09 22:36:21 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.115 2004/08/18 17:47:38 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1711,12 +1711,11 @@ state MatchInProgress {
   //
   // Only calls the superclass function if this state is entered the
   // first time. Resets the orders for all bots, and restarts the
-  // client-side match time counters. Powers up turrets.
+  // client-side match time counters.
   // ================================================================
 
   event BeginState()
   {
-    local ONSStationaryWeaponPawn thisStationaryWeaponPawn;
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBGameReplicationInfo InfoGame;
@@ -1743,11 +1742,41 @@ state MatchInProgress {
     InfoGame.StartMatchTimer();
     InfoGame.SynchronizeMatchTimer(ElapsedTime);
     
-    foreach DynamicActors(Class'ONSStationaryWeaponPawn', thisStationaryWeaponPawn)
-      thisStationaryWeaponPawn.bPowered = True;
+    RespawnPickups();
   }
 
 
+  // ================================================================
+  // RespawnPickups
+  //
+  // Respawns all pickups and resets the initial spawning delay for
+  // super pickups. Respawns vehicles and powers up turrets.
+  // ================================================================
+  
+  function RespawnPickups()
+  {
+    local Pickup thisPickup;
+    local SVehicleFactory thisSVehicleFactory;
+    local ONSStationaryWeaponPawn thisStationaryWeaponPawn;
+  
+    foreach DynamicActors(Class'Pickup', thisPickup) {
+      if (thisPickup.PickupBase != None &&
+          thisPickup.PickupBase.bDelayedSpawn)
+             thisPickup.GotoState('Sleeping');
+        else thisPickup.GotoState('Pickup');
+    
+      if (thisPickup.PickupBase != None)
+        thisPickup.PickupBase.TurnOn();
+    }
+
+    foreach DynamicActors(Class'SVehicleFactory', thisSVehicleFactory)
+      thisSVehicleFactory.Reset();
+
+    foreach DynamicActors(Class'ONSStationaryWeaponPawn', thisStationaryWeaponPawn)
+      thisStationaryWeaponPawn.bPowered = True;
+  }
+  
+  
   // ================================================================
   // Timer
   //
