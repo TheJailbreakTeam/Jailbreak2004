@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.7.2.3 2004/04/06 18:38:17 tarquin Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.7.2.4 2004/05/12 09:09:13 wormbo Exp $
 //
 // Options for the protection add-on.
 // ============================================================================
@@ -83,7 +83,7 @@ function ChangeOptions(GUIComponent Sender)
 function LoadINISettings()
 {
   bInitialized = False;
-  ProtectionTime.SetValue(int(class'JBAddonProtection'.default.ProtectionTime));
+  ProtectionTime.SetValue(class'JBAddonProtection'.default.ProtectionTime);
   ProtectionType.SetIndex(class'JBAddonProtection'.default.ProtectionType);
   ProtectArenaWinner.Checked(class'JBAddonProtection'.default.bProtectArenaWinner);
   LlamaizeCampers.Checked(class'JBAddonProtection'.default.bLlamaizeCampers);
