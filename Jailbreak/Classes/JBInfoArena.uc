@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.27.2.10 2004/05/19 02:10:34 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.27.2.11 2004/05/20 17:04:36 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -152,6 +152,39 @@ event PostBeginPlay()
   foreach DynamicActors(Class'JBCamera', thisCamera)
     if (ContainsActor(thisCamera))
       thisCamera.Overlay.Actor = Self;
+
+  TimeStart = 0.0;  // trigger PostNetBeginPlay
+}
+
+
+// ============================================================================
+// Tick
+//
+// If this JBInfoArena actor is not yet registered in the global JBInfoArena
+// linked list client-side yet, adds it to it.
+// ============================================================================
+
+simulated event Tick(float TimeDelta)
+{
+  local JBInfoArena firstArena;
+  local JBInfoArena thisArena;
+  local JBGameReplicationInfo InfoGame;
+
+  if (Role < ROLE_Authority) {
+    InfoGame = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo);
+    if (InfoGame == None)
+      return;
+
+    firstArena = InfoGame.firstArena;
+    for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+      if (thisArena == Self)
+        return;
+
+    nextArena = InfoGame.firstArena;
+    InfoGame.firstArena = Self;
+  }
+
+  Disable('Tick');
 }
 
 

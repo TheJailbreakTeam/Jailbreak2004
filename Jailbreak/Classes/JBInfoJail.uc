@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.29.2.7 2004/05/24 13:33:12 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.29.2.8 2004/05/24 14:40:15 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -80,6 +80,37 @@ event PostBeginPlay()
 
   FindReleases(EventReleaseRed,  InfoReleaseByTeam[0].ListMover);
   FindReleases(EventReleaseBlue, InfoReleaseByTeam[1].ListMover);
+}
+
+
+// ============================================================================
+// Tick
+//
+// If this JBInfoJail actor is not yet registered in the global JBInfoJail
+// linked list client-side yet, adds it to it.
+// ============================================================================
+
+simulated event Tick(float TimeDelta)
+{
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+  local JBGameReplicationInfo InfoGame;
+
+  if (Role < ROLE_Authority) {
+    InfoGame = JBGameReplicationInfo(Level.GetLocalPlayerController().GameReplicationInfo);
+    if (InfoGame == None)
+      return;
+
+    firstJail = InfoGame.firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+      if (thisJail == Self)
+        return;
+
+    nextJail = InfoGame.firstJail;
+    InfoGame.firstJail = Self;
+  }
+
+  Disable('Tick');
 }
 
 
