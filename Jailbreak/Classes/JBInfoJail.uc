@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.28 2004/02/16 17:17:02 mychaeel Exp $
+// $Id$
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -442,7 +442,7 @@ function NotifyJailOpening(TeamInfo Team)
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
-    firstJBGameRules.NotifyJailOpening(Self);
+    firstJBGameRules.NotifyJailOpening(Self, Team);
 }
 
 
@@ -467,7 +467,7 @@ function NotifyJailOpened(TeamInfo Team)
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
-    firstJBGameRules.NotifyJailOpened(Self);
+    firstJBGameRules.NotifyJailOpened(Self, Team);
 }
 
 
@@ -536,7 +536,7 @@ function NotifyJailClosed(TeamInfo Team)
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (firstJBGameRules != None)
-    firstJBGameRules.NotifyJailClosed(Self);
+    firstJBGameRules.NotifyJailClosed(Self, Team);
 }
 
 
