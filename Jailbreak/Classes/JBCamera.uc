@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.5 2002/11/24 13:22:21 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.6 2002/11/24 14:38:22 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -92,8 +92,13 @@ function ActivateFor(Controller Controller) {
   if (PlayerController(Controller) == None)
     return;
 
-  PlayerController(Controller).SetViewTarget(Self);
-  PlayerController(Controller).bBehindView = False;
+  if (PlayerController(Controller).ViewTarget != Self) {
+    PlayerController(Controller).SetViewTarget(Self);
+    PlayerController(Controller).bBehindView = False;
+
+    PlayerController(Controller).ClientSetViewTarget(Self);
+    PlayerController(Controller).ClientSetBehindView(False);
+    }
 
   if (!IsViewer(Controller))
     ListControllerViewer[ListControllerViewer.Length] = PlayerController(Controller);
