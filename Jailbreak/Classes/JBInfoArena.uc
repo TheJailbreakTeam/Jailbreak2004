@@ -821,10 +821,12 @@ simulated function RenderOverlays(Canvas Canvas)
 {
   local HudBase HudBase;
 
+  HudBase = HudBase(Level.GetLocalPlayerController().myHUD);
+  if (HudBase.bShowScoreBoard)
+    return;
+
   DisplayPlayerLeft .PlayerReplicationInfo = PlayerReplicationInfoRed;
   DisplayPlayerRight.PlayerReplicationInfo = PlayerReplicationInfoBlue;
-
-  HudBase = HudBase(Level.GetLocalPlayerController().myHUD);
 
   ShowPlayer(Canvas, HudBase, DisplayPlayerLeft);
   ShowPlayer(Canvas, HudBase, DisplayPlayerRight);
