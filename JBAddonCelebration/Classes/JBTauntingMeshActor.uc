@@ -1,7 +1,7 @@
 //=============================================================================
 // JBTauntingMeshActor
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBTauntingMeshActor.uc,v 1.3 2004/04/24 22:10:46 wormbo Exp $
+// $Id: JBTauntingMeshActor.uc,v 1.4 2004/05/30 14:14:43 wormbo Exp $
 //
 // Plays taunting animations for the celebration screen.
 //=============================================================================
@@ -28,7 +28,7 @@ var array<name> IdleAnims;              // idle animations while not taunting
 var array<name> DeathAnims;             // death animations when owner died
 var bool bStartedTaunting;
 var bool bRagdollStarted;
-var vector InitialLocationOffset;
+var vector LastLocation, LastLocationOffset;
 
 
 //=============================================================================
@@ -53,10 +53,12 @@ function Tick(float DeltaTime)
       AmbientGlow = Owner.AmbientGlow;
     if ( Owner.Physics == PHYS_KarmaRagdoll ) {
       if ( !bRagdollStarted ) {
-        InitialLocationOffset = Owner.Location;
+        LastLocation = Owner.Location;
         bRagdollStarted = True;
+        PrePivot = vect(0,0,1) * Owner.default.CollisionHeight;
       }
-      PrePivot = vect(0,0,1) * Owner.default.CollisionHeight + (Owner.Location - InitialLocationOffset);
+      LastLocationOffset = Owner.Location - LastLocation;
+      LastLocation = Owner.Location;
     }
     SetRotation(Owner.Rotation);
   }
