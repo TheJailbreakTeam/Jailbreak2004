@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionPlayer.uc,v 1.3 2003/01/19 21:55:50 mychaeel Exp $
+// $Id: JBDispositionPlayer.uc,v 1.4 2003/02/23 12:12:30 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -50,7 +50,6 @@ var private bool bInitial;
 function SetTarget(vector NewLocationTarget, float NewScaleTarget) {
 
   LocationTarget = NewLocationTarget;
-locationtarget.y=0.2;
   ScaleTarget = NewScaleTarget;
   }
 
