@@ -1,10 +1,12 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBGUIPanelConfigProtection.uc,v 1.7.2.2 2004/04/04 11:58:07 mychaeel Exp $
 //
-// Option of protection mutator.
+// Options for the protection add-on.
 // ============================================================================
+
+
 class JBGUIPanelConfigProtection extends JBGUIPanelConfig;
 
 
@@ -15,16 +17,18 @@ class JBGUIPanelConfigProtection extends JBGUIPanelConfig;
 const CONTROL_PROTECTION_TIME  = 0;
 const CONTROL_PROTECTION_TYPE  = 1;
 const CONTROL_PROTECT_ARENA    = 2;
+const CONTROL_LLAMAIZE_CAMPERS = 3;
 
 
 // ============================================================================
 // Variables
 // ============================================================================
+
 var JBGUIComponentTrackbar ProtectionTime;
 var JBGUIComponentOptions  ProtectionType;
 var moCheckBox  ProtectArenaWinner;
-var localized string ProtectionTypeText[2];
-var localized string SecondText, SecondsText;
+var moCheckBox  LlamaizeCampers;
+var private bool bInitialized;  // used to prevent saving config during initialization
 
 
 // ============================================================================
@@ -32,24 +36,17 @@ var localized string SecondText, SecondsText;
 //
 // Create the windows components.
 // ============================================================================
+
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
-    local int index;
+  Super.InitComponent(MyController, MyOwner);
 
-    Super.InitComponent(MyController, MyOwner);
-
-    // Protection time
-    ProtectionTime = JBGUIComponentTrackbar(Controls[CONTROL_PROTECTION_TIME]);
-    ProtectionTime.SetValue(int(class'JBAddonProtection'.default.ProtectionTime));
-
-    // Protection type
-    ProtectionType = JBGUIComponentOptions(Controls[CONTROL_PROTECTION_TYPE]);
-    ProtectionType.SetIndex(class'JBAddonProtection'.default.ProtectionType);
-    //log("JB set protection type to"@ class'JBAddonProtection'.default.ProtectionType);
-
-    // Protect the arena winner
-    ProtectArenaWinner = moCheckBox(Controls[CONTROL_PROTECT_ARENA]);
-    ProtectArenaWinner.Checked(class'JBAddonProtection'.default.bProtectArenaWinner);
+  ProtectionTime = JBGUIComponentTrackbar(Controls[CONTROL_PROTECTION_TIME]);
+  ProtectionType = JBGUIComponentOptions(Controls[CONTROL_PROTECTION_TYPE]);
+  ProtectArenaWinner = moCheckBox(Controls[CONTROL_PROTECT_ARENA]);
+  LlamaizeCampers = moCheckBox(Controls[CONTROL_LLAMAIZE_CAMPERS]);
+    
+  LoadINISettings();
 }
 
 
@@ -58,8 +55,12 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 //
 // When you change any component value.
 // ============================================================================
+
 function ChangeOptions(GUIComponent Sender)
 {
+  if ( !bInitialized )
+    return;
+
   if (ProtectionTime == None ||
       ProtectionType == None)
     return;
@@ -67,40 +68,48 @@ function ChangeOptions(GUIComponent Sender)
   class'JBAddonProtection'.default.ProtectionTime = int (ProtectionTime.GetValue());
   class'JBAddonProtection'.default.ProtectionType = byte(ProtectionType.GetIndex());
   class'JBAddonProtection'.default.bProtectArenaWinner = ProtectArenaWinner.IsChecked();
+  class'JBAddonProtection'.default.bLlamaizeCampers = LlamaizeCampers.IsChecked();
   
   class'JBAddonProtection'.static.StaticSaveConfig();
 }
 
 
+//=============================================================================
+// LoadINISettings
+//
+// Loads the values of all config GUI controls.
+//=============================================================================
+
+function LoadINISettings()
+{
+  bInitialized = False;
+  ProtectionTime.SetValue(int(class'JBAddonProtection'.default.ProtectionTime));
+  ProtectionType.SetIndex(class'JBAddonProtection'.default.ProtectionType);
+  ProtectArenaWinner.Checked(class'JBAddonProtection'.default.bProtectArenaWinner);
+  LlamaizeCampers.Checked(class'JBAddonProtection'.default.bLlamaizeCampers);
+  bInitialized = True;
+}
+
+
 // ============================================================================
-// ClickReset
+// ResetConfiguration
 //
 // When you click on Reset button.
 // ============================================================================
+
 function ResetConfiguration()
 {
-    ProtectionTime.SetValue(3);
-    ProtectionType.SetIndex(0);
-    ProtectArenaWinner.Checked(TRUE);
-
-    class'JBAddonProtection'.default.ProtectionTime = 3;
-    class'JBAddonProtection'.default.ProtectionType = 0;
-    class'JBAddonProtection'.default.bProtectArenaWinner = TRUE;
-    class'JBAddonProtection'.static.StaticSaveConfig();
-
+  class'JBAddonProtection'.static.ResetConfiguration();
+  LoadINISettings();
 }
 
 
 // ============================================================================
 // Default properties
 // ============================================================================
+
 defaultproperties
 {
-  ProtectionTypeText(0)="You can't inflict damage"
-  ProtectionTypeText(1)="Drop when you inflict damage"
-  SecondText="second"
-  SecondsText="seconds"
-  
   Begin Object Class=JBGUIComponentTrackbar Name=TrackbarProtectionTime
     WinTop    =0.0
     WinLeft   =0.0
@@ -150,10 +159,25 @@ defaultproperties
     
     OnChange=ChangeOptions
     Caption="Protect the arena winner"
-    Hint="When enabled, the arena winner is protected."
+    Hint="Players released from arenas get protection."
     bSquare=true
     bHeightFromComponent = False;
 
   End Object
   Controls(2)=moCheckBox'ProtectArenaWinnerCheckBox'
+  
+  Begin Object class=moCheckBox Name=LlamaizeCampersCheckBox
+    WinTop        = 0.77; // weird
+    WinLeft       = 0.0;
+    WinHeight     = 0.07;
+    WinWidth      = 0.667;
+    CaptionWidth  = 0.9;
+    OnChange=ChangeOptions
+    Caption="Make jail campers llamas"
+    Hint="Causing a protectee lethal damage makes you a llama."
+    bSquare=true
+    bHeightFromComponent = False;
+
+  End Object
+  Controls(3)=moCheckBox'LlamaizeCampersCheckBox'
 }
