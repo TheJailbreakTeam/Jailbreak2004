@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoGame
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoGame.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: JBReplicationInfoGame.uc,v 1.2 2002/11/20 18:55:12 mychaeel Exp $
 //
 // Replicated information for a the entire game.
 // ============================================================================
@@ -31,6 +31,8 @@ simulated event PostNetBeginPlay() {
 
   local JBInfoArena thisArena;
   local JBInfoJail thisJail;
+  
+  Level.GRI = Self;  // for convenience
   
   foreach DynamicActors(Class'JBInfoArena', thisArena)
     ListInfoArena[ListInfoArena.Length] = thisArena;
