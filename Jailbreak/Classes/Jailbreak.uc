@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.47 2003/06/02 16:59:52 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.48 2003/06/02 17:18:59 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -921,6 +921,8 @@ function ExecutionEnd() {
     if (Teams[0].Score >= GoalScore ||
         Teams[1].Score >= GoalScore)
       EndGame(None, "TeamScoreLimit");
+    else if (bOverTime)
+      EndGame(None, "TimeLimit");
     }
   
   else {
