@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.28 2004/04/10 16:13:48 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.29 2004/04/19 17:18:59 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -1406,12 +1406,14 @@ function GameObjective GetPriorityFreelanceObjective()
 //
 // Called after a player respawns. When an enemy spawns in freedom, dispatches
 // a freelancing squad to the enemy's probable spawning point. Tells bots to
-// resume their fixed orders if they have any.
+// resume their fixed orders if they have any. When an enemy spawns in jail,
+// tells all bots to ignore him.
 // ============================================================================
 
 function NotifySpawn(Controller ControllerSpawned)
 {
   local NavigationPoint NavigationPointGuessed;
+  local SquadAI thisSquad;
   local JBTagPlayer TagPlayer;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(ControllerSpawned.PlayerReplicationInfo);
@@ -1432,6 +1434,9 @@ function NotifySpawn(Controller ControllerSpawned)
   }
 
   else {
+    for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
+      thisSquad.RemoveEnemy(ControllerSpawned.Pawn);
+  
     TagPlayer.RecordLocation(None);
   }
 }
