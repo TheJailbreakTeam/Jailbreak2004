@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.1 2002/12/20 20:54:30 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.2 2002/12/22 02:06:13 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -240,6 +240,7 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
   for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
     InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
     if (PlayerController(InfoPlayer.Owner) != None &&
+        InfoPlayer.IsFree() &&
         InfoPlayer.GetPlayerReplicationInfo().Team == Team &&
         InfoPlayer.GuessObjective() == GameObjective)
       nPlayersAtObjective++;
