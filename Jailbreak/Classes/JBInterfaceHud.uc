@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.4 2003/01/02 14:51:48 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.5 2003/01/03 23:22:48 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -24,8 +24,12 @@ class JBInterfaceHud extends HudBTeamDeathMatch
 
 var() SpriteWidget SpriteWidgetCompass[2];
 
+var bool bWidescreen;               // display widescreen bars
+var private float RatioWidescreen;  // widescreen scroll-in progress
+
 var private float TimeUpdateCompass;      // last compass rendering
 var private float TimeUpdateDisposition;  // last disposition rendering
+var private float TimeUpdateWidescreen;   // last widescreen bar rendering
 
 var private JBDispositionTeam DispositionTeamRed;
 var private JBDispositionTeam DispositionTeamBlue;
@@ -106,6 +110,36 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 
 
 // ============================================================================
+// PostRender
+//
+// Displays the overlays of the JBCamera actor the player is viewing from, if
+// applicable. Otherwise just does the usual.
+// ============================================================================
+
+simulated event PostRender(Canvas Canvas) {
+
+  ShowWidescreen(Canvas);
+
+  if (JBCamera(PlayerOwner.ViewTarget) != None) {
+    PlayerOwner.ViewTarget.RenderOverlays(Canvas);
+
+    if (bShowBadConnectionAlert)
+      DisplayBadConnectionAlert(Canvas);
+    DisplayMessages(Canvas);
+
+    PlayerOwner.RenderOverlays(Canvas);
+
+    if (PlayerConsole != None && PlayerConsole.bTyping)
+      DrawTypingPrompt(Canvas, PlayerConsole.TypedStr);
+    }
+  
+  else {
+    Super.PostRender(Canvas);
+    }
+  }
+
+
+// ============================================================================
 // ShowPointBarBottom
 // ShowPointBarTop
 // ShowPersonalScore
@@ -116,6 +150,35 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 simulated function ShowPointBarBottom(Canvas Canvas);
 simulated function ShowPointBarTop(Canvas Canvas);
 simulated function ShowPersonalScore(Canvas Canvas);
+
+
+// ============================================================================
+// ShowWidescreen
+//
+// Updates the size and draws the widescreen bars.
+// ============================================================================
+
+simulated function ShowWidescreen(Canvas Canvas) {
+
+  local int HeightBars;
+  local float TimeDelta;
+  
+  TimeDelta = Level.TimeSeconds - TimeUpdateWidescreen;
+  TimeUpdateWidescreen = Level.TimeSeconds;
+  
+  if (bWidescreen)
+    RatioWidescreen = FMin(1.0, RatioWidescreen + TimeDelta);
+  else
+    RatioWidescreen = FMax(0.0, RatioWidescreen - TimeDelta);
+  
+  HeightBars = RatioWidescreen * Max(0, Canvas.ClipY - Canvas.ClipX / (16.0 / 9.0)) / 2;
+  
+  Canvas.Style = ERenderStyle.STY_Alpha;
+  Canvas.DrawColor.A = 255 * RatioWidescreen;
+  
+  Canvas.SetPos(0, 0);             Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX,  HeightBars);
+  Canvas.SetPos(0, Canvas.ClipY);  Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX, -HeightBars);
+  }
 
 
 // ============================================================================

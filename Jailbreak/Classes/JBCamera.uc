@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.7 2002/11/24 20:28:12 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.8 2002/12/23 01:16:32 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -18,18 +18,63 @@ class JBCamera extends Keypoint;
 
 
 // ============================================================================
+// Types
+// ============================================================================
+
+enum EOverlayStyle {
+
+  OverlayStyle_ScaleDistort,
+  OverlayStyle_ScaleProportional,
+  OverlayStyle_Tile,
+  };
+
+
+// ============================================================================
 // Properties
 // ============================================================================
 
-var() Material OverlayMaterial;  // overlay drawn on user's screen
-var() bool bOverlayDistort;      // overlay may be distorted to fit screen 
+var() bool bWidescreen;            // draw widescreen bars
+
+var() Color OverlayColor;          // drawing color for the overlay
+var() Material OverlayMaterial;    // overlay material
+var() EOverlayStyle OverlayStyle;  // overlay drawing style
+
+var() bool bCaptionBlink;          // caption blinks
+var() Color CaptionColor;          // drawing color for caption text
+var() string CaptionFont;          // font name used for caption
+var() float CaptionOffset;         // vertical relative offset for caption
+var() string CaptionText;          // caption text
+
+var() byte MotionBlur;             // amount of motion blur
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
+var private bool bIsActiveLocal;   // camera is active for the local player
 var private array<PlayerController> ListControllerViewer;
+
+var Font FontCaption;                   // font object used for caption
+var MotionBlur CameraEffectMotionBlur;  // motion blur object
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Disables the Tick event server-side. ActivateFor will enable it again as
+// soon as a player starts viewing through this camera. On clients, loads the
+// caption font object.
+// ============================================================================
+
+simulated event PostBeginPlay() {
+
+  if (Role == ROLE_Authority)
+    Disable('Tick');
+
+  if (Level.NetMode != NM_DedicatedServer)
+    FontCaption = Font(DynamicLoadObject(CaptionFont, Class'Font'));
+  }
 
 
 // ============================================================================
@@ -89,19 +134,22 @@ function bool IsViewer(Controller Controller) {
 
 function ActivateFor(Controller Controller) {
 
-  if (PlayerController(Controller) == None)
+  local PlayerController ControllerPlayer;
+
+  ControllerPlayer = PlayerController(Controller);
+  if (ControllerPlayer == None)
     return;
 
-  if (PlayerController(Controller).ViewTarget != Self) {
-    PlayerController(Controller).SetViewTarget(Self);
-    PlayerController(Controller).bBehindView = False;
+  if (JBCamera(ControllerPlayer.ViewTarget) != None)
+    JBCamera(ControllerPlayer.ViewTarget).DeactivateFor(Controller);
 
-    PlayerController(Controller).ClientSetViewTarget(Self);
-    PlayerController(Controller).ClientSetBehindView(False);
+  if (ControllerPlayer.ViewTarget != Self) {
+    ControllerPlayer.SetViewTarget(Self);
+    ControllerPlayer.ClientSetViewTarget(Self);
     }
 
   if (!IsViewer(Controller))
-    ListControllerViewer[ListControllerViewer.Length] = PlayerController(Controller);
+    ListControllerViewer[ListControllerViewer.Length] = ControllerPlayer;
 
   Enable('Tick');
   }
@@ -118,19 +166,101 @@ function ActivateFor(Controller Controller) {
 function DeactivateFor(Controller Controller) {
 
   local int iController;
+  local PlayerController ControllerPlayer;
 
-  if (PlayerController(Controller) == None)
+  ControllerPlayer = PlayerController(Controller);
+  if (ControllerPlayer == None)
     return;
 
-  if (PlayerController(Controller).ViewTarget == Self)
-    PlayerController(Controller).SetViewTarget(Controller.Pawn);
+  if (ControllerPlayer.ViewTarget == Self) {
+    ControllerPlayer.SetViewTarget(Controller.Pawn);
+    ControllerPlayer.ClientSetViewTarget(Controller.Pawn);
+    }
   
   for (iController = ListControllerViewer.Length - 1; iController >= 0; iController--)
     if (ListControllerViewer[iController] == Controller)
       ListControllerViewer.Remove(iController, 1);
   
-  if (ListControllerViewer.Length == 0)
+  if (ListControllerViewer.Length == 0) {
+    if (bIsActiveLocal)
+      DeactivateForLocal();
     Disable('Tick');
+    }
+  }
+
+
+// ============================================================================
+// ActivateForLocal
+//
+// Called client-side when the camera is activated for the local player. Don't
+// call this function directly from outside.
+// ============================================================================
+
+protected simulated function ActivateForLocal() {
+
+  local JBCamera thisCamera;
+  local PlayerController ControllerPlayer;
+  
+  foreach DynamicActors(Class'JBCamera', thisCamera)
+    if (thisCamera.bIsActiveLocal)
+      thisCamera.DeactivateForLocal();
+
+  ControllerPlayer = Level.GetLocalPlayerController();
+
+  if (JBInterfaceHud(ControllerPlayer.myHUD) != None)
+    JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = bWidescreen;
+
+  if (MotionBlur > 0) {
+    if (CameraEffectMotionBlur == None)
+      foreach DynamicActors(Class'JBCamera', thisCamera)
+        if (thisCamera.CameraEffectMotionBlur != None)
+          CameraEffectMotionBlur = thisCamera.CameraEffectMotionBlur;
+  
+    if (CameraEffectMotionBlur == None)
+      CameraEffectMotionBlur = new Class'MotionBlur';
+
+    CameraEffectMotionBlur.BlurAlpha = 255 - MotionBlur;
+
+    ControllerPlayer.CameraEffects.Length = 0;
+    ControllerPlayer.AddCameraEffect(CameraEffectMotionBlur);
+    }
+
+  bIsActiveLocal = True;
+  }
+
+
+// ============================================================================
+// DeactivateForLocal
+//
+// Called client-side when the camera is deactivated for the local player.
+// Don't call this function directly from outside.
+// ============================================================================
+
+protected simulated function DeactivateForLocal() {
+
+  local PlayerController ControllerPlayer;
+
+  ControllerPlayer = Level.GetLocalPlayerController();
+
+  if (JBInterfaceHud(ControllerPlayer.myHUD) != None)
+    JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = False;
+
+  ControllerPlayer.CameraEffects.Length = 0;
+  
+  bIsActiveLocal = False;
+  }
+
+
+// ============================================================================
+// UpdateLocal
+//
+// Called client-side every tick as long as this camera is activated for the
+// local player. 
+// ============================================================================
+
+protected simulated function UpdateLocal() {
+
+  Level.GetLocalPlayerController().bBehindView = False;
   }
 
 
@@ -141,15 +271,107 @@ function DeactivateFor(Controller Controller) {
 // viewing from this camera and calls DeactivateFor for those that don't.
 // ============================================================================
 
-event Tick(float TimeDelta) {
+simulated event Tick(float TimeDelta) {
 
+  local bool bIsActiveLocalNew;
   local int iController;
   
-  for (iController = ListControllerViewer.Length - 1; iController >= 0; iController--)
-    if (ListControllerViewer[iController] == None)
-      ListControllerViewer.Remove(iController, 1);
-    else if (ListControllerViewer[iController].ViewTarget != Self)
-      DeactivateFor(ListControllerViewer[iController]);
+  if (Role == ROLE_Authority)
+    for (iController = ListControllerViewer.Length - 1; iController >= 0; iController--)
+      if (ListControllerViewer[iController] == None)
+        ListControllerViewer.Remove(iController, 1);
+      else if (ListControllerViewer[iController].ViewTarget != Self)
+        DeactivateFor(ListControllerViewer[iController]);
+
+  if (Level.NetMode == NM_DedicatedServer)
+    return;
+
+  bIsActiveLocalNew = Level.GetLocalPlayerController().ViewTarget == Self;
+
+  if (bIsActiveLocalNew != bIsActiveLocal)
+    if (bIsActiveLocalNew)
+      ActivateForLocal();
+    else
+      DeactivateForLocal();
+
+  if (bIsActiveLocal)
+    UpdateLocal();
+  }
+
+
+// ============================================================================
+// RenderOverlayMaterial
+//
+// Renders the OverlayMaterial on the given Canvas.
+// ============================================================================
+
+simulated function RenderOverlayMaterial(Canvas Canvas) {
+
+  local float RatioStretchTotal;
+  local vector RatioStretch;
+  local vector SizeOverlay;
+
+  if (OverlayMaterial == None)
+    return;
+  
+  Canvas.DrawColor = OverlayColor;
+
+  switch (OverlayStyle) {
+    case OverlayStyle_ScaleDistort:
+      Canvas.SetPos(0, 0);
+      Canvas.DrawTile(OverlayMaterial, Canvas.ClipX, Canvas.ClipY, 0, 0,
+        OverlayMaterial.MaterialUSize(),
+        OverlayMaterial.MaterialVSize());  // DrawTileStretched is buggy
+      break;
+
+    case OverlayStyle_ScaleProportional:
+      SizeOverlay.X = OverlayMaterial.MaterialUSize();
+      SizeOverlay.Y = OverlayMaterial.MaterialVSize();
+    
+      RatioStretch.X = Canvas.ClipX / SizeOverlay.X;
+      RatioStretch.Y = Canvas.ClipY / SizeOverlay.Y;
+      RatioStretchTotal = FMax(RatioStretch.X, RatioStretch.Y);
+
+      SizeOverlay *= RatioStretchTotal;
+      Canvas.SetPos((Canvas.ClipX - SizeOverlay.X) / 2.0,
+                    (Canvas.ClipY - SizeOverlay.Y) / 2.0);
+      Canvas.DrawTileScaled(OverlayMaterial, RatioStretchTotal, RatioStretchTotal);
+      break;
+
+    case OverlayStyle_Tile:
+      Canvas.SetPos(0, 0);
+      Canvas.DrawTile(OverlayMaterial, Canvas.ClipX, Canvas.ClipY, 0, 0, Canvas.ClipX, Canvas.ClipY);
+      break;
+    }
+  }
+
+
+// ============================================================================
+// RenderOverlayCaption
+//
+// Renders the caption text on the given Canvas.
+// ============================================================================
+
+simulated function RenderOverlayCaption(Canvas Canvas) {
+
+  local vector SizeCaption;
+  local vector LocationCaption;
+
+  if (CaptionText == "" || FontCaption == None)
+    return;  
+
+  Canvas.Font = FontCaption;
+  Canvas.TextSize(CaptionText, SizeCaption.X, SizeCaption.Y);
+
+  LocationCaption.X = (Canvas.ClipX - SizeCaption.X) / 2.0;
+  LocationCaption.Y = Canvas.ClipY * CaptionOffset - SizeCaption.Y / 2.0;
+  
+  Canvas.DrawColor = CaptionColor;
+  if (bCaptionBlink)
+    Canvas.DrawColor.A -= Canvas.DrawColor.A * (Level.TimeSeconds % 0.7) / 1.4;
+  
+  Canvas.SetPos(LocationCaption.X, LocationCaption.Y);
+  Canvas.DrawText(CaptionText);
   }
 
 
@@ -161,29 +383,8 @@ event Tick(float TimeDelta) {
 
 simulated function RenderOverlays(Canvas Canvas) {
 
-  local float RatioStretchTotal;
-  local vector RatioStretch;
-  local vector SizeOverlay;
-
-  if (OverlayMaterial != None) {
-    if (bOverlayDistort) {
-      Canvas.SetPos(0, 0);
-      Canvas.DrawTileStretched(OverlayMaterial, Canvas.ClipX, Canvas.ClipY);
-      }
-    
-    else {
-      RatioStretch.X = Canvas.ClipX / OverlayMaterial.MaterialUSize();
-      RatioStretch.Y = Canvas.ClipY / OverlayMaterial.MaterialVSize();
-      RatioStretchTotal = FMax(RatioStretch.X, RatioStretch.Y);
-
-      SizeOverlay.X = Canvas.ClipX * RatioStretchTotal;
-      SizeOverlay.Y = Canvas.ClipY * RatioStretchTotal;
-      
-      Canvas.SetPos((Canvas.ClipX - SizeOverlay.X) / 2,
-                    (Canvas.ClipY - SizeOverlay.Y) / 2);
-      Canvas.DrawTileScaled(OverlayMaterial, RatioStretchTotal, RatioStretchTotal);
-      }
-    }
+  RenderOverlayMaterial(Canvas);
+  RenderOverlayCaption(Canvas);
   }
 
 
@@ -193,7 +394,13 @@ simulated function RenderOverlays(Canvas Canvas) {
 
 defaultproperties {
 
-  bOverlayDistort = False;
+  bCaptionBlink = True;
+  CaptionColor  = (R=255,G=255,B=255,A=255);
+  CaptionFont   = "UT2003Fonts.FontEurostile12";
+  CaptionOffset = 0.8;
+
+  OverlayColor = (R=255,G=255,B=255,A=255);
+  OverlayStyle = OverlayStyle_ScaleProportional;
 
   Texture = Texture'JBCamera';
   RemoteRole = ROLE_SimulatedProxy;
