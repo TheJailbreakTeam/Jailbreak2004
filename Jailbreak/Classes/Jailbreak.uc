@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.97 2004/05/29 13:06:44 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.98 2004/05/29 21:56:42 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -231,6 +231,25 @@ static event string GetDescriptionText(string Property)
     return Default.TextDescriptionEnableJailFights;
 
   return Super.GetDescriptionText(Property);
+}
+
+
+// ============================================================================
+// GetServerDetails
+//
+// Adds the Jailbreak build number to server details.
+// ============================================================================
+
+function GetServerDetails(out ServerResponseLine ServerState)
+{
+  local int iServerInfo;
+
+  Super.GetServerDetails(ServerState);
+
+  iServerInfo = ServerState.ServerInfo.Length;
+  ServerState.ServerInfo.Insert(iServerInfo, 1);
+  ServerState.ServerInfo[iServerInfo].Key = "Build";
+  ServerState.ServerInfo[iServerInfo].Value = Build;
 }
 
 
