@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.44 2004/05/30 17:48:39 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.45 2004/05/31 00:12:47 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -809,7 +809,7 @@ function ActivateCameraFor(Controller Controller)
       return;
   
     foreach DynamicActors(Class'JBCameraArena', CameraArena)
-      if (CameraArena.Owner == Self && CameraArena.IsViewerAllowed(Controller))
+      if (ContainsActor(CameraArena) && CameraArena.IsViewerAllowed(Controller))
         break;
     
     if (CameraArena == None) {
