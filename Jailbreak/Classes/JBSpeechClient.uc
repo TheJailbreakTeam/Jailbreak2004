@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechClient
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechClient.uc,v 1.1 2004/02/29 21:01:29 mychaeel Exp $
+// $Id: JBSpeechClient.uc,v 1.2 2004/03/12 14:10:58 mychaeel Exp $
 //
 // Parses and interprets a speech sequence definition and plays it.
 // 
@@ -494,7 +494,6 @@ simulated function PlayAnnouncement(Sound Sound)
   PlayerController.LastPlaySpeech = Level.TimeSeconds;
   
   Attenuation = FClamp(0.1 + float(PlayerController.AnnouncerVolume) * 0.225, 0.2, 1.0);
-  Sound = PlayerController.CustomizeAnnouncer(Sound);
   
   PlaySound(Sound, SLOT_None, Attenuation);
 }
