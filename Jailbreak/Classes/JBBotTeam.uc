@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.5 2003/01/01 22:11:16 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.6 2003/01/02 14:15:03 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -517,7 +517,8 @@ function int SuggestStrengthAttack(GameObjective GameObjective) {
 
   local int nPlayersDefending;
 
-  if (GameObjective.bDisabled)
+  if (GameObjective == None ||
+      GameObjective.bDisabled)
     return 0;
 
   nPlayersDefending = EstimateStrengthDefense(GameObjective);
