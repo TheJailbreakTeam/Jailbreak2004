@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.4 2004/03/28 22:45:38 mychaeel Exp $
+// $Id$
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained.
@@ -45,6 +45,29 @@ static function JBTagClient FindFor(PlayerController Keeper) {
   return JBTagClient(InternalFindFor(Keeper)); }
 static function JBTagClient SpawnFor(PlayerController Keeper) {
   return JBTagClient(InternalSpawnFor(Keeper)); }
+
+
+// ============================================================================
+// Tick
+//
+// Registers the JBInteractionKeys interaction client-side.
+// ============================================================================
+
+simulated event Tick(float TimeDelta)
+{
+  local PlayerController PlayerControllerLocal;
+
+  if (Level.NetMode == NM_DedicatedServer) {
+    Disable('Tick');
+  }
+  else {
+    PlayerControllerLocal = Level.GetLocalPlayerController();
+    if (PlayerControllerLocal != None) {
+      PlayerControllerLocal.Player.InteractionMaster.AddInteraction("Jailbreak.JBInteractionKeys", PlayerControllerLocal.Player);
+      Disable('Tick');
+    }
+  }
+}
 
 
 // ============================================================================

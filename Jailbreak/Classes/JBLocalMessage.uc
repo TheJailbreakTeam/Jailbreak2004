@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.10 2004/03/05 15:17:12 mychaeel Exp $
+// $Id$
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -167,15 +167,15 @@ static function ClientReceive(PlayerController PlayerController,
       break;
 
     case 500:
-      Key = GetKeyForCommand(PlayerController, "ArenaCam");
+      Key = Class'JBInteractionKeys'.Static.GetKeyForCommand("ArenaCam");
       if (Key == "")
              Default.TextKeyboardArena =                   Default.TextKeyboardArenaUnbound;
         else Default.TextKeyboardArena = StaticReplaceText(Default.TextKeyboardArenaBound, "%key%", Key);
       break;
 
     case 510:
-      KeyPrev = GetKeyForCommand(PlayerController, "PrevWeapon", "PrevWeapon");
-      KeyNext = GetKeyForCommand(PlayerController, "NextWeapon", "NextWeapon");
+      KeyPrev = Class'JBInteractionKeys'.Static.GetKeyForCommand("PrevWeapon", "PrevWeapon");
+      KeyNext = Class'JBInteractionKeys'.Static.GetKeyForCommand("NextWeapon", "NextWeapon");
       if (KeyPrev == "PrevWeapon" && KeyNext == "NextWeapon")
         Default.TextKeyboardCamera = Default.TextKeyboardCameraUnbound;
       else
@@ -337,49 +337,6 @@ static function string GetString(optional int Switch,
     case 500:  return Default.TextKeyboardArena;
     case 510:  return Default.TextKeyboardCamera;
   }
-}
-
-
-// ============================================================================
-// GetKeyForCommand
-//
-// Returns the name of the key bound to the given command. Partial commands
-// match. Prefers actual keys over mouse commands over joystick commands.
-// Returns an the fallback string if no match is found.
-// ============================================================================
-
-static function string GetKeyForCommand(PlayerController PlayerController, string Command, optional string Fallback)
-{
-  local int iKey;
-  local int RatingKey;
-  local int RatingKeyBest;
-  local string Key;
-  local string KeyBest;
-  local string Binding;
-  
-  for (iKey = 0; iKey < 256; iKey++) {
-    Key = PlayerController.ConsoleCommand("keyname" @ iKey);
-    if (Key == "")
-      continue;
-    
-    Binding = PlayerController.ConsoleCommand("keybinding" @ Key);
-    if (InStr(Caps(Binding), Caps(Command)) < 0)
-      continue;
-    
-         if (Left(Key, 3) ~= "Joy")   RatingKey = 1;
-    else if (Left(Key, 5) ~= "Mouse") RatingKey = 2;
-    else                              RatingKey = 3;
-    
-    if (RatingKey > RatingKeyBest) {
-      KeyBest       = Key;
-      RatingKeyBest = RatingKey;
-    }
-  }
-
-  if (KeyBest != "")
-    return KeyBest;
-  
-  return Fallback;
 }
 
 
