@@ -7,6 +7,8 @@ RewardShieldText="Bouclier obtenu pour avoir tué un lama"
 RewardShieldDesc="Les joueurs qui tuent un lama gagnent autant en bouclier."
 MaximumLlamaDurationText="Durée maximum d'une chasse au lama"
 MaximumLlamaDurationDesc="Durée de vie maximum d'un lama. Le lama meurt s'il n'est pas tué avant la fin de la chasse."
+LlamaizeOnJailDisconnectText="Rendre lama les prisonniers déconnectants"
+LlamaizeOnJailDisconnectDesc="Rendre lama un joueur qui tente de déconnecter pour échapper à la prison."
 FriendlyName="Chasse au Lama"
 Description="Transforme les tricheurs en lamas et permet aux autres joueurs de leur faire joyeusement la chasse."
 
@@ -15,16 +17,28 @@ DeathString="%o ne voulait plus jouer au lama."
 FemaleSuicide="%o ne voulait plus jouer à la femelle lama."
 MaleSuicide="%o ne voulait plus jouer au lama."
 
+[JBDamageTypeLlamaLaser]
+DeathString="%o a été roti"
+FemaleSuicide="%o a été roti"
+MaleSuicide="%o a été roti"
+
+[JBDamageTypeLlamaLightning]
+DeathString="%o a eu le coup de foudre"
+FemaleSuicide="%o a eu le coup de foudre"
+MaleSuicide="%o a eu le coup de foudre"
+
 [JBGUIPanelConfigLlama]
 LlamaKillRewardLabel.Caption="Récompenses pour avoir tué un Lama :"
-MaximumLlamaDuration.Caption="Durée de la Chasse au Lama"
-MaximumLlamaDuration.Hint="Durée maximum d'une chasse au lama."
-RewardAdrenaline.Caption="Adrénaline"
-RewardAdrenaline.Hint="Adrénaline obtenue pour avoir tué un lama."
-RewardHealth.Caption="Santé"
-RewardHealth.Hint="Santé obtenue pour avoir tué un lama."
-RewardShield.Caption="Bouclier"
-RewardShield.Hint="Bouclier obtenu pour avoir tué un lama."
+chkLlamaizeOnJailDisconnect.Caption="Rendre lama les prisonniers déconnectants"
+chkLlamaizeOnJailDisconnect.Hint="Rendre lama un joueur qui tente de déconnecter pour échapper à la prison."
+trkMaximumLlamaDuration.Caption="Durée de la Chasse au Lama"
+trkMaximumLlamaDuration.Hint="Durée maximum d'une chasse au lama."
+trkRewardAdrenaline.Caption="Adrénaline"
+trkRewardAdrenaline.Hint="Adrénaline obtenue pour avoir tué un lama."
+trkRewardHealth.Caption="Santé"
+trkRewardHealth.Hint="Santé obtenue pour avoir tué un lama."
+trkRewardShield.Caption="Bouclier"
+trkRewardShield.Hint="Bouclier obtenu pour avoir tué un lama."
 
 [JBLlamaHelpMessage]
 HelpMessageLines[0]="Syntaxe: 'mutate llama <parameter>' ou 'mutate unllama <playername>'"

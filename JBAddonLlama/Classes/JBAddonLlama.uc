@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.9 2004/05/24 10:29:13 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.10 2004/05/31 11:14:57 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -360,7 +360,7 @@ defaultproperties
   RewardHealthText             = "Health gained for killing a Llama"
   RewardShieldText             = "Shield gained for killing a Llama"
   MaximumLlamaDurationText     = "Maximum duration of the llama hunt"
-  LlamaizeOnJailDisconnectText = "Llamaize players who disconnect in jail"
+  LlamaizeOnJailDisconnectText = "Llamaize when disconnecting from jail"
   
   RewardAdrenalineDesc         = "Players who kill a llama are awarded this ammount of adrenaline."
   RewardHealthDesc             = "Players who kill a llama are awarded this ammount of health."

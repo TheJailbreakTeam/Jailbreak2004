@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.11 2004/05/11 10:53:10 wormbo Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.12 2004/05/31 11:14:57 wormbo Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -185,8 +185,8 @@ defaultproperties
     WinLeft   =0.0
     WinHeight =0.1
     WinWidth  =1.0
-    Caption="Llamaize on jail disconnect"
-    Hint="Llamaize players who disconnect and reconnect to get out of jail."
+    Caption="Llamaize players who disconnect in jail"
+    Hint="Llamaize players who disconnect while jailed and reconnect to gain freedom."
     OnChange=SaveINISettings
   End Object
   LlamaizeOnJailDisconnect = chkLlamaizeOnJailDisconnect

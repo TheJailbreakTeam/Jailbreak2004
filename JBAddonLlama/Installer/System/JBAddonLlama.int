@@ -3,9 +3,15 @@ Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonLlama.JBAddonLlama)
 
 [JBAddonLlama]
 RewardAdrenalineText="Adrenaline gained for killing a Llama"
+RewardAdrenalineDesc="Players who kill a llama are awarded this ammount of adrenaline."
 RewardHealthText="Health gained for killing a Llama"
+RewardHealthDesc="Players who kill a llama are awarded this ammount of health."
 RewardShieldText="Shield gained for killing a Llama"
+RewardShieldDesc="Players who kill a llama are awarded this ammount of shield."
 MaximumLlamaDurationText="Maximum duration of the llama hunt"
+MaximumLlamaDurationDesc="Maximum time a llama will last. The llama is killed if it has not been fragged by the end of the llama hunt."
+LlamaizeOnJailDisconnectText="Llamaize when disconnecting from jail"
+LlamaizeOnJailDisconnectDesc="Llamaize players who disconnect while jailed and reconnect to gain freedom."
 FriendlyName="Llama Hunt"
 Description="Turns cheating players into llamas and lets other players perform a jolly hunt on them."
 
@@ -13,6 +19,29 @@ Description="Turns cheating players into llamas and lets other players perform a
 DeathString="%o didn't want to be a llama anymore."
 FemaleSuicide="%o didn't want to be a llama anymore."
 MaleSuicide="%o didn't want to be a llama anymore."
+
+[JBDamageTypeLlamaLaser]
+DeathString="%o was toasted"
+FemaleSuicide="%o was toasted"
+MaleSuicide="%o was toasted"
+
+[JBDamageTypeLlamaLightning]
+DeathString="%o was struck by lightning"
+FemaleSuicide="%o was struck by lightning"
+MaleSuicide="%o was struck by lightning"
+
+[JBGUIPanelConfigLlama]
+LlamaKillRewardLabel.Caption="Rewards for killing a Llama:"
+chkLlamaizeOnJailDisconnect.Caption="Llamaize players who disconnect in jail"
+chkLlamaizeOnJailDisconnect.Hint="Llamaize players who disconnect while jailed and reconnect to gain freedom."
+trkMaximumLlamaDuration.Caption="Llama Hunt duration"
+trkMaximumLlamaDuration.Hint="Maximum duration of a llama hunt."
+trkRewardAdrenaline.Caption="Adrenaline"
+trkRewardAdrenaline.Hint="Adrenaline gained for killing a llama."
+trkRewardHealth.Caption="Health"
+trkRewardHealth.Hint="Health gained for killing a llama."
+trkRewardShield.Caption="Shield"
+trkRewardShield.Hint="Shield gained for killing a llama."
 
 [JBLlamaHelpMessage]
 HelpMessageLines[0]="Syntax: 'mutate llama <parameter>' or 'mutate unllama <playername>'"
@@ -24,17 +53,4 @@ TextLlamaHuntStart="Kill %llama% for a little reward."
 TextLlamaCaught="%llama% was caught by %killer%!"
 TextLlamaDied="%llama% was busted!"
 TextLlamaDisconnected="%llama% ran away!"
-
-[JBGUILlamaConfigPanel]
-ResetButton.Caption="RESET"
-ResetButton.Hint="Reset Llama Hunt options."
-LlamaKillRewardLabel.Caption="Rewards for killing a Llama:"
-MaximumLlamaDuration.Caption="Llama Hunt Duration"
-MaximumLlamaDuration.Hint="Maximum duration of a llama hunt."
-RewardAdrenaline.Caption="Adrenaline"
-RewardAdrenaline.Hint="Adrenaline gained for killing a llama."
-RewardHealth.Caption="Health"
-RewardHealth.Hint="Health gained for killing a llama."
-RewardShield.Caption="Shield"
-RewardShield.Hint="Shield gained for killing a llama."
 
