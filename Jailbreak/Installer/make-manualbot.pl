@@ -5,7 +5,7 @@
 #  make-manualbot.pl
 #
 #  Copyright 2004 by tarquin <tarquin@planetjailbreak.com>
-#  $Id: make-manualbot.pl,v 1.1 2004/05/23 15:45:17 tarquin Exp $
+#  $Id: make-manualbot.pl,v 1.2 2004/05/25 20:59:24 tarquin Exp $
 #
 #  Jailbreak manual maker bot
 #  Automatically creates the manual HTML files, reading the text from the JDN.
@@ -148,7 +148,7 @@ foreach $wikiname ( $soloPage or @pageNames ) {
     s[<(p|li)>\s*$unwantedplatform{$platform}::.*?</\1>][]img; 
     
     # sections with a marked heading
-    s[<h(\d)>(?:<a name="[^"]*"></a>)?\s*$unwantedplatform{$platform}::.*?</h\1>.*?(?=<h\d>)][]img; #"
+    s[<h(\d)>(?:<a name="[^"]*"></a>)?\s*$unwantedplatform{$platform}::.*?</h\1>.*?(?=<h\d>|\Z)][]imsg; #"
     
     # inline bits
     s[\{\{$unwantedplatform{$platform}::.*?}}][]img;
