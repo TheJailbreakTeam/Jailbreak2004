@@ -5,7 +5,7 @@
 #  make-distribution-int.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id$
+#  $Id: make-distribution.pl,v 1.1 2004/04/24 22:22:07 mychaeel Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -316,7 +316,7 @@ foreach my $module (@modules) {
   die "Unable to update module $module from CVS. $!\n"
     if ($? >> 8) != 0;
   die "Module $module has uncommitted local changes or conflicts.\n"
-    if $output =~ /^[ARMC]\s/m; 
+    if $output =~ m[^[ARMC]\s(?!Installer/make-distribution\.pl$)]m; 
 
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
@@ -557,7 +557,8 @@ foreach my $module (@modules) {
   $filePackage = canonPath($filePackage);
   $filePackage =~ tr[/] [\\];
 
-  print MANIFEST "AddIni=$UT200x.ini,Engine.GameEngine.ServerPackages=$module\n";
+  print MANIFEST "AddIni=$UT200x.ini,Engine.GameEngine.ServerPackages=$module\n"
+    if $filePackage =~ /\.u$/;
   print MANIFEST "File=(Src=\"$filePackage\",Size=$sizeFilePackage)\n";
 
   if (-e "$dirGame/$module/Installer") {
