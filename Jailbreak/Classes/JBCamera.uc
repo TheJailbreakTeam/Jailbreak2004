@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.6 2002/11/24 14:38:22 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.7 2002/11/24 20:28:12 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -146,7 +146,9 @@ event Tick(float TimeDelta) {
   local int iController;
   
   for (iController = ListControllerViewer.Length - 1; iController >= 0; iController--)
-    if (ListControllerViewer[iController].ViewTarget != Self)
+    if (ListControllerViewer[iController] == None)
+      ListControllerViewer.Remove(iController, 1);
+    else if (ListControllerViewer[iController].ViewTarget != Self)
       DeactivateFor(ListControllerViewer[iController]);
   }
 
