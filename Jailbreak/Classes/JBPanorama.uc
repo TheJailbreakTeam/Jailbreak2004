@@ -1,7 +1,7 @@
 // ============================================================================
 // JBPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBPanorama.uc,v 1.1 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Marks the viewpoint for the panoramic map overview in the scoreboard.
 // ============================================================================
@@ -58,13 +58,12 @@ var private Texture TexturePanoramaInitial;  // initial value for clipboard
 // ============================================================================
 // UpdatePrecacheMaterials
 //
-// Adds the panorama material to the global list of precached materials.
+// Adds the panorama texture to the global list of precached materials.
 // ============================================================================
 
 simulated function UpdatePrecacheMaterials() {
 
-  if (MaterialPanorama != None)
-    Level.AddPrecacheMaterial(MaterialPanorama);
+  Level.AddPrecacheMaterial(TexturePanorama);
   }
 
 
