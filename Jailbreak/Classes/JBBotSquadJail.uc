@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.4 2003/01/25 23:46:48 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.5 2003/02/16 20:00:08 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -67,7 +67,7 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
   if (ControllerEnemy == None)
     return False;
 
-  TagPlayerBot   = Class'JBTagPlayer'.Static.FindFor(Bot.PlayerReplicationInfo);
+  TagPlayerBot   = Class'JBTagPlayer'.Static.FindFor(Bot      .PlayerReplicationInfo);
   TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
 
   if (TagPlayerBot.GetJail() != TagPlayerEnemy.GetJail())
@@ -82,6 +82,9 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
       return Super.SetEnemy(Bot, PawnEnemy);
       }
     }
+
+  if (Bot.Enemy == None && IsPlayerFighting(Bot))
+    Bot.Pawn.SwitchToLastWeapon();
 
   return False;
   }
@@ -161,7 +164,8 @@ static function int CountWeaponsFor(Pawn Pawn) {
 
 static function bool CanPlayerFight(Controller Controller) {
 
-  if (Controller.Pawn == None)
+  if (Controller      == None ||
+      Controller.Pawn == None)
     return False;
 
   return (Bot(Controller) != None || IsPlayerFighting(Controller));
@@ -178,7 +182,8 @@ static function bool CanPlayerFight(Controller Controller) {
 
 static function bool IsPlayerFighting(Controller Controller) {
 
-  if (Controller.Pawn == None)
+  if (Controller      == None ||
+      Controller.Pawn == None)
     return False;
 
   return (CountWeaponsFor(Controller.Pawn) > 1 &&
@@ -195,7 +200,8 @@ static function bool IsPlayerFighting(Controller Controller) {
 
 static function PrepareForFight(Bot Bot) {
 
-  if (Bot.Pawn == None)
+  if (Bot      == None ||
+      Bot.Pawn == None)
     return;
 
   Bot.Pawn.PendingWeapon = GetPrimaryWeaponFor(Bot.Pawn);
@@ -211,6 +217,25 @@ static function PrepareForFight(Bot Bot) {
     Bot.Pawn.ChangedWeapon();
   else if (Bot.Pawn.Weapon != Bot.Pawn.PendingWeapon)
     Bot.Pawn.Weapon.PutDown();
+  }
+
+
+// ============================================================================
+// AssignSquadResponsibility
+//
+// Makes bots wander around unless they're currently engaged in a jail fight.
+// ============================================================================
+
+function bool AssignSquadResponsibility(Bot Bot) {
+
+  if (Bot.Enemy != None) {
+    if (IsPlayerFighting(Bot.Enemy.Controller))
+      return Super.AssignSquadResponsibility(Bot);
+    Bot.Enemy = None;
+    }
+
+  Bot.WanderOrCamp(False);
+  return True;
   }
 
 
