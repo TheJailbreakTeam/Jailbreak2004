@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonCelebration.uc,v 1.2 2004/03/05 19:18:23 wormbo Exp $
+// $Id: JBAddonCelebration.uc,v 1.3 2004/05/11 08:47:58 wormbo Exp $
 //
 // The Celebration Screen add-on for Jailbreak.
 //=============================================================================
@@ -127,12 +127,14 @@ defaultproperties
   CapturedOtherMessage(21)="%p successfully tightened security in the house."
   CapturedOtherMessage(22)="%T is %p's favorite color for decorating jails."
   CapturedOtherMessage(23)="%p scored for %o. The %t team won't enjoy it, though."
+  NumCapturedOtherMessages=24
   CapturedSelfMessage(0)="%p couldn't stand to be alone out of jail anymore."
   CapturedSelfMessage(1)="A dyed-in-the-wool killer would have asked about that button, %p."
   CapturedSelfMessage(2)="%p blew it for the %t team."
   CapturedSelfMessage(3)="%p didn't read the 'aim away from face' label."
   CapturedSelfMessage(4)="Hey %p, you're on the %t team in case you didn't notice."
   CapturedSelfMessage(5)="Erm %p, you're supposed to shoot the %o guys, not the %t ones..."
+  NumCapturedSelfMessages=6
   TeamString(0)="red"
   TeamString(1)="blue"
 }
