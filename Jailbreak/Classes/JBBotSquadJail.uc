@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.1 2002/12/20 20:54:30 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.2 2003/01/01 22:11:16 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -9,6 +9,13 @@
 
 class JBBotSquadJail extends DMSquad
   notplaceable;
+
+
+// ============================================================================
+// Localization
+// ============================================================================
+
+var localized string TextJailed;
 
 
 // ============================================================================
@@ -63,7 +70,7 @@ function bool FriendlyToward(Pawn PawnOther) {
 function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
 
   if (CanFight(Bot.Pawn, True) &&
-      CanFight(PawnEnemy)      &&
+      CanFight(PawnEnemy) &&
       Super.SetEnemy(Bot, PawnEnemy)) {
 
     PawnEnemy.PendingWeapon = Weapon(PawnEnemy.FindInventoryType(Level.Game.BaseMutator.GetDefaultWeapon()));
@@ -86,4 +93,27 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
   else {
     return False;
     }
+  }
+
+
+// ============================================================================
+// GetOrderStringFor
+//
+// Returns a string describing the given player's current status. That is,
+// in this squad, simply jailed.
+// ============================================================================
+
+simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo) {
+
+  return TextJailed;
+  }
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
+defaultproperties {
+
+  TextJailed = "jailed";
   }
