@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.54 2003/06/16 21:37:55 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.55 2003/06/25 19:01:46 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -19,6 +19,14 @@ var string Build;
 
 var config bool bEnableJailFights;
 var config bool bEnableSpectatorDeathCam;
+
+
+// ============================================================================
+// Localization
+// ============================================================================
+
+var localized string TextWebAdminEnableJailFights;
+var localized string TextWebAdminPrefixAddon;
 
 
 // ============================================================================
@@ -64,7 +72,7 @@ event InitGame(string Options, out string Error) {
     if (iCharSeparator < 0)
       iCharSeparator = Len(OptionAddon);
     
-    AddMutator(Left(OptionAddon, iCharSeparator));
+    AddMutator(Left(OptionAddon, iCharSeparator), True);
     OptionAddon = Mid(OptionAddon, iCharSeparator + 1);
     }
   
@@ -78,9 +86,74 @@ event InitGame(string Options, out string Error) {
 
 
 // ============================================================================
+// FillPlayInfo
+//
+// Adds Jailbreak-specific settings to the PlayInfo object.
+// ============================================================================
+
+static function FillPlayInfo(PlayInfo PlayInfo) {
+
+  Super.FillPlayInfo(PlayInfo);
+  
+  PlayInfo.AddSetting("Game", "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
+  }
+
+
+// ============================================================================
+// ReadAddonsForWebAdmin
+//
+// Reads the list of Jailbreak Add-Ons and adds them to the mutators list of
+// the web admin interface.
+// ============================================================================
+
+function ReadAddonsForWebAdmin() {
+
+  local int iClassAddon;
+  local int iInfoAddon;
+  local string NameClassAddon;
+  local Class<JBAddon> ClassAddon;
+  local Mutator thisMutator;
+  local UTServerAdmin UTServerAdmin;
+  
+  foreach AllObjects(Class'UTServerAdmin', UTServerAdmin)
+    break;
+  
+  if (UTServerAdmin == None)
+    return;  // web admin not running
+  
+  while (True) {
+    NameClassAddon = GetNextInt("JBAddon", iClassAddon++);
+    if (NameClassAddon == "")
+      break;
+    
+    ClassAddon = Class<JBAddon>(DynamicLoadObject(NameClassAddon, Class'Class', True));
+    if (ClassAddon == None ||
+        ClassAddon.Default.FriendlyName == Class'JBAddon'.Default.FriendlyName)
+      continue;
+    
+    iInfoAddon = UTServerAdmin.AllMutators.Length;
+    UTServerAdmin.AllMutators.Length = UTServerAdmin.AllMutators.Length + 1;
+    
+    UTServerAdmin.AllMutators[iInfoAddon].ClassName    = NameClassAddon;
+    UTServerAdmin.AllMutators[iInfoAddon].FriendlyName = TextWebAdminPrefixAddon @ ClassAddon.Default.FriendlyName;
+    UTServerAdmin.AllMutators[iInfoAddon].Description  =                           ClassAddon.Default.Description;
+    UTServerAdmin.AllMutators[iInfoAddon].GroupName    =                           ClassAddon.Default.GroupName;
+    
+    for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
+      if (thisMutator.bUserAdded &&
+          thisMutator.Class == ClassAddon)
+        UTServerAdmin.AIncMutators.Add(string(iInfoAddon), NameClassAddon);
+    
+    UTServerAdmin.AExcMutators.Add(string(iInfoAddon), NameClassAddon);
+    }
+  }
+
+
+// ============================================================================
 // PostBeginPlay
 //
-// Spawns JBTagTeam actors for both teams.
+// Spawns JBTagTeam actors for both teams and reads the list of Jailbreak
+// Add-Ons for the web admin interface.
 // ============================================================================
 
 event PostBeginPlay() {
@@ -89,6 +162,8 @@ event PostBeginPlay() {
   
   Class'JBTagTeam'.Static.SpawnFor(Teams[0]);
   Class'JBTagTeam'.Static.SpawnFor(Teams[1]);
+
+  ReadAddonsForWebAdmin();
   }
 
 
@@ -1225,6 +1300,9 @@ state Executing {
 defaultproperties {
 
   Build = "%%%%-%%-%% %%:%%";
+
+  TextWebAdminEnableJailFights = "Allow Jail Fights";
+  TextWebAdminPrefixAddon      = "Jailbreak:";
 
   bEnableJailFights        = True;
   bEnableSpectatorDeathCam = True;
