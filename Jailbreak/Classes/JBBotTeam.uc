@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.17 2003/02/26 17:46:15 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.18 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -216,7 +216,7 @@ function SetObjectiveLists() {
   foreach DynamicActors(Class'Trigger', thisTrigger) {
     foreach DynamicActors(Class'JBInfoJail', thisJail)
       if (thisJail.Tag == thisTrigger.Event &&
-          thisJail.CanRelease(Team))
+          thisJail.CanReleaseTeam(Team))
         break;
     
     if (thisJail == None)
