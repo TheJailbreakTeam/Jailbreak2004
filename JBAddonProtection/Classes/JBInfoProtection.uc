@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id$
+// $Id: JBInfoProtection.uc,v 1.2.2.2 2004/05/20 21:49:55 mychaeel Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -31,6 +31,8 @@ var private Pawn ProtectedPawn;
 var private float ProtectionTime;
 var private float EndProtectionTime;
 var private float ProtectionCharge;
+var private int   ProtectedPawnAbsorbedDamage; // keeps score of how much 
+  // damage protection has absorbed, to decide whether to make attacker llama
 
 var private JBInterfaceHud LocalHUD;
 var private HUDBase.SpriteWidget ProtectionFill;
@@ -133,6 +135,27 @@ simulated function RenderOverlays(Canvas C)
     LocalHUD.DrawSpriteWidget(C, ProtectionTrim);
 }
 
+
+// ============================================================================
+// KeepDamageScore
+//
+// Keep a score of how much damage Protection has absorbed
+// Return True if we go over the threshold
+// ============================================================================
+
+function bool KeepDamageScore(int Damage, Pawn myPawn)
+{
+  ProtectedPawnAbsorbedDamage += Damage;
+  //log("PROTECTION - adding:"@Damage@"- tally:"@ProtectedPawnAbsorbedDamage);
+
+  if( ProtectedPawnAbsorbedDamage >= myPawn.Default.Health ) {
+    //log("PROTECTION - damage OVER!!"@myPawn.Default.Health);
+    ProtectedPawnAbsorbedDamage -= myPawn.Default.Health;
+    return True;
+  }
+  return False; 
+}
+    
 
 // ============================================================================
 // Destroyed
