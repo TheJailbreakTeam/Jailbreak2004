@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.2 2002/11/17 11:57:28 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.3 2002/11/20 18:56:24 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -19,6 +19,20 @@ var private JBCamera CameraExecution;  // camera for execution sequence
 
 var private float TimeExecution;       // time when execution starts
 var private float TimeRestart;         // time when next round starts
+
+
+// ============================================================================
+// InitGame
+//
+// Initializes the game.
+// ============================================================================
+
+event InitGame(string Options, out string Error) {
+
+  Super.InitGame(Options, Error);
+  
+  bForceRespawn = True;
+  }
 
 
 // ============================================================================
@@ -92,7 +106,9 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
   if (Controller != None)
     InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
 
-  if (InfoPlayer != None)
+  if (InfoPlayer == None)
+    Restart = 1;  // ERestart.Restart_Freedom
+  else
     Restart = int(InfoPlayer.GetRestart());  // cannot cast to byte
   
   switch (Restart) {
@@ -101,49 +117,20 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
         return -20000000;
       break;
     
-    case 1:  // ERestart.Restart_Arena
-      InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-      if (!ContainsActorArena(NavigationPoint, Arena) || Arena != InfoPlayer.GetArenaRestart())
-        return -20000000;
-      break;
-    
-    case 2:  // ERestart.Restart_Freedom
+    case 1:  // ERestart.Restart_Freedom
       if (ContainsActorJail (NavigationPoint) ||
           ContainsActorArena(NavigationPoint))
+        return -20000000;
+      break;
+
+    case 2:  // ERestart.Restart_Arena
+      InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+      if (!ContainsActorArena(NavigationPoint, Arena) || Arena != InfoPlayer.GetArenaRestart())
         return -20000000;
       break;
     }
 
   return Super.RatePlayerStart(NavigationPoint, Team, Controller);
-  }
-
-
-// ============================================================================
-// Timer
-//
-// Periodically checks whether at least one team is completely jailed and sets
-// TimeExecution if so. If TimeExecution is set and has passed, resets it and
-// calls the ExecutionInit function.
-// ============================================================================
-
-event Timer() {
-
-  local int iTeam;
-  
-  if (TimeExecution == 0.0) {
-    for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-      if (CountPlayersJailed(iTeam) == CountPlayersTotal(iTeam)) {
-        TimeExecution = Level.TimeSeconds + 1.0;
-        break;
-        }
-    }
-  
-  else if (Level.TimeSeconds > TimeExecution) {
-    TimeExecution = 0.0;
-    ExecutionInit();
-    }
-
-  Super.Timer();
   }
 
 
@@ -230,6 +217,21 @@ function int CountPlayersJailed(byte Team) {
 function int CountPlayersTotal(byte Team) {
 
   return JBReplicationInfoTeam(Teams[Team]).CountPlayersTotal();
+  }
+
+
+// ============================================================================
+// IsCaptured
+//
+// Returns whether the given team has been captured.
+// ============================================================================
+
+function bool IsCaptured(byte Team) {
+
+  if (CountPlayersTotal(Team) == 0)
+    return False;
+
+  return CountPlayersJailed(Team) == CountPlayersTotal(Team);
   }
 
 
@@ -328,11 +330,11 @@ function bool ExecutionInit() {
   local int TeamCaptured;
   local JBReplicationInfoGame InfoGame;
   
-  if (IsInState('')) {
+  if (IsInState('MatchInProgress')) {
     TeamCaptured = -1;
     
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-      if (CountPlayersJailed(iTeam) == CountPlayersTotal(iTeam))
+      if (IsCaptured(iTeam))
         if (TeamCaptured < 0)
           TeamCaptured = iTeam;
         else {
@@ -375,8 +377,15 @@ function bool ExecutionInit() {
 
 function ExecutionEnd() {
 
+  local int iInfoJail;
+  local JBReplicationInfoGame InfoGame;
+
   if (IsInState('Executing')) {
-    GotoState('');
+    InfoGame = JBReplicationInfoGame(GameReplicationInfo);
+    for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
+      InfoGame.ListInfoJail[iInfoJail].ExecutionEnd();
+  
+    GotoState('MatchInProgress');
     RestartAll();
     }
   
@@ -384,6 +393,59 @@ function ExecutionEnd() {
     Log("Warning: Cannot end execution while in state" @ GetStateName());
     }
   }
+
+
+// ============================================================================
+// state MatchInProgress
+//
+// Normal gameplay in progress.
+// ============================================================================
+
+state MatchInProgress {
+
+  // ================================================================
+  // BeginState
+  //
+  // Only calls the superclass function if this state is entered the
+  // first time.
+  // ================================================================
+
+  event BeginState() {
+  
+    if (bWaitingToStartMatch)
+      Super.BeginState();
+    }
+
+
+  // ================================================================
+  // Timer
+  //
+  // Periodically checks whether at least one team is completely
+  // jailed and sets TimeExecution if so. If TimeExecution is set
+  // and has passed, resets it and calls the ExecutionInit function.
+  // ================================================================
+  
+  event Timer() {
+  
+    local int iTeam;
+    
+    if (TimeExecution == 0.0) {
+      for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
+        if (IsCaptured(iTeam)) {
+          TimeExecution = Level.TimeSeconds + 1.0;
+          break;
+          }
+      }
+    
+    else if (Level.TimeSeconds > TimeExecution) {
+      TimeExecution = 0.0;
+      ExecutionInit();
+      }
+  
+    Super.Timer();
+    }
+
+  } // state MatchInProgress
 
 
 // ============================================================================
@@ -412,7 +474,7 @@ state Executing {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
         nPlayersJailed += CountPlayersJailed(iTeam);
       if (nPlayersJailed == 0)
-        TimeRestart = Level.TimeSeconds + 1.0;
+        TimeRestart = Level.TimeSeconds + 2.0;
       }
 
     else if (Level.TimeSeconds > TimeRestart) {
@@ -444,6 +506,13 @@ state Executing {
 
 defaultproperties {
 
+  MapPrefix  = "JB";
+  BeaconName = "JB";
+  GameName   = "Jailbreak";
+
   GameReplicationInfoClass = Class'JBReplicationInfoGame';
   DefaultEnemyRosterClass = "Jailbreak.JBReplicationInfoTeam";
+  
+  bSpawnInTeamArea = True;
+  bScoreTeamKills = False;
   }
