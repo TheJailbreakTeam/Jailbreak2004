@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.5.2.5 2004/05/30 15:12:16 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.15 2004/06/02 09:48:25 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -74,6 +74,7 @@ function PostRender(Canvas C)
       PlayerMesh.bStartedTaunting = true;
       PlayerMesh.GotoState('Taunting', 'BeginTaunting');
     }
+    PlayerMesh.PrePivot += PlayerMesh.LastLocationOffset;
     
     PlayerMesh.OverlayMaterial = MeshShadowMaterial;
     PlayerMesh.SetLocation(ShadowLoc);
@@ -229,6 +230,11 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
     PlayerMesh.bAnimByOwner = True;
   }
   else {
+    if ( PlayerInfo.bSuicide ) {
+      PlayerMesh.Destroy();
+      PlayerMesh = None;
+      return;
+    }
     PlayerMesh.bAnimByOwner = False;
     rec = class'xUtil'.static.FindPlayerRecord(PlayerInfo.PRI.CharacterName);
     if ( rec.DefaultName == "" )
