@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.17 2003/03/16 13:09:05 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.18 2003/03/16 16:14:31 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -76,7 +76,7 @@ var() byte MotionBlur;       // amount of camera motion blur
 var private bool bIsActiveLocal;                // local player using camera
 var private array<TInfoViewer> ListInfoViewer;  // all players using camera
 
-var private MotionBlur CameraEffectMotionBlur;  // shared motion blur object
+var private MotionBlur CameraEffectMotionBlur;  // MotionBlur object in use
 
 
 // ============================================================================
@@ -273,14 +273,7 @@ protected simulated function ActivateForLocal() {
     JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = bWidescreen;
 
   if (MotionBlur > 0) {
-    if (CameraEffectMotionBlur == None)
-      foreach DynamicActors(Class'JBCamera', thisCamera)
-        if (thisCamera.CameraEffectMotionBlur != None)
-          CameraEffectMotionBlur = thisCamera.CameraEffectMotionBlur;
-  
-    if (CameraEffectMotionBlur == None)
-      CameraEffectMotionBlur = new Class'MotionBlur';
-
+    CameraEffectMotionBlur = MotionBlur(Level.ObjectPool.AllocateObject(Class'MotionBlur'));
     CameraEffectMotionBlur.BlurAlpha = 255 - MotionBlur;
 
     ControllerPlayer.CameraEffects.Length = 0;
@@ -308,6 +301,9 @@ protected simulated function DeactivateForLocal() {
   if (JBInterfaceHud(ControllerPlayer.myHUD) != None)
     JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = False;
 
+  if (CameraEffectMotionBlur != None)
+    Level.ObjectPool.FreeObject(CameraEffectMotionBlur);
+  CameraEffectMotionBlur = None;
   ControllerPlayer.CameraEffects.Length = 0;
   
   bIsActiveLocal = False;
