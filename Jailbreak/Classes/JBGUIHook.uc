@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIHook
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGUIHook.uc,v 1.1 2004/04/04 00:41:42 mychaeel Exp $
 //
 // Hidden actor which hooks into the menu system in order to make the
 // Jailbreak theme music and the add-ons tab work.
@@ -49,7 +49,8 @@ static function Hook()
     return;
 
   foreach Default.Class.AllObjects(Class'UT2K4GamePageBase', UT2K4GamePageBase)
-    break;
+    if (UT2K4GamePageBase.FocusedControl != None)
+      break;
 
   if (UT2K4GamePageBase == None)
     return;
@@ -140,6 +141,8 @@ event Destroyed()
 
 function NotifyEntered()
 {
+  local int iTabInserted;
+
   SongPrev = PlaySong(SongJailbreak, 2.0, 0.0);
   if (SongPrev == "")
     SongPrev = Class'UT2K4MainMenu'.Default.MenuSong;
@@ -147,9 +150,12 @@ function NotifyEntered()
   GUITabPanelAddons = UT2K4GamePageBase.c_Tabs.AddTab(
     TextCaptionAddons, "Jailbreak.JBGUITabPanelAddons", , TextHintAddons);
 
+       if (UT2K4GamePageSP(UT2K4GamePageBase) != None) iTabInserted = 3;
+  else if (UT2K4GamePageMP(UT2K4GamePageBase) != None) iTabInserted = 4;
+
   UT2K4GamePageBase.c_Tabs.TabStack.Remove(UT2K4GamePageBase.c_Tabs.TabStack.Length - 1, 1);
-  UT2K4GamePageBase.c_Tabs.TabStack.Insert(3, 1);
-  UT2K4GamePageBase.c_Tabs.TabStack[3] = GUITabPanelAddons.MyButton;
+  UT2K4GamePageBase.c_Tabs.TabStack.Insert(iTabInserted, 1);
+  UT2K4GamePageBase.c_Tabs.TabStack[iTabInserted] = GUITabPanelAddons.MyButton;
 }
 
 
