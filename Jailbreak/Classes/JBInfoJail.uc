@@ -212,8 +212,11 @@ function bool CanReleaseBy(Controller Controller, TeamInfo Team)
       Controller.PlayerReplicationInfo == None)
     return False;
 
-  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+  if (      Controller.Pawn  == None ||
+      xPawn(Controller.Pawn) == None)
+    return False;
 
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
   return (TagPlayer != None &&
           TagPlayer.IsFree());
 }
