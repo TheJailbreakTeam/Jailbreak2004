@@ -1,0 +1,39 @@
+[JBAddonLlama]
+RewardAdrenalineText="Adrenalin-Gewinn beim Töten eines Lamas"
+RewardAdrenalineDesc="Spieler, die ein Lama töten, erhalten diese Menge an Adrenalin."
+RewardHealthText="Gesundheits-Gewinn beim Töten eines Lamas"
+RewardHealthDesc="Spieler, die ein Lama töten, erhalten diese Menge an Gesundheit zurück."
+RewardShieldText="Schildenergie-Gewinn beim Töten eines Lamas"
+RewardShieldDesc="Spieler, die ein Lama töten, erhalten diese Menge an Schildenergie."
+MaximumLlamaDurationText="Maximaldauer einer Lama-Jagd"
+MaximumLlamaDurationDesc="Zeit, die eine Lama-Jagd höchstens dauern kann. Das Lama wird getötet, wenn es innerhalb dieser Zeit nicht gefraggt wurde."
+FriendlyName="Lama-Jagd"
+Description="Verwandelt betrügende Spieler in ein Lama und erlaubt anderen Spielern, fröhlich Jagd auf sie zu machen."
+
+[JBDamageTypeLlamaDied]
+DeathString="%o wollte kein Lama mehr sein."
+FemaleSuicide="%o wollte kein Lama mehr sein."
+MaleSuicide="%o wollte kein Lama mehr sein."
+
+[JBGUIPanelConfigLlama]
+LlamaKillRewardLabel.Caption="Belohnung fürs Töten eines Lamas:"
+MaximumLlamaDuration.Caption="Dauer der Lama-Jagd"
+MaximumLlamaDuration.Hint="Zeit, die eine Lama-Jagd höchstens dauern kann."
+RewardAdrenaline.Caption="Adrenaline"
+RewardAdrenaline.Hint="Adrenalin-Gewinn beim Töten eines Lamas."
+RewardHealth.Caption="Gesundheit"
+RewardHealth.Hint="Gesundheits-Gewinn beim Töten eines Lamas."
+RewardShield.Caption="Schildenergie"
+RewardShield.Hint="Schildenergie-Gewinn beim Töten eines Lamas."
+
+[JBLlamaHelpMessage]
+HelpMessageLines[0]="Verwendung: 'mutate llama <Parameter>' oder 'mutate unllama <Spielername>'"
+HelpMessageLines[1]=" <Parameter> kann ein Spielername sein oder 'config', gefolgt von einem zweiten Parameter."
+HelpMessageLines[2]=" Der zweite Parameter für 'config' kann 'health', 'shield', 'adrenaline' und 'duration' sein, jeweils gefolgt vom neuen Wert dieser Einstellung."
+
+[JBLlamaMessage]
+TextLlamaHuntStart="Töte %llama% für einen kleinen Gewinn."
+TextLlamaCaught="%llama% wurde von %killer% erledigt!"
+TextLlamaDied="%llama% ist explodiert!"
+TextLlamaDisconnected="%llama% ist weggerannt!"
+
