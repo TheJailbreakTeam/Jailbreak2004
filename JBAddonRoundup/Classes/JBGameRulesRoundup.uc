@@ -72,14 +72,15 @@ function bool CanSendToJail(JBTagPlayer TagPlayer)
 // this function returns False during the arena countdown for a player already
 // scheduled for a fight in the given arena, the match will be cancelled.
 // ============================================================================
-function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena)
+function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena, out byte bForceSendToArena)
 {
-	if( (!TagPlayer.IsInJail() || TagPlayer.IsInArena() ) && UnrealTeamInfo(TagPlayer.GetTeam()).TeamIndex == 1 - HuntingTeam() )
-		return false;
-	else if( UnrealTeamInfo(TagPlayer.GetTeam()).TeamIndex == HuntingTeam() )
+	if( UnrealTeamInfo(TagPlayer.GetTeam()).TeamIndex == HuntingTeam() )
+	{
+		bForceSendToArena = 1;
     		return true;
-  	else
-    		return Super.CanSendToArena(TagPlayer, Arena);
+	}  	
+	else
+		return Super.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
 }
 
 // ============================================================================
