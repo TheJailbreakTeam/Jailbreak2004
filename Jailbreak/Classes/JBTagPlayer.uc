@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.40 2003/12/15 23:11:29 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.41 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -688,7 +688,8 @@ function NotifyJailLeft(JBInfoJail JailPrev)
 
 function NotifyJailOpening()
 {
-  if (Controller.Pawn != None)
+  if (Controller.Pawn != None &&
+      Controller.Pawn.Health < Controller.Pawn.Default.Health)
     Controller.Pawn.Health = Controller.Pawn.Default.Health;
 
   if (ArenaPending != None)
