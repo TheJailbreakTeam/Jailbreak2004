@@ -18,4 +18,6 @@ ProtectArenaWinnerCheckBox.Caption="Protège le vainqueur de l'arène"
 ProtectArenaWinnerCheckBox.Hint="Les joueurs libérés par leur victoire dans l'arène sont protégés."
 TrackbarProtectionTime.Caption="Durée de la protection"
 TrackbarProtectionTime.Hint="Durée de la protection en secondes."
-
+OptionsProtectionType.GroupCaption="Type de protection:"
+OptionsProtectionType.OptionText=("Pas de dégats","Désactivée")
+OptionsProtectionType.OptionHint=("Vous ne pouvez infliger de dommages","Désactivée si vous infligez des dommages.")
