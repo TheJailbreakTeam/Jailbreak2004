@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.6.2.2 2004/04/05 09:52:53 tarquin Exp $
+// $Id: JBAddonProtection.uc,v 1.6.2.3 2004/04/06 18:38:17 tarquin Exp $
 //
 // This add-on protects players released from jail.
 // ============================================================================
@@ -16,8 +16,8 @@ class JBAddonProtection extends JBAddon config;
 
 const DEFAULT_PROTECTION_TIME = 3;
 const DEFAULT_PROTECTION_TYPE = 0;
-const DEFAULT_PROTECT_ARENA   = 1; // doesn't work
-const DEFAULT_LLAMAIZE_CAMPERS= 1; // doesn't work
+const DEFAULT_PROTECT_ARENA   = True;
+const DEFAULT_LLAMAIZE_CAMPERS= True;
 
 
 // ============================================================================
@@ -31,16 +31,18 @@ var() config bool bProtectArenaWinner;
 var() config bool bLlamaizeCampers;
 
 var PlayerReplicationInfo LastRestartedPRI;
-var localized string desc_ProtectionType;
-var localized string desc_ProtectionTime;
-var localized string desc_ProtectArenaWinner;
-var localized string desc_LlamaizeCampers;
+var localized string caption_ProtectionType;
+var localized string caption_ProtectionTime;
+var localized string caption_ProtectArenaWinner;
+var localized string caption_LlamaizeCampers;
+
+var localized string options_ProtectionType;
 
 
 // ============================================================================
 // PostBeginPlay
 //
-// Spawn and registre the additional rules.
+// Spawn and register the additional rules.
 // ============================================================================
 
 function PostBeginPlay()
@@ -88,10 +90,10 @@ function ModifyPlayer(Pawn P)
 static function FillPlayInfo(PlayInfo PlayInfo)
 {
     PlayInfo.AddClass(default.class);
-    PlayInfo.AddSetting(default.FriendlyName, "ProtectionType", default.desc_ProtectionType, 0, 0, "Text", "3;0:2");
-    PlayInfo.AddSetting(default.FriendlyName, "ProtectionTime", default.desc_ProtectionTime, 0, 0, "Text", "3;1:10");
-    PlayInfo.AddSetting(default.FriendlyName, "bProtectArenaWinner", default.desc_ProtectArenaWinner , 0, 0, "Check");
-    PlayInfo.AddSetting(default.FriendlyName, "bLlamaizeCampers", default.desc_LlamaizeCampers , 0, 0, "Check");
+    PlayInfo.AddSetting(default.FriendlyName, "ProtectionTime", default.caption_ProtectionTime, 0, 1, "Text", "2;1:10");
+    PlayInfo.AddSetting(default.FriendlyName, "ProtectionType", default.caption_ProtectionType, 0, 2, "Select", default.options_ProtectionType);
+    PlayInfo.AddSetting(default.FriendlyName, "bProtectArenaWinner", default.caption_ProtectArenaWinner , 0, 3, "Check");
+    PlayInfo.AddSetting(default.FriendlyName, "bLlamaizeCampers", default.caption_LlamaizeCampers , 0, 4, "Check");
     PlayInfo.PopClass();
 }
 
@@ -106,8 +108,8 @@ static function ResetConfiguration()
 {
   default.ProtectionTime      = DEFAULT_PROTECTION_TIME;
   default.ProtectionType      = DEFAULT_PROTECTION_TYPE;
-  default.bProtectArenaWinner = true; // bool(DEFAULT_PROTECT_ARENA);
-  default.bLlamaizeCampers    = true; // bool(DEFAULT_LLAMAIZE_CAMPERS);
+  default.bProtectArenaWinner = DEFAULT_PROTECT_ARENA;
+  default.bLlamaizeCampers    = DEFAULT_LLAMAIZE_CAMPERS;
   StaticSaveConfig();
 }
 
@@ -125,8 +127,9 @@ defaultproperties
     FriendlyName="Release Protection"
     Description="Players released from jail are protected from enemy fire."
     ConfigMenuClassName="JBAddonProtection.JBGUIPanelConfigProtection"
-    desc_ProtectionTime="The protection time."
-    desc_ProtectionType="The protection type."
-    desc_ProtectArenaWinner="When enabled, the arena winner gains protection."
-    desc_LlamaizeCampers="When enabled, players causing lethal damage to protected players are made llamas."
+    caption_ProtectionTime    ="Protection time"
+    caption_ProtectionType    ="Protection type"
+    caption_ProtectArenaWinner="Protect the arena winner"
+    caption_LlamaizeCampers   ="Make jail campers llamas"
+    options_ProtectionType="0;You can't inflict damage;1;Drop when you inflict damage"
 }
