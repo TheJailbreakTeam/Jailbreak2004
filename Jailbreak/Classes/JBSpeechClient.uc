@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechClient
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBSpeechClient.uc,v 1.1 2004/02/29 21:01:29 mychaeel Exp $
 //
 // Parses and interprets a speech sequence definition and plays it.
 // 
@@ -461,17 +461,20 @@ simulated function bool ErrorOnPlaying(string Message)
 
 
 // ============================================================================
-// delegate FinishedPlaying
+// FinishedPlaying
+// delegate OnFinishedPlaying
 //
 // Called when playing the sequence has finished. The default implementation
 // destroys this actor. Set this delegate to None in order to keep the actor
 // around after playing the sequence.
 // ============================================================================
 
-simulated delegate FinishedPlaying(JBSpeechClient SpeechClient)
+simulated function FinishedPlaying(JBSpeechClient SpeechClient)
 {
   SpeechClient.Destroy();
 }
+
+simulated delegate OnFinishedPlaying(JBSpeechClient SpeechClient);
 
 
 // ============================================================================
@@ -547,6 +550,17 @@ simulated state Playing
         Sleep(DelayPlayed * Level.TimeDilation);
     }
 
-    FinishedPlaying(Self);
+    OnFinishedPlaying(Self);
+    GotoState('');
 
 } // state Playing
+
+
+// ============================================================================
+// Defaults
+// ============================================================================
+
+defaultproperties
+{
+  OnFinishedPlaying = FinishedPlaying;
+}
