@@ -1,7 +1,7 @@
 // ============================================================================
 // JBRelease
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBRelease.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: JBRelease.uc,v 1.2 2002/11/17 11:11:18 mychaeel Exp $
 //
 // Marks a spot bots approach to release their teammates.
 // ============================================================================
@@ -105,5 +105,6 @@ defaultproperties {
   
   RemoteRole = ROLE_SimulatedProxy;
   bStatic = False;
+  bNoDelete = False;
   bAlwaysRelevant = True;
   }
