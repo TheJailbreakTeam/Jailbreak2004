@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.4 2004/03/10 12:18:53 tarquin Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.5 2004/03/10 12:51:43 mychaeel Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -44,7 +44,7 @@ var array<TInfoAddon> ListInfoAddon;            // loaded add-on information
 var JBGUIComponentTabs GUIComponentTabsAddons;  // main tab control
 var GUIScrollTextBox GUIScrollTextBoxAddon;     // text box for description
 var GUIPanel GUIPanelConfigTemplate;            // template for config panels
-
+var GUILabel GUILabelConfigNone;                // shown if no config
 
 // ============================================================================
 // InitComponent
@@ -61,6 +61,8 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   ReadListInfoAddon();
   SortListInfoAddon(0, ListInfoAddon.Length - 1);
 
+  GUILabelConfigNone = GUILabel(Controls[2]); 
+  
   GUIComponentTabsAddons = JBGUIComponentTabs(Controls[0]);
   GUIComponentTabsAddons.OnTabOpened = GUIComponentTabsAddons_TabOpened;
   GUIComponentTabsAddons.OnTabClosed = GUIComponentTabsAddons_TabClosed;
@@ -117,8 +119,6 @@ function ReadListInfoAddon()
     if (ClassAddon.Default.ConfigMenuClassName != "")
       ListInfoAddon[iInfoAddon].ClassGUIPanelConfig =
         Class<GUIPanel>(DynamicLoadObject(ClassAddon.Default.ConfigMenuClassName, Class'Class', True));
-    else
-      ListInfoAddon[iInfoAddon].ClassGUIPanelConfig = Class'JBGUIPanelConfigAddonDefault';
   }
 }
 
@@ -166,8 +166,9 @@ function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd)
 // ============================================================================
 // GUIComponentTabsAddons_TabOpened
 //
-// Called when a tab is opened. Shows the corresponding add-on description and
-// loads and displays its configuration panel if one is available.
+// Called when a tab is opened. Shows the corresponding add-on description. 
+// Loads and displays its configuration panel if one is available, or
+// shows a label informing the user no options exist.
 // ============================================================================
 
 function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab)
@@ -178,27 +179,30 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
   iInfoAddon = GUIComponentTabsAddons.GetTabIndex(GUIMenuOptionTab);
 
   GUIScrollTextBoxAddon.SetContent(ListInfoAddon[iInfoAddon].TextDescription);
-
-  if (ListInfoAddon[iInfoAddon].ClassGUIPanelConfig == None)
-    return;
-
-  if (ListInfoAddon[iInfoAddon].GUIPanelConfig == None) {
-    GUIPanelConfig = new ListInfoAddon[iInfoAddon].ClassGUIPanelConfig;
-    ListInfoAddon[iInfoAddon].GUIPanelConfig = GUIPanelConfig;
-
-    GUIPanelConfig.bBoundToParent = True;
-  GUIPanelConfig.bScaleToParent = True;
-  GUIPanelConfig.Background = None;
-
-    GUIPanelConfig.WinTop    = GUIPanelConfigTemplate.WinTop;
-    GUIPanelConfig.WinLeft   = GUIPanelConfigTemplate.WinLeft;
-    GUIPanelConfig.WinWidth  = GUIPanelConfigTemplate.WinWidth;
-    GUIPanelConfig.WinHeight = GUIPanelConfigTemplate.WinHeight;
-
-    GUIComponentTabsAddons.AddComponent(GUIPanelConfig);
+  
+  if (ListInfoAddon[iInfoAddon].ClassGUIPanelConfig == None) {
+    GUILabelConfigNone.bVisible = True;
   }
+  else {
+    if (ListInfoAddon[iInfoAddon].GUIPanelConfig == None) {
+      GUIPanelConfig = new ListInfoAddon[iInfoAddon].ClassGUIPanelConfig;
+      ListInfoAddon[iInfoAddon].GUIPanelConfig = GUIPanelConfig;
 
-  ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = True;
+      GUIPanelConfig.bBoundToParent = True;
+      GUIPanelConfig.bScaleToParent = True;
+      GUIPanelConfig.Background = None;
+
+      GUIPanelConfig.WinTop    = GUIPanelConfigTemplate.WinTop;
+      GUIPanelConfig.WinLeft   = GUIPanelConfigTemplate.WinLeft;
+      GUIPanelConfig.WinWidth  = GUIPanelConfigTemplate.WinWidth;
+      GUIPanelConfig.WinHeight = GUIPanelConfigTemplate.WinHeight;
+
+      GUIComponentTabsAddons.AddComponent(GUIPanelConfig);
+    }
+
+    GUILabelConfigNone.bVisible = False;
+    ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = True;
+  }
 }
 
 
@@ -350,8 +354,17 @@ defaultproperties
     WinHeight    = 0.600;
   End Object
 
+  Begin Object class=GUILabel Name=GUILabelConfigDefault
+    Caption      = "This add-on has no user options.";
+    WinTop       = 0.860;
+    WinLeft      = 0.360;
+    WinWidth     = 0.610;
+    WinHeight    = 0.068;
+  End Object
+
   Controls[0] = JBGUIComponentTabs'GUIComponentTabsAddonsDef';
   Controls[1] = GUIButton'GUIButtonDownloadAddonsDef';
+  Controls[2] = GUILabel'GUILabelConfigDefault';
 
   GUIPanelConfigTemplate = GUIPanel'GUIPanelConfigTemplateDef';
 }
