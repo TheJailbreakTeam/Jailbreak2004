@@ -251,6 +251,7 @@ function bool ContainsActor(Actor Actor)
 function bool CanFight(Controller ControllerCandidate)
 {
   local byte bForceSendToArena;
+  local JBInfoJail Jail;
   local JBGameRules firstJBGameRules;
   local JBTagPlayer TagPlayer;
 
@@ -264,7 +265,13 @@ function bool CanFight(Controller ControllerCandidate)
     return False;
 
   if ( TagPlayer.IsInArena() ||
-     (!TagPlayer.IsInJail() && !bool(bForceSendToArena)))
+     !(TagPlayer.IsInJail() || bool(bForceSendToArena)))
+    return False;
+
+  Jail = TagPlayer.GetJail();
+  if (Jail != None &&
+       (Jail.IsReleaseOpening(TagPlayer.GetTeam()) ||
+        Jail.IsReleaseOpen   (TagPlayer.GetTeam())))
     return False;
 
   if (TagPlayer.GetArenaPending() != None &&
