@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonAvenger.uc,v 1.1.2.2 2004/05/12 10:04:45 tarquin Exp $
+// $Id: JBAddonAvenger.uc,v 1.1.2.3 2004/05/19 15:52:43 tarquin Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -24,9 +24,9 @@ const DEFAULT_POWERUP_TYPE    = 1;
 // ============================================================================
 
 var() const editconst string Build;
-var() config int PowerTimeMultiplier;
-var() config int PowerTimeMaximum;
-var() config int PowerComboIndex;
+var() config int PowerTimeMultiplier; // multiply the arena time remaining
+var() config int PowerTimeMaximum;    // subject to this maximum
+var() config int PowerComboIndex;     // type of combo awarded
 
 var class<Combo> ComboClasses[4]; 
 
@@ -81,7 +81,7 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   // now register any mutator settings
   PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMultiplier", default.PowerTimeMultiplierText,  0, 0, "Text", "3;1:200");
   PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMaximum",    default.PowerTimeMaximumText,     0, 0, "Text", "3;10:60");
-  PlayInfo.AddSetting(PlayInfoGroup(), "PowerComboIndex",     default.PowerComboIndexText,      0, 0, "Select", "0;Speed;1;Berserk;2;Booster;3;Invisible;");
+  PlayInfo.AddSetting(PlayInfoGroup(), "PowerComboIndex",     default.PowerComboIndexText,      0, 0, "Select", "0;Speed;1;Berserk;2;Booster;3;Invisible;4;Random");
 
   // remove mutator class from class stack
   PlayInfo.PopClass();
