@@ -205,13 +205,13 @@ function name GetEventRelease(TeamInfo Team)
 
 
 // ============================================================================
-// IsReleaseOpen
+// IsReleaseMoverOpen
 //
 // Checks and returns whether any release movers of this jail for the given
 // team are currently fully open.
 // ============================================================================
 
-function bool IsReleaseOpen(TeamInfo Team)
+function bool IsReleaseMoverOpen(TeamInfo Team)
 {
   local int iMover;
   local TInfoRelease InfoRelease;
@@ -228,13 +228,13 @@ function bool IsReleaseOpen(TeamInfo Team)
 
 
 // ============================================================================
-// IsReleaseClosed
+// IsReleaseMoverClosed
 //
 // Checks and returns whether all release movers of this jail for the given
 // team are fully closed.
 // ============================================================================
 
-function bool IsReleaseClosed(TeamInfo Team)
+function bool IsReleaseMoverClosed(TeamInfo Team)
 {
   local int iMover;
   local TInfoRelease InfoRelease;
@@ -756,13 +756,13 @@ auto state Waiting {
         continue;
 
       if (InfoReleaseByTeam[iTeam].bIsOpening) {
-        if (IsReleaseOpen(Team)) {
+        if (IsReleaseMoverOpen(Team)) {
           InfoReleaseByTeam[iTeam].bIsOpening = False;
           NotifyJailOpened(Team);
         }
       }
 
-      else if (IsReleaseClosed(Team)) {
+      else if (IsReleaseMoverClosed(Team)) {
         if (InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
           InfoReleaseByTeam[iTeam].TimeReset = Level.TimeSeconds + 0.5;
           NotifyJailClosed(Team);
@@ -898,6 +898,14 @@ state ExecutionFallback {
 
 function bool IsReleaseActive(TeamInfo Team) {
   return InfoReleaseByTeam[Team.TeamIndex].bIsActive; }
+
+function bool IsReleaseOpening(TeamInfo Team) {
+  return InfoReleaseByTeam[Team.TeamIndex].bIsActive &&
+         InfoReleaseByTeam[Team.TeamIndex].bIsOpening; }
+function bool IsReleaseOpen(TeamInfo Team) {
+  return InfoReleaseByTeam[Team.TeamIndex].bIsActive &&
+        !InfoReleaseByTeam[Team.TeamIndex].bIsOpening &&
+         InfoReleaseByTeam[Team.TeamIndex].TimeReset == 0.0; }
 
 function Controller GetReleaseInstigator(TeamInfo Team) {
   return InfoReleaseByTeam[Team.TeamIndex].ControllerInstigator; }
