@@ -34,6 +34,8 @@ Zip Installation
   
     *.u     System\
     *.int   System\
+    *.det   System\
+    *.frt   System\
     *.ucl   System\
 
     *.ogg   Music\
