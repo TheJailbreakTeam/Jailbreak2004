@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.10 2004/05/31 11:14:57 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.6.2.2 2004/05/31 19:55:00 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -325,6 +325,21 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   
   // remove mutator class from class stack
   PlayInfo.PopClass();
+}
+
+
+//=============================================================================
+// NotifyLevelChange
+//
+// Clean up HUD effects on disconnect.
+//=============================================================================
+
+simulated function NotifyLevelChange()
+{
+  local JBInterfaceLlamaHUDOverlay thisLlamaHUDOverlay;
+  
+  foreach DynamicActors(class'JBInterfaceLlamaHUDOverlay', thisLlamaHUDOverlay)
+    thisLlamaHUDOverlay.Destroy();
 }
 
 
