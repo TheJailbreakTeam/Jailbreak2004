@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.4 2004/03/18 20:07:42 tarquin Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.5 2004/03/26 20:47:40 tarquin Exp $
 //
 // Option of protection mutator.
 // ============================================================================
@@ -112,6 +112,7 @@ defaultproperties
     MinValue=0
     MaxValue=10
     bIntegerOnly=True
+    OnChange=ChangeOptions
   End Object
   Controls(0)=JBGUIEditSlider'ProtectionTimeEditSlider'
 
@@ -134,19 +135,21 @@ defaultproperties
     LabelWidth = 0.63;
     ItemIndent = 0.05;
 
+    OnChange=ChangeOptions
   End Object
   Controls(1)=JBGUIOptionGroup'ProtectionTypeOptionGroup'
 
   Begin Object class=moCheckBox Name=ProtectArenaWinnerCheckBox
     WinTop        =0.6
     WinLeft       =0.0
+    WinHeight = 0.07; // for button to be right size
+    WinWidth  = 0.667; // sets how far button is from left edge
     CaptionWidth  =0.9
+    
     OnChange=ChangeOptions
     Caption="Protect the arena winner"
     Hint="When enabled, the arena winner is protected."
     bSquare=true
-    WinHeight = 0.07; // for button to be right size
-    WinWidth  = 0.667; // sets how far button is from left edge
     bHeightFromComponent = False;
 
   End Object
