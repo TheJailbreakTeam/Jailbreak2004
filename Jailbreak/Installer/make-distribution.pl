@@ -5,7 +5,7 @@
 #  make-distribution-int.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id: make-distribution.pl,v 1.1.2.3 2004/05/20 01:43:17 mychaeel Exp $
+#  $Id$
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -447,9 +447,11 @@ unlink $fileZip
 #  Installer directories to the archive.
 #
 
+print "...adding modules\n";
+
 foreach my $module (@modules) {
   next if $module =~ /[\\\/]/;
-  print "...$module\n";
+  print ".....$module\n";
   
   my $filePackage = findFilePackage($module);
   die "No package file found for module $module.\n"
@@ -487,9 +489,24 @@ foreach my $module (@modules) {
 #  Adds all maps and their related files to the archive.
 #
 
-die "Support for maps not implemented yet.\n"
-  if @maps;
+if (@maps) {
+  print "...adding maps and related files\n";
 
+  my $dirCurrent = cwd();
+  chdir $dirGame
+    or die "Unable to change to game directory.\n";
+
+  foreach my $file (@maps) {
+    print ".....$file\n";
+    
+    my $output = `zip -r9 "$fileZip" "$file" 2>&1`;
+    die "Unable to add file $file to archive.\n", $output, "\n"
+      if ($? >> 8) != 0;
+  }
+
+  chdir $dirCurrent
+    or die "Unable to change to directory $dirCurrent.\n";
+}
 
 print "\n";
 
@@ -648,6 +665,21 @@ foreach my $module (@modules) {
 #  the installer setup.
 #
 
+if (@maps) {
+  print "...maps and related files\n";
+  
+  print MANIFEST "[GroupMaps]\n";
+  print MANIFEST "Optional=True\n";
+  print MANIFEST "Visible=True\n";
+
+  foreach my $file (@maps) {
+    my $sizeFile = -s "$dirGame/$file";
+    die "File $file does not exist.\n"
+      unless defined $sizeFile;
+    print MANIFEST "File=(Src=\"$file\",Size=$sizeFile)\n";
+  }
+}
+
 
 ###########################################################
 #
@@ -683,7 +715,7 @@ close MANIFEST;
 
 print "...creating installer\n";
 
-foreach my $file (<Manifest-$product.*>) {
+foreach my $file (<Manifest-$product.*t>) {
   copy $file, "$dirGame/System/$file"
     or die "Unable to copy file $file to System directory.\n";
 }
