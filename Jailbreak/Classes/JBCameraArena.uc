@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCameraArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCameraArena.uc,v 1.3 2004/05/28 17:08:18 mychaeel Exp $
+// $Id: JBCameraArena.uc,v 1.4 2004/05/31 14:53:29 mychaeel Exp $
 //
 // Arena follower camera which tracks the arena opponent. Destroys itself when
 // the trailed player dies or is respawned or when the last viewer is gone.
@@ -19,7 +19,9 @@ class JBCameraArena extends JBCamera
 replication
 {
   reliable if (Role == ROLE_Authority)
-    Arena, TagPlayerFollowed, TagPlayerOpponent;
+    Arena,
+    TagPlayerFollowed,
+    TagPlayerOpponent;
 }
 
 
@@ -58,35 +60,47 @@ function bool IsViewerAllowed(Controller Controller)
 
 
 // ============================================================================
-// Tick
+// state Active
 //
-// Checks whether the followed player has left the arena. If so, enters state
-// Finished which will wait a bit and then destroy the camera.
+// Camera is active. When the last viewer leaves this camera, auto-destructs.
 // ============================================================================
 
-simulated event Tick(float TimeDelta)
+auto state Active
 {
-  Super.Tick(TimeDelta);
-
-  if ((TagPlayerFollowed == None || !TagPlayerFollowed.IsInArena()) &&
-      (TagPlayerOpponent == None || !TagPlayerOpponent.IsInArena()))
-    GotoState('Finished');
-}
-
-
-// ============================================================================
-// DeactivateFor
-//
-// Destroys this camera when the last viewer is gone.
-// ============================================================================
-
-function DeactivateFor(Controller Controller)
-{
-  Super.DeactivateFor(Controller);
+  // ================================================================
+  // Tick
+  //
+  // Checks whether the followed player has left the arena. If so,
+  // enters state Finished which will wait a bit and then destroy
+  // the camera.
+  // ================================================================
   
-  if (!HasViewers())
-    GotoState('Deactivate');
-}
+  simulated event Tick(float TimeDelta)
+  {
+    Global.Tick(TimeDelta);
+  
+    if (Role == ROLE_Authority &&
+        (TagPlayerFollowed == None || !TagPlayerFollowed.IsInArena()) &&
+        (TagPlayerOpponent == None || !TagPlayerOpponent.IsInArena()))
+      GotoState('Finished');
+  }
+
+
+  // ================================================================
+  // DeactivateFor
+  //
+  // Goes to state Deactivate when the last viewer is gone.
+  // ================================================================
+  
+  function DeactivateFor(Controller Controller)
+  {
+    Global.DeactivateFor(Controller);
+    
+    if (!HasViewers())
+      GotoState('Deactivate');
+  }
+
+} // state Active;
 
 
 // ============================================================================
@@ -97,19 +111,6 @@ function DeactivateFor(Controller Controller)
 
 state Finished
 {
-  // ================================================================
-  // Tick
-  //
-  // Just calls the superclass method, thus deactivating the finish
-  // check of the main implementation.
-  // ================================================================
-
-  simulated event Tick(float TimeDelta)
-  {
-    Super.Tick(TimeDelta);
-  }
-
-
   // ================================================================
   // State Code
   // ================================================================
@@ -129,6 +130,9 @@ state Finished
 
 state Deactivate
 {
+  ignores Tick;  // implicit deactivation by DeactivateFor fails
+  
+
   // ================================================================
   // IsViewerAllowed
   //
@@ -162,10 +166,7 @@ state Deactivate
 
 defaultproperties
 {
-  Begin Object Class=JBCamControllerArena Name=JBCamControllerArenaDef
-  End Object
-
-  CamController = JBCamControllerArena'JBCamControllerArenaDef';
+  ClassCamController = Class'JBCamControllerArena';
 
   Caption   = (Text="Arena Live Feed",Position=0.9);
   Switching = (bAllowAuto=False,bAllowManual=False,bAllowTimed=False,bAllowTriggered=False);
