@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.5 2002/12/20 20:54:29 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.6 2002/12/23 00:40:45 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -82,27 +82,23 @@ event Timer() {
 
 private function CountPlayers() {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   if (TimeCountPlayers == Level.TimeSeconds)
     return;
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-
   nPlayers = Size;
   nPlayersFree   = 0;
   nPlayersJailed = 0;
   
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (InfoPlayer.GetPlayerReplicationInfo().Team == Self)
-      if (InfoPlayer.IsInJail())
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetTeam() == Self)
+      if (thisTagPlayer.IsInJail())
         nPlayersJailed++;
-      else if (InfoPlayer.IsFree())
+      else if (thisTagPlayer.IsFree())
         nPlayersFree++;
-    }
 
   TimeCountPlayers = Level.TimeSeconds;
   }
@@ -182,12 +178,9 @@ function SetTactics(coerce ETactics NewTactics, optional bool bNewTacticsAuto) {
 // ============================================================================
 
 simulated function ETactics GetTactics() {
-  return Tactics;
-  }
-
+  return Tactics; }
 simulated function bool GetTacticsAuto() {
-  return bTacticsAuto;
-  }
+  return bTacticsAuto; }
 
 
 // ============================================================================

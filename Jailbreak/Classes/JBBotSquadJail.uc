@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBBotSquadJail.uc,v 1.1 2002/12/20 20:54:30 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -20,16 +20,16 @@ class JBBotSquadJail extends DMSquad
 
 static function bool CanFight(Pawn PawnOther, optional bool bCanSwitchWeapon) {
 
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer TagPlayer;
   
   if (PawnOther == None || !Class'Jailbreak'.Default.bEnableJailFights)
     return False;
   
-  InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(PawnOther.PlayerReplicationInfo);
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnOther.PlayerReplicationInfo);
 
-  if (InfoPlayer == None    ||
-     !InfoPlayer.IsInJail() ||
-      InfoPlayer.GetArenaPending() != None)
+  if (TagPlayer == None    ||
+     !TagPlayer.IsInJail() ||
+      TagPlayer.GetArenaPending() != None)
     return False;
   
   if (bCanSwitchWeapon)

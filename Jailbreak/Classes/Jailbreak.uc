@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.15 2002/12/22 13:41:22 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.16 2002/12/23 01:11:24 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -32,8 +32,6 @@ var private float TimeRestart;             // time when next round starts
 var private array<name> ListEventFired;    // events fired in this tick
 var private float TimeEventFired;          // update time of event list
 
-var private GameObjective GameObjectives;  // linked list of objectives
-
 
 // ============================================================================
 // InitGame
@@ -53,7 +51,7 @@ event InitGame(string Options, out string Error) {
 // ============================================================================
 // Login
 //
-// Gives every player a JBReplicationInfoPlayer actor.
+// Gives every player a JBTagPlayer actor.
 // ============================================================================
 
 event PlayerController Login(string Portal, string Options, out string Error) {
@@ -62,7 +60,7 @@ event PlayerController Login(string Portal, string Options, out string Error) {
   
   PlayerLogin = Super.Login(Portal, Options, Error);
   if (PlayerLogin != None)
-    Spawn(Class'JBReplicationInfoPlayer', PlayerLogin);
+    Class'JBTagPlayer'.Static.SpawnFor(PlayerLogin.PlayerReplicationInfo);
   
   return PlayerLogin;
   }
@@ -71,7 +69,7 @@ event PlayerController Login(string Portal, string Options, out string Error) {
 // ============================================================================
 // SpawnBot
 //
-// Gives every new bot a JBReplicationInfoPlayer actor.
+// Gives every new bot a JBTagPlayer actor.
 // ============================================================================
 
 function Bot SpawnBot(optional string NameBot) {
@@ -80,7 +78,7 @@ function Bot SpawnBot(optional string NameBot) {
   
   BotSpawned = Super.SpawnBot(NameBot);
   if (BotSpawned != None)
-    Spawn(Class'JBReplicationInfoPlayer', BotSpawned);
+    Class'JBTagPlayer'.Static.SpawnFor(BotSpawned.PlayerReplicationInfo);
   
   return BotSpawned;
   }
@@ -89,17 +87,12 @@ function Bot SpawnBot(optional string NameBot) {
 // ============================================================================
 // Logout
 //
-// Destroys the JBReplicationInfoPlayer actor for the given player or bot if
-// one exists.
+// Destroys the JBTagPlayer actor for the given player or bot if one exists.
 // ============================================================================
 
 function Logout(Controller ControllerExiting) {
 
-  local JBReplicationInfoPlayer InfoPlayer;
-  
-  InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerExiting.PlayerReplicationInfo);
-  if (InfoPlayer != None)
-    InfoPlayer.Destroy();
+  Class'JBTagPlayer'.Static.DestroyFor(ControllerExiting.PlayerReplicationInfo);
 
   Super.Logout(ControllerExiting);
   }
@@ -112,19 +105,20 @@ function Logout(Controller ControllerExiting) {
 // given player's scheduled respawn area.
 // ============================================================================
 
-function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Controller Controller) {
+function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Controller Controller) {
 
   local byte Restart;
   local JBInfoArena Arena;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer TagPlayer;
 
-  if (Controller != None && Controller.PreviousPawnClass != None)  // not first spawn
-    InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+  if (Controller != None &&
+      Controller.PreviousPawnClass != None)  // not first spawn
+    TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
 
-  if (InfoPlayer == None)
+  if (TagPlayer == None)
     Restart = 1;  // ERestart.Restart_Freedom
   else
-    Restart = int(InfoPlayer.GetRestart());  // cannot cast to byte
+    Restart = int(TagPlayer.GetRestart());  // cannot cast to byte
   
   switch (Restart) {
     case 0:  // ERestart.Restart_Jail
@@ -139,13 +133,12 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Contr
       break;
 
     case 2:  // ERestart.Restart_Arena
-      InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-      if (!ContainsActorArena(NavigationPoint, Arena) || Arena != InfoPlayer.GetArenaRestart())
+      if (!ContainsActorArena(NavigationPoint, Arena) || Arena != TagPlayer.GetArenaRestart())
         return -20000000;
       break;
     }
 
-  return Super.RatePlayerStart(NavigationPoint, Team, Controller);
+  return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
   }
 
 
@@ -159,9 +152,9 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
 
   local float DistanceRelease;
   local float DistanceReleaseMin;
-  local GameObjective thisObjective;
-  local JBReplicationInfoPlayer InfoPlayerVictim;
-  local JBReplicationInfoTeam InfoTeamVictim;
+  local JBTagObjective firstTagObjective;
+  local JBTagObjective thisTagObjective;
+  local JBTagPlayer TagPlayerVictim;
 
   if (GameRulesModifiers != None)
     GameRulesModifiers.ScoreKill(ControllerKiller, ControllerVictim);
@@ -169,8 +162,9 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
   ScoreKillAdjust(ControllerKiller, ControllerVictim);
   ScoreKillTaunt (ControllerKiller, ControllerVictim);
 
-  InfoPlayerVictim = Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
-  if (InfoPlayerVictim != None && InfoPlayerVictim.IsInJail())
+  TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
+  if (TagPlayerVictim != None &&
+      TagPlayerVictim.IsInJail())
     return;
 
   if (ControllerKiller == None ||
@@ -182,15 +176,10 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim) {
 
   else {
     DistanceReleaseMin = -1.0;
-    InfoTeamVictim = JBReplicationInfoTeam(ControllerVictim.PlayerReplicationInfo.Team);
   
-    if (GameObjectives == None)
-      foreach AllActors(Class'GameObjective', GameObjectives)
-        if (GameObjectives.bFirstObjective)
-          break;
-  
-    for (thisObjective = GameObjectives; thisObjective != None; thisObjective = thisObjective.NextObjective) {
-      DistanceRelease = VSize(thisObjective.Location - ControllerVictim.Pawn.Location);
+    firstTagObjective = JBReplicationInfoGame(GameReplicationInfo).firstTagObjective;
+    for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
+      DistanceRelease = VSize(thisTagObjective.GetObjective().Location - ControllerVictim.Pawn.Location);
       if (DistanceReleaseMin < 0.0 ||
           DistanceReleaseMin > DistanceRelease)
         DistanceReleaseMin = DistanceRelease;
@@ -246,7 +235,7 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
       ControllerVictim.PlayerReplicationInfo, 'AutoTaunt',
       ControllerKiller.PlayerReplicationInfo.VoiceType.Static.PickRandomTauntFor(ControllerKiller, False, bNoHumanOnly),
       10, 'Global');
-	}
+    }
   }
 
 
@@ -312,18 +301,13 @@ function bool CanFireEvent(name EventFire, optional bool bFire) {
 
 function bool ContainsActorJail(Actor Actor, optional out JBInfoJail Jail) {
 
-  local int iInfoJail;
-  local JBReplicationInfoGame InfoGame;
+  local JBInfoJail firstJail;
 
-  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
-  
-  for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++) {
-    Jail = InfoGame.ListInfoJail[iInfoJail];
+  firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+  for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)
     if (Jail.ContainsActor(Actor))
       return True;
-    }
 
-  Jail = None;
   return False;
   }
 
@@ -337,18 +321,13 @@ function bool ContainsActorJail(Actor Actor, optional out JBInfoJail Jail) {
 
 function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena) {
 
-  local int iInfoArena;
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
+  local JBInfoArena firstArena;
   
-  for (iInfoArena = 0; iInfoArena < InfoGame.ListInfoArena.Length; iInfoArena++) {
-    Arena = InfoGame.ListInfoArena[iInfoArena];
+  firstArena = JBReplicationInfoGame(GameReplicationInfo).firstArena;
+  for (Arena = firstArena; Arena != None; Arena = Arena.nextArena)
     if (Arena.ContainsActor(Actor))
       return True;
-    }
 
-  Arena = None;
   return False;
   }
 
@@ -359,9 +338,9 @@ function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena) {
 // Forwarded to CountPlayersJailed in JBReplicationInfoTeam.
 // ============================================================================
 
-function int CountPlayersJailed(byte Team) {
+function int CountPlayersJailed(TeamInfo Team) {
 
-  return JBReplicationInfoTeam(Teams[Team]).CountPlayersJailed();
+  return JBReplicationInfoTeam(Team).CountPlayersJailed();
   }
 
 
@@ -371,9 +350,9 @@ function int CountPlayersJailed(byte Team) {
 // Forwarded to CountPlayersTotal in JBReplicationInfoTeam.
 // ============================================================================
 
-function int CountPlayersTotal(byte Team) {
+function int CountPlayersTotal(TeamInfo Team) {
 
-  return JBReplicationInfoTeam(Teams[Team]).CountPlayersTotal();
+  return JBReplicationInfoTeam(Team).CountPlayersTotal();
   }
 
 
@@ -383,7 +362,7 @@ function int CountPlayersTotal(byte Team) {
 // Returns whether the given team has been captured.
 // ============================================================================
 
-function bool IsCaptured(byte Team) {
+function bool IsCaptured(TeamInfo Team) {
 
   if (CountPlayersTotal(Team) == 0)
     return False;
@@ -401,15 +380,14 @@ function bool IsCaptured(byte Team) {
 
 function int RateCameraExecution(JBCamera CameraExecution) {
 
-  local int iInfoJail;
   local int nPlayersJailed;
-  local JBReplicationInfoGame InfoGame;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
   
-  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
-  
-  for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
-    if (InfoGame.ListInfoJail[iInfoJail].Event == CameraExecution.Tag)
-      nPlayersJailed += InfoGame.ListInfoJail[iInfoJail].CountPlayersTotal();
+  firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+    if (thisJail.Event == CameraExecution.Tag)
+      nPlayersJailed += thisJail.CountPlayersTotal();
   
   return nPlayersJailed;
   }
@@ -460,13 +438,12 @@ function JBCamera FindCameraExecution() {
 
 function RestartAll() {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   
-  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-    InfoGame.ListInfoPlayer[iInfoPlayer].RestartFreedom();
+  firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    thisTagPlayer.RestartFreedom();
   }
 
 
@@ -476,16 +453,15 @@ function RestartAll() {
 // Restarts all players of the given team in freedom.
 // ============================================================================
 
-function RestartTeam(byte Team) {
+function RestartTeam(TeamInfo Team) {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   
-  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-    if (InfoGame.ListInfoPlayer[iInfoPlayer].GetPlayerReplicationInfo().Team.TeamIndex == Team)
-      InfoGame.ListInfoPlayer[iInfoPlayer].RestartFreedom();
+  firstTagPlayer = JBReplicationInfoGame(GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetTeam() == Team)
+      thisTagPlayer.RestartFreedom();
   }
 
 
@@ -495,15 +471,14 @@ function RestartTeam(byte Team) {
 // Checks whether a release is active for the given team.
 // ============================================================================
 
-function bool IsReleaseActive(byte Team) {
+function bool IsReleaseActive(TeamInfo Team) {
 
-  local int iInfoJail;
-  local JBReplicationInfoGame InfoGame;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
   
-  InfoGame = JBReplicationInfoGame(GameReplicationInfo);
-
-  for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
-    if (InfoGame.ListInfoJail[iInfoJail].IsReleaseActive(Team))
+  firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+    if (thisJail.IsReleaseActive(Team))
       return True;
   
   return False;
@@ -521,26 +496,29 @@ function bool IsReleaseActive(byte Team) {
 
 function bool ExecutionInit() {
 
+  local bool bFoundCaptured;
   local int iTeam;
-  local int TeamCaptured;
+  local int iTeamCaptured;
   
   if (IsInState('MatchInProgress')) {
-    TeamCaptured = -1;
+    iTeamCaptured = -1;
     
     for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-      if (IsCaptured(iTeam))
-        if (TeamCaptured < 0)
-          TeamCaptured = iTeam;
-        else {
+      if (IsCaptured(Teams[iTeam])) {
+        if (bFoundCaptured) {
           RestartAll();
           BroadcastLocalizedMessage(ClassLocalMessage, 300);
           return False;
           }
+      
+        bFoundCaptured = True;
+        iTeamCaptured = iTeam;
+        }
   
-    if (TeamCaptured < 0 || IsReleaseActive(TeamCaptured))
+    if (iTeamCaptured < 0 || IsReleaseActive(Teams[iTeamCaptured]))
       return False;
   
-    ExecutionCommit(TeamCaptured);
+    ExecutionCommit(Teams[iTeamCaptured]);
     return True;
     }
   
@@ -558,34 +536,33 @@ function bool ExecutionInit() {
 // and announces the capture.
 // ============================================================================
 
-function ExecutionCommit(byte TeamExecuted) {
+function ExecutionCommit(TeamInfo TeamExecuted) {
 
-  local int iInfoJail;
   local Controller thisController;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoTeam InfoTeam;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+  local TeamInfo TeamCapturer;
 
   if (IsInState('MatchInProgress')) {
     GotoState('Executing');
-    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , Teams[TeamExecuted]);
+    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , TeamExecuted);
     
-    InfoTeam = JBReplicationInfoTeam(OtherTeam(Teams[TeamExecuted]));
-    InfoTeam.Score += 1;
-    RestartTeam(InfoTeam.TeamIndex);
+    TeamCapturer = OtherTeam(TeamExecuted);
+    TeamCapturer.Score += 1;
+    RestartTeam(TeamCapturer);
   
     for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
       if (thisController.PlayerReplicationInfo      != None &&
-          thisController.PlayerReplicationInfo.Team != None &&
-          thisController.PlayerReplicationInfo.Team.TeamIndex != TeamExecuted)
+          thisController.PlayerReplicationInfo.Team != TeamExecuted)
         ScorePlayer(thisController, 'Capture');
   
     CameraExecution = FindCameraExecution();
     if (CameraExecution == None)
       Log("Warning: No execution camera found");
   
-    InfoGame = JBReplicationInfoGame(GameReplicationInfo);
-    for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
-      InfoGame.ListInfoJail[iInfoJail].ExecutionInit();
+    firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+      thisJail.ExecutionInit();
     }
   
   else {
@@ -603,13 +580,13 @@ function ExecutionCommit(byte TeamExecuted) {
 
 function ExecutionEnd() {
 
-  local int iInfoJail;
-  local JBReplicationInfoGame InfoGame;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
 
   if (IsInState('Executing')) {
-    InfoGame = JBReplicationInfoGame(GameReplicationInfo);
-    for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
-      InfoGame.ListInfoJail[iInfoJail].ExecutionEnd();
+    firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+      thisJail.ExecutionEnd();
   
     GotoState('MatchInProgress');
     RestartAll();
@@ -657,7 +634,7 @@ state MatchInProgress {
     
     if (TimeExecution == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-        if (IsCaptured(iTeam))
+        if (IsCaptured(Teams[iTeam]))
           TimeExecution = Level.TimeSeconds + 1.0;
       }
     
@@ -697,7 +674,7 @@ state Executing {
     
     if (TimeRestart == 0.0) {
       for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-        nPlayersJailed += CountPlayersJailed(iTeam);
+        nPlayersJailed += CountPlayersJailed(Teams[iTeam]);
       if (nPlayersJailed == 0)
         TimeRestart = Level.TimeSeconds + 3.0;
       }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.3 2002/12/22 13:40:59 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.4 2002/12/23 01:11:24 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -70,7 +70,6 @@ event Timer() {
 function SetObjectiveLists() {
 
   local Trigger thisTrigger;
-  local GameObjective thisObjective;
   local JBGameObjective Objective;
   local JBInfoJail thisJail;
 
@@ -88,12 +87,10 @@ function SetObjectiveLists() {
     Objective.DefenderTeamIndex = EnemyTeam.TeamIndex;
     Objective.StartTeam = EnemyTeam.TeamIndex;
     Objective.Event = thisJail.Tag;
+    Objective.FindDefenseScripts(thisTrigger.Tag);
     }
 
   Super.SetObjectiveLists();
-
-  for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
-    Class'JBInventoryObjective'.Static.SpawnFor(thisObjective);
   }
 
 
@@ -233,22 +230,18 @@ function int CountObjectives() {
 
 function int CountPlayersAtObjective(GameObjective GameObjective) {
 
-  local int iInfoPlayer;
   local int nPlayersAtObjective;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   local SquadAI thisSquad;
 
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (PlayerController(InfoPlayer.Owner) != None &&
-        InfoPlayer.IsFree() &&
-        InfoPlayer.GetPlayerReplicationInfo().Team == Team &&
-        InfoPlayer.GuessObjective() == GameObjective)
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (PlayerController(thisTagPlayer.GetController()) != None &&
+        thisTagPlayer.IsFree() &&
+        thisTagPlayer.GetTeam() == Team &&
+        thisTagPlayer.GuessObjective() == GameObjective)
       nPlayersAtObjective++;
-    }
 
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
     if (thisSquad.SquadObjective == GameObjective)
@@ -267,11 +260,11 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
 
 function int CountPlayersReleasable(GameObjective GameObjective) {
 
-  local JBInventoryObjective InventoryObjective;
+  local JBTagObjective TagObjective;
 
-  InventoryObjective = JBInventoryObjective(Class'JBInventoryObjective'.Static.FindFor(GameObjective));
-  if (InventoryObjective != None)
-    return InventoryObjective.CountPlayersReleasable();
+  TagObjective = Class'JBTagObjective'.Static.FindFor(GameObjective);
+  if (TagObjective != None)
+    return TagObjective.CountPlayersReleasable();
   
   return 0;
   }
@@ -328,26 +321,22 @@ static function float CalcEfficiency(int nKills, int nDeaths) {
 
 function float RatePlayers() {
 
-  local int iInfoPlayer;
   local int nDeathsByTeam[2];
   local int nKillsByTeam[2];
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   local PlayerReplicationInfo PlayerReplicationInfo;
 
   if (TimeCacheRatePlayers == Level.TimeSeconds)
     return CacheRatePlayers;
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (InfoPlayer.IsFree()) {
-      PlayerReplicationInfo = InfoPlayer.GetPlayerReplicationInfo();
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.IsFree()) {
+      PlayerReplicationInfo = thisTagPlayer.GetPlayerReplicationInfo();
       nKillsByTeam [PlayerReplicationInfo.Team.TeamIndex] += PlayerReplicationInfo.Kills;
       nDeathsByTeam[PlayerReplicationInfo.Team.TeamIndex] += PlayerReplicationInfo.Deaths;
       }
-    }
 
   CacheRatePlayers = CalcEfficiency(nKillsByTeam[     Team.TeamIndex], nDeathsByTeam[     Team.TeamIndex]) /
                      CalcEfficiency(nKillsByTeam[EnemyTeam.TeamIndex], nDeathsByTeam[EnemyTeam.TeamIndex]);
@@ -420,21 +409,18 @@ function int CountEnemiesFree() {
 
 function int CountEnemiesAccounted() {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   if (TimeCacheCountEnemiesAccounted == Level.TimeSeconds)
     return CacheCountEnemiesAccounted;
 
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
   CacheCountEnemiesAccounted = 0;
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (InfoPlayer.IsFree() && IsEnemyAcquired(Controller(InfoPlayer.Owner)))
+
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.IsFree() && IsEnemyAcquired(thisTagPlayer.GetController()))
       CacheCountEnemiesAccounted++;
-    }
   
   TimeCacheCountEnemiesAccounted = Level.TimeSeconds;
   return CacheCountEnemiesAccounted;
@@ -470,24 +456,20 @@ function int CountEnemiesUnaccounted() {
 function int EstimateStrengthAttack(GameObjective GameObjective) {
 
   local bool bEnemiesReleasable;
-  local int iInfoPlayer;
   local int nEnemiesAttacking;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   
   bEnemiesReleasable = CountPlayersReleasable(GameObjective) > 0;
   if (bEnemiesReleasable)
     nEnemiesAttacking += CountEnemiesUnaccounted();  // worst case
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (InfoPlayer.IsFree() &&
-        (IsEnemyAcquiredAtObjective(Controller(InfoPlayer.Owner), GameObjective) ||
-         (bEnemiesReleasable && IsEnemyAcquiredAtObjective(Controller(InfoPlayer.Owner), None))))
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.IsFree() &&
+        (IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), GameObjective) ||
+         (bEnemiesReleasable && IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), None))))
       nEnemiesAttacking++;
-    }
   
   return nEnemiesAttacking;
   }
@@ -502,19 +484,15 @@ function int EstimateStrengthAttack(GameObjective GameObjective) {
 
 function int EstimateStrengthDefense(GameObjective GameObjective) {
 
-  local int iInfoPlayer;
   local int nEnemiesDefending;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (InfoPlayer.IsFree() &&
-        IsEnemyAcquiredAtObjective(Controller(InfoPlayer.Owner), GameObjective))
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.IsFree() &&
+        IsEnemyAcquiredAtObjective(thisTagPlayer.GetController(), GameObjective))
       nEnemiesDefending++;
-    }
   
   if (CountPlayersReleasable(GameObjective) > 0)
     nEnemiesDefending += CountEnemiesUnaccounted();  // worst case
@@ -574,8 +552,6 @@ function int SuggestStrengthDefense(GameObjective GameObjective) {
 function ReAssessStrategy() {
 
   // TODO: implement
-  
-  ReAssessOrders();
   }
 
 
@@ -852,6 +828,9 @@ auto state TacticsNormal {
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveAttack(thisObjective)) {
         nPlayersAttacking = SuggestStrengthAttack(thisObjective);
+        if (nPlayersAttacking == 0)
+          continue;
+
         if (ObjectiveAttack == None || nPlayersAttacking < nPlayersAttackingMin) {
           nPlayersReleasable = CountPlayersReleasable(thisObjective);
           if (ObjectiveAttack == None || nPlayersReleasable > nPlayersReleasableMax) {
@@ -910,7 +889,7 @@ auto state TacticsNormal {
     nPlayersRequired = nPlayersAttacking + nPlayersDefendingMin;
 
     if (nPlayersRequired > nPlayersFree && nPlayersAttacking > 0) {
-      nPlayersDefending = Max(0, nPlayersFree - Abs(nPlayersDefendingMin - nPlayersAttacking) / 2 - 0.5);
+      nPlayersDefending = Max(0, nPlayersFree - Abs(nPlayersDefendingMin - nPlayersAttacking) / 2.0 - 0.5);
       if (nPlayersDefending <= nPlayersDefendingMin / 2)
         nPlayersDefending = 0;  // no use defending
       nPlayersAttacking = Max(0, nPlayersFree - nPlayersDefending);

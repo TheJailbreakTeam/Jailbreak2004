@@ -1,13 +1,13 @@
 // ============================================================================
-// JBReplicationInfoPlayer
+// JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoPlayer.uc,v 1.5 2002/12/20 20:54:30 mychaeel Exp $
+// $Id$
 //
 // Replicated information for a single player.
 // ============================================================================
 
 
-class JBReplicationInfoPlayer extends ReplicationInfo
+class JBTagPlayer extends JBTag
   notplaceable;
 
 
@@ -58,51 +58,36 @@ var private array<float> ListDistanceObjective;  // distances to all objectives
 
 
 // ============================================================================
+// Internal
+// ============================================================================
+
+var JBTagPlayer nextTag;
+
+static function JBTagPlayer FindFor(PlayerReplicationInfo Keeper) {
+  return JBTagPlayer(InternalFindFor(Keeper)); }
+static function JBTagPlayer SpawnFor(PlayerReplicationInfo Keeper) {
+  return JBTagPlayer(InternalSpawnFor(Keeper)); }
+
+protected simulated function JBTag InternalGetFirst() {
+  return JBReplicationInfoGame(GetGameReplicationInfo()).firstTagPlayer; }
+protected simulated function InternalSetFirst(JBTag TagFirst) {
+  JBReplicationInfoGame(GetGameReplicationInfo()).firstTagPlayer = JBTagPlayer(TagFirst); }
+protected simulated function JBTag InternalGetNext() {
+  return nextTag; }
+protected simulated function InternalSetNext(JBTag TagNext) {
+  nextTag = JBTagPlayer(TagNext); }
+
+
+// ============================================================================
 // PostBeginPlay
 //
-// Starts the timer in a short interval.
+// Sets the PlayerReplicationInfo and starts the timer in a short interval.
 // ============================================================================
 
 event PostBeginPlay() {
 
-  if (Controller(Owner) != None)
-    PlayerReplicationInfo = Controller(Owner).PlayerReplicationInfo;
-  
+  PlayerReplicationInfo = PlayerReplicationInfo(Owner);
   SetTimer(0.2, True);
-  }
-
-
-// ============================================================================
-// PostNetBeginPlay
-//
-// Registers this actor with the game.
-// ============================================================================
-
-simulated event PostNetBeginPlay() {
-
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  InfoGame.ListInfoPlayer[InfoGame.ListInfoPlayer.Length] = Self;
-  }
-
-
-// ============================================================================
-// Destroyed
-//
-// Unregisters this actor.
-// ============================================================================
-
-simulated event Destroyed() {
-
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = InfoGame.ListInfoPlayer.Length - 1; iInfoPlayer >= 0; iInfoPlayer--)
-    if (InfoGame.ListInfoPlayer[iInfoPlayer] == Self)
-      InfoGame.ListInfoPlayer.Remove(iInfoPlayer, 1);
   }
 
 
@@ -116,47 +101,21 @@ simulated event Destroyed() {
 
 event Timer() {
 
-  local int iInfoJail;
+  local JBInfoJail firstJail;
   local JBInfoJail JailPrev;
-  local JBReplicationInfoGame InfoGame;
 
   JailPrev = Jail;
   Jail = None;
 
   if (Arena == None) {
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    
-    for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
-      if (InfoGame.ListInfoJail[iInfoJail].ContainsActor(Controller(Owner).Pawn)) {
-        Jail = InfoGame.ListInfoJail[iInfoJail];
+    firstJail = JBReplicationInfoGame(GetGameReplicationInfo()).firstJail;
+    for (Jail = firstJail; Jail != None; Jail = Jail.nextJail)    
+      if (Jail.ContainsActor(GetController().Pawn))
         break;
-        }
     
          if (JailPrev == None && Jail != None) JailEntered();
     else if (JailPrev != None && Jail == None) JailLeft(JailPrev);
     }
-  }
-
-
-// ============================================================================
-// FindFor
-//
-// Finds the JBReplicationInfoPlayer actor for the controller possessing the
-// given PlayerReplicationInfo.
-// ============================================================================
-
-simulated static function JBReplicationInfoPlayer FindFor(PlayerReplicationInfo PlayerReplicationInfo) {
-
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
-
-  InfoGame = JBReplicationInfoGame(PlayerReplicationInfo.Level.GRI);
-
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-    if (InfoGame.ListInfoPlayer[iInfoPlayer].PlayerReplicationInfo == PlayerReplicationInfo)
-      return InfoGame.ListInfoPlayer[iInfoPlayer];
-  
-  return None;
   }
 
 
@@ -206,10 +165,10 @@ simulated function bool IsInJail() {
 
 function JailEntered() {
 
-  if (Bot(Owner) != None)
-    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(Owner));
+  if (Bot(GetController()) != None)
+    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(GetController()));
 
-  if (Jail.IsReleaseActive(PlayerReplicationInfo.Team.TeamIndex))
+  if (Jail.IsReleaseActive(PlayerReplicationInfo.Team))
     JailOpened();
   }
 
@@ -223,29 +182,28 @@ function JailEntered() {
 
 function JailLeft(JBInfoJail JailPrev) {
 
-  local int iInfoArena;
   local Controller ControllerInstigator;
-  local JBReplicationInfoGame InfoGame;
+  local JBInfoArena firstArena;
+  local JBInfoArena thisArena;
 
   if (ArenaPending != None)
     ArenaPending.MatchCancel();
   ArenaRequest = None;
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
+  firstArena = JBReplicationInfoGame(GetGameReplicationInfo()).firstArena;
+  for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+    thisArena.ExcludeRemove(GetController());
 
-  for (iInfoArena = 0; iInfoArena < InfoGame.ListInfoArena.Length; iInfoArena++)
-    InfoGame.ListInfoArena[iInfoArena].ExcludeRemove(Controller(Owner));
-
-  if (JailPrev.GetReleaseTime(PlayerReplicationInfo.Team.TeamIndex) != TimeRelease) {
-    ControllerInstigator = JailPrev.GetReleaseInstigator(PlayerReplicationInfo.Team.TeamIndex);
+  if (JailPrev.GetReleaseTime(PlayerReplicationInfo.Team) != TimeRelease) {
+    ControllerInstigator = JailPrev.GetReleaseInstigator(PlayerReplicationInfo.Team);
     if (ControllerInstigator != None)
       Jailbreak(Level.Game).ScorePlayer(ControllerInstigator, 'Release');
 
-    TimeRelease = JailPrev.GetReleaseTime(PlayerReplicationInfo.Team.TeamIndex);
+    TimeRelease = JailPrev.GetReleaseTime(PlayerReplicationInfo.Team);
     }
 
-  if (Bot(Owner) != None && JBBotSquadJail(Bot(Owner).Squad) != None)
-    UnrealTeamInfo(PlayerReplicationInfo.Team).AI.SetBotOrders(Bot(Owner), None);
+  if (Bot(GetController()) != None && JBBotSquadJail(Bot(GetController()).Squad) != None)
+    UnrealTeamInfo(PlayerReplicationInfo.Team).AI.SetBotOrders(Bot(GetController()), None);
   }
 
 
@@ -258,8 +216,8 @@ function JailLeft(JBInfoJail JailPrev) {
 
 function JailOpened() {
 
-  if (Bot(Owner) != None)
-    UnrealTeamInfo(PlayerReplicationInfo.Team).AI.SetBotOrders(Bot(Owner), None);
+  if (Bot(GetController()) != None)
+    UnrealTeamInfo(PlayerReplicationInfo.Team).AI.SetBotOrders(Bot(GetController()), None);
   }
 
 
@@ -272,8 +230,8 @@ function JailOpened() {
 
 function JailClosed() {
 
-  if (Bot(Owner) != None)
-    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(Owner));
+  if (Bot(GetController()) != None)
+    JBBotTeam(UnrealTeamInfo(PlayerReplicationInfo.Team).AI).PutOnSquadJail(Bot(GetController()));
   }
 
 
@@ -286,10 +244,10 @@ function JailClosed() {
 
 private function RestartPlayer() {
 
-  if (Controller(Owner).Pawn != None)
-    Controller(Owner).Pawn.Destroy();
+  if (GetController().Pawn != None)
+    GetController().Pawn.Destroy();
   
-  Level.Game.RestartPlayer(Controller(Owner));
+  Level.Game.RestartPlayer(GetController());
   }
 
 
@@ -362,7 +320,8 @@ function RestartArena(JBInfoArena NewArenaRestart) {
 
 function SetArenaPending(JBInfoArena NewArenaPending) {
 
-  if (NewArenaPending == None || NewArenaPending.CanFight(Controller(Owner)))
+  if (NewArenaPending == None ||
+      NewArenaPending.CanFight(GetController()))
     ArenaPending = NewArenaPending;
   }
 
@@ -379,7 +338,7 @@ function SetArenaRequest(JBInfoArena NewArenaRequest) {
   if (NewArenaRequest != None) {
     if (ArenaPending != None)
       return;
-    if (!NewArenaRequest.CanFight(Controller(Owner)))
+    if (!NewArenaRequest.CanFight(GetController()))
       return;
     }
 
@@ -409,22 +368,22 @@ function GameObjective GuessObjective() {
   local GameObjective ObjectiveApproachedMax;
   local GameObjective ObjectiveClosest;
 
-  if (Controller(Owner).Pawn == None)
+  if (GetController().Pawn == None)
     return None;
 
   if (TimeObjectiveGuessed + 3.0 > Level.TimeSeconds &&
-      Controller(Owner).Pawn == PawnObjectiveGuessed)
+      GetController().Pawn == PawnObjectiveGuessed)
     return ObjectiveGuessed;
   
-  if (Controller(Owner).Pawn != PawnObjectiveGuessed)
+  if (GetController().Pawn != PawnObjectiveGuessed)
     ListDistanceObjective.Length = 0;  // clear list after respawn
-  PawnObjectiveGuessed = Controller(Owner).Pawn;
+  PawnObjectiveGuessed = GetController().Pawn;
 
   for (thisObjective = UnrealTeamInfo(PlayerReplicationInfo.Team).AI.Objectives;
        thisObjective != None;
        thisObjective = thisObjective.NextObjective) {
 
-    Distance = Class'JBBotTeam'.Static.CalcDistance(Controller(Owner), thisObjective);
+    Distance = Class'JBBotTeam'.Static.CalcDistance(GetController(), thisObjective);
     
     if (ObjectiveClosest == None || Distance < DistanceClosest) {
       ObjectiveClosest = thisObjective;
@@ -445,7 +404,7 @@ function GameObjective GuessObjective() {
     iObjective++;
     }
   
-  DistanceTravelledMax = Controller(Owner).Pawn.GroundSpeed * (Level.TimeSeconds - TimeObjectiveGuessed);
+  DistanceTravelledMax = GetController().Pawn.GroundSpeed * (Level.TimeSeconds - TimeObjectiveGuessed);
   
   if (DistanceApproachedMax > DistanceTravelledMax * 0.3)
     ObjectiveGuessed = ObjectiveApproachedMax;  // moving towards objective
@@ -462,36 +421,29 @@ function GameObjective GuessObjective() {
 // ============================================================================
 
 simulated function PlayerReplicationInfo GetPlayerReplicationInfo() {
-  return PlayerReplicationInfo;
-  }
-
-simulated function JBInfoArena GetArena() {
-  return Arena;
-  }
-
-simulated function JBInfoArena GetArenaPending() {
-  return ArenaPending;
-  }
-
-simulated function JBInfoJail GetJail() {
-  return Jail;
-  }
+  return PlayerReplicationInfo; }
+simulated function Controller GetController() {
+  return Controller(PlayerReplicationInfo.Owner); }
+simulated function TeamInfo GetTeam() {
+  return PlayerReplicationInfo.Team; }
 
 function ERestart GetRestart() {
-  return Restart;
-  }
-
+  return Restart; }
 function JBInfoArena GetArenaRestart() {
-  return ArenaRestart;
-  }
+  return ArenaRestart; }
+
+simulated function JBInfoJail GetJail() {
+  return Jail; }
+simulated function JBInfoArena GetArena() {
+  return Arena; }
+
+simulated function JBInfoArena GetArenaPending() {
+  return ArenaPending; }
 
 function JBInfoArena GetArenaRequest() {
-  return ArenaRequest;
-  }
-
+  return ArenaRequest; }
 function float GetArenaRequestTime() {
-  return TimeArenaRequest;
-  }
+  return TimeArenaRequest; }
 
 
 // ============================================================================
@@ -501,4 +453,6 @@ function float GetArenaRequestTime() {
 defaultproperties {
 
   Restart = Restart_Jail;
+
+  RemoteRole = ROLE_SimulatedProxy;
   }

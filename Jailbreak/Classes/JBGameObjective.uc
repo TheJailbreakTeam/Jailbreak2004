@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameObjective.uc,v 1.1 2002/12/20 20:54:30 mychaeel Exp $
+// $Id: JBGameObjective.uc,v 1.2 2002/12/23 01:11:24 mychaeel Exp $
 //
 // Dummy game objective automatically spawned by the game to mark release
 // switches that are simple triggers.
@@ -56,9 +56,28 @@ event PostBeginPlay() {
       thisObjective.NextObjective = Self;
     }
   
-  Class'JBInventoryObjective'.Static.SpawnFor(Self);
+  Class'JBTagObjective'.Static.SpawnFor(Self);
   
   Super.PostBeginPlay();
+  }
+
+
+// ============================================================================
+// FindDefenseScripts
+//
+// Finds defense scripts with the given tag.
+// ============================================================================
+
+function FindDefenseScripts(name TagDefenseScripts) {
+
+  local UnrealScriptedSequence thisScript;
+
+  foreach AllActors(Class'UnrealScriptedSequence', DefenseScripts, TagDefenseScripts)
+    if (DefenseScripts.bFirstScript)
+      break;
+  
+  for (thisScript = DefenseScripts; thisScript != None; thisScript = thisScript.NextScript)
+    thisScript.bFreelance = False;
   }
 
 
@@ -100,6 +119,21 @@ function bool TellBotHowToDisable(Bot Bot) {
 
   if (TriggerRelease != None)
     return Bot.Squad.FindPathToObjective(Bot, TriggerRelease);
+
+  Log("Warning: Objective" @ Self @ "has no associated release trigger");
+  }
+
+
+// ============================================================================
+// SpecialHandling
+//
+// Directs bots to the associated trigger instead of the objective itself.
+// ============================================================================
+
+event Actor SpecialHandling(Pawn Pawn) {
+
+  if (TriggerRelease != None)
+    return TriggerRelease;
 
   Log("Warning: Objective" @ Self @ "has no associated release trigger");
   }

@@ -1,5 +1,5 @@
 // ============================================================================
-// JBInventoryObjective
+// JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
 // $Id$
 //
@@ -7,7 +7,7 @@
 // ============================================================================
 
 
-class JBInventoryObjective extends JBInventory
+class JBTagObjective extends JBTag
   notplaceable;
 
 
@@ -28,29 +28,37 @@ replication {
 
 var float ScaleDot;  // used to pulse dot in compass
 
-var private GameObjective Objective;  // associated objective
+var private GameObjective Objective;  // replicated associated objective
 
 var private float TimeCountPlayersReleasable;  // time of last update
 var private int nPlayersReleasable;            // number of releasable players
 
 
 // ============================================================================
-// PreBeginPlay
-//
-// Destroys this actor if it wasn't spawned for a GameObjective.
+// Internal
 // ============================================================================
 
-event PreBeginPlay() {
+var JBTagObjective nextTag;
 
-  if (GameObjective(Owner) == None)
-    Destroy();
-  }
+static function JBTagObjective FindFor(GameObjective Keeper) {
+  return JBTagObjective(InternalFindFor(Keeper)); }
+static function JBTagObjective SpawnFor(GameObjective Keeper) {
+  return JBTagObjective(InternalSpawnFor(Keeper)); }
+
+protected simulated function JBTag InternalGetFirst() {
+  return JBReplicationInfoGame(GetGameReplicationInfo()).firstTagObjective; }
+protected simulated function InternalSetFirst(JBTag TagFirst) {
+  JBReplicationInfoGame(GetGameReplicationInfo()).firstTagObjective = JBTagObjective(TagFirst); }
+protected simulated function JBTag InternalGetNext() {
+  return nextTag; }
+protected simulated function InternalSetNext(JBTag TagNext) {
+  nextTag = JBTagObjective(TagNext); }
 
 
 // ============================================================================
 // PostBeginPlay
 //
-// Replicates the objective reference and starts the timer.
+// Replicates a reference to the objective and starts the timer.
 // ============================================================================
 
 event PostBeginPlay() {
@@ -83,27 +91,27 @@ event Timer() {
 
 simulated function int CountPlayersReleasable(optional bool bCached) {
 
-  local int iInfoPlayer;
   local JBInfoJail JailPlayer;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
-  local UnrealTeamInfo TeamPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  local TeamInfo TeamPlayer;
   
-  if (Role == ROLE_Authority && !bCached && TimeCountPlayersReleasable != Level.TimeSeconds) {
-    nPlayersReleasable = 0;
-    InfoGame = JBReplicationInfoGame(Level.GRI);
+  if (Role < ROLE_Authority || bCached || TimeCountPlayersReleasable == Level.TimeSeconds)
+    return nPlayersReleasable;
+  
+  nPlayersReleasable = 0;
 
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-      InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-      TeamPlayer = UnrealTeamInfo(InfoPlayer.GetPlayerReplicationInfo().Team);
-  
-      if (TeamPlayer.TeamIndex != GameObjective(Owner).DefenderTeamIndex) {
-        JailPlayer = InfoPlayer.GetJail();
-        if (JailPlayer != None &&
-            JailPlayer.Tag == GameObjective(Owner).Event &&
-            JailPlayer.CanRelease(TeamPlayer))
-          nPlayersReleasable++;
-        }
+  firstTagPlayer = JBReplicationInfoGame(GetGameReplicationInfo()).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
+    TeamPlayer = thisTagPlayer.GetTeam();
+
+    if (TeamPlayer.TeamIndex != GetObjective().DefenderTeamIndex) {
+      JailPlayer = thisTagPlayer.GetJail();
+
+      if (JailPlayer != None &&
+          JailPlayer.Tag == GetObjective().Event &&
+          JailPlayer.CanRelease(TeamPlayer))
+        nPlayersReleasable++;
       }
     }
 
@@ -113,10 +121,13 @@ simulated function int CountPlayersReleasable(optional bool bCached) {
 
 
 // ============================================================================
-// Accessors
+// GetObjective
+//
+// Returns a reference to the objective associated with this item.
 // ============================================================================
 
 simulated function GameObjective GetObjective() {
+
   return Objective;
   }
 
@@ -127,5 +138,5 @@ simulated function GameObjective GetObjective() {
 
 defaultproperties {
 
-  bAlwaysRelevant = True;
+  RemoteRole = ROLE_SimulatedProxy;
   }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.10 2002/12/22 02:06:13 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.11 2002/12/22 02:07:35 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -41,10 +41,11 @@ var() name TagAttachZones;
 
 struct TInfoRelease {
 
-  var bool bIsActive;
-  var bool bIsOpen;
-  var float Time;
-  var Controller ControllerInstigator;
+  var bool bIsActive;                   // release has been activated
+  var bool bIsOpen;                     // release doors are open
+  var float Time;                       // time of release activation
+  var Controller ControllerInstigator;  // player activating the release
+  var array<Mover> ListMover;           // movers opening for this release
   };
 
 
@@ -54,25 +55,62 @@ struct TInfoRelease {
 
 var class<LocalMessage> ClassLocalMessage;
 
-var private TInfoRelease ListInfoReleaseByTeam[2];
-var private array<Door> ListDoor;  // list of Door actors for jail exits
+var JBInfoJail nextJail;  // next jail in linked list
+
+var private TInfoRelease ListInfoReleaseByTeam[2];  // state of releases
+var private array<Volume> ListVolume;               // volumes attached to jail
 
 
 // ============================================================================
 // PostBeginPlay
 //
-// Fills the ListDoor array with a list of Door actors that mark releases of
-// this jail.
+// Initializes the ListVolume array with references to all volumes attached to
+// this jail, and the ListMover arrays with references to all movers that are
+// opened by release events.
 // ============================================================================
 
 event PostBeginPlay() {
 
-  local Door thisDoor;
-  
-  foreach AllActors(Class'Door', thisDoor)
-    if (thisDoor.DoorTag == EventReleaseRed ||
-        thisDoor.DoorTag == EventReleaseBlue)
-      ListDoor[ListDoor.Length] = thisDoor;
+  local Volume thisVolume;
+
+  if (TagAttachVolumes != '' &&
+      TagAttachVolumes != 'None')
+    foreach AllActors(Class'Volume', thisVolume, TagAttachVolumes)
+      ListVolume[ListVolume.Length] = thisVolume;
+
+  FindReleases(EventReleaseRed,  ListInfoReleaseByTeam[0].ListMover);
+  FindReleases(EventReleaseBlue, ListInfoReleaseByTeam[1].ListMover);
+  }
+
+
+// ============================================================================
+// FindReleases
+//
+// Adds movers triggered by the given tag to the given array unless they are
+// present there already. Then recursively finds other movers triggered by the
+// found mover's OpeningEvent and adds them too.
+// ============================================================================
+
+function FindReleases(name TagMover, out array<Mover> ListMover) {
+
+  local int iMover;
+  local Mover thisMover;
+
+  if (TagMover == '' ||
+      TagMover == 'None')
+    return;
+
+  foreach DynamicActors(Class'Mover', thisMover, TagMover) {
+    for (iMover = 0; iMover < ListMover.Length; iMover++)
+      if (ListMover[iMover] == thisMover)
+        break;
+
+    if (iMover < ListMover.Length)
+      continue;  // mover already listed
+
+    ListMover[iMover] = thisMover;
+    FindReleases(thisMover.OpeningEvent, ListMover);
+    }
   }
 
 
@@ -82,7 +120,7 @@ event PostBeginPlay() {
 // Checks whether this jail can release players of the given team.
 // ============================================================================
 
-function bool CanRelease(UnrealTeamInfo Team) {
+function bool CanRelease(TeamInfo Team) {
 
   local Actor thisActor;
   
@@ -103,7 +141,7 @@ function bool CanRelease(UnrealTeamInfo Team) {
 // given team index.
 // ============================================================================
 
-function name GetEventRelease(UnrealTeamInfo Team) {
+function name GetEventRelease(TeamInfo Team) {
 
   switch (Team.TeamIndex) {
     case 0:  return EventReleaseRed;
@@ -113,21 +151,24 @@ function name GetEventRelease(UnrealTeamInfo Team) {
 
 
 // ============================================================================
-// IsDoorOpen
+// IsReleaseOpen
 //
-// Checks and returns whether any doors to this jail for the given team are
-// currently open.
+// Checks and returns whether any release movers of this jail for the given
+// team are currently open.
 // ============================================================================
 
-function bool IsDoorOpen(UnrealTeamInfo Team) {
+function bool IsReleaseOpen(TeamInfo Team) {
 
-  local int iDoor;
+  local int iMover;
+  local TInfoRelease InfoRelease;
   
-  for (iDoor = 0; iDoor < ListDoor.Length; iDoor++)
-    if (ListDoor[iDoor].DoorTag == GetEventRelease(Team) &&
-        ListDoor[iDoor].bDoorOpen)
-      return True;
+  InfoRelease = ListInfoReleaseByTeam[Team.TeamIndex];
   
+  for (iMover = 0; iMover < InfoRelease.ListMover.Length; iMover++)
+    if (!InfoRelease.ListMover[iMover].bClosed &&
+        !InfoRelease.ListMover[iMover].bInterpolating)
+      return True;  // neither closed nor interpolating, thus open
+
   return False;
   }
 
@@ -138,12 +179,12 @@ function bool IsDoorOpen(UnrealTeamInfo Team) {
 // Returns whether this jail (including attached zones and volumes) contains
 // the given actor. Note that this is a physical relationship, not a logical
 // one; a player who's physically located in jail isn't necessarily a prisoner.
-// Use the IsInJail function in JBReplicationInfoPlayer to check the latter.
+// Use the IsInJail function in JBTagPlayer to check the latter.
 // ============================================================================
 
 function bool ContainsActor(Actor Actor) {
 
-  local Volume thisVolume;
+  local int iVolume;
 
   if (Actor == None)
     return False;
@@ -153,15 +194,13 @@ function bool ContainsActor(Actor Actor) {
       return True;
     }
   else {
-    if (Actor.Tag == TagAttachZones)
+    if (Actor.Region.Zone.Tag == TagAttachZones)
       return True;
     }
 
-  if (TagAttachVolumes != '' &&
-      TagAttachVolumes != 'None')
-    foreach TouchingActors(Class'Volume', thisVolume)
-      if (thisVolume.Tag == TagAttachVolumes)
-        return True;
+  for (iVolume = 0; iVolume < ListVolume.Length; iVolume++)
+    if (ListVolume[iVolume].Encompasses(Actor))
+      return True;
   
   return False;
   }
@@ -173,20 +212,19 @@ function bool ContainsActor(Actor Actor) {
 // Counts the number of players of the given team that are in this jail.
 // ============================================================================
 
-function int CountPlayers(byte Team) {
+function int CountPlayers(TeamInfo Team) {
 
-  local int iInfoPlayer;
-  local int nInfoPlayerJailed;
-  local JBReplicationInfoGame InfoGame;
+  local int nPlayersJailed;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetTeam() == Team &&
+        thisTagPlayer.GetJail() == Self)
+      nPlayersJailed++;
   
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-    if (InfoGame.ListInfoPlayer[iInfoPlayer].GetPlayerReplicationInfo().Team.TeamIndex == Team &&
-        InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
-      nInfoPlayerJailed++;
-  
-  return nInfoPlayerJailed;
+  return nPlayersJailed;
   }
 
 
@@ -198,14 +236,13 @@ function int CountPlayers(byte Team) {
 
 function int CountPlayersTotal() {
 
-  local int iInfoPlayer;
   local int nPlayersJailed;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-    if (InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetJail() == Self)
       nPlayersJailed++;
   
   return nPlayersJailed;
@@ -219,7 +256,7 @@ function int CountPlayersTotal() {
 // only in state Waiting and logs a warning otherwise.
 // ============================================================================
 
-function Release(UnrealTeamInfo Team, optional Controller ControllerInstigator) {
+function Release(TeamInfo Team, optional Controller ControllerInstigator) {
 
   if (IsInState('Waiting')) {
     if (ListInfoReleaseByTeam[Team.TeamIndex].bIsActive)
@@ -227,7 +264,6 @@ function Release(UnrealTeamInfo Team, optional Controller ControllerInstigator) 
     
     if (ControllerInstigator != None &&
         ControllerInstigator.PlayerReplicationInfo.Team != Team) {
-
       Log("Warning:" @ ControllerInstigator.PlayerReplicationInfo.PlayerName @ "on team" @
           ControllerInstigator.PlayerReplicationInfo.Team.TeamIndex @ "attempted to release team" @ Team.TeamIndex);
       return;
@@ -261,26 +297,24 @@ function Release(UnrealTeamInfo Team, optional Controller ControllerInstigator) 
 // can be used to open this jail and communicates that event to all inmates.
 function NotifyJailOpening(TeamInfo Team) {
 
-function JailOpened(UnrealTeamInfo Team, optional Controller ControllerInstigator) {
+function JailOpened(TeamInfo Team, optional Controller ControllerInstigator) {
   local GameObjective thisObjective;
-  local int iInfoPlayer;
+  local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+
+  firstObjective = UnrealTeamInfo(Team).AI.Objectives;
   for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (thisObjective = Team.AI.Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    if (thisObjective.Event == Tag &&
+        thisObjective.DefenderTeamIndex != Team.TeamIndex)
       thisObjective.bDisabled = True;
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (InfoPlayer.GetJail() == Self &&
-        InfoPlayer.GetPlayerReplicationInfo().Team == Team)
-      InfoPlayer.JailOpened();
-    }
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+        thisTagPlayer.GetTeam() == Team)
+      thisTagPlayer.NotifyJailOpening();
+
+      thisTagPlayer.JailOpened();
 
 // ============================================================================
 // NotifyJailClosed
@@ -291,23 +325,21 @@ function JailOpened(UnrealTeamInfo Team, optional Controller ControllerInstigato
 // enables all objectives that can be used to open this jail.
 function NotifyJailClosed(TeamInfo Team) {
 
-function JailClosed(UnrealTeamInfo Team) {
+function JailClosed(TeamInfo Team) {
   local JBTagPlayer firstTagPlayer;
-  local int iInfoPlayer;
+  local GameObjective firstObjective;
   local GameObjective thisObjective;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    if (InfoPlayer.GetJail() == Self &&
-        InfoPlayer.GetPlayerReplicationInfo().Team == Team)
-      InfoPlayer.JailClosed();
-    }
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+        thisTagPlayer.GetTeam() == Team)
+      thisTagPlayer.NotifyJailClosed();
+
+      thisTagPlayer.JailClosed();
   for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
-  for (thisObjective = Team.AI.Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    if (thisObjective.Event == Tag &&
+        thisObjective.DefenderTeamIndex != Team.TeamIndex &&
         thisObjective.bDisabled)
       thisObjective.Reset();
   }
@@ -341,17 +373,16 @@ function ExecutionEnd() {
 
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
+
+  if (IsInState('ExecutionRunning') ||
       IsInState('ExecutionFallback')) {
 
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-    InfoGame = JBReplicationInfoGame(Level.GRI);
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+        ExecutePlayer(thisTagPlayer.GetController());
     
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
-        Controller(InfoGame.ListInfoPlayer[iInfoPlayer].Owner).Pawn.GibbedBy(None);
+        thisTagPlayer.GetController().Pawn.GibbedBy(None);
       TriggerEvent(EventExecutionEnd, Self, None);
     
     GotoState('Waiting');
@@ -388,15 +419,26 @@ auto state Waiting {
   //
   // If triggered from a GameObjective, releases players from the
   // team that can attack that objective even if the release was
-  // When triggered, initiates the release of the instigator's team.
+  // triggered by a defender. Otherwise releases the triggering
+  // player's team.
+  // ================================================================
+
   event Trigger(Actor ActorOther, Pawn PawnInstigator) {
 
     local Controller ControllerInstigator;
     local GameObjective firstObjective;
-    local UnrealTeamInfo TeamInstigator;
+    local TeamInfo TeamInstigator;
 
-    TeamInstigator = UnrealTeamInfo(PawnInstigator.GetTeam());
-    if (TeamInstigator != None)
+    if (PawnInstigator != None)
+      TeamInstigator = PawnInstigator.GetTeam();
+      if (Trigger(ActorOther) != None) {
+    if (TeamInstigator == None)
+      return;
+    
+    if (GameObjective(ActorOther) != None &&
+        GameObjective(ActorOther).DefenderTeamIndex == TeamInstigator.TeamIndex)
+      Release(TeamGame(Level.Game).OtherTeam(TeamInstigator), None);
+    else
       Release(TeamInstigator, PawnInstigator.Controller);
 
   // ================================================================
@@ -412,13 +454,13 @@ auto state Waiting {
     local int iTeam;
     local TeamInfo Team;
     
-    local UnrealTeamInfo Team;
+    for (iTeam = 0; iTeam < ArrayCount(InfoReleaseByTeam); iTeam++) {
       Team = TeamGame(Level.Game).Teams[iTeam];
     for (iTeam = 0; iTeam < ArrayCount(ListInfoReleaseByTeam); iTeam++) {
       if (!InfoReleaseByTeam[iTeam].bIsActive)
         continue;
       if (!ListInfoReleaseByTeam[iTeam].bIsActive ||
-           ListInfoReleaseByTeam[iTeam].bIsOpen == IsDoorOpen(Team))
+           ListInfoReleaseByTeam[iTeam].bIsOpen == IsReleaseOpen(Team))
       if (InfoReleaseByTeam[iTeam].bIsOpening) {
 
       if (ListInfoReleaseByTeam[iTeam].bIsOpen) {
@@ -518,18 +560,14 @@ state ExecutionFallback {
   
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
-    local int iInfoPlayer;
-    local Pawn PawnPlayer;
-    local JBReplicationInfoGame InfoGame;
   
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].IsInJail()) {
-        PawnPlayer = Controller(InfoGame.ListInfoPlayer[iInfoPlayer].Owner).Pawn;
-        if (PawnPlayer != None)
-          PawnPlayer.GibbedBy(None);
-        }
+    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+        ExecutePlayer(thisTagPlayer.GetController());
+      if (thisTagPlayer.IsInJail() &&
+          thisTagPlayer.GetController().Pawn != None)
+        thisTagPlayer.GetController().Pawn.GibbedBy(None);
 
   // ================================================================
   // EndState
@@ -551,17 +589,13 @@ state ExecutionFallback {
 
 function bool IsReleaseActive(TeamInfo Team) {
   return InfoReleaseByTeam[Team.TeamIndex].bIsActive; }
-function bool IsReleaseActive(byte Team) {
-  return ListInfoReleaseByTeam[Team].bIsActive;
-  }
-  return InfoReleaseByTeam[Team.TeamIndex].ControllerInstigator; }
-function Controller GetReleaseInstigator(byte Team) {
-  return ListInfoReleaseByTeam[Team].ControllerInstigator;
-  }
 
-function float GetReleaseTime(byte Team) {
-  return ListInfoReleaseByTeam[Team].Time;
-  }
+  return ListInfoReleaseByTeam[Team.TeamIndex].bIsActive; }
+  return InfoReleaseByTeam[Team.TeamIndex].ControllerInstigator; }
+function float GetReleaseTime(TeamInfo Team) {
+  return ListInfoReleaseByTeam[Team.TeamIndex].ControllerInstigator; }
+
+  return ListInfoReleaseByTeam[Team.TeamIndex].Time; }
 // ============================================================================
 // Defaults
 // ============================================================================

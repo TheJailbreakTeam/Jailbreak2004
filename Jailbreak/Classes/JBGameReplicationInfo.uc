@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoGame
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoGame.uc,v 1.3 2002/11/20 22:56:50 mychaeel Exp $
+// $Id: JBReplicationInfoGame.uc,v 1.4 2002/12/23 01:11:24 mychaeel Exp $
 //
 // Replicated information for a the entire game.
 // ============================================================================
@@ -15,43 +15,36 @@ class JBReplicationInfoGame extends GameReplicationInfo
 // Variables
 // ============================================================================
 
-var array<JBInfoArena> ListInfoArena;
-var array<JBInfoJail> ListInfoJail;
-
-var array<JBReplicationInfoPlayer> ListInfoPlayer;
-
-
-// ============================================================================
-// PostBeginPlay
-//
-// Gives every GameObjective a JBInventoryObjective item.
-// ============================================================================
-
-event PostBeginPlay() {
-
-  local GameObjective thisObjective;
-
-  foreach AllActors(Class'GameObjective', thisObjective)
-    Class'JBInventoryObjective'.Static.SpawnFor(thisObjective);
-  }
+var JBInfoArena    firstArena;
+var JBInfoJail     firstJail;
+var JBTagObjective firstTagObjective;
+var JBTagPlayer    firstTagPlayer;
 
 
 // ============================================================================
 // PostNetBeginPlay
 //
-// Initializes the ListInfoArena and ListInfoJail arrays.
+// On the server, creates a JBTagObjective actor for every objective in game.
+// On both server and client, creates the linked lists for jails and arenas.
 // ============================================================================
 
 simulated event PostNetBeginPlay() {
 
+  local GameObjective thisObjective;
   local JBInfoArena thisArena;
   local JBInfoJail thisJail;
   
-  Level.GRI = Self;  // for convenience
+  if (Role == ROLE_Authority)
+    foreach AllActors(Class'GameObjective', thisObjective)
+      Class'JBTagObjective'.Static.SpawnFor(thisObjective);
+
+  foreach DynamicActors(Class'JBInfoArena', thisArena) {
+    thisArena.nextArena = firstArena;
+    firstArena = thisArena;
+    }
   
-  foreach DynamicActors(Class'JBInfoArena', thisArena)
-    ListInfoArena[ListInfoArena.Length] = thisArena;
-  
-  foreach DynamicActors(Class'JBInfoJail', thisJail)
-    ListInfoJail[ListInfoJail.Length] = thisJail;
+  foreach DynamicActors(Class'JBInfoJail', thisJail) {
+    thisJail.nextJail = firstJail;
+    firstJail = thisJail;
+    }
   }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHUD
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHUD.uc,v 1.1 2002/12/23 01:11:24 mychaeel Exp $
+// $Id: JBInterfaceHUD.uc,v 1.2 2002/12/23 02:08:38 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -17,26 +17,11 @@ class JBInterfaceHUD extends HudBTeamDeathMatch
 
 var() SpriteWidget SpriteWidgetCompass[2];
 
-var private float TimeUpdateCompass;
-var private array<JBInventoryObjective> ListInventoryObjective;
+var private float TimeUpdateCompass;      // last compass rendering
+var private float TimeUpdateDisposition;  // last disposition rendering
 
-
-// ============================================================================
-// LinkActors
-//
-// Fills the ListObjective array with a list of objectives.
-// ============================================================================
-
-simulated function LinkActors() {
-
-  local JBInventoryObjective thisInventory;
-  
-  if (ListInventoryObjective.Length == 0)
-    foreach DynamicActors(Class'JBInventoryObjective', thisInventory)
-      ListInventoryObjective[ListInventoryObjective.Length] = thisInventory;
-
-  Super.LinkActors();
-  }
+var private JBDispositionTeam DispositionTeamRed;
+var private JBDispositionTeam DispositionTeamBlue;
 
 
 // ============================================================================
@@ -127,35 +112,38 @@ simulated function ShowPersonalScore(Canvas Canvas);
 
 
 // ============================================================================
-// ShowTeamStatus
+// ShowDisposition
 //
-// Draws the number of jailed and free players of the given team at the
-// current pen position.
+// Updates and displays the player disposition for both teams.
 // ============================================================================
 
-simulated function ShowTeamStatus(Canvas Canvas, JBReplicationInfoTeam Team) {
+simulated function ShowDisposition(Canvas Canvas) {
 
-  local int nPlayersOut;
-  local int nPlayersTotal;
-  local float OriginX;
-  local float OriginY;
+  local float TimeDelta;
 
-  Canvas.Font = GetMediumFontFor(Canvas);
-  Canvas.FontScaleX = 0.7 * HUDScale;
-  Canvas.FontScaleY = 0.7 * HUDScale;
-  Canvas.DrawColor = WhiteColor;
-  
-  nPlayersOut   = Team.CountPlayersTotal() - Team.CountPlayersFree(True);
-  nPlayersTotal = Team.CountPlayersTotal();
+  if (DispositionTeamRed                       == None &&
+      PlayerOwner.GameReplicationInfo          != None &&
+      PlayerOwner.GameReplicationInfo.Teams[0] != None) {
+    DispositionTeamRed = new Class'JBDispositionTeam';
+    DispositionTeamRed.Initialize(PlayerOwner.GameReplicationInfo.Teams[0]);
+    }
 
-  OriginX = Canvas.CurX / Canvas.ClipX;
-  OriginY = Canvas.CurY / Canvas.ClipY;
+  if (DispositionTeamBlue                      == None &&
+      PlayerOwner.GameReplicationInfo          != None &&
+      PlayerOwner.GameReplicationInfo.Teams[1] != None) {
+    DispositionTeamBlue = new Class'JBDispositionTeam';
+    DispositionTeamBlue.Initialize(PlayerOwner.GameReplicationInfo.Teams[1]);
+    }
+
+  if (TimeUpdateDisposition > 0.0)
+    TimeDelta = Level.TimeSeconds - TimeUpdateDisposition;
+  TimeUpdateDisposition = Level.TimeSeconds;
   
-  Canvas.DrawScreenText(string(nPlayersOut),   OriginX, OriginY + 0.002 * HUDScale, DP_LowerRight);
-  Canvas.DrawScreenText(string(nPlayersTotal), OriginX, OriginY - 0.002 * HUDScale, DP_UpperLeft);
+  DispositionTeamRed .Update(TimeDelta);
+  DispositionTeamBlue.Update(TimeDelta);
   
-  Canvas.FontScaleX = Canvas.Default.FontScaleX;
-  Canvas.FontScaleY = Canvas.Default.FontScaleY;
+  DispositionTeamRed .Draw(Canvas, HUDScale);
+  DispositionTeamBlue.Draw(Canvas, HUDScale);
   }
 
 
@@ -167,18 +155,18 @@ simulated function ShowTeamStatus(Canvas Canvas, JBReplicationInfoTeam Team) {
 
 simulated function ShowCompass(Canvas Canvas) {
 
-  local int iInventory;
   local int nPlayersReleasable;
   local float AngleDot;
   local float OffsetX;
   local float OffsetY;
   local float ScaleDot;
-  local float TimeUpdateCompassDelta;
+  local float TimeDelta;
   local vector LocationOwner;
   local GameObjective Objective;
-  local JBInventoryObjective InventoryObjective;
+  local JBTagObjective firstTagObjective;
+  local JBTagObjective thisTagObjective;
   
-  TimeUpdateCompassDelta = Level.TimeSeconds - TimeUpdateCompass;
+  TimeDelta = Level.TimeSeconds - TimeUpdateCompass;
   TimeUpdateCompass = Level.TimeSeconds;
   
   if (PawnOwner != None)
@@ -186,23 +174,23 @@ simulated function ShowCompass(Canvas Canvas) {
   else
     LocationOwner = PlayerOwner.Location;
   
-  for (iInventory = 0; iInventory < ListInventoryObjective.Length; iInventory++) {
-    InventoryObjective = ListInventoryObjective[iInventory];
-    Objective = InventoryObjective.GetObjective();
+  firstTagObjective = JBReplicationInfoGame(PlayerOwner.GameReplicationInfo).firstTagObjective;
+  for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
+    Objective = thisTagObjective.GetObjective();
     
     switch (Objective.DefenderTeamIndex) {
       case 0:  Canvas.DrawColor = RedColor;   OffsetX = -0.033;  OffsetY = 0.048;  break;
       case 1:  Canvas.DrawColor = BlueColor;  OffsetX =  0.033;  OffsetY = 0.048;  break;
       }
 
-    nPlayersReleasable = InventoryObjective.CountPlayersReleasable(True);
+    nPlayersReleasable = thisTagObjective.CountPlayersReleasable(True);
 
     ScaleDot = 1.0;
     if (nPlayersReleasable > 0) {
-      InventoryObjective.ScaleDot -= 0.5 * TimeUpdateCompassDelta * nPlayersReleasable;
-      if (InventoryObjective.ScaleDot < 1.0)
-        InventoryObjective.ScaleDot = (InventoryObjective.ScaleDot % 0.5) + 1.0;
-      ScaleDot = InventoryObjective.ScaleDot;
+      thisTagObjective.ScaleDot -= 0.5 * nPlayersReleasable * TimeDelta;
+      if (thisTagObjective.ScaleDot < 1.0)
+        thisTagObjective.ScaleDot = (thisTagObjective.ScaleDot % 0.5) + 1.0;
+      ScaleDot = thisTagObjective.ScaleDot;
       }
     
     AngleDot = ((rotator(Objective.Location - LocationOwner).Yaw - PlayerOwner.Rotation.Yaw) & 65535) * Pi / 32768;
@@ -249,11 +237,7 @@ simulated function ShowBuild(Canvas Canvas) {
 
 simulated function ShowTeamScorePassA(Canvas Canvas) {
 
-  local JBReplicationInfoGame InfoGame;
-
   Super.ShowTeamScorePassA(Canvas);
-
-  InfoGame = JBReplicationInfoGame(Level.GRI);
 
   DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
   DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
@@ -268,13 +252,8 @@ simulated function ShowTeamScorePassA(Canvas Canvas) {
   ScoreTeam  [0].OffsetX      = -270;   ScoreTeam  [1].OffsetX      = 180;
   ScoreTeam  [0].OffsetY      =   75;   ScoreTeam  [1].OffsetY      =  75;
   
-  SetRelativePos(Canvas, -0.033, 0.051, DP_UpperMiddle);
-  ShowTeamStatus(Canvas, JBReplicationInfoTeam(InfoGame.Teams[0]));
-
-  SetRelativePos(Canvas, 0.035, 0.051, DP_UpperMiddle);
-  ShowTeamStatus(Canvas, JBReplicationInfoTeam(InfoGame.Teams[1]));
-
   ShowCompass(Canvas);
+  ShowDisposition(Canvas);
   ShowBuild(Canvas);
   }
 

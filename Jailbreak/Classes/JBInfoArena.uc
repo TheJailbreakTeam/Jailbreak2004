@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.5 2002/11/24 16:59:18 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.6 2002/11/24 18:14:03 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -55,6 +55,8 @@ var() name TagAttachPickups;
 // ============================================================================
 
 var class<LocalMessage> ClassLocalMessage;
+
+var JBInfoArena nextArena;  // next arena in linked list
 
 var private JBProbeEvent ProbeEventRequest;
 var private JBProbeEvent ProbeEventExclude;
@@ -128,11 +130,13 @@ function bool ContainsActor(Actor Actor) {
     else
       return Actor.Tag == TagAttachStarts;
   
-  if (Controller(Actor) != None && Controller(Actor).PlayerReplicationInfo != None)
-    return Class'JBReplicationInfoPlayer'.Static.FindFor(Controller(Actor).PlayerReplicationInfo).GetArena() == Self;
+  if (Controller(Actor) != None &&
+      Controller(Actor).PlayerReplicationInfo != None)
+    return Class'JBTagPlayer'.Static.FindFor(Controller(Actor).PlayerReplicationInfo).GetArena() == Self;
 
-  if (Pawn(Actor) != None && Pawn(Actor).PlayerReplicationInfo != None)
-    return Class'JBReplicationInfoPlayer'.Static.FindFor(Pawn(Actor).PlayerReplicationInfo).GetArena() == Self;
+  if (Pawn(Actor) != None &&
+      Pawn(Actor).PlayerReplicationInfo != None)
+    return Class'JBTagPlayer'.Static.FindFor(Pawn(Actor).PlayerReplicationInfo).GetArena() == Self;
   
   return False;
   }
@@ -147,18 +151,18 @@ function bool ContainsActor(Actor Actor) {
 
 function bool CanFight(Controller ControllerCandidate) {
 
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer TagPlayer;
 
-  InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerCandidate.PlayerReplicationInfo);
-  if (InfoPlayer == None)
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(ControllerCandidate.PlayerReplicationInfo);
+  if (TagPlayer == None)
     return False;
 
-  if (!InfoPlayer.IsInJail() ||
-       InfoPlayer.IsInArena())
+  if (!TagPlayer.IsInJail() ||
+       TagPlayer.IsInArena())
     return False;
   
-  if (InfoPlayer.GetArenaPending() != None &&
-      InfoPlayer.GetArenaPending() != Self)
+  if (TagPlayer.GetArenaPending() != None &&
+      TagPlayer.GetArenaPending() != Self)
     return False;
   
   return True;
@@ -174,28 +178,21 @@ function bool CanFight(Controller ControllerCandidate) {
 
 function bool CanStart() {
 
-  local int iInfoPlayer;
+  local byte bFoundByTeam[2];
   local int nCandidates;
-  local int TeamPlayer;
-  local array<byte> bFoundByTeam;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  local TeamInfo TeamPlayer;
   
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-
-    if (!CanFight(Controller(InfoPlayer.Owner)))
-      return False;
-    
-    TeamPlayer = InfoPlayer.GetPlayerReplicationInfo().Team.TeamIndex;
-    if (bFoundByTeam[TeamPlayer] != 0)
-      return False;
-    bFoundByTeam[TeamPlayer] = 1;
-    
-    nCandidates++;
-    }
+  firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetArenaPending() == Self && CanFight(thisTagPlayer.GetController())) {
+      TeamPlayer = thisTagPlayer.GetTeam();
+      if (bFoundByTeam[TeamPlayer.TeamIndex] != 0)
+        return False;
+      bFoundByTeam[TeamPlayer.TeamIndex] = 1;
+      nCandidates++;
+      }
 
   if (nCandidates < 2)
     return False;
@@ -231,17 +228,17 @@ function bool IsExcluded(Controller ControllerCandidate) {
 
 function ExcludeAdd(Controller ControllerCandidate) {
 
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer TagPlayerCandidate;
 
   if (IsExcluded(ControllerCandidate))
     return;
   
-  InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerCandidate.PlayerReplicationInfo);
+  TagPlayerCandidate = Class'JBTagPlayer'.Static.FindFor(ControllerCandidate.PlayerReplicationInfo);
 
-  if (InfoPlayer.GetArenaRequest() == Self)  
-    InfoPlayer.SetArenaRequest(None);
+  if (TagPlayerCandidate.GetArenaRequest() == Self)  
+    TagPlayerCandidate.SetArenaRequest(None);
   
-  if (InfoPlayer.GetArenaPending() == Self)
+  if (TagPlayerCandidate.GetArenaPending() == Self)
     MatchCancel();
 
   ListControllerExclude[ListControllerExclude.Length] = ControllerCandidate;
@@ -301,7 +298,7 @@ function UnTriggerExclude(Actor ActorOther, Pawn PawnInstigator) {
 
 function TriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
 
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer TagPlayer;
 
   if (PawnInstigator.Controller == None)
     return;
@@ -312,8 +309,8 @@ function TriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
     return;
     }
 
-  InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
-  InfoPlayer.SetArenaRequest(Self);
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
+  TagPlayer.SetArenaRequest(Self);
   }
 
 
@@ -326,15 +323,14 @@ function TriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
 
 function UnTriggerRequest(Actor ActorOther, Pawn PawnInstigator) {
 
-  local JBReplicationInfoPlayer InfoPlayer;
+  local JBTagPlayer TagPlayer;
 
   if (PawnInstigator.Controller == None)
     return;
 
-  InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
-
-  if (InfoPlayer.GetArenaRequest() == Self)
-    InfoPlayer.SetArenaRequest(None);
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
+  if (TagPlayer.GetArenaRequest() == Self)
+    TagPlayer.SetArenaRequest(None);
   }
 
 
@@ -375,8 +371,8 @@ function bool MatchInit(Controller ControllerCombatantRed, Controller Controller
     PlayerReplicationInfoRed  = ControllerCombatantRed.PlayerReplicationInfo;
     PlayerReplicationInfoBlue = ControllerCombatantBlue.PlayerReplicationInfo;
     
-    Class'JBReplicationInfoPlayer'.Static.FindFor(PlayerReplicationInfoRed ).SetArenaPending(Self);
-    Class'JBReplicationInfoPlayer'.Static.FindFor(PlayerReplicationInfoBlue).SetArenaPending(Self);
+    Class'JBTagPlayer'.Static.FindFor(PlayerReplicationInfoRed ).SetArenaPending(Self);
+    Class'JBTagPlayer'.Static.FindFor(PlayerReplicationInfoBlue).SetArenaPending(Self);
     
     GotoState('MatchCountdown');
     return True;
@@ -398,15 +394,14 @@ function bool MatchInit(Controller ControllerCombatantRed, Controller Controller
 
 function MatchCancel() {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchCountdown')) {
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArenaPending() == Self)
-        InfoGame.ListInfoPlayer[iInfoPlayer].SetArenaPending(None);
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetArenaPending() == Self)
+        thisTagPlayer.SetArenaPending(None);
 
     TriggerEvent(EventTied, Self, None);
     BroadcastLocalizedMessage(ClassLocalMessage, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
@@ -428,16 +423,15 @@ function MatchCancel() {
 
 function bool MatchStart() {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchCountdown')) {
     if (CanStart()) {
-      InfoGame = JBReplicationInfoGame(Level.GRI);
-      
-      for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-        if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArenaPending() == Self)
-          InfoGame.ListInfoPlayer[iInfoPlayer].RestartArena(Self);
+      firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+      for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+        if (thisTagPlayer.GetArenaPending() == Self)
+          thisTagPlayer.RestartArena(Self);
 
       Prepare();
   
@@ -467,7 +461,7 @@ function bool MatchStart() {
 function Prepare() {
 
   local Pickup thisPickup;
-  
+
   foreach DynamicActors(Class'Pickup', thisPickup)
     if (ContainsActor(thisPickup)) {
       if (thisPickup.PickupBase != None)
@@ -486,15 +480,14 @@ function Prepare() {
 
 function MatchTie() {
 
-  local int iInfoPlayer;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchRunning')) {
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArena() == Self)
-        InfoGame.ListInfoPlayer[iInfoPlayer].RestartJail();
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetArena() == Self)
+        thisTagPlayer.RestartJail();
 
     TriggerEvent(EventTied, Self, None);
     BroadcastLocalizedMessage(Class'JBLocalMessage', 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
@@ -517,9 +510,9 @@ function MatchTie() {
 
 function MatchFinish() {
 
-  local int iInfoPlayer;
   local Controller ControllerWinner;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchFinished')) {
     ControllerWinner = FindWinner();
@@ -537,7 +530,7 @@ function MatchFinish() {
           break;
         }
 
-      Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo).RestartFreedom();
+      Class'JBTagPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo).RestartFreedom();
       }
     
     else {
@@ -545,11 +538,10 @@ function MatchFinish() {
       BroadcastLocalizedMessage(ClassLocalMessage, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       }
     
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArena() == Self)
-        InfoGame.ListInfoPlayer[iInfoPlayer].RestartJail();
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetArena() == Self)
+        thisTagPlayer.RestartJail();
     }
   
   else {
@@ -568,19 +560,18 @@ function MatchFinish() {
 
 function Controller FindWinner() {
 
-  local int iInfoPlayer;
   local Controller ControllerWinner;
-  local JBReplicationInfoGame InfoGame;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
 
   if (IsInState('MatchRunning') ||
       IsInState('MatchFinished')) {
     
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArena() == Self)
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetArena() == Self)
         if (ControllerWinner == None)
-          ControllerWinner = Controller(InfoGame.ListInfoPlayer[iInfoPlayer].Owner);
+          ControllerWinner = thisTagPlayer.GetController();
         else
           return None;
 
@@ -648,35 +639,34 @@ state Waiting {
 
   function bool MatchInitRandom() {
   
-    local int iInfoPlayer;
-    local int TeamPlayer;
-    local array<JBReplicationInfoPlayer> ListInfoPlayerCandidate;
-    local array<JBReplicationInfoPlayer> ListInfoPlayerCandidateByTeam;
-    local JBReplicationInfoGame InfoGame;
-    local JBReplicationInfoPlayer InfoPlayer;
+    local int iTagPlayer;
+    local JBTagPlayer firstTagPlayer;
+    local JBTagPlayer thisTagPlayer;
+    local JBTagPlayer TagPlayerCandidate;
+    local JBTagPlayer ListTagPlayerCandidateByTeam[2];
+    local array<JBTagPlayer> ListTagPlayerCandidate;
+    local TeamInfo TeamCandidate;
 
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (CanFight(Controller(InfoPlayer.Owner)) && !IsExcluded(Controller(InfoPlayer.Owner)))
-        ListInfoPlayerCandidate[ListInfoPlayerCandidate.Length] = InfoPlayer;
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (CanFight(thisTagPlayer.GetController()) && !IsExcluded(thisTagPlayer.GetController()))
+        ListTagPlayerCandidate[ListTagPlayerCandidate.Length] = thisTagPlayer;
 
-    while (ListInfoPlayerCandidate.Length > 0) {
-      iInfoPlayer = Rand(ListInfoPlayerCandidate.Length);
-      InfoPlayer = ListInfoPlayerCandidate[iInfoPlayer];
-      TeamPlayer = InfoPlayer.GetPlayerReplicationInfo().Team.TeamIndex;
+    while (ListTagPlayerCandidate.Length > 0) {
+      TagPlayerCandidate = ListTagPlayerCandidate[Rand(ListTagPlayerCandidate.Length)];
 
-      ListInfoPlayerCandidateByTeam[TeamPlayer] = InfoPlayer;
+      TeamCandidate = TagPlayerCandidate.GetTeam();
+      ListTagPlayerCandidateByTeam[TeamCandidate.TeamIndex] = TagPlayerCandidate;
       
-      for (iInfoPlayer = ListInfoPlayerCandidate.Length - 1; iInfoPlayer >= 0; iInfoPlayer--)
-        if (ListInfoPlayerCandidate[iInfoPlayer].GetPlayerReplicationInfo().Team.TeamIndex == TeamPlayer)
-          ListInfoPlayerCandidate.Remove(iInfoPlayer, 1);
+      for (iTagPlayer = ListTagPlayerCandidate.Length - 1; iTagPlayer >= 0; iTagPlayer--)
+        if (ListTagPlayerCandidate[iTagPlayer].GetTeam() == TeamCandidate)
+          ListTagPlayerCandidate.Remove(iTagPlayer, 1);
       }
 
-    if (ListInfoPlayerCandidateByTeam[0] != None &&
-        ListInfoPlayerCandidateByTeam[1] != None)
-      return MatchInit(Controller(ListInfoPlayerCandidateByTeam[0].Owner),
-                       Controller(ListInfoPlayerCandidateByTeam[1].Owner));
+    if (ListTagPlayerCandidateByTeam[0] != None &&
+        ListTagPlayerCandidateByTeam[1] != None)
+      return MatchInit(ListTagPlayerCandidateByTeam[0].GetController(),
+                       ListTagPlayerCandidateByTeam[1].GetController());
 
     return False;
     }
@@ -692,28 +682,25 @@ state Waiting {
 
   function bool MatchInitRequested() {
   
-    local int iInfoPlayer;
-    local int TeamPlayer;
-    local array<JBReplicationInfoPlayer> ListInfoPlayerCandidateByTeam;
-    local JBReplicationInfoGame InfoGame;
-    local JBReplicationInfoPlayer InfoPlayer;
+    local JBTagPlayer firstTagPlayer;
+    local JBTagPlayer thisTagPlayer;
+    local JBTagPlayer ListTagPlayerCandidateByTeam[2];
+    local TeamInfo TeamPlayer;
     
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-      InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-      TeamPlayer = InfoPlayer.GetPlayerReplicationInfo().Team.TeamIndex;
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag) {
+      TeamPlayer = thisTagPlayer.GetTeam();
 
-      if (InfoPlayer.GetArenaRequest() == Self && CanFight(Controller(InfoPlayer.Owner)))
-        if (ListInfoPlayerCandidateByTeam[TeamPlayer] == None ||
-            ListInfoPlayerCandidateByTeam[TeamPlayer].GetArenaRequestTime() > InfoPlayer.GetArenaRequestTime())
-          ListInfoPlayerCandidateByTeam[TeamPlayer] = InfoPlayer;
+      if (thisTagPlayer.GetArenaRequest() == Self && CanFight(thisTagPlayer.GetController()))
+        if (ListTagPlayerCandidateByTeam[TeamPlayer.TeamIndex] == None ||
+            ListTagPlayerCandidateByTeam[TeamPlayer.TeamIndex].GetArenaRequestTime() > thisTagPlayer.GetArenaRequestTime())
+          ListTagPlayerCandidateByTeam[TeamPlayer.TeamIndex] = thisTagPlayer;
       }
 
-    if (ListInfoPlayerCandidateByTeam[0] != None &&
-        ListInfoPlayerCandidateByTeam[1] != None)
-      return MatchInit(Controller(ListInfoPlayerCandidateByTeam[0].Owner),
-                       Controller(ListInfoPlayerCandidateByTeam[1].Owner));
+    if (ListTagPlayerCandidateByTeam[0] != None &&
+        ListTagPlayerCandidateByTeam[1] != None)
+      return MatchInit(ListTagPlayerCandidateByTeam[0].GetController(),
+                       ListTagPlayerCandidateByTeam[1].GetController());
 
     return False;
     }
@@ -739,16 +726,15 @@ state MatchCountdown {
 
   private function BroadcastCountdown(int nSeconds) {
   
-    local int iInfoPlayer;
-    local JBReplicationInfoGame InfoGame;
+    local JBTagPlayer firstTagPlayer;
+    local JBTagPlayer thisTagPlayer;
 
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetArenaPending() == Self)
+    firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetArenaPending() == Self)
         Level.Game.BroadcastHandler.BroadcastLocalized(
           Self,
-          PlayerController(InfoGame.ListInfoPlayer[iInfoPlayer].Owner),
+          PlayerController(thisTagPlayer.GetController()),
           ClassLocalMessage,
           Clamp(nSeconds, 1, 3) + 400,
           PlayerReplicationInfoRed,
@@ -884,12 +870,10 @@ state MatchFinished {
 // ============================================================================
 
 simulated function float GetCountdownStart() {
-  return TimeCountdownStart;
-  }
+  return TimeCountdownStart; }
 
 simulated function float GetCountdownTie() {
-  return TimeCountdownTie;
-  }
+  return TimeCountdownTie; }
 
 
 // ============================================================================
