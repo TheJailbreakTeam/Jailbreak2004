@@ -510,12 +510,34 @@ function AddGameSpecificInventory(Pawn PawnPlayer)
   bAllowTransPrev = bAllowTrans;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
-  if (TagPlayer != None && TagPlayer.IsInJail())
+  if (TagPlayer != None &&
+      TagPlayer.IsInJail())
     bAllowTrans = False;
 
   Super.AddGameSpecificInventory(PawnPlayer);
 
   bAllowTrans = bAllowTransPrev;
+}
+
+
+// ============================================================================
+// PickupQuery
+//
+// Prevents arena combatants from picking up adrenaline.
+// ============================================================================
+
+function bool PickupQuery(Pawn PawnPlayer, Pickup Pickup)
+{
+  local JBTagPlayer TagPlayer;
+
+  if (AdrenalinePickup(Pickup) != None) {
+    TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
+    if (TagPlayer != None &&
+        TagPlayer.IsInArena())
+      return False;
+  }
+  
+  return Super.PickupQuery(PawnPlayer, Pickup);
 }
 
 
