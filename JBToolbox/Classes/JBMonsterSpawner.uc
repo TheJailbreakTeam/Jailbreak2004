@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.8 2004/04/11 20:27:04 tarquin Exp $
+// $Id: JBMonsterSpawner.uc,v 1.9 2004/04/12 12:38:39 tarquin Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -36,8 +36,9 @@ Var() Mesh      MonsterMesh;
 Var() Material  MonsterSkin[8];
 var() bool      bMonsterControllable;
 var(Events) name TagExecutionCommit; // tag for start of execution 
-var(Events) name TagExecutionEnd;    // tag for end of execution: reset the monster
+var(Events) name TagExecutionEnd;    // tag for end of execution: reset monster
 var(Events) bool bUseExecutionTags;  // use above tags or Tag property
+
 
 // ============================================================================
 // Variables
@@ -47,6 +48,7 @@ Var Vector StartSpot;
 Var xPawn MyMonster;
 Var Controller MonsterController;
 Var Class<xPawn> MonsterClass;
+
 
 // ============================================================================
 // PostBeginPlay
@@ -170,13 +172,63 @@ Function Tick(Float TimeDelta)
 
 
 // ============================================================================
-// State MonsterWait
+// State MonsterSpawnedOnTrigger
 //
-// The monster is waiting. On triggering it will attack.
+// Nothing happens. On triggering, the monster is spawned and attacks.
 // ============================================================================
 
-State MonsterWait
-{
+State() MonsterSpawnedOnTrigger {
+
+  // ============================================================================
+  // BeginState
+  //
+  // Set Tag.
+  // ============================================================================
+  
+  Function BeginState()
+  {
+    if(bUseExecutionTags)
+      Tag = TagExecutionCommit;
+  }
+
+
+  // ============================================================================
+  // Trigger
+  //
+  // Monster will attack.
+  // ============================================================================
+  
+  Function Trigger(Actor Other, Pawn EventInstigator)
+  {
+    SpawnMonster();
+    GoToState('MonsterAttack');
+  }
+
+} // state MonsterSpawnedOnTrigger
+
+
+// ============================================================================
+// State MonsterWaitsDormant
+//
+// The monster is spawned and waits. On triggering it will attack.
+// ============================================================================
+
+State() MonsterWaitsDormant {
+
+  // ============================================================================
+  // BeginState
+  //
+  // Set Tag. Spawns a monster, and sets the timer.
+  // ============================================================================
+  
+  Function BeginState()
+  {
+    SpawnMonster();
+    if(bUseExecutionTags)
+      Tag = TagExecutionCommit;
+    SetTimer(0.05, true);
+  }
+  
   
   // ============================================================================
   // Trigger
@@ -212,43 +264,41 @@ State MonsterWait
   }
   
   
-  // ============================================================================
-  // BeginState
-  //
-  // Spawns a monster, and sets the timer.
-  // ============================================================================
-  
-  Function BeginState()
-  {
-    SpawnMonster();
-    if(bUseExecutionTags)
-      Tag = TagExecutionCommit;
-    SetTimer(0.05, true);
-  }
-  
-} // state MonsterWait
-
+} // state MonsterWaitsDormant
 
 // ============================================================================
 // State MonsterAttack
 //
-// The monster is attacking. On trigger it will be destroyed and a new one
-// spawned.
+// The monster is attacking. On trigger it will be destroyed and the actor
+// returns to initial state.
 // ============================================================================
 
-State MonsterAttack
-{
+State MonsterAttack {
   
+  // ============================================================================
+  // BeginState
+  //
+  // Updates Tag. Sets timer to unset the variables holding the monsters.
+  // ============================================================================
+  
+  Function BeginState()
+  {
+    if(bUseExecutionTags)
+      Tag = TagExecutionEnd;
+    SetTimer(0.05, true);
+  }
+  
+
   // ============================================================================
   // Trigger
   //
-  // Kill the monster and go back to 'MonsterWait'.
+  // Kill the monster and go back to InitialState.
   // ============================================================================
   
   Function Trigger(Actor Other, Pawn EventInstigator)
   {
     KillMonster();
-    GoToState('MonsterWait');
+    GoToState(InitialState);
   }
 
 
@@ -273,21 +323,7 @@ State MonsterAttack
   }
 
 
-  // ============================================================================
-  // BeginState
-  //
-  // Sets timer to unset the variables holding the monsters.
-  // ============================================================================
-  
-  Function BeginState()
-  {
-    if(bUseExecutionTags)
-      Tag = TagExecutionEnd;
-    SetTimer(0.05, true);
-  }
-  
 } // state MonsterAttack
-
 
 // ============================================================================
 // Default properties
@@ -301,6 +337,6 @@ DefaultProperties
   bHiddenEd   = False
   bUseExecutionTags = True;
   bStatic     = False /* override Keypoint */
-  InitialState= MonsterWait
+  InitialState= MonsterWaitsDormant
   DrawType    = DT_Sprite
 }
