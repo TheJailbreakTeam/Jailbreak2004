@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveTouchable
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameObjectiveTouchable.uc,v 1.2 2004/03/14 18:18:37 tarquin Exp $
+// $Id: JBGameObjectiveTouchable.uc,v 1.3 2004/03/19 19:18:54 tarquin Exp $
 //
 // GameObjective that must be touched to be disabled. TriggeredObjective
 // requires an additional trigger for that.
@@ -78,4 +78,5 @@ defaultproperties
   bBlockActors  = False;
   bBlockPlayers = False;
   Texture = Texture'JBToolbox.icons.JBGameObjectiveTouchable';
+  Score = 0;
 }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.5 2004/04/07 09:37:46 tarquin Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.6 2004/05/09 16:19:37 mychaeel Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -205,6 +205,9 @@ defaultproperties
 
   /* remove destruction message */
   DestructionMessage     = "";
+
+  /* set score to zero */
+  Score                  = 0;
   
   /* base */
   bHidden                = False;
@@ -223,4 +226,3 @@ defaultproperties
   bNetNotify             = True;
   bReplicateInstigator   = True;
 }
-  
