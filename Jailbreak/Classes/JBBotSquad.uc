@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.6 2003/01/25 23:46:48 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.7 2003/01/30 23:18:18 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -347,7 +347,7 @@ function bool CheckSquadObjectives(Bot Bot) {
   if (Super.CheckSquadObjectives(Bot))
     return True;
   
-  if (InfoHunt.NavigationPoint != None && Bot == SquadLeader)
+  if (InfoHunt.NavigationPoint != None && Bot == SquadLeader && Bot.Pawn != None)
     if (Bot.Pawn.ReachedDestination(InfoHunt.NavigationPoint))
       ClearHunt();
     else
