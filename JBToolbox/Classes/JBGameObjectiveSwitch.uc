@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.3.2.3 2004/05/10 15:07:10 mychaeel Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.3.2.4 2004/05/23 14:49:49 mychaeel Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -214,6 +214,7 @@ defaultproperties
   RemoteRole             = ROLE_SimulatedProxy;
   bStatic                = False;
   bNoDelete              = True;
+  bAlwaysRelevant        = True;
   bReplicateInstigator   = True;
 }
   
