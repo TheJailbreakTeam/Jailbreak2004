@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.38 2004/05/18 23:38:36 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.39 2004/05/19 01:23:43 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -179,21 +179,21 @@ function bool ContainsActor(Actor Actor)
 {
   if (Pickup(Actor) != None)
     if (TagAttachPickups == 'Auto')
-      return Actor.Region.ZoneNumber == Region.ZoneNumber;
-    else
-      return Actor.Tag == TagAttachPickups;
+           return Actor.Region.ZoneNumber == Region.ZoneNumber;
+      else return Actor.Tag == TagAttachPickups;
 
   if (NavigationPoint(Actor) != None)
     if (TagAttachStarts == 'Auto')
-      return Actor.Region.ZoneNumber == Region.ZoneNumber;
-    else
-      return Actor.Tag == TagAttachStarts;
+           return Actor.Region.ZoneNumber == Region.ZoneNumber;
+      else return Actor.Tag == TagAttachStarts;
+
+  if (JBCameraArena(Actor) != None)
+    return JBCameraArena(Actor).Arena == Self;
 
   if (JBCamera(Actor) != None)
     if (TagAttachCameras == 'Auto')
-      return Actor.Region.ZoneNumber == Region.ZoneNumber;
-    else
-      return Actor.Tag == TagAttachCameras;
+           return Actor.Region.ZoneNumber == Region.ZoneNumber;
+      else return Actor.Tag == TagAttachCameras;
 
   if (Controller(Actor) != None &&
       Controller(Actor).PlayerReplicationInfo != None)
