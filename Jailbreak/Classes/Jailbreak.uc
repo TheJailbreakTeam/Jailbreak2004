@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.49 2003/06/03 06:20:29 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.50 2003/06/06 07:57:20 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1179,8 +1179,10 @@ defaultproperties {
   bEnableJailFights        = True;
   bEnableSpectatorDeathCam = True;
 
+  Acronym                  = "JB";
   MapPrefix                = "JB";
   BeaconName               = "JB";
+
   GameName                 = "Jailbreak";
   HUDType                  = "Jailbreak.JBInterfaceHud";
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
