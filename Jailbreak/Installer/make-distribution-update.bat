@@ -14,7 +14,7 @@ echo ===========================================================================
 echo Patch
 echo ===============================================================================
 echo.
-perl make-distribution.pl --version="b-Patch" --reference-file="Jailbreak2003-reference.txt" --reference-version=100 --skip-rebuild
+perl make-distribution.pl --version="b-Patch" --reference-file="Jailbreak2003-reference.txt" --reference-version=100 --skip-rebuild --zip 7z
 
 
 :END

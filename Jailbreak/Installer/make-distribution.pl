@@ -5,7 +5,7 @@
 #  make-distribution.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id: make-distribution.pl,v 1.1.2.7 2004/06/01 11:26:37 mychaeel Exp $
+#  $Id$
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -97,6 +97,9 @@ do 'make-distribution.conf';
 our $dirGame;
 our @paths;
 our %reference;
+
+our $zipExt;
+our $zipCommand;
 
 
 ###############################################################################
@@ -322,8 +325,49 @@ sub canonPath ($)
   return undef
     unless defined $path;
   
+  $path =~ s[([/\\])[/\\]+] [$1]g;
   1 while $path =~ s[(^|[:/\\])(?!\.\.[/\\])[^/\\]+[/\\]\.\.(?:[/\\]|$)] [$1];
+  
   return $path;
+}
+
+
+###############################################################################
+#
+#  addFileToArchive $fileAdded, $fileArchive, [$bNoSubDir]
+#
+#  Adds the given file to the given archive and returns the standard and error
+#  output of the archiving tool used.
+#
+
+sub addFileToArchive ($$;$)
+{
+  my $fileAdded   = shift;
+  my $fileArchive = shift;
+  my $bNoSubDir   = shift;
+  
+  my $dirCurrent = cwd();
+
+  if ($bNoSubDir) {
+    $fileArchive = canonPath("$dirCurrent/$fileArchive")
+      unless $fileArchive =~ m[^(?:[/\\]|[a-z]:)]i;
+    $fileAdded =~ s[(.*)[/\\]] [];
+    chdir $1 if defined $1;
+  }
+  
+  $fileArchive =~ tr[/] [\\];
+  $fileAdded   =~ tr[/] [\\];
+  
+  my $command = $zipCommand;
+  $command =~ s[%archive%] [$fileArchive]g;
+  $command =~ s[%file%]    [$fileAdded]g;
+  
+  my $result = `$command 2>&1`;
+
+  chdir $dirCurrent
+    or die "Unable to return to directory $dirCurrent.\n";
+
+  return $result;
 }
 
 
@@ -350,9 +394,14 @@ GetOptions(
   'version=s'           => \$versionSuffix,
   'skip-rebuild'        => \$skipRebuild,
   'skip-keypress'       => \$skipKeypress,
+  'zip=s'               => \$zipExt,
   'reference-file=s'    => \$fileReference,
   'reference-version=i' => \$versionReference,
 );
+
+   if ($zipExt eq 'zip') { $zipCommand = 'zip -9 "%archive%" "%file%"' }
+elsif ($zipExt eq '7z' ) { $zipCommand = '7z a   "%archive%" "%file%"' }
+else { die "Unsupported argument for --zip parameter. Use 'zip' or '7z'.\n" }
 
 
 ###########################################################
@@ -543,9 +592,9 @@ MakeZip:
 my $hasGroupMain = FALSE;
 my $hasGroupMaps = FALSE;
 
-print "Packing .zip installer:\n";
+print "Packing .$zipExt installer:\n";
 
-my $fileZip = cwd() . "/$product$UT200xSuffix$versionSuffix-zip.zip";
+my $fileZip = cwd() . "/$product$UT200xSuffix$versionSuffix-$zipExt.$zipExt";
 unlink $fileZip
   or die "Unable to remove old archive $fileZip.\n"
   if -e $fileZip;
@@ -577,7 +626,7 @@ foreach my $module (@modules) {
   $filePackage = canonPath($filePackage);
   
   if (isFileIncluded($filePackage)) {
-    my $output = `zip -9 "$fileZip" "$filePackage" 2>&1`;
+    my $output = addFileToArchive($filePackage, $fileZip);
     die "Unable to add $filePackage to archive.\n", $output, "\n"
       if ($? >> 8) != 0;
     $hasGroupMain = TRUE;
@@ -620,7 +669,7 @@ foreach my $module (@modules) {
         else {
           my $file = "$dirSub/$fileOrDir";
           if (isFileIncluded($file)) {
-            my $output = `zip -9 "$fileZip" "$file" 2>&1`;
+            my $output = addFileToArchive($file, $fileZip);
             die "Unable to add file $file to archive.\n", $output, "\n"
               if ($? >> 8) != 0;
             $hasGroupMain = TRUE;
@@ -655,7 +704,7 @@ if (@maps) {
     if (isFileIncluded($file)) {
       print ".....$file\n";
       
-      my $output = `zip -9 "$fileZip" "$file" 2>&1`;
+      my $output = addFileToArchive($file, $fileZip);
       die "Unable to add file $file to archive.\n", $output, "\n"
         if ($? >> 8) != 0;
       $hasGroupMaps = TRUE;
@@ -925,16 +974,16 @@ unlink <$dirGame/System/Manifest.*t>;
 
 print "...packing archive\n";
 
-my $fileZipUMod = "$product$UT200xSuffix$versionSuffix-umod.zip";
+my $fileZipUMod = "$product$UT200xSuffix$versionSuffix-umod.$zipExt";
 unlink $fileZipUMod
   or die "Unable to remove old archive $fileZipUMod.\n"
   if -e $fileZipUMod;
 
-`zip -j9 "$fileZipUMod" "$dirGame/Help/$product.txt"`;
+addFileToArchive("$dirGame/Help/$product.txt", $fileZipUMod, TRUE);
 die "Unable to add $product.txt to archive.\n"
   if ($? >> 8) != 0;
 
-`zip -j9 "$fileZipUMod" "$dirGame/System/$product$UT200xSuffix$versionSuffix.$UT200xExt"`;
+addFileToArchive("$dirGame/System/$product$UT200xSuffix$versionSuffix.$UT200xExt", $fileZipUMod, TRUE);
 die "Unable to add $product$UT200xSuffix$versionSuffix.$UT200xExt to archive.\n"
   if ($? >> 8) != 0;
 
