@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.2 2002/11/17 13:12:02 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.3 2002/11/17 13:49:05 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -183,4 +183,5 @@ defaultproperties {
   RemoteRole = ROLE_SimulatedProxy;
   bNoDelete = True;
   bStatic = False;
+  bDirectional = True;
   }
