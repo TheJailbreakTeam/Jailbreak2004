@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.13 2003/03/17 18:28:55 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.14 2003/03/18 18:22:44 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -27,8 +27,38 @@ class JBInfoArena extends Info
 replication {
 
   reliable if (Role == ROLE_Authority)
-    TimeCountdownStart, TimeCountdownTie;
+    TimeStart, TimeCountdownStart, TimeCountdownTie,
+    PlayerReplicationInfoRed, PlayerReplicationInfoBlue;
   }
+
+
+// ============================================================================
+// Types
+// ============================================================================
+
+struct TDisplayPlayer {
+
+  var protected PlayerReplicationInfo PlayerReplicationInfo;
+  var protected PlayerReplicationInfo PlayerReplicationInfoPrev;
+  var protected JBTagPlayer TagPlayer;
+
+  var protected float TimeStart;
+  var protected float TimeUpdate;
+  var protected float HealthDisplayed;
+  var protected string PlayerNameDisplayed;
+  
+  var Color ColorName;
+  var vector LocationName;
+  var EDrawPivot DrawPivotName;
+
+  var HudBase.SpriteWidget SpriteWidgetNameFill;
+  var HudBase.SpriteWidget SpriteWidgetNameTint;
+  var HudBase.SpriteWidget SpriteWidgetNameFrame;
+  var HudBase.SpriteWidget SpriteWidgetSymbol;
+  var HudBase.SpriteWidget SpriteWidgetHealthFill;
+  var HudBase.SpriteWidget SpriteWidgetHealthTint;
+  var HudBase.SpriteWidget SpriteWidgetHealthFrame;
+  };
 
 
 // ============================================================================
@@ -54,18 +84,28 @@ var() name TagAttachPickups;
 // Variables
 // ============================================================================
 
-var JBInfoArena nextArena;                   // next arena in chain
+var JBInfoArena nextArena;                         // next arena in chain
 
-var private JBProbeEvent ProbeEventRequest;  // event probe for match requests
-var private JBProbeEvent ProbeEventExclude;  // event probe for exclusions
+var private float TimeStart;                       // time of match start
+var private float TimeCountdownStart;              // countdown to match start
+var private float TimeCountdownTie;                // countdown to match tie
 
+var private JBProbeEvent ProbeEventRequest;        // probe for TagRequest
+var private JBProbeEvent ProbeEventExclude;        // probe for TagExclude
 var private array<Controller> ListControllerExclude;  // excluded players
 
-var private float TimeCountdownStart;        // countdown until match starts
-var private float TimeCountdownTie;          // countdown until match is tied
+var private PlayerReplicationInfo PlayerReplicationInfoRed;   // for display
+var private PlayerReplicationInfo PlayerReplicationInfoBlue;  // and broadcasts
 
-var private PlayerReplicationInfo PlayerReplicationInfoRed;   // for messages
-var private PlayerReplicationInfo PlayerReplicationInfoBlue;  // for messages
+var HudBase.SpriteWidget SpriteWidgetCountdown;    // circle around countdown
+var HudBase.NumericWidget NumericWidgetCountdown;  // countdown number
+
+var string FontNames;                              // font for player names
+var float ScaleFontNames;                          // relative font scale
+var TDisplayPlayer DisplayPlayerLeft;              // player info left
+var TDisplayPlayer DisplayPlayerRight;             // player info right
+
+var private Font FontObjectNames;                  // loaded font object
 
 
 // ============================================================================
@@ -602,6 +642,157 @@ function Controller FindWinner() {
 
 
 // ============================================================================
+// RenderOverlaysFor
+//
+// Draws an arena time countdown on the screen.
+// ============================================================================
+
+simulated function RenderOverlaysFor(Canvas Canvas, HudBase HudBase, JBTagPlayer TagPlayer) {
+
+  DisplayPlayerLeft .PlayerReplicationInfo = PlayerReplicationInfoRed;
+  DisplayPlayerRight.PlayerReplicationInfo = PlayerReplicationInfoBlue;
+
+  ShowPlayer(Canvas, HudBase, DisplayPlayerLeft);
+  ShowPlayer(Canvas, HudBase, DisplayPlayerRight);
+
+  ShowCountdown(Canvas, HudBase);
+  }
+
+
+// ============================================================================
+// ShowCountdown
+//
+// Draws the arena tie countdown on the screen.
+// ============================================================================
+
+simulated function ShowCountdown(Canvas Canvas, HudBase HudBase) {
+
+  NumericWidgetCountdown.Value = TimeCountdownTie;
+  
+  if (NumericWidgetCountdown.Value > 99)
+    NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale * 2/3;
+  else
+    NumericWidgetCountdown.TextureScale = Default.NumericWidgetCountdown.TextureScale;
+
+  HudBase.DrawSpriteWidget(Canvas, SpriteWidgetCountdown);
+  HudBase.DrawNumericWidget(Canvas, NumericWidgetCountdown, HudBDeathMatch(HudBase).DigitsBig);
+  }
+
+
+// ============================================================================
+// ShowPlayer
+//
+// Draws player name and health status of one player on the screen.
+// ============================================================================
+
+simulated function ShowPlayer(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
+
+  if (DisplayPlayer.PlayerReplicationInfo !=
+      DisplayPlayer.PlayerReplicationInfoPrev) {
+    DisplayPlayer.PlayerReplicationInfoPrev = DisplayPlayer.PlayerReplicationInfo;
+    DisplayPlayer.TagPlayer = Class'JBTagPlayer'.Static.FindFor(DisplayPlayer.PlayerReplicationInfo);
+    }
+
+  if (DisplayPlayer.TimeStart != TimeStart) {
+    DisplayPlayer.TimeStart = TimeStart;
+    DisplayPlayer.TimeUpdate = Level.TimeSeconds;
+
+    DisplayPlayer.HealthDisplayed = 0.0;
+    }
+
+  ShowPlayerName  (Canvas, HudBase, DisplayPlayer);
+  ShowPlayerSymbol(Canvas, HudBase, DisplayPlayer);
+  ShowPlayerHealth(Canvas, HudBase, DisplayPlayer);
+
+  DisplayPlayer.TimeUpdate = Level.TimeSeconds;
+  }
+
+
+// ============================================================================
+// ShowPlayerName
+//
+// Displays the name of one player on the screen, including its background.
+// ============================================================================
+
+simulated function ShowPlayerName(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
+
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameFill);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameTint);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetNameFrame);
+
+  if (FontObjectNames == None)
+    FontObjectNames = Font(DynamicLoadObject(FontNames, Class'Font'));
+
+  Canvas.Font = FontObjectNames;
+  Canvas.FontScaleX = ScaleFontNames * HudBase.HUDScale * Canvas.ClipX / 512;
+  Canvas.FontScaleY = ScaleFontNames * HudBase.HUDScale * Canvas.ClipY / 384;
+
+  if (DisplayPlayer.PlayerReplicationInfo != None)
+    DisplayPlayer.PlayerNameDisplayed = DisplayPlayer.PlayerReplicationInfo.PlayerName;
+
+  Canvas.DrawColor = DisplayPlayer.ColorName;
+  Canvas.DrawScreenText(
+    DisplayPlayer.PlayerNameDisplayed,
+    HudBase.HUDScale * DisplayPlayer.LocationName.X + 0.5,
+    HudBase.HUDScale * DisplayPlayer.LocationName.Y,
+    DisplayPlayer.DrawPivotName);
+
+  Canvas.FontScaleX = Canvas.Default.FontScaleX;
+  Canvas.FontScaleY = Canvas.Default.FontScaleY;
+  }
+
+
+// ============================================================================
+// ShowPlayerSymbol
+//
+// Shows the team symbol for one player.
+// ============================================================================
+
+simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
+
+  local int iTeam;
+
+  iTeam = DisplayPlayer.PlayerReplicationInfo.Team.TeamIndex;
+
+  DisplayPlayer.SpriteWidgetSymbol.WidgetTexture = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].WidgetTexture;
+  DisplayPlayer.SpriteWidgetSymbol.TextureCoords = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].TextureCoords;
+  DisplayPlayer.SpriteWidgetSymbol.Tints[0]      = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].Tints[0];
+  DisplayPlayer.SpriteWidgetSymbol.Tints[1]      = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].Tints[1];
+  
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetSymbol);
+  }
+
+
+// ============================================================================
+// ShowPlayerHealth
+//
+// Displays the health bar of one player on the screen.
+// ============================================================================
+
+simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplayPlayer DisplayPlayer) {
+
+  local float HealthCurrent;
+  local float HealthDelta;
+  local float TimeDelta;
+
+  TimeDelta = Level.TimeSeconds - DisplayPlayer.TimeUpdate;
+
+  if (DisplayPlayer.TagPlayer != None &&
+      DisplayPlayer.TagPlayer.GetArena() == Self)
+    HealthCurrent = DisplayPlayer.TagPlayer.GetHealth(True);
+
+  HealthDelta = HealthCurrent - DisplayPlayer.HealthDisplayed;
+
+  DisplayPlayer.HealthDisplayed += HealthDelta * FMin(1.0, TimeDelta * 2.0);
+  DisplayPlayer.SpriteWidgetHealthFill.Scale = FClamp(DisplayPlayer.HealthDisplayed, 0.0, 100.0) / 100.0;
+
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthFill);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthTint);
+  HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthFrame);
+  }
+
+
+// ============================================================================
 // state Waiting
 //
 // Arena waits for a match to be triggered.
@@ -769,6 +960,8 @@ state MatchCountdown {
 
   event BeginState() {
   
+    TimeStart = Level.TimeSeconds + 3.0;
+
     TimeCountdownStart = 3.0;
     BroadcastCountdown(TimeCountdownStart + 0.5);
     
@@ -889,6 +1082,9 @@ state MatchFinished {
 // Accessors
 // ============================================================================
 
+simulated function float GetTimeStart() {
+  return TimeStart; }
+
 simulated function float GetCountdownStart() {
   return TimeCountdownStart; }
 
@@ -914,6 +1110,14 @@ defaultproperties {
   
   TagAttachStarts  = Auto;
   TagAttachPickups = Auto;
+  
+  SpriteWidgetCountdown = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  NumericWidgetCountdown = (TextureScale=0.15,DrawPivot=DP_MiddleMiddle,PosX=0.5,PosY=0.043,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  
+  FontNames = "UT2003Fonts.jFontMedium";
+  ScaleFontNames = 0.45;
+  DisplayPlayerLeft  = (ColorName=(R=255,G=255,B=255,A=255),LocationName=(X=-0.169,Y=0.037),DrawPivotName=DP_MiddleLeft,SpriteWidgetNameFill=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=016,X1=382,Y2=109),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=200),Tints[1]=(R=048,G=075,B=120,A=200)),SpriteWidgetNameTint=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=128,X1=382,Y2=211),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=100),Tints[1]=(R=037,G=066,B=102,A=150)),SpriteWidgetNameFrame=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=016,Y1=240,X1=382,Y2=333),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetSymbol=(TextureScale=0.065,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-405,OffsetY=150,RenderStyle=STY_Alpha),SpriteWidgetHealthFill=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=454,X2=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,ScaleMode=SM_Left,Scale=0.7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255)),SpriteWidgetHealthTint=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=454,X2=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150)),SpriteWidgetHealthFrame=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=450,Y1=415,X2=836,Y2=453),TextureScale=0.24,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)));
+  DisplayPlayerRight = (ColorName=(R=255,G=255,B=255,A=255),LocationName=(X=0.169,Y=0.037),DrawPivotName=DP_MiddleRight,SpriteWidgetNameFill=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=016,X2=382,Y2=109),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=200),Tints[1]=(R=048,G=075,B=120,A=200)),SpriteWidgetNameTint=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=128,X2=382,Y2=211),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=100),Tints[1]=(R=037,G=066,B=102,A=150)),SpriteWidgetNameFrame=(WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=240,X2=382,Y2=333),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=30,OffsetY=10,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)),SpriteWidgetSymbol=(TextureScale=0.065,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=405,OffsetY=150,RenderStyle=STY_Alpha),SpriteWidgetHealthFill=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=454,X1=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,ScaleMode=SM_Right,Scale=0.7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255)),SpriteWidgetHealthTint=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=454,X1=836,Y2=490),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=0,B=0,A=100),Tints[1]=(R=37,G=66,B=102,A=150)),SpriteWidgetHealthFrame=(WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=450,Y1=415,X1=836,Y2=453),TextureScale=0.24,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=60,OffsetY=135,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255)));
   
   Texture = Texture'JBInfoArena';
   RemoteRole = ROLE_SimulatedProxy;

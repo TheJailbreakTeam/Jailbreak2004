@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.16 2003/03/16 13:09:05 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.17 2003/03/16 17:38:14 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -22,56 +22,56 @@ class JBInterfaceHud extends HudBTeamDeathMatch
 // Localization
 // ============================================================================
 
-var localized string TextPlayerKilled;       // player was killed
-var localized string TextPlayerExecuted;     // player was executed
+var localized string TextPlayerKilled;        // player was killed
+var localized string TextPlayerExecuted;      // player was executed
 
-var localized string TextMenuEntryTactics;   // tactics entry in order menu
-var localized string TextMenuTitleTactics;   // title for tactics submenu
-var localized string TextOrderName[6];       // selections in tactics submenu
-var localized string TextTactics[5];         // tactics names for widget
+var localized string TextMenuEntryTactics;    // tactics entry in order menu
+var localized string TextMenuTitleTactics;    // title for tactics submenu
+var localized string TextOrderName[6];        // selections in tactics submenu
+var localized string TextTactics[5];          // tactics names for widget
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var bool bWidescreen;                        // display widescreen bars
-var private float RatioWidescreen;           // widescreen scroll-in progress
+var bool bWidescreen;                         // display widescreen bars
+var private float RatioWidescreen;            // widescreen scroll-in progress
 
 var private transient JBTagPlayer TagPlayerOwner;   // player state for owner
 
-var private float TimeUpdateCompass;         // last compass rendering
-var private float TimeUpdateDisposition;     // last disposition rendering
-var private float TimeUpdateTactics;         // last tactics rendering
-var private float TimeUpdateWidescreen;      // last widescreen bar rendering
+var private float TimeUpdateCompass;          // last compass rendering
+var private float TimeUpdateDisposition;      // last disposition rendering
+var private float TimeUpdateTactics;          // last tactics rendering
+var private float TimeUpdateWidescreen;       // last widescreen bar rendering
 
-var private byte SpeechMenuState;            // current speech menu state
-var private bool bSpeechMenuVisible;         // speech menu displayed
-var private bool bSpeechMenuVisibleTactics;  // tactics submenu displayed
+var private byte SpeechMenuState;             // current speech menu state
+var private bool bSpeechMenuVisible;          // speech menu displayed
+var private bool bSpeechMenuVisibleTactics;   // tactics submenu displayed
 
-var private float AlphaCompass;              // transparency of compass dots
+var private float AlphaCompass;               // transparency of compass dots
 var private JBDispositionTeam DispositionTeamRed;   // red team disposition
 var private JBDispositionTeam DispositionTeamBlue;  // blue team disposition
 
-var string FontTactics;                      // name of font for tactics text
-var vector LocationTextTactics;              // location of tactics text
-var vector SizeIconTactics;                  // size of tactics icons
-var vector SizeTextTactics;                  // relative size of tactics text
-var Color ColorTactics[5];                   // colors for the tactics blob
-var private float TacticsInterpolated;       // currently displayed tactics
-var private Font FontObjectTactics;          // dynamically loaded font object
+var string FontTactics;                       // name of font for tactics text
+var vector LocationTextTactics;               // location of tactics text
+var vector SizeIconTactics;                   // size of tactics icons
+var vector SizeTextTactics;                   // relative size of tactics text
+var Color ColorTactics[5];                    // colors for the tactics blob
+var private float TacticsInterpolated;        // currently displayed tactics
+var private Font FontObjectTactics;           // dynamically loaded font object
 
-var SpriteWidget SpriteWidgetCompass[2];
-var SpriteWidget SpriteWidgetCompassDot;
-var SpriteWidget SpriteWidgetHandcuffs[2];
+var SpriteWidget SpriteWidgetCompass[2];      // compass circles
+var SpriteWidget SpriteWidgetCompassDot;      // compass dot showing releases
+var SpriteWidget SpriteWidgetHandcuffs[2];    // handcuff icons in circles
 
-var SpriteWidget SpriteWidgetTacticsCircle;
-var SpriteWidget SpriteWidgetTacticsBlob;
-var SpriteWidget SpriteWidgetTacticsFill;
-var SpriteWidget SpriteWidgetTacticsTint;
-var SpriteWidget SpriteWidgetTacticsFrame;
-var SpriteWidget SpriteWidgetTacticsIcon[5];
-var SpriteWidget SpriteWidgetTacticsAuto;
+var SpriteWidget SpriteWidgetTacticsCircle;   // tactics circle
+var SpriteWidget SpriteWidgetTacticsBlob;     // colored and pulsing blob
+var SpriteWidget SpriteWidgetTacticsFill;     // tactics widget fill
+var SpriteWidget SpriteWidgetTacticsTint;     // tactics widget tint
+var SpriteWidget SpriteWidgetTacticsFrame;    // tactics widget frame
+var SpriteWidget SpriteWidgetTacticsIcon[5];  // tactics icons
+var SpriteWidget SpriteWidgetTacticsAuto;     // auto tactics display
 
 
 // ============================================================================
@@ -119,7 +119,6 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
       OffsetPixelY = Canvas.ClipY;
       break;
     }
-
 
   switch (Pivot) {
     case DP_UpperLeft:
@@ -488,6 +487,44 @@ simulated function ShowBuild(Canvas Canvas) {
 
 
 // ============================================================================
+// SetDisplayAdrenaline
+//
+// Shows or hides the adrenaline widget. To my dismay there doesn't seem to be
+// a less ugly way to make this happen than that.
+// ============================================================================
+
+simulated function SetDisplayAdrenaline(bool bDisplay) {
+
+  if (bDisplay == (AdrenalineIcon.WidgetTexture != None))
+    return;
+
+  if (bDisplay) {
+    AdrenalineCount.Tints[0].A = Default.AdrenalineCount.Tints[0].A;
+    AdrenalineCount.Tints[1].A = Default.AdrenalineCount.Tints[1].A;
+
+    AdrenalineIcon.WidgetTexture = Default.AdrenalineIcon.WidgetTexture;
+    Adrenaline[0] .WidgetTexture = Default.Adrenaline[0] .WidgetTexture;
+    Adrenaline[1] .WidgetTexture = Default.Adrenaline[1] .WidgetTexture;
+    Adrenaline[2] .WidgetTexture = Default.Adrenaline[2] .WidgetTexture;
+    Adrenaline[3] .WidgetTexture = Default.Adrenaline[3] .WidgetTexture;
+    Adrenaline[4] .WidgetTexture = Default.Adrenaline[4] .WidgetTexture;
+    }
+
+  else {
+    AdrenalineCount.Tints[0].A = 0;
+    AdrenalineCount.Tints[1].A = 0;
+
+    AdrenalineIcon.WidgetTexture = None;
+    Adrenaline[0] .WidgetTexture = None;
+    Adrenaline[1] .WidgetTexture = None;
+    Adrenaline[2] .WidgetTexture = None;
+    Adrenaline[3] .WidgetTexture = None;
+    Adrenaline[4] .WidgetTexture = None;
+    }
+  }
+
+
+// ============================================================================
 // ShowTeamScorePassA
 //
 // Draws team status and compass.
@@ -495,19 +532,44 @@ simulated function ShowBuild(Canvas Canvas) {
 
 simulated function ShowTeamScorePassA(Canvas Canvas) {
 
-  Super.ShowTeamScorePassA(Canvas);
+  if (TagPlayerOwner != None &&
+      TagPlayerOwner.IsInArena()) {
 
-  DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
-  DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
+    SetDisplayAdrenaline(False);
+    TagPlayerOwner.GetArena().RenderOverlaysFor(Canvas, Self, TagPlayerOwner);
+    }
+
+  else {
+    SetDisplayAdrenaline(True);
+    Super.ShowTeamScorePassA(Canvas);
   
-  DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
-  DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
-  
-  ShowTactics(Canvas);
-  ShowCompass(Canvas);
-  ShowDisposition(Canvas);
+    DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
+    DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
+    DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
+    DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
+    
+    ShowTactics(Canvas);
+    ShowCompass(Canvas);
+    ShowDisposition(Canvas);
+    }
 
   ShowBuild(Canvas);
+  }
+
+
+// ============================================================================
+// ShowTeamScorePassC
+//
+// Only draws team scores if not in arena.
+// ============================================================================
+
+simulated function ShowTeamScorePassC(Canvas Canvas) {
+
+  if (TagPlayerOwner != None &&
+      TagPlayerOwner.IsInArena())
+    return;
+
+  Super.ShowTeamScorePassC(Canvas);
   }
 
 
