@@ -98,6 +98,7 @@ var private JBInfoArena ArenaPending;     // arena player is scheduled for
 var private JBInfoArena ArenaRequest;     // arena player has requested
 var private float TimeArenaRequest;       // time of the arena request
 var private bool bAdrenalineEnabledPrev;  // adrenaline state before arena
+var private float AdrenalinePrev;         // adrenaline amount before arena
 
 var private JBInfoJail Jail;              // jail the player is currently in
 var private float TimeRelease;            // time of last release from jail
@@ -585,7 +586,10 @@ function NotifyArenaEntered()
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadArena(Bot(Controller));
 
   bAdrenalineEnabledPrev = Controller.bAdrenalineEnabled;
+  AdrenalinePrev         = Controller.Adrenaline;
+
   Controller.bAdrenalineEnabled = False;
+  Controller.Adrenaline = Controller.AdrenalineMax;
 }
 
 
@@ -598,6 +602,7 @@ function NotifyArenaEntered()
 function NotifyArenaLeft(JBInfoArena ArenaPrev)
 {
   Controller.bAdrenalineEnabled = bAdrenalineEnabledPrev;
+  Controller.Adrenaline = AdrenalinePrev;
 
   if (IsInJail())
     return;

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadArena.uc,v 1.3 2003/02/17 21:18:20 mychaeel Exp $
+// $Id$
 //
 // Controls the bots fighting in an arena.
 // ============================================================================
@@ -52,6 +52,20 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
     return False;
 
   return Super.SetEnemy(Bot, PawnEnemy);
+}
+
+
+// ============================================================================
+// AssignCombo
+//
+// Does nothing. Required because bots are given full adrenaline temporarily
+// while they're in the arena to prevent them from going after adrenaline
+// pills (which they cannot pick up anyway).
+// ============================================================================
+
+function AssignCombo(Bot Bot)
+{
+  // do nothing, adrenaline is disabled
 }
 
 
