@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.28 2003/03/16 15:10:51 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.29 2003/03/18 18:22:44 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBTagPlayer extends JBTag
 replication {
 
   reliable if (Role == ROLE_Authority)
-    Arena, ArenaPending, Jail;
+    Arena, ArenaPending, Jail, Health;
 
   reliable if (Role == ROLE_Authority)
     ClientSetArena, ClientSetJail;
@@ -82,6 +82,8 @@ var private bool bAdrenalineEnabledPrev;  // adrenaline state before arena
 
 var private JBInfoJail Jail;              // jail the player is currently in
 var private float TimeRelease;            // time of last release from jail
+
+var private int Health;                   // current health and armor
 
 var private float TimeInfoLocation;                 // last known location time
 var private array<TInfoLocation> ListInfoLocation;  // location probabilities
@@ -165,6 +167,8 @@ function Register() {
 
   if (PlayerController(GetController()) != None)
     HashIdPlayer = PlayerController(GetController()).GetPlayerIDHash();
+
+  SetTimer(RandRange(0.18, 0.22), True);
   }
 
 
@@ -214,7 +218,8 @@ event Timer() {
 
   local JBInfoJail JailPrev;
   
-  if (GetController().Pawn != None &&
+  if (Arena == None &&
+      GetController().Pawn != None &&
       GetController().Pawn.IsPlayerPawn()) {
 
     JailPrev = Jail;
@@ -226,6 +231,8 @@ event Timer() {
     if (JailPrev != Jail)
       ClientSetJail(Jail);
     }
+
+  GetHealth();  // update Health variable
   }
 
 
@@ -329,11 +336,6 @@ function NotifyRestarted() {
   if (ArenaPrev == None && Arena != None) NotifyArenaEntered();
   if (JailPrev  == None && Jail  != None) NotifyJailEntered();
   
-  if (Arena == None)
-    SetTimer(RandRange(0.18, 0.22), True);
-  else
-    SetTimer(0.0, False);
-
   if (ArenaPrev != Arena) ClientSetArena(Arena);
   if (JailPrev  != Jail)  ClientSetJail(Jail);
   }
@@ -657,6 +659,39 @@ function SetArenaRequest(JBInfoArena NewArenaRequest) {
 
 
 // ============================================================================
+// GetHealth
+//
+// Calculates and returns the player's current health and armor, that is, the
+// total number of hitpoints the player can take before dying.
+// ============================================================================
+
+simulated function int GetHealth(optional bool bCached) {
+
+  local Pawn PawnPlayer;
+  local Inventory thisInventory;
+
+  if (bCached || Role < ROLE_Authority)
+    return Health;
+
+  Health = 0;
+
+  PawnPlayer = GetController().Pawn;
+  if (PawnPlayer != None) {
+    Health = PawnPlayer.Health;
+
+    for (thisInventory = PawnPlayer.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
+      if (Armor(thisInventory) != None)
+        Health += (Armor(thisInventory).Charge * Armor(thisInventory).ArmorAbsorption) / 100;
+  
+    if (xPawn(PawnPlayer) != None)
+      Health += xPawn(PawnPlayer).ShieldStrength;
+    }
+
+  return Health;
+  }
+
+
+// ============================================================================
 // RecordLocation
 //
 // Records a known location of this player. Later calls of GuessLocation will
@@ -864,7 +899,6 @@ simulated function JBInfoArena GetArena() {
 
 simulated function JBInfoArena GetArenaPending() {
   return ArenaPending; }
-
 function JBInfoArena GetArenaRequest() {
   return ArenaRequest; }
 function float GetArenaRequestTime() {
