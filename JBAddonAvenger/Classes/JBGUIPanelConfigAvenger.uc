@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigAvenger (formerly JBGUIPanelConfigBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigAvenger.uc,v 1.1 2004/04/09 19:16:34 tarquin Exp $
+// $Id$
 //
 // Options for the Avenger add-on.
 // ============================================================================
@@ -26,7 +26,7 @@ var JBGUIComponentTrackbar SliderTimeMax;
 var moComboBox      ComboBoxPowerType;
 
 var localized string SecondsText;
-var localized string ComboBoxText[4];
+var localized string ComboBoxText[5];
 var private bool bInitialized;  // used to prevent saving config during initialization
 
 
@@ -51,7 +51,7 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 
   // combo box
   ComboBoxPowerType = moComboBox(Controls[CONTROL_COMBO_POWERUP]);
-  for( i=0; i<4; i++) 
+  for( i=0; i<ArrayCount(ComboBoxText) ; i++) 
     ComboBoxPowerType.AddItem(ComboBoxText[i]);
 
   LoadINISettings();
@@ -188,4 +188,5 @@ defaultproperties
   ComboBoxText(1)="Berserk"
   ComboBoxText(2)="Booster"
   ComboBoxText(3)="Invisible"
+  ComboBoxText(4)="Random"
 }

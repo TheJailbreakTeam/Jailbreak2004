@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInventoryAvenger
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBInventoryAvenger.uc,v 1.5 2004/05/18 18:34:32 mychaeel Exp $
+// $Id: JBInventoryAvenger.uc,v 1.6 2004/05/23 10:20:00 tarquin Exp $
 //
 // Spawned for each avenger player. Gives the player the combo and then 
 // destroys it after set time.
@@ -75,9 +75,15 @@ function StartAvenger(int Duration)
   
   if( xPawn(Owner) == None )
     return; // daft but just in case
-    
-  ComboClass = class'JBAddonAvenger'.default.ComboClasses[class'JBAddonAvenger'.default.PowerComboIndex];
-
+  
+  // random combo?
+  if( class'JBAddonAvenger'.default.PowerComboIndex == 4 ) {
+    ComboClass = class'JBAddonAvenger'.default.ComboClasses[rand(4)];
+  }
+  else {  
+    ComboClass = class'JBAddonAvenger'.default.ComboClasses[class'JBAddonAvenger'.default.PowerComboIndex];
+  }
+  
   if( ComboClass == None )
     log("JB AVENGER: No combo class!");
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonAvenger.uc,v 1.4 2004/05/19 15:53:33 tarquin Exp $
+// $Id: JBAddonAvenger.uc,v 1.5 2004/05/20 14:47:56 wormbo Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -24,9 +24,9 @@ const DEFAULT_POWERUP_TYPE    = 1;
 // ============================================================================
 
 var() const editconst string Build;
-var() config int PowerTimeMultiplier;
-var() config int PowerTimeMaximum;
-var() config int PowerComboIndex;
+var() config int PowerTimeMultiplier; // multiply the arena time remaining
+var() config int PowerTimeMaximum;    // subject to this maximum
+var() config int PowerComboIndex;     // type of combo awarded
 
 var class<Combo> ComboClasses[4]; 
 
@@ -150,7 +150,7 @@ defaultproperties
   PowerTimeMaximumDesc    = "Maximum avenger time allowable.";
   PowerComboIndexDesc     = "Combo awarded to the avenger.";
   
-  PowerComboIndexOptions = "0;Speed;1;Berserk;2;Booster;3;Invisible";
+  PowerComboIndexOptions = "0;Speed;1;Berserk;2;Booster;3;Invisible;4;Random";
     
   ComboClasses(0)=class'XGame.ComboSpeed'
   ComboClasses(1)=class'XGame.ComboBerserk'
