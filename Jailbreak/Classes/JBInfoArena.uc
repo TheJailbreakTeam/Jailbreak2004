@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.17 2003/03/23 07:22:07 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.18 2003/03/23 08:45:08 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -530,7 +530,7 @@ function Prepare() {
   local Pickup thisPickup;
 
   foreach DynamicActors(Class'Pickup', thisPickup)
-    if (ContainsActor(thisPickup)) {
+    if (!thisPickup.IsInState('Pickup') && ContainsActor(thisPickup)) {
       if (thisPickup.PickupBase != None)
         thisPickup.PickupBase.TurnOn();
       thisPickup.GotoState('Pickup');
