@@ -303,6 +303,7 @@ my @modules = sort { uc($a) cmp uc($b) } keys %modules;
 print "Updating modules:\n";
 
 foreach my $module (@modules) {
+  next if $module =~ /[\\\/]/;
   print "...$module\n";
   
   die "Module $module has not been checked out yet.\n"
@@ -316,7 +317,7 @@ foreach my $module (@modules) {
   die "Unable to update module $module from CVS. $!\n"
     if ($? >> 8) != 0;
   die "Module $module has uncommitted local changes or conflicts.\n"
-    if $output =~ m[^[ARMC]\s(?!Installer/make-distribution\.pl$)]m; 
+    if $output =~ m[^[ARMC]\s(?!Installer/make-distribution\.(?:pl|conf)$)]m; 
 
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
@@ -337,12 +338,21 @@ print "\n";
 print "Rebuilding modules:\n";
 
 foreach my $module (@modules) {
-  my $filePackage = canonPath(findFilePackage($module));
+  my $isUpToDate;
 
-  my $timeFilePackage = getTimeFile($filePackage);
-  my $timeFileModule  = getTimeFile("$dirGame/$module");
+  if ($module =~ /[\\\/]/) {
+    $isUpToDate = 0;
+  }
+  else {
+    my $filePackage = canonPath(findFilePackage($module));
+  
+    my $timeFilePackage = getTimeFile($filePackage);
+    my $timeFileModule  = getTimeFile("$dirGame/$module");
 
-  if (defined $timeFilePackage and $timeFileModule <= $timeFilePackage) {
+    $isUpToDate = (defined $timeFilePackage and $timeFileModule <= $timeFilePackage);
+  }
+
+  if ($isUpToDate) {
     print "...$module: up to date\n";
   }
   else {
@@ -351,6 +361,7 @@ foreach my $module (@modules) {
     my $method = $modules{$module};
 
     if ($method eq 'ucc') {
+      my $filePackage = canonPath(findFilePackage($module));
       my $filePackageBackup;
       
       if (defined $filePackage) {
@@ -437,6 +448,7 @@ unlink $fileZip
 #
 
 foreach my $module (@modules) {
+  next if $module =~ /[\\\/]/;
   print "...$module\n";
   
   my $filePackage = findFilePackage($module);
@@ -550,6 +562,7 @@ print MANIFEST "Optional=False\n";
 print MANIFEST "Visible=True\n";
 
 foreach my $module (@modules) {
+  next if $module =~ /[\\\/]/;
   print ".....$module\n";
   
   my $filePackage = findFilePackage($module);
@@ -689,6 +702,8 @@ foreach my $file (<Manifest-$product.*>) {
   die "Installer file was not created.\n", $output, "\n"
     unless -e "$dirGame/System/$product.$UT200xExt";
 }
+
+copy "$dirGame/System/Manifest.ini", "Manifest-$product.ini";
 
 unlink "$dirGame/System/Manifest.ini"
   or die "Unable to delete temporary Manifest.ini.\n"
