@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.6 2002/11/24 18:14:03 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.7 2003/01/01 22:11:17 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -53,8 +53,6 @@ var() name TagAttachPickups;
 // ============================================================================
 // Variables
 // ============================================================================
-
-var class<LocalMessage> ClassLocalMessage;
 
 var JBInfoArena nextArena;  // next arena in linked list
 
@@ -404,7 +402,7 @@ function MatchCancel() {
         thisTagPlayer.SetArenaPending(None);
 
     TriggerEvent(EventTied, Self, None);
-    BroadcastLocalizedMessage(ClassLocalMessage, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+    BroadcastLocalizedMessage(MessageClass, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     GotoState('Waiting');
     }
   
@@ -436,7 +434,7 @@ function bool MatchStart() {
       Prepare();
   
       TriggerEvent(EventStart, Self, None);
-      BroadcastLocalizedMessage(ClassLocalMessage, 400, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+      BroadcastLocalizedMessage(MessageClass, 400, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       GotoState('MatchRunning');
       
       return True;
@@ -490,7 +488,7 @@ function MatchTie() {
         thisTagPlayer.RestartJail();
 
     TriggerEvent(EventTied, Self, None);
-    BroadcastLocalizedMessage(Class'JBLocalMessage', 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+    BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     GotoState('Waiting');
     }
   
@@ -521,12 +519,12 @@ function MatchFinish() {
       switch (ControllerWinner.PlayerReplicationInfo.Team.TeamIndex) {
         case 0:
           TriggerEvent(EventWonRed, Self, ControllerWinner.Pawn);
-          BroadcastLocalizedMessage(ClassLocalMessage, 430, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+          BroadcastLocalizedMessage(MessageClass, 430, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
           break;
 
         case 1:
           TriggerEvent(EventWonBlue, Self, ControllerWinner.Pawn);
-          BroadcastLocalizedMessage(ClassLocalMessage, 430, PlayerReplicationInfoBlue, PlayerReplicationInfoRed, Self);
+          BroadcastLocalizedMessage(MessageClass, 430, PlayerReplicationInfoBlue, PlayerReplicationInfoRed, Self);
           break;
         }
 
@@ -535,7 +533,7 @@ function MatchFinish() {
     
     else {
       TriggerEvent(EventTied, Self, None);
-      BroadcastLocalizedMessage(ClassLocalMessage, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+      BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       }
     
     firstTagPlayer = JBReplicationInfoGame(Level.Game.GameReplicationInfo).firstTagPlayer;
@@ -735,7 +733,7 @@ state MatchCountdown {
         Level.Game.BroadcastHandler.BroadcastLocalized(
           Self,
           PlayerController(thisTagPlayer.GetController()),
-          ClassLocalMessage,
+          MessageClass,
           Clamp(nSeconds, 1, 3) + 400,
           PlayerReplicationInfoRed,
           PlayerReplicationInfoBlue,
@@ -882,7 +880,7 @@ simulated function float GetCountdownTie() {
 
 defaultproperties {
 
-  ClassLocalMessage = Class'JBLocalMessage';
+  MessageClass = Class'JBLocalMessage';
 
   EventStart   = 'ArenaStart';
   EventTied    = 'ArenaTied';

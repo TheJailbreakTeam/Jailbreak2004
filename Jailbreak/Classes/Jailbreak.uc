@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.21 2003/01/19 19:11:19 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.22 2003/01/19 23:57:22 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -21,8 +21,6 @@ var config bool bEnableJailFights;
 // ============================================================================
 // Variables
 // ============================================================================
-
-var class<LocalMessage> ClassLocalMessage;
 
 var private JBCamera CameraExecution;      // camera for execution sequence
 
@@ -568,7 +566,7 @@ function bool ExecutionInit() {
       if (IsCaptured(Teams[iTeam])) {
         if (bFoundCaptured) {
           RestartAll();
-          BroadcastLocalizedMessage(ClassLocalMessage, 300);
+          BroadcastLocalizedMessage(MessageClass, 300);
           return False;
           }
       
@@ -606,7 +604,7 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
 
   if (IsInState('MatchInProgress')) {
     GotoState('Executing');
-    BroadcastLocalizedMessage(ClassLocalMessage, 100, , , TeamExecuted);
+    BroadcastLocalizedMessage(MessageClass, 100, , , TeamExecuted);
     
     TeamCapturer = OtherTeam(TeamExecuted);
     TeamCapturer.Score += 1;
@@ -806,7 +804,7 @@ defaultproperties {
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
   DefaultEnemyRosterClass  = "Jailbreak.JBReplicationInfoTeam";
   
-  ClassLocalMessage        = Class'JBLocalMessage';
+  MessageClass             = Class'JBLocalMessage';
   GameReplicationInfoClass = Class'JBReplicationInfoGame';
   DeathMessageClass        = Class'xDeathMessage';
 

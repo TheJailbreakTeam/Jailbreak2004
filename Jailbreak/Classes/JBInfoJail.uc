@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.13 2003/01/03 15:54:13 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.14 2003/01/19 19:11:19 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -52,8 +52,6 @@ struct TInfoRelease {
 // ============================================================================
 // Variables
 // ============================================================================
-
-var class<LocalMessage> ClassLocalMessage;
 
 var JBInfoJail nextJail;  // next jail in linked list
 
@@ -325,7 +323,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
       if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
         if (Jailbreak(Level.Game).CanFireEvent(Tag, True)) {
           if (ControllerInstigator != None)
-            BroadcastLocalizedMessage(ClassLocalMessage, 200, ControllerInstigator.PlayerReplicationInfo, , Team);
+            BroadcastLocalizedMessage(MessageClass, 200, ControllerInstigator.PlayerReplicationInfo, , Team);
           JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
           JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
           }
@@ -684,7 +682,7 @@ defaultproperties {
 
   MessageClass = Class'JBLocalMessage';
 
-  ClassLocalMessage = Class'JBLocalMessage';
+  ExecutionDelayCommit   = 1.0;
   ExecutionDelayFallback = 2.0;
   ExecutionDelayCommit   = 2.0;
   ExecutionDelayFallback = 4.0;
