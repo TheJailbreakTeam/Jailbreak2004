@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoPlayer.uc,v 1.2 2002/11/24 09:04:18 mychaeel Exp $
+// $Id: JBReplicationInfoPlayer.uc,v 1.3 2002/11/24 09:35:17 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -127,9 +127,6 @@ event Timer() {
         break;
         }
     
-    if (Jail == None)
-      Restart = Restart_Jail;
-
          if (JailPrev == None && Jail != None) JailEntered();
     else if (JailPrev != None && Jail == None) JailLeft(JailPrev);
     }
