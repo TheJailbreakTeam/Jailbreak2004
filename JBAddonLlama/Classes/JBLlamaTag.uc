@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.8 2004/04/15 09:58:28 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.9 2004/05/17 20:25:45 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -203,14 +203,8 @@ simulated function ResetCrosshairLocations()
   local int i;
   
   for (i = 0; i < LocalHUD.Crosshairs.Length; i++) {
-    if ( i < LocalHUD.default.Crosshairs.Length ) {
-      LocalHUD.Crosshairs[i].PosX = LocalHUD.default.Crosshairs[i].PosX;
-      LocalHUD.Crosshairs[i].PosY = LocalHUD.default.Crosshairs[i].PosY;
-    }
-    else {
-      LocalHUD.Crosshairs[i].PosX = 0.5;
-      LocalHUD.Crosshairs[i].PosY = 0.5;
-    }
+    LocalHUD.Crosshairs[i].PosX = 0.5;
+    LocalHUD.Crosshairs[i].PosY = 0.5;
   }
 }
 
