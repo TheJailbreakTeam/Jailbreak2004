@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.19 2003/03/22 19:24:02 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.20 2003/03/22 19:38:51 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -38,7 +38,7 @@ var localized string TextTactics[5];          // tactics names for widget
 var bool bWidescreen;                         // display widescreen bars
 var private float RatioWidescreen;            // widescreen scroll-in progress
 
-var private transient JBTagPlayer TagPlayerOwner;   // player state for owner
+var private transient JBTagPlayer TagPlayerOwner;  // player state for owner
 
 var private float TimeUpdateCompass;          // last compass rendering
 var private float TimeUpdateDisposition;      // last disposition rendering
@@ -50,6 +50,7 @@ var private bool bSpeechMenuVisible;          // speech menu displayed
 var private bool bSpeechMenuVisibleTactics;   // tactics submenu displayed
 
 var private float AlphaCompass;               // transparency of compass dots
+var private Pawn PawnOwnerCompass;            // previous compass owner
 var private JBDispositionTeam DispositionTeamRed;   // red team disposition
 var private JBDispositionTeam DispositionTeamBlue;  // blue team disposition
 
@@ -156,9 +157,6 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 
 simulated event PostRender(Canvas Canvas) {
 
-  if (PawnOwner != None)
-    TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PawnOwner.PlayerReplicationInfo);
-
   ShowWidescreen(Canvas);
 
   if (JBCamera(PlayerOwner.ViewTarget) != None) {
@@ -179,6 +177,21 @@ simulated event PostRender(Canvas Canvas) {
   else {
     Super.PostRender(Canvas);
     }
+  }
+
+
+// ============================================================================
+// LinkActors
+//
+// Initializes the TagPlayerOwner actor for the current PawnOwner.
+// ============================================================================
+
+simulated function LinkActors() {
+
+  Super.LinkActors();
+
+  if (PawnOwner != None)
+    TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PawnOwner.PlayerReplicationInfo);
   }
 
 
@@ -399,6 +412,7 @@ simulated function ShowCompass(Canvas Canvas) {
 
   local int nPlayersReleasable;
   local float AngleDot;
+  local float DeltaAlphaCompass;
   local float TimeDelta;
   local vector LocationOwner;
   local GameObjective Objective;
@@ -413,11 +427,18 @@ simulated function ShowCompass(Canvas Canvas) {
   else
     LocationOwner = PlayerOwner.Location;
   
-  if (TagPlayerOwner == None ||
-      TagPlayerOwner.IsFree())
-    AlphaCompass = FMin(1.0, AlphaCompass + TimeDelta * 2.0);
-  else
-    AlphaCompass = FMax(0.0, AlphaCompass - TimeDelta * 2.0);
+  if (TagPlayerOwner != None) {
+    DeltaAlphaCompass = 1.0;
+    if (PawnOwnerCompass == PawnOwner)
+      DeltaAlphaCompass = TimeDelta * 2.0;
+
+    if (TagPlayerOwner.IsFree())
+      AlphaCompass = FMin(1.0, AlphaCompass + DeltaAlphaCompass);
+    else
+      AlphaCompass = FMax(0.0, AlphaCompass - DeltaAlphaCompass);
+
+    PawnOwnerCompass = PawnOwner;
+    }
   
   if (AlphaCompass == 0.0)
     return;
