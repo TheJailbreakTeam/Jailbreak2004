@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.33 2004/05/18 13:53:10 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.34 2004/05/30 19:13:55 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -59,7 +59,7 @@ var private transient float TimeDeployment;  // time of last deployment order
 // Caches
 // ============================================================================
 
-struct TCacheCalcDistance            { var float Time; var float Result; var Object Controller, ActorTarget; };
+struct TCacheCalcDistance            { var float Time; var float Result; var vector LocationController, LocationActorTarget; };
 struct TCacheCountEnemiesAccounted   { var float Time; var int   Result; };
 struct TCacheCountEnemiesUnaccounted { var float Time; var int   Result; };
 struct TCacheRatePlayers             { var float Time; var float Result; };
@@ -574,16 +574,16 @@ function int CountPlayersReleasable(GameObjective GameObjective)
 static function float CalcDistance(Controller Controller, Actor ActorTarget)
 {
   if (Default.CacheCalcDistance.Time == Controller.Level.TimeSeconds &&
-      Default.CacheCalcDistance.Controller  == Controller &&
-      Default.CacheCalcDistance.ActorTarget == ActorTarget)
+      Default.CacheCalcDistance.LocationController  == Controller .Location &&
+      Default.CacheCalcDistance.LocationActorTarget == ActorTarget.Location)
     return Default.CacheCalcDistance.Result;
 
   if (Controller.Pawn == None)
     return 0.0;  // no pathfinding without pawn
 
   Default.CacheCalcDistance.Time = Controller.Level.TimeSeconds;
-  Default.CacheCalcDistance.Controller  = Controller;
-  Default.CacheCalcDistance.ActorTarget = ActorTarget;
+  Default.CacheCalcDistance.LocationController  = Controller .Location;
+  Default.CacheCalcDistance.LocationActorTarget = ActorTarget.Location;
 
   if (JBGameObjective(ActorTarget) != None)
     ActorTarget = JBGameObjective(ActorTarget).TriggerRelease;
