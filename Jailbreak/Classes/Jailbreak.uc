@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.67.2.15 2004/05/20 20:41:33 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.67.2.16 2004/05/25 12:25:30 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -988,6 +988,7 @@ function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena)
 // ============================================================================
 // CountPlayersFree
 // CountPlayersJailed
+// CountPlayersArena
 // CountPlayersTotal
 //
 // Forwarded to the corresponding functions in JBTagTeam.
@@ -995,6 +996,7 @@ function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena)
 
 function int CountPlayersFree  (TeamInfo Team) { return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersFree  (); }
 function int CountPlayersJailed(TeamInfo Team) { return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersJailed(); }
+function int CountPlayersArena (TeamInfo Team) { return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersArena (); }
 function int CountPlayersTotal (TeamInfo Team) { return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersTotal (); }
 
 
@@ -1114,26 +1116,30 @@ function bool ExecutionInit()
 {
   local bool bFoundCaptured;
   local int iTeam;
-  local int iTeamCaptured;
+  local TeamInfo Team;
+  local TeamInfo TeamCaptured;
 
   if (IsInState('MatchInProgress')) {
-    for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++)
-      if (IsCaptured(Teams[iTeam])) {
-        if (bFoundCaptured) {
-          RestartAll();
-          BroadcastLocalizedMessage(MessageClass, 300);
-          JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, None);
-          return False;
-        }
+    for (iTeam = 0; iTeam < ArrayCount(Teams); iTeam++) {
+      Team = Teams[iTeam];
+      if (!IsCaptured(Team))
+        continue;
 
-        bFoundCaptured = True;
-        iTeamCaptured = iTeam;
+      if (bFoundCaptured) {
+        RestartAll();
+        BroadcastLocalizedMessage(MessageClass, 300);
+        JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, None);
+        return False;
       }
 
-    if (!bFoundCaptured || IsReleaseActive(Teams[iTeamCaptured]))
+      bFoundCaptured = True;
+      TeamCaptured = Team;
+    }
+
+    if (!bFoundCaptured || IsReleaseActive(TeamCaptured) || CountPlayersArena(OtherTeam(TeamCaptured)) > 0)
       return False;
 
-    ExecutionCommit(Teams[iTeamCaptured]);
+    ExecutionCommit(TeamCaptured);
     return True;
   }
 
