@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.27.2.12 2004/05/25 14:21:59 mychaeel Exp $
+// $Id$
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -983,6 +983,10 @@ simulated function ShowPlayerSymbol(Canvas Canvas, HudBase HudBase, out TDisplay
 {
   local int iTeam;
 
+  if (DisplayPlayer.PlayerReplicationInfo      == None ||
+      DisplayPlayer.PlayerReplicationInfo.Team == None)
+    return;
+
   iTeam = DisplayPlayer.PlayerReplicationInfo.Team.TeamIndex;
 
   DisplayPlayer.SpriteWidgetSymbol.WidgetTexture = HudBTeamDeathMatch(HudBase).TeamSymbols[iTeam].WidgetTexture;
@@ -1004,6 +1008,9 @@ simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplay
 {
   local float HealthDelta;
   local float TimeDelta;
+
+  if (DisplayPlayer.TagPlayer == None)
+    return;
 
   TimeDelta = Level.TimeSeconds - DisplayPlayer.TimeUpdate;
 
