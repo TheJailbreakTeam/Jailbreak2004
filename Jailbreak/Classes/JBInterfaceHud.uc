@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.13 2003/03/15 18:47:14 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.14 2003/03/15 20:29:08 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -233,10 +233,15 @@ simulated function ShowTactics(Canvas Canvas) {
   local float TimeDelta;
   local JBTagTeam TagTeam;
 
+  if (PawnOwner == None)
+    return;
+
   TimeDelta = Level.TimeSeconds - TimeUpdateTactics;
   TimeUpdateTactics = Level.TimeSeconds;
 
   TagTeam = Class'JBTagTeam'.Static.FindFor(PawnOwner.PlayerReplicationInfo.Team);
+  if (TagTeam == None)
+    return;
 
   switch (TagTeam.GetTactics()) {
     case 'Evasive':     TacticsSelected = 0.0;  break;
@@ -380,11 +385,11 @@ simulated function ShowCompass(Canvas Canvas) {
   else
     LocationOwner = PlayerOwner.Location;
   
-  if (TagPlayerOwner != None)
-    if (TagPlayerOwner.IsFree())
-      AlphaCompass = FMin(1.0, AlphaCompass + TimeDelta * 2.0);
-    else
-      AlphaCompass = FMax(0.0, AlphaCompass - TimeDelta * 2.0);
+  if (TagPlayerOwner == None ||
+      TagPlayerOwner.IsFree())
+    AlphaCompass = FMin(1.0, AlphaCompass + TimeDelta * 2.0);
+  else
+    AlphaCompass = FMax(0.0, AlphaCompass - TimeDelta * 2.0);
   
   if (AlphaCompass == 0.0)
     return;
