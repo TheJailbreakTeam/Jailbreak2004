@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.41 2003/03/16 16:14:31 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.42 2003/03/16 17:38:14 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -25,20 +25,17 @@ var config bool bEnableSpectatorDeathCam;
 // Variables
 // ============================================================================
 
-var JBGameRules firstJBGameRules;        // start of game rules chain
-
-var private JBCamera CameraExecution;    // camera for execution sequence
+var JBGameRules firstJBGameRules;                // game rules chain
+var private JBTagPlayer firstTagPlayerInactive;  // disconnected player chain
 
 var private float TimeExecution;         // time for pending execution
 var private float TimeRestart;           // time for pending round restart
+var private JBCamera CameraExecution;    // camera for execution sequence
 
 var private float TimeEventFired;        // time of last fired singular event
 var private array<name> ListEventFired;  // singular events fired this tick
 
-var private JBTagPlayer firstTagPlayerInactive;  // disconnected players
-
-var private transient name Restart;              // place to start player in
-var private transient JBInfoArena ArenaRestart;  // arena to start player in
+var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 
 
 // ============================================================================
@@ -199,18 +196,10 @@ function AddJBGameRules(JBGameRules JBGameRules) {
 
 function NavigationPoint FindPlayerStart(Controller Controller, optional byte iTeam, optional string Teleporter) {
 
-  local JBTagPlayer TagPlayer;
-
-  if (Controller != None)
-    TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-
-  if (TagPlayer == None)
-    Restart = 'Restart_Freedom';  // world spawn in offline games
-  else {
-    Restart = TagPlayer.GetRestart();
-    if (Restart == 'Restart_Arena')
-      ArenaRestart = TagPlayer.GetArenaRestart();
-    }
+  if (Controller == None)
+    TagPlayerRestart = None;
+  else
+    TagPlayerRestart = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
   
   return Super.FindPlayerStart(Controller, iTeam, Teleporter);
   }
@@ -225,27 +214,17 @@ function NavigationPoint FindPlayerStart(Controller Controller, optional byte iT
 
 function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Controller Controller) {
 
-  local JBInfoArena Arena;
+  if (TagPlayerRestart == None)
+    if (ContainsActorJail (NavigationPoint) ||
+        ContainsActorArena(NavigationPoint))
+      return -20000000;
+    else
+      return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
 
-  switch (Restart) {
-    case 'Restart_Freedom':
-      if (ContainsActorJail (NavigationPoint) ||
-          ContainsActorArena(NavigationPoint))
-        return -20000000;
-      break;
-
-    case 'Restart_Jail':
-      if (!ContainsActorJail(NavigationPoint))
-        return -20000000;
-      break;
-    
-    case 'Restart_Arena':
-      if (!ContainsActorArena(NavigationPoint, Arena) || Arena != ArenaRestart)
-        return -20000000;
-      break;
-    }
-
-  return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+  if (TagPlayerRestart.IsValidStart(NavigationPoint))
+    return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+  else
+    return -20000000;
   }
 
 
@@ -263,8 +242,7 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
 //
 // ============================================================================
 
-function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator,
-                          vector LocationHit, out vector MomentumHit,
+function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vector LocationHit, out vector MomentumHit,
                           Class<DamageType> ClassDamageType) {
 
   local JBTagPlayer TagPlayerInstigator;
@@ -307,7 +285,8 @@ function Killed(Controller ControllerKiller, Controller ControllerVictim, Pawn P
 
   local JBTagPlayer TagPlayerVictim;
   
-  TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
+  if (ControllerVictim != None)
+    TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
   if (TagPlayerVictim != None)
     TagPlayerVictim.TimeRestart = Level.TimeSeconds + 2.0;
   
@@ -690,7 +669,7 @@ function RestartAll() {
   firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
     nextTagPlayer = thisTagPlayer.nextTag;
-    thisTagPlayer.RestartFreedom();
+    thisTagPlayer.RestartInFreedom();
     }
   }
 
@@ -711,7 +690,7 @@ function RestartTeam(TeamInfo Team) {
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
     nextTagPlayer = thisTagPlayer.nextTag;
     if (thisTagPlayer.GetTeam() == Team)
-      thisTagPlayer.RestartFreedom();
+      thisTagPlayer.RestartInFreedom();
     }
   }
 
@@ -953,6 +932,7 @@ state MatchInProgress {
       return;
   
     Super.RestartPlayer(Controller);
+    TagPlayer.NotifyRestarted();
 
     if (Controller != None) {
       JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
@@ -1020,7 +1000,7 @@ state Executing {
       if (thisTagPlayer.TimeRestart <= Level.TimeSeconds &&
           thisTagPlayer.IsInJail() &&
           thisTagPlayer.GetController().Pawn == None)
-        thisTagPlayer.RestartFreedom();
+        thisTagPlayer.RestartInFreedom();
     }
 
 
@@ -1033,8 +1013,13 @@ state Executing {
 
   function RestartPlayer(Controller Controller) {
   
+    local JBTagPlayer TagPlayer;
+  
     if (CameraExecution != None)
       CameraExecution.ActivateFor(Controller);
+
+    TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+    TagPlayer.NotifyRestarted();
     }
 
 
