@@ -1435,12 +1435,11 @@ function ExecutionEnd()
 
 static function ResetViewTarget(PlayerController PlayerController)
 {
-  if (JBCamera(PlayerController.ViewTarget) != None) {
+  if (JBCamera(PlayerController.ViewTarget) != None)
     JBCamera(PlayerController.ViewTarget).DeactivateFor(PlayerController);
-  }
 
-  else if (PlayerController.ViewTarget != PlayerController &&
-           PlayerController.ViewTarget != PlayerController.Pawn) {
+  if (PlayerController.ViewTarget != PlayerController &&
+      PlayerController.ViewTarget != PlayerController.Pawn) {
 
     PlayerController.SetViewTarget(PlayerController.Pawn);
     PlayerController.bBehindView = False;
