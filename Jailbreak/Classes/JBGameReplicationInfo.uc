@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoGame
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoGame.uc,v 1.5 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBReplicationInfoGame.uc,v 1.6 2003/01/02 14:15:03 mychaeel Exp $
 //
 // Replicated information for a the entire game.
 // ============================================================================
@@ -29,7 +29,6 @@ var JBTagPlayer    firstTagPlayer;
 
 simulated event PostNetBeginPlay() {
 
-  local GameObjective thisObjective;
   local JBInfoArena thisArena;
   local JBInfoJail thisJail;
   
