@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamControllerArena
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamControllerArena.uc,v 1.1 2004/03/28 22:45:37 mychaeel Exp $
+// $Id$
 //
 // Camera trailing a given player and focusing on another player when that
 // player is visible.
@@ -51,13 +51,15 @@ function UpdateMovement(float TimeDelta)
 
   Alpha = FMin(1.0, TimeDelta * 3.0);
 
-  PawnPlayerFollowed = CameraArena.TagPlayerFollowed.GetPawn();
+  if (CameraArena.TagPlayerFollowed != None)
+    PawnPlayerFollowed = CameraArena.TagPlayerFollowed.GetPawn();
   if (PawnPlayerFollowed != None && CameraArena.TagPlayerFollowed.IsInArena())
     if (TimeDelta == 0.0)
            LocationPawnFollowed  =  PawnPlayerFollowed.Location;
       else LocationPawnFollowed += (PawnPlayerFollowed.Location - LocationPawnFollowed) * Alpha;
   
-  PawnPlayerOpponent = CameraArena.TagPlayerOpponent.GetPawn();
+  if (CameraArena.TagPlayerOpponent != None)
+    PawnPlayerOpponent = CameraArena.TagPlayerOpponent.GetPawn();
   if (PawnPlayerOpponent != None && CameraArena.TagPlayerOpponent.IsInArena())
     if (TimeDelta == 0.0)
            LocationPawnOpponent  =  PawnPlayerOpponent.Location;
