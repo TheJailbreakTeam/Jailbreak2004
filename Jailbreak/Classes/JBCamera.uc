@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.29 2004/04/21 17:10:55 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.30 2004/04/27 17:13:41 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -470,7 +470,7 @@ function ActivateFor(Controller Controller, optional bool bManual)
   }
 
   if (ControllerPlayer.ViewTarget != Self) {
-    ControllerPlayer.SetViewTarget      (Self);
+    ControllerPlayer.      SetViewTarget(Self);
     ControllerPlayer.ClientSetViewTarget(Self);
   }
 
@@ -513,12 +513,12 @@ function DeactivateFor(Controller Controller)
                  ListInfoViewer[iInfoViewer].ViewTargetPrev  != None)
       ViewTargetPrev = ListInfoViewer[iInfoViewer].ViewTargetPrev;
 
-    ControllerPlayer.SetViewTarget      (ViewTargetPrev);
-    ControllerPlayer.ClientSetViewTarget(ViewTargetPrev);
+    ControllerPlayer.SetViewTarget(ViewTargetPrev);
+    ControllerPlayer.SetFOVAngle  (ListInfoViewer[iInfoViewer].FieldOfViewPrev);
+    ControllerPlayer.bBehindView = ListInfoViewer[iInfoViewer].bBehindViewPrev;
     
-    ControllerPlayer.bBehindView =       ListInfoViewer[iInfoViewer].bBehindViewPrev;
-    ControllerPlayer.ClientSetBehindView(ListInfoViewer[iInfoViewer].bBehindViewPrev);
-    ControllerPlayer.SetFOVAngle        (ListInfoViewer[iInfoViewer].FieldOfViewPrev);
+    ControllerPlayer.ClientSetViewTarget(ControllerPlayer.ViewTarget);
+    ControllerPlayer.ClientSetBehindView(ControllerPlayer.bBehindView);
   }
 
   if (CamManager != None)
@@ -663,13 +663,18 @@ simulated event Tick(float TimeDelta)
 {
   local bool bIsActiveLocalNew;
   local int iInfoViewer;
+  local PlayerController ControllerPlayer;
 
   if (Role == ROLE_Authority)
-    for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--)
-      if (ListInfoViewer[iInfoViewer].Controller == None)
+    for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--) {
+      ControllerPlayer = ListInfoViewer[iInfoViewer].Controller;
+      if (ControllerPlayer == None)
         ListInfoViewer.Remove(iInfoViewer, 1);
-      else if (ListInfoViewer[iInfoViewer].Controller.ViewTarget != Self)
-        DeactivateFor(ListInfoViewer[iInfoViewer].Controller);
+      else if (ControllerPlayer.ViewTarget != Self)
+        DeactivateFor(ControllerPlayer);
+      else
+        ControllerPlayer.bBehindView = False;
+    }
 
   if (Level.NetMode != NM_DedicatedServer) {
     bIsActiveLocalNew = (Level.GetLocalPlayerController().ViewTarget == Self);
