@@ -1,9 +1,9 @@
 // ============================================================================
 // JBExecutionBasic
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionBasic.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
+// $Id: JBExecutionBasic.uc,v 1.2 2003/03/15 23:41:31 mychaeel Exp $
 //
-// Base of all triggered execution.
+// A basic execution.
 // ============================================================================
 class JBExecutionBasic extends JBExecution;
 
@@ -15,13 +15,13 @@ var() class<DamageType> DeathType;
 
 
 // ============================================================================
-// ExecutePlayer
+// Trigger
 //
-// Execute a player.
+// When this class are Triggered.
 // ============================================================================
-protected function ExecutePlayer(Controller Victim)
+function Trigger(Actor A, Pawn P)
 {
-    Victim.Pawn.Died(None, DeathType, vect(0,0,0));
+    ExecuteAllJailedPlayers(TRUE, DeathType);
 }
 
 
@@ -30,5 +30,5 @@ protected function ExecutePlayer(Controller Victim)
 // ============================================================================
 defaultproperties
 {
-    DeathType=Gibbed
+    DeathType=class'Gibbed'
 }

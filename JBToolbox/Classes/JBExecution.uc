@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecution
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecution.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
+// $Id: JBExecution.uc,v 1.2 2003/03/15 23:41:31 mychaeel Exp $
 //
 // Base of all triggered execution.
 // ============================================================================
@@ -11,7 +11,7 @@ class JBExecution extends Triggers abstract;
 // ============================================================================
 // Variables
 // ============================================================================
-var JBInfoJail TargetedJail;
+var private JBInfoJail TargetJail;
 
 
 // ============================================================================
@@ -23,7 +23,7 @@ function PostBeginPlay()
 {
     local JBInfoJail Jail;
 
-    foreach DynamicActors(class'JBInfoJail', Jail)
+    for(Jail=GetFirstJail(); Jail!=None; Jail=Jail.NextJail)
     {
         if(Jail != None)
         {
@@ -31,43 +31,53 @@ function PostBeginPlay()
             || (Jail.EventExecutionEnd == Tag)
             || (Jail.EventExecutionInit == Tag))
             {
-                TargetedJail = Jail;
+                TargetJail = Jail;
                 break;
             }
         }
     }
 
-    if(TargetedJail == None)
+    if(TargetJail == None)
     {
-        LOG("#####"@name@": targeted jail not found #####");
+        LOG("!!!!!"@name$".PostBeginPlay() : target jail not found !!!!!");
         Disable('Trigger');
     }
 }
 
 
 // ============================================================================
-// ExecutePlayer (implemented in sub-class)
+// ExecuteJailedPlayer (implemented in sub-class)
 //
 // Execute a player.
 // ============================================================================
-protected function ExecutePlayer(Controller Victim);
+function ExecuteJailedPlayer(Pawn Victim);
 
 
 // ============================================================================
-// SeekJailedPlayerForExecution
+// ExecuteAllJailedPlayers
 //
-// Seek all players jailed in the targeted jail and execute this players.
+// Seek all jailed players in the target jail and execute this players.
+// Possible to kill this players now.
 // ============================================================================
-event SeekJailedPlayerForExecution()
+event ExecuteAllJailedPlayers(optional bool bInstantKill, optional class<DamageType> KillType)
 {
     local JBTagPlayer JailedPlayer;
+    local Controller JailedController;
 
-    foreach DynamicActors(class'JBTagPlayer', JailedPlayer)
-        if(JailedPlayer != None)
-            if(JailedPlayer.GetController() != None)
-                if(JailedPlayer.GetController().Pawn != None)
-                    if(JailedPlayer.GetJail() == TargetedJail)
-                        ExecutePlayer(JailedPlayer.GetController());
+    for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
+    {
+        if((JailedPlayer != None)
+        && (JailedPlayer.GetJail() == TargetJail))
+        {
+            JailedController = JailedPlayer.GetController();
+            if((JailedController != None)
+            && (JailedController.Pawn != None))
+            {
+                if(bInstantKill) JailedController.Pawn.Died(None, KillType, vect(0,0,0));
+                else ExecuteJailedPlayer(JailedController.Pawn);
+            }
+        }
+    }
 }
 
 
@@ -78,8 +88,50 @@ event SeekJailedPlayerForExecution()
 // ============================================================================
 function Trigger(Actor A, Pawn P)
 {
-    SeekJailedPlayerForExecution();
+    ExecuteAllJailedPlayers();
 }
+
+
+// ============================================================================
+// GiveDamagerTo
+//
+// Give damager to a player.
+// ============================================================================
+final function GiveDamagerTo(Pawn Victim, class<JBDamager> DamagerType)
+{
+    local JBDamager Damager;
+
+    Damager = Spawn(DamagerType);
+    if(Damager != None) Damager.Victim = Victim;
+}
+
+
+// ============================================================================
+// DestroyAllDamager
+//
+// Destroy all damager.
+// ============================================================================
+final function DestroyAllDamager()
+{
+    local JBDamager Damager;
+
+    foreach DynamicActors(class'JBDamager', Damager)
+        if(Damager != None)
+            Damager.Destroy();
+}
+
+
+// ============================================================================
+// Accessors
+// ============================================================================
+simulated final function JBInfoJail GetFirstJail() {
+    return (JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstJail); }
+simulated final function JBTagPlayer GetFirstTagPlayer() {
+    return (JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstTagPlayer); }
+simulated final function JBInfoJail GetTargetJail() {
+    return (TargetJail); }
+final function bool HasSkelete(Pawn P) {
+    return ((P.IsA('xPawn')) && (xPawn(P).SkeletonMesh != None)); }
 
 
 // ============================================================================

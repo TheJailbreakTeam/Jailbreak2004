@@ -1,12 +1,12 @@
 // ============================================================================
-// JBExecutionDepressurized
+// JBExecutionDepressurize
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurized.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
+// $Id: JBExecutionDepressurize.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
 // ============================================================================
-class JBExecutionDepressurized extends JBExecution;
+class JBExecutionDepressurize extends JBExecution;
 
 
 // ============================================================================
@@ -14,8 +14,11 @@ class JBExecutionDepressurized extends JBExecution;
 // ============================================================================
 var() float DepressurizeTime;
 var() float DepressurizeToHeadScale;
+var() float DepressurizeStartFogScale;
+var() float DepressurizeToFogScale;
 var() sound DepressurizeAmbientSound;
-var float DepressurizedFOV;
+var() vector DepressurizeToFog;
+var float DepressurizeToFOV;
 var float TimePassed;
 
 
@@ -44,9 +47,9 @@ function MakeNormal(Pawn DepressurizedPawn)
 
     DepressurizedPawn.SetHeadScale(1.0);
 
-    if(DepressurizedPawn.Controller != None)
-        if(DepressurizedPawn.Controller.IsA('PlayerController'))
-            PlayerController(DepressurizedPawn.Controller).SetFOVAngle(PlayerController(DepressurizedPawn.Controller).Default.FOVAngle);
+    if((DepressurizedPawn.Controller != None)
+    && (DepressurizedPawn.Controller.IsA('PlayerController')))
+        PlayerController(DepressurizedPawn.Controller).SetFOVAngle(PlayerController(DepressurizedPawn.Controller).Default.FOVAngle);
 }
 
 
@@ -61,41 +64,42 @@ function Tick(float DeltaTime)
     local Pawn DepressurizePawn;
     local PlayerController DepressurizePlayer;
     local float ratio;
+    local float FogScale;
+    local vector Fog;
 
     TimePassed += DeltaTime;
     ratio = TimePassed/DepressurizeTime;
     if(ratio > 1.0) ratio = 1.0;
 
-    foreach DynamicActors(class'JBTagPlayer', JailedPlayer)
+    for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
-        if(JailedPlayer != None)
+        if((JailedPlayer != None)
+        && (JailedPlayer.GetJail() == GetTargetJail())
+        && (JailedPlayer.GetController() != None)
+        && (JailedPlayer.GetController().Pawn != None))
         {
-            if(JailedPlayer.GetController() != None)
+            DepressurizePawn = JailedPlayer.GetController().Pawn;
+            DepressurizePawn.SetHeadScale(1 + (DepressurizeToHeadScale-1) * ratio);
+
+            // pain screem :(
+            if((ratio > 0.1)
+            && (ratio < 0.9) // make sure to hear the gib sound
+            && (FRand() < 0.03))
+                DepressurizePawn.PlayDyingSound();
+
+            if(DepressurizePawn.Controller.IsA('PlayerController'))
             {
-                if(JailedPlayer.GetController().Pawn != None)
-                {
-                    if(JailedPlayer.GetJail() == TargetedJail)
-                    {
-                        DepressurizePawn = JailedPlayer.GetController().Pawn;
-                        DepressurizePawn.SetHeadScale(1 + (DepressurizeToHeadScale-1) * ratio);
+                DepressurizePlayer = PlayerController(DepressurizePawn.Controller);
+                FogScale = (DepressurizeToFogScale-DepressurizeStartFogScale)*ratio + DepressurizeStartFogScale;
+                Fog = (DepressurizeToFog*ratio)*1000;
+                DepressurizePlayer.ClientFlash(FogScale, Fog);
+                DepressurizePlayer.SetFOVAngle((DepressurizeToFOV-DepressurizePlayer.default.FOVAngle)*ratio + DepressurizePlayer.default.FOVAngle);
+            }
 
-                        if(DepressurizePawn.Controller != None)
-                        {
-                            if(DepressurizePawn.Controller.IsA('PlayerController'))
-                            {
-                                DepressurizePlayer = PlayerController(DepressurizePawn.Controller);
-                                DepressurizePlayer.SetFOVAngle((DepressurizedFOV-DepressurizePlayer.default.FOVAngle)*ratio + DepressurizePlayer.default.FOVAngle);
-                            }
-                        }
-
-                        if(ratio == 1.0)
-                        {
-                            SeekJailedPlayerForExecution();
-                            if(AmbientSound != None)
-                                AmbientSound = None;
-                        }
-                    }
-                }
+            if(ratio == 1.0)
+            {
+                ExecuteAllJailedPlayers();
+                if(AmbientSound != None) AmbientSound = None;
             }
         }
     }
@@ -109,14 +113,14 @@ function Tick(float DeltaTime)
 
 
 // ============================================================================
-// ExecutePlayer
+// ExecuteJailedPlayer
 //
 // Execute a player.
 // ============================================================================
-protected function ExecutePlayer(Controller Victim)
+function ExecuteJailedPlayer(Pawn Victim)
 {
-    MakeNormal(Victim.Pawn);
-    Victim.Pawn.Died(None, class'Depressurized', vect(0,0,0));
+    MakeNormal(Victim); // before dead for make sure to spawn normal gib
+    Victim.Died(None, class'Depressurized', vect(0,0,0));
 }
 
 
@@ -129,19 +133,22 @@ function Trigger(Actor A, Pawn P)
 {
 //    Super.Trigger(A, P); -> don't execute now all jailed players!
 
-    TimePassed = 0;
     Disable('Trigger');
+    TimePassed = 0;
+    if(DepressurizeAmbientSound != None) AmbientSound = DepressurizeAmbientSound;
     Enable('Tick');
-    if(DepressurizeAmbientSound != None)
-        AmbientSound = DepressurizeAmbientSound;
 }
+
 
 // ============================================================================
 // Default properties
 // ============================================================================
 defaultproperties
 {
-    DepressurizedFov=150
-    DepressurizeTime=2.5
-    DepressurizeToHeadScale=2.5
+    DepressurizeTime=2.500000
+    DepressurizeToHeadScale=2.500000
+    DepressurizeStartFogScale=2.000000
+    DepressurizeToFog=(X=1000,Y=0,Z=0)
+    DepressurizeToFogScale=0.250000
+    DepressurizeToFov=150
 }
