@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.33 2004/05/31 18:15:45 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.34 2004/06/01 12:38:18 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -128,14 +128,11 @@ var private MotionBlur CameraEffectMotionBlur;   // MotionBlur object in use
 // ============================================================================
 // PostBeginPlay
 //
-// Initializes the camera array, if any. On clients, loads the caption font. 
+// Initializes the camera array, if any.
 // ============================================================================
 
 simulated event PostBeginPlay()
 {
-  if (Level.NetMode != NM_DedicatedServer)
-    Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
-
   if (CamController == None)
     CamController = new ClassCamController;
 
@@ -772,9 +769,14 @@ simulated function RenderOverlayCaption(Canvas Canvas)
   local vector SizeCaption;
   local vector LocationCaption;
 
-  if (Caption.Text == "" ||
-      Caption.FontObject == None)
+  if (Caption.Text == "")
     return;
+
+  if (Caption.FontObject == None) {
+    Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
+    if (Caption.FontObject == None)
+      Caption.FontObject = Font'DefaultFont';
+  }
 
   Canvas.Font = Caption.FontObject;
   Canvas.TextSize(Caption.Text, SizeCaption.X, SizeCaption.Y);
