@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonCelebration.uc,v 1.3 2004/05/11 08:47:58 wormbo Exp $
+// $Id: JBAddonCelebration.uc,v 1.4 2004/05/26 12:00:31 wormbo Exp $
 //
 // The Celebration Screen add-on for Jailbreak.
 //=============================================================================
@@ -39,20 +39,20 @@ simulated function InitAddon()
 
 
 //=============================================================================
-// GetRandomCapturedMessage
+// GetCapturedMessage
 //
-// Returns a random message for the specified player and team.
+// Returns a capture message for the specified player and team.
 //=============================================================================
 
-static function string GetRandomCapturedMessage(PlayerReplicationInfo PRI, TeamInfo Team)
+static function string GetCapturedMessage(PlayerReplicationInfo PRI, TeamInfo Team, int DesiredMessageIndex)
 {
   local string CapturedMessage;
   local string TeamName;
   
   if ( PRI.Team == Team )
-    CapturedMessage = default.CapturedSelfMessage[Rand(default.NumCapturedSelfMessages)];
+    CapturedMessage = default.CapturedSelfMessage[DesiredMessageIndex % default.NumCapturedSelfMessages];
   else
-    CapturedMessage = default.CapturedOtherMessage[Rand(default.NumCapturedOtherMessages)];
+    CapturedMessage = default.CapturedOtherMessage[DesiredMessageIndex % default.NumCapturedOtherMessages];
   
   StaticReplaceText(CapturedMessage, "%p", PRI.PlayerName);
   

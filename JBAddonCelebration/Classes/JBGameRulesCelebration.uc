@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesCelebration.uc,v 1.5 2004/05/26 14:28:06 wormbo Exp $
+// $Id: JBGameRulesCelebration.uc,v 1.6 2004/05/30 22:20:26 wormbo Exp $
 //
 // The JBGameRules class for the Celebration Screen used to get Jailbreak
 // notifications.
@@ -47,6 +47,7 @@ var TeamInfo CapturedTeam;
 var TRepTaunt ReplicatedTaunt;
 var int ClientTauntNum;
 var name ClientTauntAnim;
+var int NextCaptureMessage;
 
 var JBInteractionCelebration CelebrationInteraction;
 
@@ -58,7 +59,7 @@ var JBInteractionCelebration CelebrationInteraction;
 replication
 {
   reliable if ( Role == ROLE_Authority )
-    bInExecutionSequence, LastKillerInfo, CapturedTeam, ReplicatedTaunt;
+    bInExecutionSequence, LastKillerInfo, CapturedTeam, ReplicatedTaunt, NextCaptureMessage;
   
   unreliable if ( Role < ROLE_Authority )
     ServerSetTauntAnim;
@@ -97,6 +98,8 @@ function BeginPlay()
     Level.Game.GameRulesModifiers = self;
   else
     Level.Game.GameRulesModifiers.AddGameRules(self);
+  
+  NextCaptureMessage = Rand(ArrayCount(class'JBAddonCelebration'.default.CapturedOtherMessage));
 }
 
 
@@ -168,8 +171,8 @@ simulated event PostNetReceive()
       if ( LastKillerInfo.PRI != None ) {
         CelebrationInteraction.SetupPlayerMesh(LastKillerInfo);
         if ( CapturedTeam != None )
-          CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetRandomCapturedMessage(
-             LastKillerInfo.PRI, CapturedTeam);
+          CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetCapturedMessage(
+             LastKillerInfo.PRI, CapturedTeam, NextCaptureMessage);
       }
     }
   }
@@ -177,8 +180,8 @@ simulated event PostNetReceive()
     CelebrationInteraction.SetupPlayerMesh(LastKillerInfo);
   }
   else if ( CelebrationInteraction.CaptureMessage == "" && LastKillerInfo.PRI != None && CapturedTeam != None )
-    CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetRandomCapturedMessage(
-        LastKillerInfo.PRI, CapturedTeam);
+    CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetCapturedMessage(
+        LastKillerInfo.PRI, CapturedTeam, NextCaptureMessage);
   
   if ( ReplicatedTaunt.Counter > ClientTauntNum ) {
     ClientTauntNum = ReplicatedTaunt.Counter;
@@ -252,6 +255,8 @@ function NotifyExecutionEnd()
   Super.NotifyExecutionEnd();
   if ( Level.NetMode != NM_DedicatedServer )
     PostNetReceive();
+  
+  NextCaptureMessage = Rand(ArrayCount(class'JBAddonCelebration'.default.CapturedOtherMessage));
 }
 
 
