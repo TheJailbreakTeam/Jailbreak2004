@@ -23,6 +23,7 @@ var() const editconst string Build;
 // ============================================================================
 
 var config bool bEnableJailFights;
+var config bool bEnableScreens;
 var config bool bEnableSpectatorDeathCam;
 
 var config string WebScoreboardClass;
@@ -1543,7 +1544,10 @@ defaultproperties
   WebScoreboardPath  = "/scoreboard";
 
   bEnableJailFights        = True;
+  bEnableScreens           = True;
   bEnableSpectatorDeathCam = True;
+
+  GoalScore                = 5;
 
   Acronym                  = "JB";
   MapPrefix                = "JB";
