@@ -1,13 +1,13 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.2 2002/11/17 11:11:18 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
 
 
-class JBReplicationInfoTeam extends UnrealTeamInfo
+class JBReplicationInfoTeam extends xTeamRoster
   notplaceable;
 
 
