@@ -1,4 +1,4 @@
-; $Id$
+; $Id: JBVoiceLlama.int,v 1.1 2004/05/25 12:16:55 mychaeel Exp $
 
 [Public]
 Object=(Name=JBVoiceLlama,Class=Class,MetaClass=Jailbreak.JBVoice,Description="Llama")
@@ -20,6 +20,7 @@ ArenaWarning="ArenaWarning"
 ArenaEndTimeout="ArenaEndLoser"
 ArenaEndWinner="ArenaEndWinner"
 ArenaEndLoser="ArenaEndLoser"
+GameOvertime="GameOvertime"
 GameOverWinnerRed="$TeamRed GameOverTeam"
 GameOverWinnerBlue="$TeamBlue GameOverTeam"
 AddonLlamaStart="LlamaStart"
