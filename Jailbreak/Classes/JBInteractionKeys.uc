@@ -115,13 +115,20 @@ event Initialized()
     }
   }
 
+  bIsKeyUnknown[EInputKey.IK_Select   ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Print    ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Execute  ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_PrintScrn] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Help     ] = byte(True);
+  bIsKeyUnknown[EInputKey.IK_Separator] = byte(True);
+
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++) {
     if (Bindings[iBinding].bIsBoundConfig)
       continue;
     
     iKeyAuto = Bindings[iBinding].iKeyPreferred;
     if (bool(bIsKeyBound[iKeyAuto]))
-      for (iKeyAuto = EInputKey.IK_0; iKeyAuto <= EInputKey.IK_F12; iKeyAuto++)
+      for (iKeyAuto = EInputKey.IK_Escape; iKeyAuto <= EInputKey.IK_F12; iKeyAuto++)
         if (!bool(bIsKeyBound  [iKeyAuto]) &&
             !bool(bIsKeyUnknown[iKeyAuto]))
           break;
