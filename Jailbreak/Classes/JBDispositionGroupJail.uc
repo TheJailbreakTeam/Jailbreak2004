@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupJail.uc,v 1.2 2003/01/13 20:30:43 mychaeel Exp $
+// $Id: JBDispositionGroupJail.uc,v 1.3 2003/01/19 22:01:28 mychaeel Exp $
 //
 // Manages the icons of jailed players on a team, arranging them in the circle
 // displayed next to the team status widget.
@@ -34,18 +34,18 @@ const LocationCenterY = 0.047;
 // Variables
 // ============================================================================
 
-var TFormation Formation[6];     // icon formations for up to six players
+var TFormation Formation[6];         // icon formations
 
-var string FontCounter;          // font for counter for more than six players
-var float ScaleCounter;          // relative font scale
-var vector LocationCounter;      // relative location of counter
-var Color ColorCounter[2];       // team colors for counter
+var string FontCounter;              // font for counter for six or more icons
+var float ScaleCounter;              // relative font scale
+var vector LocationCounter;          // relative location of counter
+var Color ColorCounter[2];           // team colors for counter
 
 var private float FadeCounter;       // transparency of counter
 var private string TextCounter;      // last displayed counter text
 var private Font FontObjectCounter;  // loaded font object
 
-function recount();
+
 // ============================================================================
 // Initialize
 //
