@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.9 2004/05/31 11:14:57 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.10 2004/05/31 21:02:50 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -349,7 +349,7 @@ simulated function RenderOverlays(Canvas C)
     else
       LlamaArrows[i].DrawArrow(C);
     
-    if ( LlamaArrows[i].LlamaTag != None && LlamaArrows[i].LlamaTag != LocalLlamaTag
+    if ( ShouldDisplayLlamaCompass() && LlamaArrows[i].LlamaTag != None && LlamaArrows[i].LlamaTag != LocalLlamaTag
         && LlamaArrows[i].LlamaTag.TagPlayer != None ) {
       AngleDot = ((rotator(LlamaArrows[i].LlamaTag.TagPlayer.GetLocationPawn() - LocationOwner).Yaw - JailbreakHUD.PlayerOwner.Rotation.Yaw) & 65535) * Pi / 32768;
       LlamaCompassDot.PosX = LlamaCompassIconBG.PosX + 0.0305 * Sin(AngleDot) * JailbreakHUD.HudScale;
@@ -401,6 +401,9 @@ simulated function bool ShouldDisplayLlamaCompass()
   local int i;
   
   CleanArrowList();
+  
+  if ( JailbreakHUD == None || !JailbreakHUD.bShowPoints )
+    return false;
   
   if ( LocalLlamaTag != None )
     return true;
