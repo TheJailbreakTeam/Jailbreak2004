@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.1.2.6 2004/05/20 12:24:41 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.1.2.7 2004/05/20 17:58:15 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -193,6 +193,16 @@ event bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float 
     }
   }
   
+  if (bVisible && TimeFadeoutDialog == 0.0) {
+    Key   = PlayerController.ConsoleCommand("KeyName"    @ InputKey);
+    Alias = PlayerController.ConsoleCommand("KeyBinding" @      Key);
+
+    if (InStr(Caps(Alias), "FIRE") >= 0) {
+      TimeFadeoutDialog = PlayerController.Level.TimeSeconds;
+      return True;
+    }
+  }
+
   return False;
 }
 
@@ -242,13 +252,10 @@ event PostRender(Canvas Canvas)
   PlayerController = ViewportOwner.Actor;
   GUIController = GUIController(ViewportOwner.GUIController);
 
-  TimeCurrent = PlayerController.Level.TimeSeconds;
-  if (bool(PlayerController.bFire) && TimeFadeoutDialog == 0.0)
-    TimeFadeoutDialog = TimeCurrent;
-
   if (PlayerController.myHUD.bShowScoreBoard)
     return;
 
+  TimeCurrent = PlayerController.Level.TimeSeconds;
   if (TimeFadeoutDialog == 0.0)
          Alpha =           1.0;
     else Alpha = FMax(0.0, 1.0 - (TimeCurrent - TimeFadeoutDialog) * 2.0);
