@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.5.2.1 2004/05/11 11:16:53 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.5.2.2 2004/05/31 19:55:00 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -17,14 +17,7 @@ class JBGameRulesLlamaHunt extends JBGameRules;
 var private array<JBTagPlayer> PlayersKilledByLlama;  // list of players recently killed by a llama
 var private PlayerController   LlamaSuicidedLast;     // a llama dying through 'Suicided' might try to reconnect
 
-
-//=============================================================================
-// delegate OnLlamaReconnect
-//
-// Called when a llama reconnects to get out of jail.
-//=============================================================================
-
-delegate OnLlamaReconnect(PlayerController ControllerPlayer);
+var JBAddonLlama MyLlamaAddon;
 
 
 //=============================================================================
@@ -96,8 +89,8 @@ function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsL
 
 function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 {
-  if ( bIsLlama )
-    OnLlamaReconnect(ControllerPlayer);
+  if ( bIsLlama && MyLlamaAddon != None )
+    MyLlamaAddon.Llamaize(ControllerPlayer);
   
   Super.NotifyPlayerReconnect(ControllerPlayer, bIsLlama);
 }
