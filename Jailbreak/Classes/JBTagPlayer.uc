@@ -313,6 +313,12 @@ event Tick(float TimeDelta)
 
     Pawn.bCanBeBaseForPawns = Pawn.bIsCrouched;
     bCanBeBaseForPawns = Pawn.bCanBeBaseForPawns;
+
+    // As the player has now restarted, make sure that the next game-induced
+    // restart sends him to a random starting spot in jail.
+  
+    Restart    = Default.Restart;
+    TagRestart = Default.TagRestart;
   }
 }
 
@@ -789,11 +795,9 @@ private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferr
   TimeRestart = Level.TimeSeconds;
   Level.Game.RestartPlayer(Controller);
 
-  if (Controller.Pawn == None)
-    return;  // try again later
-
-  Restart = Restart_Jail;
-  TagRestart = '';
+  // The values of Restart and TagRestart are reset in the Tick event as soon
+  // as the player has a Pawn. Works around problems when a player is unable to
+  // spawn because there are not enough PlayerStarts available in the map.
 }
 
 
