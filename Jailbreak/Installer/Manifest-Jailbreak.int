@@ -9,8 +9,8 @@ Developer=Jailbreak Team
 DeveloperURL=http://www.planetjailbreak.com
 Logo=Help\Jailbreak.bmp
 
-[RequirementUT2004]
-LocalProduct=UT2004
+[RequirementUT2003]
+LocalProduct=UT2003
 ProductURL=http://www.unrealtournament.com
 VersionURL=http://unreal.epicgames.com
 Developer=Epic Games, Inc.

@@ -5,7 +5,7 @@
 #  make-distribution-int.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id$
+#  $Id: make-distribution.pl,v 1.1 2004/04/24 22:22:07 mychaeel Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
