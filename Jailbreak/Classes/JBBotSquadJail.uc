@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.10 2003/03/23 09:50:14 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.11 2003/06/15 14:32:14 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -16,6 +16,13 @@ class JBBotSquadJail extends DMSquad
 // ============================================================================
 
 var localized string TextJailed;
+
+
+// ============================================================================
+// Variables
+// ============================================================================
+
+var float TimeStartFighting;  // delay bot engaging in jail fight
 
 
 // ============================================================================
@@ -43,7 +50,7 @@ function AddBot(Bot Bot) {
 function RemoveBot(Bot Bot) {
 
   Super.RemoveBot(Bot);
-  StopFighting(Bot);
+  StopFighting(Bot, True);
   }
 
 
@@ -94,14 +101,24 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy) {
     if (IsPlayerFighting(Bot))
       return Super.SetEnemy(Bot, PawnEnemy);
 
-    if (CanPlayerFight(Bot) && CountPlayersFighting(TagPlayerBot.GetJail()) < 2) {
+    if (Bot(ControllerEnemy) == None &&
+        CanPlayerFight(Bot)          &&
+        CountPlayersFighting(TagPlayerBot.GetJail()) < 2) {
+
+      if (TimeStartFighting == 0.0)
+        TimeStartFighting = Level.TimeSeconds + RandRange(1.0, 3.0);
+
+      if (TimeStartFighting > Level.TimeSeconds)
+        return False;
       StartFighting(Bot);
       return Super.SetEnemy(Bot, PawnEnemy);
       }
+    
+    TimeStartFighting = 0.0;
     }
 
   if (Bot.Enemy == None && IsPlayerFighting(Bot))
-    Bot.Pawn.SwitchToLastWeapon();
+    StopFighting(Bot, True);
 
   return False;
   }
@@ -246,12 +263,16 @@ static function StartFighting(Bot Bot) {
 // ============================================================================
 // StopFighting
 //
-// Makes the given bot stop jail-fighting.
+// Makes the given bot stop jail-fighting. Optionally also tries to switch the
+// bot's weapon back to its previous weapon.
 // ============================================================================
 
-static function StopFighting(Bot Bot) {
+static function StopFighting(Bot Bot, optional bool bSwitchWeapon) {
 
   local JBInventoryJail InventoryJail;
+
+  if (JBBotSquadJail(Bot.Squad) != None)
+    JBBotSquadJail(Bot.Squad).TimeStartFighting = 0.0;
 
   Bot.LoseEnemy();
   Bot.Aggressiveness = Bot.BaseAggressiveness;
@@ -261,7 +282,10 @@ static function StopFighting(Bot Bot) {
 
   InventoryJail = JBInventoryJail(Bot.Pawn.FindInventoryType(Class'JBInventoryJail'));
   if (InventoryJail != None)
-    Bot.Pawn.DeleteInventory(InventoryJail);
+    InventoryJail.Destroy();
+
+  if (bSwitchWeapon)
+    Bot.Pawn.SwitchToLastWeapon();
   }
 
 
