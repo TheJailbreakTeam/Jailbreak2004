@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCameraArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCameraArena.uc,v 1.4 2004/05/31 14:53:29 mychaeel Exp $
+// $Id: JBCameraArena.uc,v 1.5 2004/05/31 18:15:45 mychaeel Exp $
 //
 // Arena follower camera which tracks the arena opponent. Destroys itself when
 // the trailed player dies or is respawned or when the last viewer is gone.
@@ -111,6 +111,9 @@ auto state Active
 
 state Finished
 {
+  ignores IsViewerAllowed;  // no viewers accepted in this state
+
+
   // ================================================================
   // State Code
   // ================================================================
@@ -130,19 +133,8 @@ state Finished
 
 state Deactivate
 {
-  ignores Tick;  // implicit deactivation by DeactivateFor fails
-  
-
-  // ================================================================
-  // IsViewerAllowed
-  //
-  // Does not accept any more viewers while pending destruction.
-  // ================================================================
-
-  function bool IsViewerAllowed(Controller Controller)
-  {
-    return False;
-  }
+  ignores IsViewerAllowed;  // no viewers accepted in this state
+  ignores Tick;             // implicit deactivation by DeactivateFor fails
 
 
   // ================================================================
