@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBMutatorDebug.uc,v 1.1 2003/02/16 16:35:34 mychaeel Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -67,7 +67,8 @@ function Mutate(string TextMutate, PlayerController Sender) {
   local string TextFlag;
   local string TextName;
   local string TextTeam;
-  
+  local Controller thisController;
+    
   Super.Mutate(TextMutate, Sender);
   
   TextCommand = GetParam(TextMutate);
@@ -85,6 +86,16 @@ function Mutate(string TextMutate, PlayerController Sender) {
     TextName = GetParam(TextMutate);
 
     JBGameRulesDebug.ExecCanBeJailed(TextName, TextFlag ~= "On");
+    }
+
+  else if (TextCommand ~= "KillPlayer") {
+    TextName = GetParam(TextMutate);
+    
+    for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+      if (thisController.Pawn != None &&
+          thisController.PlayerReplicationInfo != None &&
+          thisController.PlayerReplicationInfo.PlayerName ~= TextName)
+        thisController.Pawn.GibbedBy(Sender);
     }
   }
 
