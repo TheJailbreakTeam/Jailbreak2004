@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.33 2003/06/06 07:57:20 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.34 2003/06/14 21:52:31 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -195,7 +195,7 @@ function Register() {
   TimeElapsedConnect += Level.Game.GameReplicationInfo.ElapsedTime - TimeElapsedDisconnect;
   PlayerReplicationInfo(Keeper).StartTime = TimeElapsedConnect;
 
-  if (Jailbreak(Level.Game).firstJBGameRules != None && TimeElapsedDisconnect > 0)
+  if (TimeElapsedDisconnect > 0 && Jailbreak(Level.Game).firstJBGameRules != None)
     Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReconnect(PlayerController(Controller), bIsLlama);
 
   if (PlayerController(Controller) != None)
@@ -214,10 +214,15 @@ function Register() {
 
 function Unregister() {
 
-  Disable('Tick');
-  SetTimer(0.0, False);  // stop timer
+  local byte bIsLlamaByte;
 
   bIsLlama = !IsFree();
+  bIsLlamaByte = byte(bIsLlama);  // out parameters cannot be bool
+
+  if (PlayerController(Controller) != None && Jailbreak(Level.Game).firstJBGameRules != None)
+    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerDisconnect(PlayerController(Controller), bIsLlamaByte);
+  
+  bIsLlama = bool(bIsLlamaByte);
 
   Arena        = None;
   ArenaRestart = None;
@@ -236,6 +241,9 @@ function Unregister() {
   InfoScore.HeadCount   = TeamPlayerReplicationInfo(Keeper).HeadCount;
 
   TimeElapsedDisconnect = Level.Game.GameReplicationInfo.ElapsedTime;
+
+  Disable('Tick');
+  SetTimer(0.0, False);  // stop timer
 
   Super.Unregister();
   }

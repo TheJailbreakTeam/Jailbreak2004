@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.2 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.3 2003/02/08 22:44:22 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -35,9 +35,24 @@ function NotifyRound() {
 
 
 // ============================================================================
+// NotifyPlayerDisconnect
+//
+// Called when a human player disconnects from an ongoing match. The bIsLlama
+// parameter can be set to indicate that this player should be considered a
+// llama the next time he or she rejoins the game.
+// ============================================================================
+
+function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsLlama) {
+
+  if (nextJBGameRules != None)
+    nextJBGameRules.NotifyPlayerDisconnect(ControllerPlayer, bIsLlama);
+  }
+
+
+// ============================================================================
 // NotifyPlayerReconnect
 //
-// Called when a player reconnects to an ongoing match after having
+// Called when a human player reconnects to an ongoing match after having
 // disconnected from it before. Not called for a player's initial connection
 // to a game. The bIsLlama parameter tells whether the player left within the
 // same round they reconnected and was in jail when they disconnected.
