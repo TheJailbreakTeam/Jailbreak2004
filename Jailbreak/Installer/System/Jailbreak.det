@@ -1,0 +1,147 @@
+[JBBotSquadArena]
+TextArena="kämpft in der Arena"
+
+[JBBotSquadJail]
+TextJailed="gefangen"
+
+[JBGUICustomHUDMenu]
+WindowName="Jailbreak-Client-Optionen"
+CancelButton.Caption="Abbrechen"
+CancelButton.Hint="Hier klicken, um das Dialogfeld ohne Speicherung der Änderungen zu schließen."
+EnableScreens.Caption="Dynamische Texturen aktivieren"
+EnableScreens.Hint="Dynamische Texturen anzeigen, die in manchen Jailbreak-Levels verwendet werden. Abschalten dieser Option kann Ihre Framerate verbessern."
+OkButton.Caption="OK"
+OkButton.Hint="Hier klicken, um das Dialogfeld zu schließen und alle Änderungen zu speichern."
+ResetButton.Caption="Vorgaben"
+ResetButton.Hint="Alle Einstellungen auf ihre Vorgaben zurücksetzen."
+VoicePack.Caption="Sprachpaket"
+VoicePack.Hint="Sprachpaket, das für Jailbreak-Sprachmitteilungen verwendet wird."
+
+[JBGUIHook]
+TextCaptionGoalScore="Runden-Limit"
+TextCaptionAddons="Add-Ons"
+TextHintAddons="Jailbreak-Add-Ons auswählen und konfigurieren..."
+
+[JBGUITabPanelAddons]
+TextHintReset="Einstellungen für %addon% auf ihre Vorgaben zurücksetzen."
+GUIButtonConfigResetDef.Caption="Vorgaben"
+GUIButtonConfigResetDef.Hint="Einstellungen dieses Add-Ons auf ihre Vorgaben zurücksetzen."
+GUIButtonDownloadAddonsDef.Caption="Mehr Add-Ons!"
+GUIButtonDownloadAddonsDef.Hint="Öffnet die Add-On-Download-Seite auf PlanetJailbreak in einem Web-Browser."
+GUILabelConfigDefaultDef.Caption="Dieses Add-On hat keine Einstellungen."
+
+[JBInteractionKeys]
+TextDialogTitle="Vorübergehende Tastenzuordnungen"
+TextDialogTopS="Jailbreak hat vorübergehend folgende Tastenzuordnung für Sie eingerichtet:"
+TextDialogTopP="Jailbreak hat vorübergehend folgende Tastenzuordnungen für Sie eingerichtet:"
+TextDialogBottomS="Sie können über die Steuerungs-Einstellungen eine andere Zuordnung für diese Funktion festlegen."
+TextDialogBottomP="Sie können über die Steuerungs-Einstellungen eine andere Zuordnung für diese Funktionen festlegen."
+TextDialogClose="Zum Schließen FEUER drücken"
+TextDescription=("Team-Taktik aggressiver machen.","Team-Taktik defensiver machen.","Team-Taktik automatisch einstellen.","Arena-Live-Übertragung aktivieren.")
+
+[JBInteractionPanorama]
+TextInstructionsHidden="Umschalt+H drücken, um Hilfe anzuzeigen."
+TextInstructions[0]="EINSTELLUNGSMODUS FÜR SCOREBOARD-ÜBERSICHTSKARTE"
+TextInstructions[3]="SCHRITT 1: Richten Sie die Kamera so aus, dass Sie einen guten Blick auf das ganze Level haben."
+TextInstructions[4]="           Umschalt+GrauPlus und Umschalt+GrauMinus zoomen ein und aus; Umschalt+GrauStern setzt zurück."
+TextInstructions[6]="SCHRITT 2: Drücken Sie Umschalt+S, um ein Bildschirmfoto an der aktuellen Position zu machen."
+TextInstructions[7]="           Drücken Sie Umschalt+C, um einen voreingestellten JBPanorama-Aktor in die Zwischenablage zu kopieren."
+TextInstructions[9]="SCHRITT 3: Verwenden Sie das Bildschirmfoto, um eine Textur mit einer Übersichtskarte Ihres Levels zu erstellen."
+TextInstructions[10]="          Importieren Sie die Textur in das MyLevel-Paket Ihres Levels."
+TextInstructions[11]="          Laden Sie Jailbreak.u und fügen Sie den JBPanorama-Aktor aus der Zwischenablage in Ihr Level ein."
+TextInstructions[12]="          Setzen Sie die TexturePanorama-Eigenschaft des Aktors auf Ihre importierte Übersichtskarten-Textur."
+TextInstructions[15]="Drücken Sie Umschalt+H, um diese Hilfe auszublenden."
+TextInstructions[16]="Drücken Sie Umschalt+X, um den Einstellungsmodus zu verlassen."
+TextStatusCopy="JBPanorama-Aktor wurde in die Zwischenablage kopiert."
+TextStatusScreenshot="Bildschirmfoto wurde als letzte Shot?????.bmp-Datei in Ihr ScreenShots-Verzeichnis gespeichert."
+
+[JBInterfaceHud]
+TextPlayerKilled="Sie wurden getötet."
+TextPlayerExecuted="Sie sind exekutiert worden."
+TextMenuEntryTactics="Team-Taktik"
+TextMenuTitleTactics="Team-Taktik"
+TextOrderName[0]="[AUTO]"
+TextOrderName[1]="Selbstmörderisch"
+TextOrderName[2]="Aggressiv"
+TextOrderName[3]="Normal"
+TextOrderName[4]="Defensiv"
+TextOrderName[5]="Ausweichend"
+TextTactics[0]="ausweichend"
+TextTactics[1]="defensiv"
+TextTactics[2]="normal"
+TextTactics[3]="aggressiv"
+TextTactics[4]="selbstmörderisch"
+TextArenaNotifier="Arena-Kampf"
+
+[JBInterfaceScores]
+TextGameBotmatch="Bot-Spiel"
+TextGameOnline="Online-Spiel on"
+TextSkill[0]="Anfängerhaftes"
+TextSkill[1]="Normales"
+TextSkill[2]="Talentiertes"
+TextSkill[3]="Erfahrenes"
+TextSkill[4]="Kennerhaftes"
+TextSkill[5]="Meisterhaftes"
+TextSkill[6]="Unmenschliches"
+TextSkill[7]="Göttergleiches"
+TextLimitPrefix=" ["
+TextLimitTime="Minuten"
+TextLimitScore="Gefangennahmen"
+TextLimitSuffix=" max.]"
+TextInfoWaiting="wartend"
+TextInfoDead="tot"
+TextInfoArena="Arena"
+TextInfoJail="Gefängnis"
+TextOrdersUndisclosed="geheim"
+TextOrdersAttack="attackiert"
+TextOrdersDefense="verteidigt"
+TextOrdersFreelance="Ausputzer"
+TextScoresAttack="Angriff"
+TextScoresDefense="Verteidigung"
+TextScoresRelease="Befreiung"
+TextRelationElapsed="gespielt"
+TextRelationRemaining="zu spielen"
+TextRelationOvertime="Nachspiel"
+
+[JBLocalMessage]
+TextTeamCaptured[0]="Team Rot ist eingefangen."
+TextTeamCaptured[1]="Team Blau ist eingefangen."
+TextTeamReleased[0]="Team Rot ist befreit worden."
+TextTeamReleased[1]="Team Blau ist befreit worden."
+TextTeamReleasedBy[0]="Team Rot ist von %player% befreit worden."
+TextTeamReleasedBy[1]="Team Blau ist von %player% befreit worden."
+TextTeamStalemate="Beide Teams eingefangen, keine Punkte."
+TextArenaCountdown[0]="Arena-Kampf beginnt in...1"
+TextArenaCountdown[1]="Arena-Kampf beginnt in...2"
+TextArenaCountdown[2]="Arena-Kampf beginnt in...3"
+TextArenaStartCombatant="Arena-Kampf hat begonnen!"
+TextArenaStartOther="%teammate% kämpft gegen %enemy% in der Arena."
+TextArenaCancelCombatant="Arena-Kampf zwischen %teammate% und %enemy% wurde abgesagt."
+TextArenaCancelOther="Arena-Kampf wurde abgesagt."
+TextArenaTieCombatant="Arena-Kampf unentschieden."
+TextArenaTieOther="Arena-Kampf zwischen %teammate% und %enemy% unentschieden."
+TextArenaEndWinner="Sie haben in der Arena Ihre Freiheit gewonnen!"
+TextArenaEndLoser="Sie haben den Arena-Kampf verloren."
+TextArenaEndOther="%winner% hat %loser% in der Arena besiegt."
+TextKeyboardArenaBound="Drücken Sie [%key%], um den Arena-Kampf zu beobachten!"
+TextKeyboardArenaUnbound="Geben Sie 'ArenaCam' in der Konsole ein, um den Arena-Kampf zu beobachten!"
+TextKeyboardCameraBound="Drücken Sie [%keyprev%] und [%keynext%], um Kameras zu wechseln"
+TextKeyboardCameraUnbound="Geben Sie 'PrevWeapon' und 'NextWeapon' in der Konsole ein, um Kameras zu wechseln"
+TextLastMan="Nur Sie sind noch frei. Befreien Sie Ihr Team!"
+
+[JBMutatorDebug]
+FriendlyName="Jailbreak Debug"
+Description="Stellt Hilfsfunktionen zur Verfügung, um Jailbreak-Level und -Code zu debuggen."
+
+[JBPanorama]
+TextSetup="geben Sie SetupPanorama in der Konsole ein"
+TextPreview="nur Vorschau, weisen Sie TexturePanorama zu"
+
+[Jailbreak]
+TextHintJailbreak=("Beobachten Sie die Kompass-Punkte: Je schneller sie pulsieren, desto mehr Spieler können durch den entsprechenden Schalter befreit werden.","Verwenden Sie %PREVWEAPON% und %NEXTWEAPON%, um Kamera-Blickpunkte zu wechseln.","Sie können auf die Schultern von geduckten Teamgefährten steien. Halten Sie nach Fluchtwegen aus Gefängnissen Ausschau, die diese Zusammenarbeit benötigen!","Einige Gefängnisse haben versteckte Fluchtwege. Möglicherweise müssen Sie auf die Schultern eines geduckten Teamgefährten steigen, um sie zu erreichen.","Möglicherweise existiert mehr als nur ein Schalter zur Befreiung Ihrer Teamgefährten. Je schneller ein Kompass-Punkt pulsiert, desto mehr Spieler können mit dem entsprechenden Schalter befreit werden.","Manchmal ist es besser, dem Gegner auszuweichen, statt ihm einen einfachen Punkt zu verschaffen.","Wenn Sie den letzten freien Gegner getötet haben, können Sie das gegnerische Team während der Exekutionssequenz auf dem Bildschirm verspotten.","Langweile im Gefängnis? Sie können ohne Punktestrafen mit der Shield Gun mit Ihren Mitgefangenen kämpfen.","Manche Gefängnisse enthalten Bildschirme für Überwachungskameras im Level. Nähern Sie sich einem Bildschirm, um die Kamera zu aktivieren.","Wenn Sie im Gefängnis sind, können Sie für einen Arena-Zweikampf ausgewählt werden. Gewinnen Sie Ihre Freiheit in der Arena!","Drücken Sie %ARENACAM%, um eine Live-Übertragung aus der Arena zu sehen!","Drücken Sie %TEAMTACTICS UP% und %TEAMTACTICS DOWN%, um die Aggressivität der Bots in Ihrem Team zu erhöhen oder zu vermindern.","Das Jailbreak-Scoreboard zeigt den Aufenthaltsort Ihrer Teamgefährten auf einer Übersichtskarte.","Sie können im Jailbreak-Scoreboard sehen, was Ihre menschlichen Teamgefährten gerade tun: ob sie angreifen, verteidigen oder das Level nach Gegnern durchsuchen.","Die roten, gelben und grünen Balken neben den Spielernamen auf dem Jailbreak-Scoreboard zeigen die Zahl der erledigten Gegner in Angriff bzw. Verteidigung und die Anzahl befreiter Teamgefährten.","Die Markierungen auf der Uhr in der rechten oberen Ecke des Jailbreak-Scoreboards zeigen Team-Gefangennahmen.","Versuchen Sie nicht zu betrügen, indem Sie sich zum Server neu verbinden, während Sie im Gefängnis sind! Das Spiel macht aus Ihnen ein Lama (im Wortsinn) und gibt anderen Spielern Bonuspunkte, um Sie zu töten.","Greifen Sie keine eben befreiten Spieler an. Sie könnten dafür zum Lama gemacht werden!")
+TextDescriptionEnableJailFights="Erlaubt Gefangenen, zum Spaß mit ihren Shield Guns zu kämpfen."
+TextWebAdminEnableJailFights="Gefängniskämpfe erlauben"
+TextWebAdminPrefixAddon="Jailbreak:"
+GameName="Jailbreak"
+Description="Zwei Teams versuchen, die gegnerischen Spieler ins Gefängnis zu bringen, indem sie sie töten. Wenn alle Spieler eines Teams gefangen sind, erhält das andere Team einen Punkt. Kämpfen Sie ihren Weg in die gegnerische Basis, um Ihre Teamgefährten freizulassen!"
+
