@@ -671,16 +671,16 @@ simulated function ShowArenaNotifier(Canvas Canvas)
   local float TimeDelta;
   local ColorModifier ColorModifierArenaNotifier;
   local TexScaler TexScalerArenaNotifier;
-  local JBTagPlayer firstTagPlayer;
-  local JBTagPlayer thisTagPlayer;
+  local JBInfoArena firstArena;
+  local JBInfoArena thisArena;
 
   if (TimeUpdateArenaNotifier > 0.0)
     TimeDelta = Level.TimeSeconds - TimeUpdateArenaNotifier;
   TimeUpdateArenaNotifier = Level.TimeSeconds;
 
-  firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
-  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-    if (thisTagPlayer.IsInArena())
+  firstArena = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstArena;
+  for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+    if (thisArena.CountPlayers() == 2)
       bShowArenaNotifier = True;
 
   ColorModifierArenaNotifier = ColorModifier(SpriteWidgetArenaNotifier.WidgetTexture);
