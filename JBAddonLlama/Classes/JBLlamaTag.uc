@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.7 2004/01/04 16:14:01 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.11 2004/05/24 10:29:13 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -40,6 +40,17 @@ var array<Sound>               LlamaSounds;
 var bool                       bNotYetRegistered;
 var bool                       bShiftedView;
 var rotator                    ViewRotationOffset;
+
+
+//=============================================================================
+// Replication
+//=============================================================================
+
+replication
+{
+  reliable if ( Role == ROLE_Authority )
+    TagPlayer;
+}
 
 
 //=============================================================================
@@ -92,7 +103,7 @@ function GiveTo(Pawn Other, optional Pickup Pickup)
   
   //log("Tagged"@Owner@"as llama.", Name);
   
-  if ( Level.NetMode != NM_DedicatedServer )
+  //if ( Level.NetMode != NM_DedicatedServer )
     InitLlamaTag();
   
   Timer();
@@ -115,15 +126,17 @@ simulated function InitLlamaTag()
   // find local playercontroller
   PlayerControllerLocal = Level.GetLocalPlayerController();
   
-  if ( Pawn(Owner) != None ) {
+  if ( TagPlayer == None && Pawn(Owner) != None ) {
     TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner).PlayerReplicationInfo);
     bNotYetRegistered = False;
   }
-  else {
-    warn("Owner ="@Owner);
+  else if ( TagPlayer == None ) {
+    //warn("Owner ="@Owner);
     bNotYetRegistered = True;
     return;
   }
+  else
+    bNotYetRegistered = False;
   
   // make sure that the local player owns the llama tag
   if ( Pawn(Owner) != None && PlayerControllerLocal == Pawn(Owner).Controller ) {
@@ -222,6 +235,8 @@ simulated function Tick(float DeltaTime)
   
   if ( bNotYetRegistered && Owner != None )
     InitLlamaTag();
+  if ( bNotYetRegistered || Owner == None )
+    return;
   
   if ( PlayerController(Pawn(Owner).Controller) != None
       && !PlayerController(Pawn(Owner).Controller).bBehindView
