@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.21 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.22 2004/03/05 20:17:27 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -50,11 +50,26 @@ struct TInfoOverlay
 };
 
 
+struct TInfoSwitching
+{
+  var() bool bAllowManual;          // manual switching by Prev/NextWeapon
+  var() bool bAllowTriggered;       // another camera triggered by TagSwitch
+  var() bool bAllowTimed;           // auto-switching when view time runs out
+  
+  var() int CamOrder;               // camera order for manual switching
+  var() float Time;                 // viewing time for timed switching
+  var() editconst string Tag;       // dummy pointing to the TagSwitch property
+};
+
+
 struct TInfoViewer
 {
   var PlayerController Controller;  // player viewing this camera
+
   var bool bBehindViewPrev;         // previous behind-view setting
   var Actor ViewTargetPrev;         // previous view target
+
+  var float TimeToSwitch;           // time to next camera switch
 };
 
 
@@ -62,17 +77,21 @@ struct TInfoViewer
 // Properties
 // ============================================================================
 
-var() bool bWidescreen;      // display camera widescreen bars
+var(Events) name TagSwitch;         // trigger to switch to this camera
 
-var() TInfoCaption Caption;  // camera caption text
-var() TInfoOverlay Overlay;  // camera material overlay
+var() TInfoCaption Caption;         // camera caption text
+var() TInfoOverlay Overlay;         // camera material overlay
+var() TInfoSwitching Switching;     // switching within camera array
 
-var() byte MotionBlur;       // amount of camera motion blur
+var() bool bWidescreen;             // display camera widescreen bars
+var() byte MotionBlur;              // amount of camera motion blur
 
 
 // ============================================================================
 // Variables
 // ============================================================================
+
+var private JBCamManager CamManager;            // camera array manager actor
 
 var private bool bIsActiveLocal;                // local player using camera
 var private array<TInfoViewer> ListInfoViewer;  // all players using camera
@@ -85,7 +104,7 @@ var private MotionBlur CameraEffectMotionBlur;  // MotionBlur object in use
 //
 // Disables the Tick event server-side. ActivateFor will enable it again as
 // soon as a player starts viewing through this camera. On clients, loads the
-// caption font object.
+// caption font. Initializes the camera array, if any.
 // ============================================================================
 
 simulated event PostBeginPlay()
@@ -95,18 +114,46 @@ simulated event PostBeginPlay()
 
   if (Level.NetMode != NM_DedicatedServer)
     Caption.FontObject = Font(DynamicLoadObject(Caption.Font, Class'Font'));
+
+  InitCameraArray();
+}
+
+
+// ============================================================================
+// InitCameraArray
+//
+// Initializes everything required for a camera array and camera switching if
+// necessary. Executes server-side only.
+// ============================================================================
+
+function InitCameraArray()
+{
+  local JBProbeEvent ProbeEventSwitch;
+
+  CamManager = Class'JBCamManager'.Static.SpawnFor(Self);
+  if (CamManager == None)
+    return;
+
+  if (TagSwitch != '' &&
+      TagSwitch != 'None') {
+    ProbeEventSwitch = Spawn(Class'JBProbeEvent', Self, TagSwitch);
+    ProbeEventSwitch.OnTrigger = TriggerSwitch;
+  }
 }
 
 
 // ============================================================================
 // Trigger
 //
-// Activates this camera for the instigator.
+// Activates this camera for the instigator; for a camera which is part of a
+// camera array, activates this camera only if it is the first one.
 // ============================================================================
 
 event Trigger(Actor ActorOther, Pawn PawnInstigator)
 {
-  ActivateFor(PawnInstigator.Controller);
+  if (CamManager == None ||
+      CamManager.FindCameraFirst() == Self)
+    ActivateFor(PawnInstigator.Controller);
 }
 
 
@@ -119,6 +166,79 @@ event Trigger(Actor ActorOther, Pawn PawnInstigator)
 event UnTrigger(Actor ActorOther, Pawn PawnInstigator)
 {
   DeactivateFor(PawnInstigator.Controller);
+}
+
+
+// ============================================================================
+// TriggerSwitch
+//
+// Called when all viewers of in this camera array should switch to this
+// camera.
+// ============================================================================
+
+function TriggerSwitch(Actor ActorOther, Pawn PawnInstigator)
+{
+  local JBCamera thisCamera;
+  
+  foreach DynamicActors(Class'JBCamera', thisCamera, Tag)
+    if (thisCamera != Self &&
+        thisCamera.Switching.bAllowTriggered)
+      thisCamera.SwitchTo(Self);
+}
+
+
+// ============================================================================
+// SwitchTo
+//
+// Switches all viewers of this camera to the given other camera. Ignores
+// viewers who are currently set on manual switching unless bOverrideManual is
+// set to True.
+// ============================================================================
+
+function SwitchTo(JBCamera Camera, optional bool bOverrideManual)
+{
+  local int iInfoViewer;
+  
+  for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--)
+    Camera.ActivateFor(ListInfoViewer[iInfoViewer].Controller);
+}
+
+
+// ============================================================================
+// SwitchToPrev
+//
+// Called by a viewing player's JBInventoryCamera inventory when PrevWeapon
+// is called. Switches the player to the previous camera in the array.
+// ============================================================================
+
+function SwitchToPrev(Controller Controller)
+{
+  local JBCamera CameraPrev;
+
+  if (CamManager == None)
+    return;
+
+  CameraPrev = CamManager.FindCameraPrev(Self);
+  CameraPrev.ActivateFor(Controller);
+}
+
+
+// ============================================================================
+// SwitchToNext
+//
+// Called by a viewing player's JBInventoryCamera inventory when NextWeapon
+// is called. Switches the player to the next camera in the array.
+// ============================================================================
+
+function SwitchToNext(Controller Controller)
+{
+  local JBCamera CameraNext;
+  
+  if (CamManager == None)
+    return;
+  
+  CameraNext = CamManager.FindCameraNext(Self);
+  CameraNext.ActivateFor(Controller);
 }
 
 
@@ -158,6 +278,7 @@ function ActivateFor(Controller Controller)
   local int iInfoViewer;
   local Actor ViewTargetPrev;
   local PlayerController ControllerPlayer;
+  local JBInventoryCamera InventoryCamera;
 
   ControllerPlayer = PlayerController(Controller);
   if (IsViewer(Controller) || ControllerPlayer == None)
@@ -178,6 +299,10 @@ function ActivateFor(Controller Controller)
     ListInfoViewer[iInfoViewer].Controller      = ControllerPlayer;
     ListInfoViewer[iInfoViewer].bBehindViewPrev = ControllerPlayer.bBehindView;
     ListInfoViewer[iInfoViewer].ViewTargetPrev  = ViewTargetPrev;
+    ListInfoViewer[iInfoViewer].TimeToSwitch    = Switching.Time;
+
+    if (CamManager != None && Switching.bAllowManual)
+      CamManager.AddInventoryCamera(Controller, Self);
   }
 
   if (ControllerPlayer.ViewTarget != Self) {
@@ -204,7 +329,10 @@ function DeactivateFor(Controller Controller)
 {
   local int iInfoViewer;
   local Actor ViewTargetPrev;
+  local Actor thisActor;
+  local Actor nextActor;
   local PlayerController ControllerPlayer;
+  local JBInventoryCamera InventoryCamera;
 
   ControllerPlayer = PlayerController(Controller);
   if (ControllerPlayer == None)
@@ -227,6 +355,9 @@ function DeactivateFor(Controller Controller)
     ControllerPlayer.ClientSetViewTarget(ViewTargetPrev);
     ControllerPlayer.bBehindView =       ListInfoViewer[iInfoViewer].bBehindViewPrev;
     ControllerPlayer.ClientSetBehindView(ListInfoViewer[iInfoViewer].bBehindViewPrev);
+
+    if (CamManager != None)
+      CamManager.RemoveInventoryCamera(Controller);
   }
 
   ListInfoViewer.Remove(iInfoViewer, 1);
@@ -341,19 +472,25 @@ simulated event Tick(float TimeDelta)
       else if (ListInfoViewer[iInfoViewer].Controller.ViewTarget != Self)
         DeactivateFor(ListInfoViewer[iInfoViewer].Controller);
 
-  if (Level.NetMode == NM_DedicatedServer)
-    return;
+  if (Level.NetMode != NM_DedicatedServer) {
+    bIsActiveLocalNew = (Level.GetLocalPlayerController().ViewTarget == Self);
+  
+    if (bIsActiveLocalNew != bIsActiveLocal)
+      if (bIsActiveLocalNew)
+        ActivateForLocal();
+      else
+        DeactivateForLocal();
+  
+    if (bIsActiveLocal)
+      UpdateLocal();
+  }
 
-  bIsActiveLocalNew = (Level.GetLocalPlayerController().ViewTarget == Self);
-
-  if (bIsActiveLocalNew != bIsActiveLocal)
-    if (bIsActiveLocalNew)
-      ActivateForLocal();
-    else
-      DeactivateForLocal();
-
-  if (bIsActiveLocal)
-    UpdateLocal();
+  if (Role == ROLE_Authority && Switching.bAllowTimed)
+    for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++) {
+      ListInfoViewer[iInfoViewer].TimeToSwitch -= TimeDelta;
+      if (ListInfoViewer[iInfoViewer].TimeToSwitch <= 0.0)
+        SwitchToNext(ListInfoViewer[iInfoViewer].Controller);
+    }
 }
 
 
@@ -512,13 +649,14 @@ simulated function RemoveCameraEffect(CameraEffect CameraEffect)
 
 defaultproperties
 {
-  Caption = (bBlinking=True,Color=(R=255,G=255,B=255,A=255),Font="UT2003Fonts.FontEurostile12",Position=0.8);
-  Overlay = (Color=(R=255,G=255,B=255,A=255),Style=OverlayStyle_ScaleProportional);
+  Caption   = (bBlinking=True,Color=(R=255,G=255,B=255,A=255),Font="UT2003Fonts.FontEurostile12",Position=0.8);
+  Overlay   = (Color=(R=255,G=255,B=255,A=255),Style=OverlayStyle_ScaleProportional);
+  Switching = (bAllowManual=True,bAllowTriggered=True,Time=5.0,Tag="(set TagSwitch under Events instead)");
 
-  Texture = Texture'JBCamera';
-  RemoteRole = ROLE_SimulatedProxy;
-  bNoDelete = True;
-  bStatic = False;
+  Texture      = Texture'JBCamera';
+  RemoteRole   = ROLE_SimulatedProxy;
+  bNoDelete    = True;
+  bStatic      = False;
   bDirectional = True;
-  Velocity = (X=1.0);  // hack fix for undesired automatic scoreboard display
+  Velocity     = (X=1.0);  // hack fix for undesired scoreboard auto display
 }
