@@ -1,0 +1,95 @@
+===============================================================================
+Jailbreak 2004
+Copyright 2004 by Team Jailbreak <team@planetjailbreak.com>
+===============================================================================
+
+For feedback, suggestions and bug report, visit
+
+  PlanetJailbreak               http://www.planetjailbreak.com
+  PlanetJailbreak Forums        http://www.planetjailbreak.com/forums/
+
+
+For technical information on mapping or creating code for Jailbreak, visit
+
+  Unreal Wiki                   http://www.unrealwiki.com
+  Jailbreak Developer Network   http://www.planetjailbreak.com/jdn/
+
+
+===============================================================================
+Installation
+===============================================================================
+
+UMod Installation
+=================
+
+* Double-click the installer file and follow the instructions on the screen.
+
+
+Zip Installation
+================
+
+* Extract the archive into your game base directory. As the archive contains
+  subdirectories, all files will be placed in the right locations. In case that
+  doesn't work out, here is where the files should be placed:
+  
+    *.u     System\
+    *.int   System\
+    *.ucl   System\
+
+    *.ogg   Music\
+    *.uax   Sounds\
+    *.usx   StaticMeshes\
+
+    *.txt   Help\
+    *.bmp   Help\
+    *.html  Help\Jailbreak\
+    *.jpg   Help\Jailbreak\Images\
+    *.gif   Help\Jailbreak\Images\
+
+
+* Open UT2004.ini, look for the section already containing several lines
+  starting with "ServerPackages=" and add the following lines to it:
+
+    ServerPackages=Jailbreak
+    ServerPackages=JBAddonAvenger
+    ServerPackages=JBAddonBerserker
+    ServerPackages=JBAddonCelebration
+    ServerPackages=JBAddonLlama
+    ServerPackages=JBAddonProtection
+    ServerPackages=JBAddonTeleport
+    ServerPackages=JBScreen
+    ServerPackages=JBToolbox
+
+
+===============================================================================
+Uninstall
+===============================================================================
+
+Search your game directory for files matching the following patterns and delete
+those files:
+
+  Jailbreak*
+  JB*
+
+Open UT2004.ini in a text editor and remove all lines starting with the
+following patterns:
+
+  ServerPackages=Jailbreak
+  ServerPackages=JB...
+
+
+===============================================================================
+Copyright
+===============================================================================
+
+Jailbreak for Unreal Tournament 2004
+
+Copyright (c) 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
+Contact <feedback@planetjailbreak.com> for feedback.
+
+This mod is freely available for noncommercial use. For commercial use and
+distribution, please contact the Jailbreak team <team@planetjailbreak.com> in
+advance for permission.
+
+
+===============================================================================
