@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.112 2004/06/02 12:08:59 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.113 2004/07/25 18:27:49 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -161,7 +161,8 @@ static function string GetLoadingHint(PlayerController PlayerController, string 
   // look for full map name match
   for (iLoadingScreen = 0; iLoadingScreen < Default.LoadingScreens.Length; iLoadingScreen++) {
     NameLoadingScreen = GetItemName(Default.LoadingScreens[iLoadingScreen]);
-    if (NameLoadingScreen ~= Mid(MapName, 3)) {
+    if (NameLoadingScreen            ~= Mid(MapName, 3) ||
+       (NameLoadingScreen $ "-Gold") ~= Mid(MapName, 3)) {
       MaterialLoadingScreen = Material(DynamicLoadObject(Default.LoadingScreens[iLoadingScreen], Class'Material', False));
       break;
     }
