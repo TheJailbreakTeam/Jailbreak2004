@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoTeam.uc,v 1.2 2002/11/17 11:11:18 mychaeel Exp $
+// $Id: JBReplicationInfoTeam.uc,v 1.3 2002/11/20 22:52:00 mychaeel Exp $
 //
 // Replicated information for one team.
 // ============================================================================
@@ -85,14 +85,18 @@ simulated function int CountPlayersJailed() {
 
   local int iInfoPlayer;
   local JBReplicationInfoGame InfoGame;
+  local JBReplicationInfoPlayer InfoPlayer;
 
   if (Role == ROLE_Authority) {
     InfoGame = JBReplicationInfoGame(Level.GRI);
     nPlayersJailed = 0;
     
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].IsInJail())
+    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
+      InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
+      if (InfoPlayer.GetPlayerReplicationInfo().Team == Self &&
+          InfoPlayer.IsInJail())
         nPlayersJailed++;
+      }
     }
   
   return nPlayersJailed;
