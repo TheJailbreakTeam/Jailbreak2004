@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.16 2003/01/26 13:44:20 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.17 2003/01/26 22:30:31 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -228,7 +228,7 @@ function NotifyJailLeft(JBInfoJail JailPrev) {
 
 function NotifyJailOpening() {
 
-  // this space is intentionally left blank
+  // this space intentionally left blank
   }
 
 
@@ -267,7 +267,7 @@ function NotifyJailClosed() {
 // doing so.
 // ============================================================================
 
-private function RestartPlayer() {
+private function RestartPlayer(ERestart RestartCurrent) {
 
   local xPawn PawnPlayer;
 
@@ -287,7 +287,9 @@ private function RestartPlayer() {
     PawnPlayer.Destroy();
     }
   
+  Restart = RestartCurrent;
   Level.Game.RestartPlayer(GetController());
+  Restart = Restart_Jail;
   }
 
 
@@ -301,20 +303,22 @@ function RestartFreedom() {
 
   local JBInfoJail JailPrev;
 
-  Restart = Restart_Freedom;
-  
   ArenaRestart = None;
   ArenaPending = None;
   ArenaRequest = None;
   
-  JailPrev = Jail;       // would be picked up automatically by Timer too,
-  Jail = None;           // but not before the player gets a new Pawn,
-  if (JailPrev != None)  // so handle the release from jail here already
-    NotifyJailLeft(JailPrev);
-  
-  RestartPlayer();
+  RestartPlayer(Restart_Freedom);
 
-  Restart = Restart_Jail;
+  Arena = None;
+
+  // Auto-detection of player leaving jail would be delayed until the player
+  // has actually physically respawned in freedom, and that can take too long
+  // during the execution sequence.
+
+  JailPrev = Jail;
+  Jail = None;
+  if (JailPrev != None)
+    NotifyJailLeft(JailPrev);
   }
 
 
@@ -326,13 +330,13 @@ function RestartFreedom() {
 
 function RestartJail() {
 
-  Restart = Restart_Jail;
-  
   ArenaRestart = None;
   ArenaPending = None;
   ArenaRequest = None;
   
-  RestartPlayer();
+  RestartPlayer(Restart_Jail);
+  
+  Arena = None;
   }
 
 
@@ -344,18 +348,40 @@ function RestartJail() {
 
 function RestartArena(JBInfoArena NewArenaRestart) {
 
-  Restart = Restart_Arena;
-  
   ArenaRestart = NewArenaRestart;
   ArenaPending = None;
   ArenaRequest = None;
   
-  RestartPlayer();
+  RestartPlayer(Restart_Arena);
   
   Arena = ArenaRestart;
   ArenaRestart = None;
+  }
+
+
+// ============================================================================
+// GetRestart
+//
+// Returns where this player ought to be restarted next. The following names
+// can be returned:
+//
+//   Restart_Freedom   Restart player in their own base in freedom.
+//   Restart_Jail      Restart player in jail.
+//   Restart_Arena     Restart player in the arena specified in ArenaRestart.
+//
+// ============================================================================
+
+function name GetRestart() {
+
+  if (GetController().PreviousPawnClass == None)
+    return 'Restart_Freedom';  // first-time world spawn
+
+  if (Restart == Restart_Jail &&
+      Jailbreak(Level.Game).firstJBGameRules != None &&
+     !Jailbreak(Level.Game).firstJBGameRules.CanSendToJail(Self))
+    return 'Restart_Freedom';
   
-  Restart = Restart_Jail;
+  return GetEnum(Enum'ERestart', Restart);
   }
 
 
@@ -581,27 +607,6 @@ function GameObjective GuessObjective() {
   
   TimeObjectiveGuessed = Level.TimeSeconds;
   return ObjectiveGuessed;  
-  }
-
-
-// ============================================================================
-// GetRestart
-//
-// Returns where this player ought to be restarted next. The following names
-// can be returned:
-//
-//   Restart_Freedom   Restart player in their own base in freedom.
-//   Restart_Jail      Restart player in jail.
-//   Restart_Arena     Restart player in the arena specified in ArenaRestart.
-//
-// ============================================================================
-
-function name GetRestart() {
-
-  if (GetController().PreviousPawnClass == None)
-    return 'Restart_Freedom';  // first-time world spawn
-
-  return GetEnum(Enum'ERestart', Restart);
   }
 
 

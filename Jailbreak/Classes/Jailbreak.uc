@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.25 2003/01/25 23:46:48 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.26 2003/01/27 08:06:28 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -23,6 +23,8 @@ var config bool bEnableSpectatorDeathCam;
 // Variables
 // ============================================================================
 
+var JBGameRules firstJBGameRules;        // start of JBGameRules chain
+
 var private JBCamera CameraExecution;    // camera for execution sequence
 
 var private float TimeExecution;         // time when execution starts
@@ -30,6 +32,9 @@ var private float TimeRestart;           // time when next round starts
 
 var private array<name> ListEventFired;  // events fired in this tick
 var private float TimeEventFired;        // update time of event list
+
+var private transient name Restart;      // used by FindPlayerStart
+var private transient JBInfoArena ArenaRestart;
 
 
 // ============================================================================
@@ -117,6 +122,47 @@ function Logout(Controller ControllerExiting) {
 
 
 // ============================================================================
+// AddJBGameRules
+//
+// Adds a new JBGameRules actor. Multiple JBGameRules actors can be chained.
+// ============================================================================
+
+function AddJBGameRules(JBGameRules JBGameRules) {
+
+  if (firstJBGameRules == None)
+    firstJBGameRules = JBGameRules;
+  else
+    firstJBGameRules.AddJBGameRules(JBGameRules);
+  }
+
+
+// ============================================================================
+// FindPlayerStart
+//
+// Finds out where the restarted player should be spawned at and communicates
+// it to the RatePlayerStart function.
+// ============================================================================
+
+function NavigationPoint FindPlayerStart(Controller Controller, optional byte iTeam, optional string Teleporter) {
+
+  local JBTagPlayer TagPlayer;
+
+  if (Controller != None)
+    TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+
+  if (TagPlayer == None)
+    Restart = 'Restart_Freedom';  // world spawn in offline games
+  else {
+    Restart = TagPlayer.GetRestart();
+    if (Restart == 'Restart_Arena')
+      ArenaRestart = TagPlayer.GetArenaRestart();
+    }
+  
+  return Super.FindPlayerStart(Controller, iTeam, Teleporter);
+  }
+
+
+// ============================================================================
 // RatePlayerStart
 //
 // Returns a negative value for all starts that are inappropriate for the
@@ -125,18 +171,8 @@ function Logout(Controller ControllerExiting) {
 
 function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Controller Controller) {
 
-  local name Restart;
   local JBInfoArena Arena;
-  local JBTagPlayer TagPlayer;
 
-  if (Controller != None)
-    TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-
-  if (TagPlayer == None)
-    Restart = 'Restart_Freedom';  // initial spawn point in offline games
-  else
-    Restart = TagPlayer.GetRestart();
-  
   switch (Restart) {
     case 'Restart_Freedom':
       if (ContainsActorJail (NavigationPoint) ||
@@ -150,7 +186,7 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
       break;
     
     case 'Restart_Arena':
-      if (!ContainsActorArena(NavigationPoint, Arena) || Arena != TagPlayer.GetArenaRestart())
+      if (!ContainsActorArena(NavigationPoint, Arena) || Arena != ArenaRestart)
         return -20000000;
       break;
     }
@@ -656,6 +692,9 @@ function ExecutionCommit(TeamInfo TeamExecuted) {
     firstJail = JBReplicationInfoGame(GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionInit();
+
+    if (firstJBGameRules != None)
+      firstJBGameRules.NotifyExecutionCommit(TeamExecuted);
     }
   
   else {
@@ -682,6 +721,9 @@ function ExecutionEnd() {
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.ExecutionEnd();
   
+    if (firstJBGameRules != None)
+      firstJBGameRules.NotifyExecutionEnd();
+
     GotoState('MatchInProgress');
     RestartAll();
 
@@ -720,6 +762,9 @@ state MatchInProgress {
     
     JBBotTeam(Teams[0].AI).ResetOrders();
     JBBotTeam(Teams[1].AI).ResetOrders();
+    
+    if (firstJBGameRules != None)
+      firstJBGameRules.NotifyRound();
     }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.16 2003/01/26 22:30:31 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.17 2003/01/27 18:17:19 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -332,23 +332,44 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
         TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
         }
       
-      ListInfoReleaseByTeam[Team.TeamIndex].bIsActive  = True;
-      ListInfoReleaseByTeam[Team.TeamIndex].bIsOpening = True;
+      ListInfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
+      ListInfoReleaseByTeam[Team.TeamIndex].bIsOpening     = True;
       ListInfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
-      ListInfoReleaseByTeam[Team.TeamIndex].TimeReset = 0.0;  // disabled
+      ListInfoReleaseByTeam[Team.TeamIndex].TimeReset      = 0.0;  // disabled
       ListInfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = ControllerInstigator;
       
       NotifyJailOpening(Team);
       }
+
+    else {
+      CancelRelease(Team);
+      }
     }
   
   else {
-    Log("Warning: Called Release for" @ Self @ "in state" @ GetStateName());
+    Log("Warning: Release for" @ Self @ "should not be called in state" @ GetStateName());
     }
   }
 
 
 // ============================================================================
+// CancelRelease
+//
+// Cancels a release that has been initiated. Doesn't open the jail doors, but
+// marks the release as active and schedules a reset shortly.
+// ============================================================================
+
+function CancelRelease(TeamInfo Team) {
+
+  ListInfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
+  ListInfoReleaseByTeam[Team.TeamIndex].bIsOpening     = False;
+  ListInfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
+  ListInfoReleaseByTeam[Team.TeamIndex].TimeReset      = Level.TimeSeconds + 2.0;
+  ListInfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = None;
+
+// ============================================================================
+// NotifyJailOpening
+//
 // Called when the doors to this jail start opening before NotifyJailOpened is
 // called. Disables all GameObjectives that can be used to trigger this jail's
 // release and communicates the event to all inmates.
@@ -374,6 +395,9 @@ function NotifyJailOpening(TeamInfo Team) {
       thisTagPlayer.NotifyJailOpening();
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None)
+  if (Jailbreak(Level.Game).firstJBGameRules != None)
+    Jailbreak(Level.Game).firstJBGameRules.NotifyJailOpening(Self);
 
 // ============================================================================
 // NotifyJailOpened
@@ -394,6 +418,9 @@ function NotifyJailOpened(TeamInfo Team) {
       thisTagPlayer.NotifyJailOpened();
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None)
+  if (Jailbreak(Level.Game).firstJBGameRules != None)
+    Jailbreak(Level.Game).firstJBGameRules.NotifyJailOpened(Self);
 
 // ============================================================================
 // NotifyJailEntered
@@ -416,6 +443,9 @@ function NotifyJailEntered(JBTagPlayer TagPlayer) {
     if (!ListInfoReleaseByTeam[iTeam].bIsOpening)
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None)
+  if (Jailbreak(Level.Game).firstJBGameRules != None)
+    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerJailed(TagPlayer);
 
 // ============================================================================
 // NotifyJailLeft
@@ -427,7 +457,8 @@ function NotifyJailLeft(JBTagPlayer TagPlayer) {
 
   local JBGameRules firstJBGameRules;
 
-  // this space is intentionally left blank
+  if (Jailbreak(Level.Game).firstJBGameRules != None)
+    Jailbreak(Level.Game).firstJBGameRules.NotifyPlayerReleased(TagPlayer, Self);
 
 // ============================================================================
 // NotifyJailClosed
@@ -447,6 +478,9 @@ function NotifyJailClosed(TeamInfo Team) {
       thisTagPlayer.NotifyJailClosed();
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None)
+  if (Jailbreak(Level.Game).firstJBGameRules != None)
+    Jailbreak(Level.Game).firstJBGameRules.NotifyJailClosed(Self);
 
 // ============================================================================
 // ResetObjectives
@@ -550,19 +584,41 @@ auto state Waiting {
 
     local Controller ControllerInstigator;
     local GameObjective firstObjective;
-    local TeamInfo TeamInstigator;
+    local GameObjective thisObjective;
+    local GameObjective ObjectiveRelease;
+    local TeamInfo TeamRelease;
+    local JBGameRules firstJBGameRules;
 
-    if (PawnInstigator != None)
-      TeamInstigator = PawnInstigator.GetTeam();
+
+    if (ObjectiveRelease != None)
+      TeamRelease = TeamGame(Level.Game).OtherTeam(TeamGame(Level.Game).Teams[ObjectiveRelease.DefenderTeamIndex]);
+    else if (PawnInstigator != None)
+      TeamRelease = PawnInstigator.GetTeam();
+    
+    if (TeamRelease != None) {
       if (Trigger(ActorOther) != None) {
-    if (TeamInstigator == None)
+    if (TeamRelease == None)
       return;
     
-    if (GameObjective(ActorOther) != None &&
-        GameObjective(ActorOther).DefenderTeamIndex == TeamInstigator.TeamIndex)
-      Release(TeamGame(Level.Game).OtherTeam(TeamInstigator), None);
-    else
-      Release(TeamInstigator, PawnInstigator.Controller);
+    if (Trigger(ActorOther) != None) {
+      firstObjective = UnrealTeamInfo(TeamRelease).AI.Objectives;
+      for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
+        if (thisObjective.DefenderTeamIndex != TeamRelease.TeamIndex &&
+            JBGameObjective(thisObjective) != None &&
+            JBGameObjective(thisObjective).TriggerRelease == ActorOther)
+          ObjectiveRelease = thisObjective;
+      }
+
+    if (Jailbreak(Level.Game).firstJBGameRules == None ||
+        Jailbreak(Level.Game).firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease)) {
+  
+      firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+      Release(TeamRelease, ControllerInstigator);
+    CancelRelease(TeamRelease);
+    }
+    else {
+      CancelRelease(TeamRelease);
+      }
 
   // ================================================================
   // Timer
@@ -741,8 +797,8 @@ defaultproperties {
   ExecutionDelayCommit   = 2.0;
   ExecutionDelayFallback = 4.0;
   TagAttachVolumes = None;
-  TagAttachZones   = 'Auto';
-  TagAttachVolumes = 'None';
+  
+  Texture = Texture'JBInfoJail';
   bAlwaysRelevant = True;
   RemoteRole = ROLE_SimulatedProxy;
   }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.7 2003/01/01 22:11:17 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.8 2003/01/20 00:07:04 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -163,7 +163,11 @@ function bool CanFight(Controller ControllerCandidate) {
       TagPlayer.GetArenaPending() != Self)
     return False;
   
-  return True;
+  if (Jailbreak(Level.Game).firstJBGameRules == None ||
+      Jailbreak(Level.Game).firstJBGameRules.CanSendToArena(TagPlayer, Self))
+    return True;
+  
+  return False;
   }
 
 
@@ -487,6 +491,9 @@ function MatchTie() {
       if (thisTagPlayer.GetArena() == Self)
         thisTagPlayer.RestartJail();
 
+    if (Jailbreak(Level.Game).firstJBGameRules != None)
+      Jailbreak(Level.Game).firstJBGameRules.NotifyArenaEnd(Self, None);
+
     TriggerEvent(EventTied, Self, None);
     BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     GotoState('Waiting');
@@ -511,6 +518,7 @@ function MatchFinish() {
   local Controller ControllerWinner;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
+  local JBTagPlayer TagPlayerWinner;
 
   if (IsInState('MatchFinished')) {
     ControllerWinner = FindWinner();
@@ -528,7 +536,8 @@ function MatchFinish() {
           break;
         }
 
-      Class'JBTagPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo).RestartFreedom();
+      TagPlayerWinner = Class'JBTagPlayer'.Static.FindFor(ControllerWinner.PlayerReplicationInfo);
+      TagPlayerWinner.RestartFreedom();
       }
     
     else {
@@ -540,6 +549,9 @@ function MatchFinish() {
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self)
         thisTagPlayer.RestartJail();
+
+    if (Jailbreak(Level.Game).firstJBGameRules != None)
+      Jailbreak(Level.Game).firstJBGameRules.NotifyArenaEnd(Self, TagPlayerWinner);
     }
   
   else {
@@ -810,6 +822,9 @@ state MatchRunning {
 
   event BeginState() {
   
+    if (Jailbreak(Level.Game).firstJBGameRules != None)
+      Jailbreak(Level.Game).firstJBGameRules.NotifyArenaStart(Self);
+
     TimeCountdownTie = MaxCombatTime;
     SetTimer(1.0, True);
     }
@@ -882,16 +897,16 @@ defaultproperties {
 
   MessageClass = Class'JBLocalMessage';
 
-  EventStart   = 'ArenaStart';
-  EventTied    = 'ArenaTied';
-  EventWonRed  = 'ArenaWonRed';
-  EventWonBlue = 'ArenaWonBlue';
-  EventWaiting = 'ArenaWaiting';
+  EventStart   = ArenaStart;
+  EventTied    = ArenaTied;
+  EventWonRed  = ArenaWonRed;
+  EventWonBlue = ArenaWonBlue;
+  EventWaiting = ArenaWaiting;
   
   MaxCombatTime = 60.0;
   
-  TagAttachStarts  = 'Auto';
-  TagAttachPickups = 'Auto';
+  TagAttachStarts  = Auto;
+  TagAttachPickups = Auto;
   
   Texture = Texture'JBInfoArena';
   RemoteRole = ROLE_SimulatedProxy;
