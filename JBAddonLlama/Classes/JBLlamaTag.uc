@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.7.2.4 2004/05/31 19:55:00 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.7.2.5 2004/06/02 21:47:25 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -111,6 +111,18 @@ function GiveTo(Pawn Other, optional Pickup Pickup)
   //log("Tagged"@Owner@"as llama.", Name);
   
   InitLlamaTag();
+  
+  if ( xPawn(Other) != None ) { // in UT2004 this all is conveniently combined into xPawn.RemovePowerups()
+    if ( xPawn(Other).CurrentCombo != None ) {
+      xPawn(Other).CurrentCombo.Destroy();
+      if ( Other.Controller != None )
+        Other.Controller.Adrenaline = 0;
+    }
+    if ( xPawn(Other).UDamageTimer != None ) {
+      xPawn(Other).UDamageTimer.Destroy();
+      xPawn(Other).DisableUDamage();
+    }
+  }
   
   Timer();
   BroadcastLocalizedMessage(class'JBLlamaMessage', 1, Other.PlayerReplicationInfo);

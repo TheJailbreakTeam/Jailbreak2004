@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6.2.4 2004/05/31 19:55:00 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6.2.5 2004/05/31 21:10:13 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -404,6 +404,9 @@ simulated function bool ShouldDisplayLlamaCompass()
   local int i;
   
   CleanArrowList();
+  
+  if ( JailbreakHUD == None || !JailbreakHUD.bShowPoints )
+    return false;
   
   if ( LocalLlamaTag != None )
     return true;

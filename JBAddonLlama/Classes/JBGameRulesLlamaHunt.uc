@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.5.2.2 2004/05/31 19:55:00 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.5.2.3 2004/06/09 16:53:14 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -104,7 +104,8 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 
 function bool OverridePickupQuery(Pawn Other, Pickup Item, out byte bAllowPickup)
 {
-	if ( Item.IsA('TournamentPickup') && Other.FindInventoryType(class'JBLlamaTag') != None ) {
+	if ( Item.IsA('TournamentPickup') && Other.FindInventoryType(class'JBLlamaTag') != None
+	    && Other.PlayerReplicationInfo != None && !Other.PlayerReplicationInfo.bBot ) {
 	  bAllowPickup = 0;
 	  return true;
 	}
