@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageScreen
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessageScreen.uc,v 1.5 2004/04/28 12:02:21 mychaeel Exp $
+// $Id: JBLocalMessageScreen.uc,v 1.6 2004/05/17 02:59:06 mychaeel Exp $
 //
 // Displays on-screen messages.
 // ============================================================================
@@ -160,11 +160,11 @@ defaultproperties
   ColorTextKeyboard  = (R=255,G=255,B=255,A=255);
   ColorTextLastMan   = (R=255,G=255,B=000,A=255);
 
-  PosYTeam           = 0.12;
+  PosYTeam           = 0.13;
   PosYArena          = 0.70;
-  PosYKeyboardArena  = 0.12;
+  PosYKeyboardArena  = 0.13;
   PosYKeyboardCamera = 0.04;
-  PosYLastMan        = 0.10;
+  PosYLastMan        = 0.13;
 
   LifetimeTeam       = 3;
   LifetimeArena      = 3;
