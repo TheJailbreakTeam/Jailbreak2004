@@ -1,14 +1,15 @@
 //=============================================================================
 // JBGUIComponent
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGUIComponent.uc,v 1.1 2004/03/09 15:39:10 wormbo Exp $
 //
 // The base class for GUI components which need customized drawing methods.
 // This control can be associated with more than one GUILabel.
 //=============================================================================
 
 
-class JBGUIComponent extends GUIPanel;
+class JBGUIComponent extends GUIPanel
+    abstract;
 
 
 //=============================================================================
@@ -16,6 +17,7 @@ class JBGUIComponent extends GUIPanel;
 //=============================================================================
 
 var array<GUILabel> FriendlyLabels;
+var bool bIsMultiComponent;
 
 
 //=============================================================================
@@ -79,7 +81,10 @@ event MenuStateChange(eMenuState NewState)
 {
   local int i;
   
-  Super(GUIComponent).MenuStateChange(NewState);
+  if ( bIsMultiComponent )
+    Super.MenuStateChange(NewState);
+  else
+    Super(GUIComponent).MenuStateChange(NewState);
   
   for(i = 0; i < FriendlyLabels.Length; i++) {
     if ( FriendlyLabels[i] == None )
@@ -96,20 +101,40 @@ event MenuStateChange(eMenuState NewState)
 // FocusFirst
 // FocusLast
 //
-// Use GUIComponent's implementations.
+// Use GUIComponent's implementations unless this is a multi-component.
 //=============================================================================
 
 event SetFocus(GUIComponent Who)
-{ Super(GUIComponent).SetFocus(Who); }
+{
+  if ( bIsMultiComponent )
+    Super.SetFocus(Who);
+  else
+    Super(GUIComponent).SetFocus(Who);
+}
 
 event LoseFocus(GUIComponent Sender)
-{ Super(GUIComponent).LoseFocus(Sender); }
+{
+  if ( bIsMultiComponent )
+    Super.LoseFocus(Sender);
+  else
+    Super(GUIComponent).LoseFocus(Sender);
+}
 
 event bool FocusFirst(GUIComponent Sender, bool bIgnoreMultiTabStops)
-{ return Super(GUIComponent).FocusFirst(Sender, bIgnoreMultiTabStops); }
+{
+  if ( bIsMultiComponent )
+    return Super.FocusFirst(Sender, bIgnoreMultiTabStops);
+  
+  return Super(GUIComponent).FocusFirst(Sender, bIgnoreMultiTabStops);
+}
 
 event bool FocusLast(GUIComponent Sender, bool bIgnoreMultiTabStops)
-{ return Super(GUIComponent).FocusLast(Sender, bIgnoreMultiTabStops); }
+{
+  if ( bIsMultiComponent )
+    return Super.FocusLast(Sender, bIgnoreMultiTabStops);
+  
+  return Super(GUIComponent).FocusLast(Sender, bIgnoreMultiTabStops);
+}
 
 
 //=============================================================================
@@ -119,4 +144,5 @@ event bool FocusLast(GUIComponent Sender, bool bIgnoreMultiTabStops)
 defaultproperties
 {
   bTabStop=True
+  bIsMultiComponent=False
 }
