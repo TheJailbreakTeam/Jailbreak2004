@@ -1,7 +1,7 @@
 // ============================================================================
 // JBScreen
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBScreen.uc,v 1.1.1.1 2003/06/30 22:05:18 mychaeel Exp $
 //
 // Abstract base class for ScriptedTexture clients.
 // ============================================================================
@@ -33,6 +33,8 @@ replication {
 // ============================================================================
 // Properties
 // ============================================================================
+
+var() const editconst string Build;
 
 var() ScriptedTexture ScriptedTexture;        // ScriptedTexture to draw on
 var() float RefreshRate;                      // frequency of texture updates
@@ -137,6 +139,8 @@ simulated protected function PrepareMaterial() {
 // ============================================================================
 
 defaultproperties {
+
+  Build = "%%%%-%%-%% %%:%%";
 
   ScriptedTexture = None;
   RefreshRate = 20.0;
