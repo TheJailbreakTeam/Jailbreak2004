@@ -15,6 +15,9 @@
 //                are case-insensitive. Whitespace around tags in the list is
 //                not permitted.
 //
+//   $macro       Inserts a macro loaded from the voice pack's localization
+//                file and executes it in place of the macro reference.
+//
 //   +...ms       Inserts a pause before playing the next sound in the
 //   +...%        sequence. If a percentage is given, it relates to the
 //                duration of the last sound segment which was played.
@@ -73,6 +76,7 @@ simulated singular function bool Parse(string Definition, optional string Tags)
   local int Pause;
   local string Direction;
   local string Identifier;
+  local string Macro;
   local string Tag;
   local string Unit;
   local JBSpeechManager SpeechManager;
@@ -190,6 +194,23 @@ simulated singular function bool Parse(string Definition, optional string Tags)
 
 
       // ==================================================
+      // macro
+      // ==================================================
+
+      case "$":
+        DefinitionRemainder = TrimWhitespaceBefore(DefinitionRemainder, 1);
+        Macro = SpeechManager.GetSetting("Macros", ParseIdentifier(DefinitionRemainder));
+        
+        DefinitionOriginal =
+          Left(DefinitionOriginal, Len(DefinitionOriginal) - Len(DefinitionRemainder)) $ "(" $ Macro $ ")" $
+          Mid (DefinitionOriginal, Len(DefinitionOriginal) - Len(DefinitionRemainder));
+        DefinitionRemainder = Macro $ ")" $ DefinitionRemainder;
+        nLevelEntered += 1;  // account for extra closing parenthesis
+        
+        break;
+
+
+      // ==================================================
       // sound identifier
       // ==================================================
 
@@ -211,7 +232,7 @@ simulated singular function bool Parse(string Definition, optional string Tags)
         ListSegment[iSegment] = Segment;
         ListSegment[iSegment].Time = Time;
 
-        Time += Segment.Duration + Class'JBSpeechManager'.Default.DefaultPause;
+        Time += Segment.Duration + SpeechManager.InfoVoicePack.Pause;
         break;
     }
   }
@@ -465,12 +486,18 @@ simulated function bool ErrorOnPlaying(string Message)
 // delegate OnFinishedPlaying
 //
 // Called when playing the sequence has finished. The default implementation
-// destroys this actor. Set this delegate to None in order to keep the actor
-// around after playing the sequence.
+// destroys this actor and notifies the manager of this. Set this delegate to
+// None in order to keep the actor around after playing the sequence.
 // ============================================================================
 
 simulated function FinishedPlaying(JBSpeechClient SpeechClient)
 {
+  local JBSpeechManager SpeechManager;
+
+  SpeechManager = JBSpeechManager(SpeechClient.Owner);
+  if (SpeechManager != None)
+    SpeechManager.NotifyFinishedPlaying(SpeechClient);
+
   SpeechClient.Destroy();
 }
 
@@ -493,7 +520,8 @@ simulated function PlayAnnouncement(Sound Sound)
   PlayerController.LastPlaySound  = Level.TimeSeconds;
   PlayerController.LastPlaySpeech = Level.TimeSeconds;
   
-  Attenuation = FClamp(0.1 + float(PlayerController.AnnouncerVolume) * 0.225, 0.2, 1.0);
+  Attenuation  = FClamp(0.1 + float(PlayerController.AnnouncerVolume) * 0.225, 0.2, 1.0);
+  Attenuation *= JBSpeechManager(Owner).InfoVoicePack.Volume;
   
   PlaySound(Sound, SLOT_None, Attenuation);
 }

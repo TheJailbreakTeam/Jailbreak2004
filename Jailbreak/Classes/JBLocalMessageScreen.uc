@@ -18,19 +18,23 @@ class JBLocalMessageScreen extends JBLocalMessage
 var int FontSizeTeam;          // font size for capture and release messages
 var int FontSizeArena;         // font size for arena messages
 var int FontSizeKeyboard;      // font size for keyboard information messages
+var int FontSizeLastMan;       // font size for last man message
 
 var float PosYTeam;            // position for capture and release messages
 var float PosYArena;           // position for arena messages
 var float PosYKeyboardArena;   // position for keyboard arena messages
 var float PosYKeyboardCamera;  // position for keyboard camera messages
+var float PosYLastMan;         // position for last man message
 
 var Color ColorTextTeam;       // color for capture and release messages
 var Color ColorTextArena;      // color for arena messages
 var Color ColorTextKeyboard;   // color for keyboard information messages
+var Color ColorTextLastMan;    // color for last man message
 
 var int LifetimeTeam;          // lifetime of capture and release messages
 var int LifetimeArena;         // lifetime of arena messages
 var int LifetimeKeyboard;      // lifetime of keyboard information messages
+var int LifetimeLastMan;       // lifetime of last man message
 
 
 // ============================================================================
@@ -49,7 +53,7 @@ static function ClientReceive(PlayerController PlayerController,
   
   JBInterfaceHud = JBInterfaceHud(PlayerController.myHUD);
 
-  if (Switch >= 400 && Switch <= 403) {
+  if (Switch >= 400 && Switch <= 499) {
     JBInterfaceHud.ClearMessageByClass(Default.Class, 400);
     JBInterfaceHud.ClearMessageByClass(Default.Class, 401);
     JBInterfaceHud.ClearMessageByClass(Default.Class, 402);
@@ -70,9 +74,10 @@ static function Color GetColor(optional int Switch,
                                optional PlayerReplicationInfo PlayerReplicationInfo1,
                                optional PlayerReplicationInfo PlayerReplicationInfo2)
 {
-       if (Switch < 400) return Default.ColorTextTeam;
-  else if (Switch < 500) return Default.ColorTextArena;
-  else if (Switch < 600) return Default.ColorTextKeyboard;
+       if (Switch <= 399) return Default.ColorTextTeam;
+  else if (Switch <= 499) return Default.ColorTextArena;
+  else if (Switch <= 599) return Default.ColorTextKeyboard;
+  else if (Switch <= 699) return Default.ColorTextLastMan;
   
   return Super.GetColor(Switch, PlayerReplicationInfo1, PlayerReplicationInfo2);
 }
@@ -91,10 +96,11 @@ static function GetPos(int Switch,
 {
   Super.GetPos(Switch, OutDrawPivot, OutStackMode, OutPosX, OutPosY);
 
-       if (Switch <  400) OutPosY = Default.PosYTeam;
-  else if (Switch <  500) OutPosY = Default.PosYArena;
+       if (Switch <= 399) OutPosY = Default.PosYTeam;
+  else if (Switch <= 499) OutPosY = Default.PosYArena;
   else if (Switch == 500) OutPosY = Default.PosYKeyboardArena;
   else if (Switch == 510) OutPosY = Default.PosYKeyboardCamera;
+  else if (Switch <= 699) OutPosY = Default.PosYLastMan;
 }
 
 
@@ -109,9 +115,10 @@ static function int GetFontSize(int Switch,
                                 PlayerReplicationInfo PlayerReplicationInfo2,
                                 PlayerReplicationInfo PlayerReplicationInfoLocal)
 {
-       if (Switch < 400) return Default.FontSizeTeam;
-  else if (Switch < 500) return Default.FontSizeArena;
-  else if (Switch < 600) return Default.FontSizeKeyboard;
+       if (Switch <= 399) return Default.FontSizeTeam;
+  else if (Switch <= 499) return Default.FontSizeArena;
+  else if (Switch <= 599) return Default.FontSizeKeyboard;
+  else if (Switch <= 699) return Default.FontSizeLastMan;
   
   return Super.GetFontSize(Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, PlayerReplicationInfoLocal);
 }
@@ -125,9 +132,10 @@ static function int GetFontSize(int Switch,
 
 static function float GetLifeTime(int Switch)
 {
-       if (Switch < 400) return Default.LifetimeTeam;
-  else if (Switch < 500) return Default.LifetimeArena;
-  else if (Switch < 600) return Default.LifetimeKeyboard;
+       if (Switch <= 399) return Default.LifetimeTeam;
+  else if (Switch <= 499) return Default.LifetimeArena;
+  else if (Switch <= 599) return Default.LifetimeKeyboard;
+  else if (Switch <= 699) return Default.LifetimeLastMan;
 
   return Super.GetLifeTime(Switch);  
 }
@@ -142,22 +150,26 @@ defaultproperties
   bIsConsoleMessage  = False;
   StackMode          = SM_Down;
 
-  FontSizeTeam       =  0;  // normal
-  FontSizeArena      =  0;  // normal
+  FontSizeTeam       =  0;  // larger
+  FontSizeArena      =  0;  // larger
   FontSizeKeyboard   = -2;  // small
+  FontSizeLastMan    =  0;  // larger
 
   ColorTextTeam      = (R=000,G=160,B=255,A=255);
   ColorTextArena     = (R=032,G=064,B=255,A=255);
   ColorTextKeyboard  = (R=255,G=255,B=255,A=255);
+  ColorTextLastMan   = (R=255,G=255,B=000,A=255);
 
   PosYTeam           = 0.12;
   PosYArena          = 0.70;
   PosYKeyboardArena  = 0.12;
   PosYKeyboardCamera = 0.04;
+  PosYLastMan        = 0.10;
 
   LifetimeTeam       = 3;
   LifetimeArena      = 3;
   LifetimeKeyboard   = 6;
+  LifetimeLastMan    = 1;
 
   bFadeMessage       = True;
   bIsPartiallyUnique = True;

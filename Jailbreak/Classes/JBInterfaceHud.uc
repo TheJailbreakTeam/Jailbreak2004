@@ -49,6 +49,7 @@ var private transient JBTagClient TagClientOwner;  // client bridge head
 var private transient JBTagPlayer TagPlayerOwner;  // player state for owner
 
 var private bool bHasGameEnded;               // previously detected game end
+var private bool bIsLastMan;                  // previously detected last man
 
 var private float TimeUpdateLocationChat;     // last chat area movement
 var private float TimeUpdateCompass;          // last compass rendering
@@ -57,6 +58,7 @@ var private float TimeUpdateArenaNotifier;    // last arena notifier rendering
 var private float TimeUpdateTactics;          // last tactics rendering
 var private float TimeUpdateWidescreen;       // last widescreen bar rendering
 var private float TimeUpdateBlackout;         // last blackout rendering
+var private float TimeUpdateLastMan;          // last time last man was shown
 
 var vector LocationChatScoreboard;            // location of chat on scoreboard
 var private float AlphaLocationChat;          // relative chat area position
@@ -242,6 +244,8 @@ simulated event PostRender(Canvas Canvas)
     ViewTargetPrev = PlayerOwner.ViewTarget;
   }
 
+  CheckLastMan();
+
   ShowWidescreen(Canvas);
   ShowBlackout  (Canvas);
 
@@ -293,6 +297,50 @@ simulated function LinkActors()
 
   if (TagClientOwner == None && PlayerOwner != None)
     TagClientOwner = Class'JBTagClient'.Static.FindFor(PlayerOwner);
+}
+
+
+// ============================================================================
+// CheckLastMan
+//
+// Checks whether the local player is the last man standing and triggers the
+// appropriate messages if so.
+// ============================================================================
+
+simulated function CheckLastMan()
+{
+  local int nPlayersFree;
+  local int nPlayersCaptured;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  
+  if (PawnOwner                       == None ||
+      PawnOwner.PlayerReplicationInfo == None)
+    return;
+  
+  if (!TagPlayerOwner.IsFree()) {
+    bIsLastMan = False;
+  }
+  else {
+    if (Level.TimeSeconds - TimeUpdateLastMan < 1.0)
+      return;
+  
+    firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetTeam() == PawnOwner.PlayerReplicationInfo.Team)
+        if (thisTagPlayer.IsFree())
+               nPlayersFree     += 1;
+          else nPlayersCaptured += 1;
+
+    if (nPlayersFree == 1 && nPlayersCaptured > 0) {
+      if (!bIsLastMan)
+             PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 600);
+        else PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 610);
+
+      bIsLastMan = True;
+      TimeUpdateLastMan = Level.TimeSeconds;
+    }
+  }
 }
 
 

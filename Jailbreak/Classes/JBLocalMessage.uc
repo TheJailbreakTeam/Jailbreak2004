@@ -10,21 +10,27 @@
 //
 //   Switch    Meaning             Info 1           Info 2           Object
 //   =======   =================   ==============   ==============   ========
-//   100 (b)   Team captured                                         TeamInfo
-//   200 (b)   Team released       Releaser                          TeamInfo
-//   300 (b)   Team stalemate
+//   100 (B)   Team captured                                         TeamInfo
+//   200 (B)   Team released       Releaser                          TeamInfo
+//   300 (B)   Team stalemate
 //   403       Arena countdown 3                                     Arena
 //   402       Arena countdown 2                                     Arena
 //   401       Arena countdown 1                                     Arena
-//   400 (b)   Arena start         Red Combatant    Blue Combatant   Arena
-//   410 (b)   Arena cancelled     Red Combatant    Blue Combatant   Arena
-//   420 (b)   Arena tie           Red Combatant    Blue Combatant   Arena
-//   430 (b)   Arena victory       Winner           Loser            Arena
-//   500 (l)   Keyboard arena
-//   510 (l)   Keyboard cameras
+//   400 (B)   Arena start         Red Combatant    Blue Combatant   Arena
+//   410 (B)   Arena cancelled     Red Combatant    Blue Combatant   Arena
+//   420 (B)   Arena tie           Red Combatant    Blue Combatant   Arena
+//   430 (B)   Arena victory       Winner           Loser            Arena
+//   500 (L)   Keyboard arena
+//   510 (L)   Keyboard cameras
+//   600 (L)   Last man (initial)
+//   610 (L)   Last man (repeat)
+//   700 (B)   Last second save
+//   900 (B)   Game started
+//   910 (B)   Game overtime
+//   920 (B)   Game over                                             TeamInfo
 //
-// Switches marked with (b) are broadcasted to all players, all other messages
-// are directly sent to the players in question. Messages marked with (l) are
+// Switches marked with (B) are broadcasted to all players, all other messages
+// are directly sent to the players in question. Messages marked with (L) are
 // sent locally to a single player.
 // ============================================================================
 
@@ -69,20 +75,7 @@ var localized string TextKeyboardCameraBound;
 var localized string TextKeyboardCameraUnbound;
 
 
-// Supported tags in all speech definitions:
-//   red         Local player is on the red team
-//   blue        Local player is on the blue team
-//   spectator   Local player is a spectator
-
-var localized string SpeechTeamCaptured[2];
-var localized string SpeechTeamReleased[2];
-var localized string SpeechTeamStalemate;
-
-var localized string SpeechArenaStart;
-var localized string SpeechArenaCancel;
-var localized string SpeechArenaTie;
-var localized string SpeechArenaEndWinner;
-var localized string SpeechArenaEndLoser;
+var localized string TextLastMan;
 
 
 // ============================================================================
@@ -100,7 +93,10 @@ var Class<JBLocalMessage> ClassLocalMessageConsole;  // console messages
 // and returns whether playback was successfully started.
 // ============================================================================
 
-static function bool PlaySpeech(PlayerController PlayerController, string Definition)
+static function bool PlaySpeech(PlayerController PlayerController,
+                                         string Definition0,
+                                optional string Definition1,
+                                optional int iDefinition)
 {
   local string Tags;
 
@@ -108,7 +104,12 @@ static function bool PlaySpeech(PlayerController PlayerController, string Defini
   else if (PlayerController.PlayerReplicationInfo.Team.TeamIndex == 0) Tags = "red";
   else if (PlayerController.PlayerReplicationInfo.Team.TeamIndex == 1) Tags = "blue";
 
-  return Class'JBSpeechManager'.Static.PlayFor(PlayerController.Level, Definition, Tags);
+  switch (iDefinition) {
+    case 0:  return Class'JBSpeechManager'.Static.PlayFor(PlayerController.Level, Definition0, Tags);
+    case 1:  return Class'JBSpeechManager'.Static.PlayFor(PlayerController.Level, Definition1, Tags);
+  }
+  
+  return False;
 }
 
 
@@ -134,7 +135,7 @@ static function ClientReceive(PlayerController PlayerController,
   if (Default.Class == Class'JBLocalMessage') {
     ClassLocalMessageReplacement = Default.ClassLocalMessageScreen;
     
-    if (Switch >= 400 && Switch < 500 &&
+    if (Switch >= 400 && Switch <= 499 &&
        !IsLocalPlayer(PlayerReplicationInfo1) &&
        !IsLocalPlayer(PlayerReplicationInfo2))
       ClassLocalMessageReplacement = Default.ClassLocalMessageConsole;
@@ -149,22 +150,28 @@ static function ClientReceive(PlayerController PlayerController,
   }
 
   switch (Switch) {
-    case 100:  PlaySpeech(PlayerController, Default.SpeechTeamCaptured[TeamInfo(ObjectOptional).TeamIndex]);  break;
-    case 200:  PlaySpeech(PlayerController, Default.SpeechTeamReleased[TeamInfo(ObjectOptional).TeamIndex]);  break;
-    case 300:  PlaySpeech(PlayerController, Default.SpeechTeamStalemate);  break;
+    case 100:  PlaySpeech(PlayerController, "$TeamCapturedRed", "$TeamCapturedBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
+    case 200:  PlaySpeech(PlayerController, "$TeamReleasedRed", "$TeamReleasedBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
+    case 300:  PlaySpeech(PlayerController, "$TeamCapturedBoth");  break;
     
-    case 403:  PlayerController.PlayBeepSound();  break;
+    case 403:  PlayerController.PlayBeepSound();  PlaySpeech(PlayerController, "$ArenaWarning");  break;
     case 402:  PlayerController.PlayBeepSound();  break;
     case 401:  PlayerController.PlayBeepSound();  break;
    
-    case 400:  PlaySpeech(PlayerController, Default.SpeechArenaStart);   break;
-    case 410:  PlaySpeech(PlayerController, Default.SpeechArenaCancel);  break;
-    case 420:  PlaySpeech(PlayerController, Default.SpeechArenaTie);     break;
+    case 400:  PlaySpeech(PlayerController, "$ArenaStart");       break;
+    case 410:  PlaySpeech(PlayerController, "$ArenaCancelled");   break;
+    case 420:  PlaySpeech(PlayerController, "$ArenaEndTimeout");  break;
 
     case 430:
-           if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo1) PlaySpeech(PlayerController, Default.SpeechArenaEndWinner);
-      else if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo2) PlaySpeech(PlayerController, Default.SpeechArenaEndLoser);
+           if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo1) PlaySpeech(PlayerController, "$ArenaEndWinner");
+      else if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo2) PlaySpeech(PlayerController, "$ArenaEndLoser");
       break;
+
+    case 600:  PlaySpeech(PlayerController, "$LastMan");          break;
+    case 700:  PlaySpeech(PlayerController, "$LastSecondSave");   break;
+    case 900:  PlaySpeech(PlayerController, "$GameStart");        break;
+    case 910:  PlaySpeech(PlayerController, "$GameOvertime");     break;
+    case 920:  PlaySpeech(PlayerController, "$GameOverWinnerRed", "$GameOverWinnerBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
 
     case 500:
       Key = Class'JBInteractionKeys'.Static.GetKeyForCommand("ArenaCam");
@@ -336,6 +343,9 @@ static function string GetString(optional int Switch,
 
     case 500:  return Default.TextKeyboardArena;
     case 510:  return Default.TextKeyboardCamera;
+    
+    case 600:  return Default.TextLastMan;
+    case 610:  return Default.TextLastMan;
   }
 }
 
@@ -357,12 +367,6 @@ defaultproperties
   TextTeamReleasedBy[1]     = "The blue team has been released by %player%.";
   TextTeamStalemate         = "Both teams captured, no score.";
 
-  SpeechTeamCaptured[0]     = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenCaptured";
-  SpeechTeamCaptured[1]     = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenCaptured";
-  SpeechTeamReleased[0]     = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenReleased";
-  SpeechTeamReleased[1]     = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenReleased";
-  SpeechTeamStalemate       = "BothTeamsCaptured";
-
   TextArenaCountdown[2]     = "Arena match is about to begin...3";
   TextArenaCountdown[1]     = "Arena match is about to begin...2";
   TextArenaCountdown[0]     = "Arena match is about to begin...1";
@@ -376,16 +380,12 @@ defaultproperties
   TextArenaEndLoser         = "You have lost the arena match.";
   TextArenaEndOther         = "%winner% has defeated %loser% in the arena.";
 
-  SpeechArenaStart          = "ArenaMatchHasBegun";
-  SpeechArenaCancel         = "ArenaMatchHasBeenCancelled";
-  SpeechArenaTie            = "ArenaMatchTied";
-  SpeechArenaEndWinner      = "YouHaveWonTheArenaMatch";
-  SpeechArenaEndLoser       = "YouHaveLostTheArenaMatch";
-
   TextKeyboardArenaBound    = "Press [%key%] to watch this arena fight!";
   TextKeyboardArenaUnbound  = "Enter 'ArenaCam' at the console to watch this arena fight!";
   TextKeyboardCameraBound   = "Press [%keyprev%] and [%keynext%] to switch cameras";
   TextKeyboardCameraUnbound = "Enter 'PrevWeapon' and 'NextWeapon' at the console to switch cameras";
+
+  TextLastMan               = "You are the last free player. Release your team!";
 
   ClassLocalMessageScreen   = Class'JBLocalMessageScreen';
   ClassLocalMessageConsole  = Class'JBLocalMessageConsole';

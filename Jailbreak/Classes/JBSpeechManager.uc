@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.1 2004/02/29 21:01:29 mychaeel Exp $
+// $Id$
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -16,10 +16,31 @@ class JBSpeechManager extends JBSpeech
 // Types
 // ============================================================================
 
-struct TCacheSegment
+struct TCacheSegment                          // caches sound segments
 {
-  var string Identifier;
-  var TSegment Segment;
+  var string Identifier;                      // sound segment identifier
+  var array<TSegment> ListSegment;            // loaded sound segments
+};
+
+
+struct TCacheSetting                          // caches settings
+{
+  var string Section;                         // name of section to look in
+  var string Setting;                         // name of setting to look for
+  var string Value;                           // value of the setting
+};
+
+
+struct TInfoVoicePack                         // info on loaded voice pack
+{
+  var string Package;                         // sound package
+  var string Group;                           // group within sound package
+  
+  var float Volume;                           // volume modifier for samples
+  var float Pause;                            // default pause between segments
+  
+  var array<TCacheSegment> ListCacheSegment;  // cached sound segments
+  var array<TCacheSetting> ListCacheSetting;  // cached settings
 };
 
 
@@ -27,15 +48,17 @@ struct TCacheSegment
 // Configuration
 // ============================================================================
 
-var config string DefaultPackage;   // default package for sound objects
-var config float DefaultPause;      // default pause between segments
+var protected config string VoicePack;        // package name of voice pack
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var private array<TCacheSegment> ListCacheSegment;   // segment cache
+var TInfoVoicePack InfoVoicePack;             // info on current voice pack
+var array<TInfoVoicePack> ListInfoVoicePack;  // info on all loaded voice packs
+
+var private array<JBSpeechClient> ListQueueSpeechClient;  // announcement queue
 
 
 // ============================================================================
@@ -52,6 +75,96 @@ static function JBSpeechManager SpawnFor(LevelInfo Level)
     return thisSpeechManager;
 
   return Level.Spawn(Class'JBSpeechManager', Level.GetLocalPlayerController());
+}
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Loads the default voice pack, if any.
+// ============================================================================
+
+simulated event PostBeginPlay()
+{
+  if (VoicePack != "")
+    LoadVoicePack(VoicePack);
+}
+
+
+// ============================================================================
+// GetVoicePack
+//
+// Returns the currently selected voice pack.
+// ============================================================================
+
+static function string GetVoicePack()
+{
+  return Default.VoicePack;
+}
+
+
+// ============================================================================
+// SetVoicePack
+//
+// Sets the voice pack configuration option and makes all currently running
+// speech managers switch to it. Input is not validated.
+// ============================================================================
+
+static function SetVoicePack(string VoicePackNew)
+{
+  local JBSpeechManager thisSpeechManager;
+
+  foreach Default.Class.AllObjects(Class'JBSpeechManager', thisSpeechManager)
+    thisSpeechManager.LoadVoicePack(VoicePackNew);
+
+  Default.VoicePack = VoicePackNew;
+  StaticSaveConfig();
+}
+
+
+// ============================================================================
+// LoadVoicePack
+//
+// Loads the given voice pack. If the same voice pack was loaded once before
+// already, takes it from the voice pack cache instead. Returns whether the
+// voice pack was successfully loaded and activated.
+// ============================================================================
+
+simulated function bool LoadVoicePack(string VoicePackNew)
+{
+  local int iCharSeparator;
+  local int iInfoVoicePack;
+  local string Package;
+  local string Group;
+  
+  if (InfoVoicePack.Package ~= VoicePackNew)
+    return True;
+
+  for (iInfoVoicePack = 0; iInfoVoicePack < ListInfoVoicePack.Length; iInfoVoicePack++)
+    if (ListInfoVoicePack[iInfoVoicePack].Package ~= VoicePackNew)
+      break;
+
+  if (iInfoVoicePack < ListInfoVoicePack.Length) {
+    InfoVoicePack = ListInfoVoicePack[iInfoVoicePack];
+  }
+  else {
+    iCharSeparator = InStr(VoicePackNew $ ".", ".");
+    Package = Left(VoicePackNew, iCharSeparator);
+    Group   = Mid (VoicePackNew, iCharSeparator + 1);
+    
+    if (Localize("Public", "Object", Package) == "")
+      return False;  // no valid .int file found for package
+    
+    InfoVoicePack.Package = Package;
+    InfoVoicePack.Group   = Group;
+    InfoVoicePack.Volume  = float(GetSetting("Settings", "Volume", 1.0));
+    InfoVoicePack.Pause   = float(GetSetting("Settings", "Pause"));
+    InfoVoicePack.ListCacheSegment.Length = 0;
+
+    ListInfoVoicePack[iInfoVoicePack] = InfoVoicePack;
+  }
+
+  return True;
 }
 
 
@@ -74,8 +187,9 @@ static function bool PlayFor(LevelInfo Level, string Definition, optional string
 // ============================================================================
 // Play
 //
-// Spawns a JBSpeechClient actor, parses the sequence definition and starts
-// playing it. Returns whether playing the sequence was started successfully.
+// Spawns a JBSpeechClient actor, parses the sequence definition and either
+// queues it if another client is currently running or starts playing it.
+// Returns whether playing the sequence was started or queued successfully.
 // ============================================================================
 
 simulated function bool Play(string Definition, optional string Tags)
@@ -84,9 +198,11 @@ simulated function bool Play(string Definition, optional string Tags)
   
   SpeechClient = Spawn(Class'JBSpeechClient', Self);
   
-  if (SpeechClient.Parse(Definition, Tags) &&
-      SpeechClient.Play())
-    return True;
+  if (SpeechClient.Parse(Definition, Tags)) {
+    ListQueueSpeechClient[ListQueueSpeechClient.Length] = SpeechClient;
+    if (ListQueueSpeechClient.Length > 1 || SpeechClient.Play())
+      return True;
+  }
   
   SpeechClient.Destroy();
   return False;
@@ -94,32 +210,166 @@ simulated function bool Play(string Definition, optional string Tags)
 
 
 // ============================================================================
+// NotifyFinishedPlaying
+//
+// Called by a client when it finished playing. Starts playing the next queued
+// client if any is present.
+// ============================================================================
+
+simulated function NotifyFinishedPlaying(JBSpeechClient SpeechClient)
+{
+  if (SpeechClient != ListQueueSpeechClient[0])
+    return;
+  
+  ListQueueSpeechClient.Remove(0, 1);
+  if (ListQueueSpeechClient.Length > 0)
+    ListQueueSpeechClient[0].Play();
+}
+
+
+// ============================================================================
+// GetSetting
+//
+// Reads a setting from the voice pack's localization file from the given
+// section; if a group within the voice pack is used, tries to load from the
+// more specific section first before falling back to the generic.
+// ============================================================================
+
+simulated function string GetSetting(string Section, string Setting, optional coerce string ValueDefault)
+{
+  local int iCacheSetting;
+  local string Value;
+  
+  for (iCacheSetting = 0; iCacheSetting < InfoVoicePack.ListCacheSetting.Length; iCacheSetting++)
+    if (InfoVoicePack.ListCacheSetting[iCacheSetting].Section ~= Section &&
+        InfoVoicePack.ListCacheSetting[iCacheSetting].Setting ~= Setting)
+      return InfoVoicePack.ListCacheSetting[iCacheSetting].Value;
+
+  if (InfoVoicePack.Group != "")
+                   Value = Localize(Section $ "." $ InfoVoicePack.Group, Setting, InfoVoicePack.Package);
+  if (Value == "") Value = Localize(Section,                             Setting, InfoVoicePack.Package);
+  if (Value == "") Value = ValueDefault;
+
+  InfoVoicePack.ListCacheSetting.Insert(iCacheSetting, 1);
+  InfoVoicePack.ListCacheSetting[iCacheSetting].Section = Section;
+  InfoVoicePack.ListCacheSetting[iCacheSetting].Setting = Setting;
+  InfoVoicePack.ListCacheSetting[iCacheSetting].Value   = Value;
+    
+  return Value;
+}
+
+
+// ============================================================================
+// Localize
+//
+// Works like the native Localize function, but returns an empty string if the
+// requested value does not exist.
+// ============================================================================
+
+static function string Localize(string Section, string Key, string Package)
+{
+  local string Result;
+  
+  Result = Super.Localize(Section, Key, Package);
+
+  if (Result == ("<?int?" $ Package $ "." $ Section $ "." $ Key $ "?>"))
+    return "";  // value not found
+
+  return Result;
+}
+
+
+// ============================================================================
 // GetSegment
 //
 // Returns the segment corresponding to the given identifier. Uses the cache
-// if possible, and caches the retrieved segment for future use.
+// if possible, and caches the retrieved segments for future use.
 // ============================================================================
 
 simulated function TSegment GetSegment(string Identifier)
 {
+  local int iCacheSegment;
   local int iSegment;
+  local int iSegmentLoaded;
+  local string Package;
+  local string Group;
+  local string Suffix;
+  local Sound SoundLoaded;
   local TCacheSegment CacheSegment;
+  local TSegment SegmentNone;
   
-  if (InStr(Identifier, ".") < 0)
-    Identifier = DefaultPackage $ "." $ Identifier;
+  for (iCacheSegment = 0; iCacheSegment < InfoVoicePack.ListCacheSegment.Length; iCacheSegment++)
+    if (InfoVoicePack.ListCacheSegment[iCacheSegment].Identifier ~= Identifier)
+      break;
+
+  if (iCacheSegment < InfoVoicePack.ListCacheSegment.Length) {
+    CacheSegment = InfoVoicePack.ListCacheSegment[iCacheSegment];
+  }
+  else {
+    CacheSegment.Identifier = Identifier;
+
+    Package = InfoVoicePack.Package;
+    Group   = InfoVoicePack.Group;
+
+    for (iSegmentLoaded = 0; True; iSegmentLoaded++) {
+      if (iSegmentLoaded == 0)
+             Suffix = "";
+        else Suffix = "_" $ iSegmentLoaded;
+
+      SoundLoaded = None;
+      if (InStr(Identifier, ".") >= 0)
+                                 SoundLoaded = DynamicLoadSound(                              Identifier $ Suffix);
+      else {
+        if (Group != "")         SoundLoaded = DynamicLoadSound(Package $ "." $ Group $ "_" $ Identifier $ Suffix);
+        if (SoundLoaded == None) SoundLoaded = DynamicLoadSound(Package $ "."               $ Identifier $ Suffix);
+      }
+
+      if (SoundLoaded == None)
+        if (iSegmentLoaded == 0) continue;
+                            else break;
   
-  for (iSegment = 0; iSegment < ListCacheSegment.Length; iSegment++)
-    if (ListCacheSegment[iSegment].Identifier ~= Identifier)
-      return ListCacheSegment[iSegment].Segment;
+      iSegment = CacheSegment.ListSegment.Length;
+      CacheSegment.ListSegment.Insert(iSegment, 1);
+      CacheSegment.ListSegment[iSegment].Sound    =                  SoundLoaded;
+      CacheSegment.ListSegment[iSegment].Duration = GetSoundDuration(SoundLoaded);
+    }
+    
+    InfoVoicePack.ListCacheSegment[iCacheSegment] = CacheSegment;
+  }
   
-  CacheSegment.Identifier = Identifier;
-  CacheSegment.Segment.Sound = Sound(DynamicLoadObject(Identifier, Class'Sound', True));
+  if (CacheSegment.ListSegment.Length == 0)
+    return SegmentNone;
   
-  if (CacheSegment.Segment.Sound != None)
-    CacheSegment.Segment.Duration = GetSoundDuration(CacheSegment.Segment.Sound);
-  
-  ListCacheSegment[ListCacheSegment.Length] = CacheSegment;
-  return CacheSegment.Segment;
+  iSegment = Rand(CacheSegment.ListSegment.Length);
+  return CacheSegment.ListSegment[iSegment];
+}
+
+
+// ============================================================================
+// DynamicLoadSound
+//
+// Dynamically loads a sound object with the given fully qualified name and
+// returns a reference to it. Returns None if the sound object was not found.
+// ============================================================================
+
+final static function Sound DynamicLoadSound(string Name)
+{
+  return Sound(DynamicLoadObject(Name, Class'Sound', True));
+}
+
+
+// ============================================================================
+// Destroyed
+//
+// Destroys all queued JBSpeechClient actors.
+// ============================================================================
+
+event Destroyed()
+{
+  while (ListQueueSpeechClient.Length > 0) {
+    ListQueueSpeechClient[0].Destroy();
+    ListQueueSpeechClient.Remove(0, 1);
+  }
 }
 
 
@@ -129,6 +379,5 @@ simulated function TSegment GetSegment(string Identifier)
 
 defaultproperties
 {
-  DefaultPackage = "JBAudio.Speech";
-  DefaultPause = -0.300;
+  VoicePack = "JBVoiceGrrrl.Echo";
 }

@@ -709,6 +709,8 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
 {
   local float DistanceRelease;
   local float DistanceReleaseMin;
+  local TeamInfo TeamKiller;
+  local TeamInfo TeamVictim;
   local JBTagObjective firstTagObjective;
   local JBTagObjective thisTagObjective;
   local JBTagPlayer TagPlayerVictim;
@@ -736,19 +738,28 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
     ScorePlayer(ControllerKiller, 'ArenaAttack');
 
   else {
+    TeamKiller = ControllerKiller.PlayerReplicationInfo.Team;
+    TeamVictim = ControllerVictim.PlayerReplicationInfo.Team;
+
     DistanceReleaseMin = -1.0;
 
     firstTagObjective = JBGameReplicationInfo(GameReplicationInfo).firstTagObjective;
-    for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
-      DistanceRelease = VSize(thisTagObjective.GetObjective().Location - ControllerVictim.Pawn.Location);
-      if (DistanceReleaseMin < 0.0 ||
-          DistanceReleaseMin > DistanceRelease)
-        DistanceReleaseMin = DistanceRelease;
-    }
+    for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag)
+      if (thisTagObjective.GetObjective().DefenderTeamIndex == TeamKiller.TeamIndex) {
+        DistanceRelease = VSize(thisTagObjective.GetObjective().Location - ControllerVictim.Pawn.Location);
+        if (DistanceReleaseMin < 0.0 ||
+            DistanceReleaseMin > DistanceRelease)
+          DistanceReleaseMin = DistanceRelease;
+      }
 
-    if (DistanceRelease < 1024.0)
-           ScorePlayer(ControllerKiller, 'Defense');
-      else ScorePlayer(ControllerKiller, 'Attack');
+    if (DistanceReleaseMin > 0.0) {
+      if (DistanceReleaseMin < 1024.0)
+             ScorePlayer(ControllerKiller, 'Defense');
+        else ScorePlayer(ControllerKiller, 'Attack');
+
+      if (DistanceReleaseMin < 512.0 && CountPlayersFree(TeamVictim) == 1 && !IsReleaseActive(TeamVictim))
+        BroadcastLocalizedMessage(MessageClass, 700);
+    }
 
     ControllerKiller.PlayerReplicationInfo.Kills  += 1;
     ControllerVictim.PlayerReplicationInfo.Deaths += 1;
@@ -971,27 +982,16 @@ function bool ContainsActorArena(Actor Actor, optional out JBInfoArena Arena)
 
 
 // ============================================================================
+// CountPlayersFree
 // CountPlayersJailed
-//
-// Forwarded to CountPlayersJailed in JBTagTeam.
-// ============================================================================
-
-function int CountPlayersJailed(TeamInfo Team)
-{
-  return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersJailed();
-}
-
-
-// ============================================================================
 // CountPlayersTotal
 //
-// Forwarded to CountPlayersTotal in JBTagTeam.
+// Forwarded to the corresponding functions in JBTagTeam.
 // ============================================================================
 
-function int CountPlayersTotal(TeamInfo Team)
-{
-  return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersTotal();
-}
+function int CountPlayersFree  (TeamInfo Team) { return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersFree  (); }
+function int CountPlayersJailed(TeamInfo Team) { return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersJailed(); }
+function int CountPlayersTotal (TeamInfo Team) { return Class'JBTagTeam'.Static.FindFor(Team).CountPlayersTotal (); }
 
 
 // ============================================================================
@@ -1265,6 +1265,41 @@ static function ResetViewTarget(PlayerController PlayerController)
     PlayerController.ClientSetViewTarget(PlayerController.ViewTarget);
     PlayerController.ClientSetBehindView(PlayerController.bBehindView);
   }
+}
+
+
+// ============================================================================
+// PlayStartupMessage
+//
+// Plays specialized messages for the start-of-game and overtime announcements.
+// ============================================================================
+
+function PlayStartupMessage()
+{
+  switch (StartupStage) {
+    case 5:  BroadcastLocalizedMessage(MessageClass, 900);  return;
+    case 7:  BroadcastLocalizedMessage(MessageClass, 910);  break;
+  }
+  
+  Super.PlayStartupMessage();
+}
+
+
+// ============================================================================
+// PlayEndOfMatchMessage
+//
+// Plays the audio message when the game ends.
+// ============================================================================
+
+function PlayEndOfMatchMessage()
+{
+  local TeamInfo TeamWinner;
+  
+  if (Teams[0].Score > Teams[1].Score)
+         TeamWinner = Teams[0];
+    else TeamWinner = Teams[1];
+
+  BroadcastLocalizedMessage(MessageClass, 920, , , TeamWinner);
 }
 
 
