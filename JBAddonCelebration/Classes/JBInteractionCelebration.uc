@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.2 2004/03/05 19:18:23 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.3 2004/03/05 21:17:03 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -23,6 +23,7 @@ var Material MeshShadowMaterial;
 
 var() vector MeshLoc, ShadowLoc;
 var() JBGameRulesCelebration.TPlayerInfo PlayerInfo;
+var() color MessageColor;
 
 
 //=============================================================================
@@ -67,6 +68,7 @@ function PostRender(Canvas C)
       C.Font = ViewportOwner.Actor.myHUD.GetFontSizeIndex(C, MessageSize);
       C.TextSize(CaptureMessage, XL, YL);
     } until (XL < 0.7 * C.SizeX);
+    C.DrawColor = MessageColor;
     C.DrawScreenText(CaptureMessage, 0.65, 0.95, DP_LowerMiddle);
   }
 }
@@ -243,6 +245,7 @@ defaultproperties
   bActive=True
   MeshLoc=(X=450,Y=-70,Z=-35)
   ShadowLoc=(X=450,Y=-73,Z=-37)
+  MessageColor=(R=255,G=255,B=255,A=255)
   
   Begin Object Class=ConstantColor Name=MeshShadowColor
     Color=(R=0,G=0,B=0,A=64)
