@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.24 2004/03/28 13:52:14 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.25 2004/03/28 22:45:37 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -26,6 +26,9 @@ replication
 {
   reliable if (Role == ROLE_Authority)
     Caption, Overlay, Switching, bWidescreen, FieldOfView, MotionBlur; 
+
+  reliable if (Role == ROLE_Authority)
+    bHasCamManager;
 }
 
 
@@ -111,7 +114,8 @@ var() byte MotionBlur;                           // amount of motion blur
 // ============================================================================
 
 var private JBCamManager CamManager;             // camera array manager actor
-var float TimeUpdateMovement;                    // last movement update
+var private bool bHasCamManager;                 // replicated flag for clients
+var private float TimeUpdateMovement;            // last movement update
 
 var private bool bIsActiveLocal;                 // local player using camera
 var private array<TInfoViewer> ListInfoViewer;   // all players using camera
@@ -160,6 +164,8 @@ function InitCameraArray()
     ProbeEventSwitch = Spawn(Class'JBProbeEvent', Self, TagSwitch);
     ProbeEventSwitch.OnTrigger = TriggerSwitch;
   }
+
+  bHasCamManager = True;
 }
 
 
@@ -543,6 +549,9 @@ protected simulated function ActivateForLocal()
     CameraEffectMotionBlur.BlurAlpha = 255 - MotionBlur;
     ControllerPlayer.AddCameraEffect(CameraEffectMotionBlur);
   }
+
+  if (bHasCamManager && Switching.bAllowManual)
+    ControllerPlayer.ReceiveLocalizedMessage(Class'JBLocalMessageScreen', 510);
 
   bIsActiveLocal = True;
   UpdateLocal();

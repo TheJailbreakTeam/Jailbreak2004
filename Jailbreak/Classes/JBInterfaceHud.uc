@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.33 2004/03/28 17:18:42 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.34 2004/03/28 22:45:38 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -679,6 +679,9 @@ simulated function ShowArenaNotifier(Canvas Canvas)
 
   TexScalerArenaNotifier = TexScaler(Combiner(Shader(ColorModifierArenaNotifier.Material).Diffuse).Material1);
 
+  if (bShowArenaNotifier && TexScalerArenaNotifier.VOffset == 128.0)
+    PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessageScreen', 500);
+
   if (bShowArenaNotifier)
          TexScalerArenaNotifier.VOffset = FClamp(TexScalerArenaNotifier.VOffset - 256.0 * TimeDelta, 0.0, 128.0);
     else TexScalerArenaNotifier.VOffset = FClamp(TexScalerArenaNotifier.VOffset + 256.0 * TimeDelta, 0.0, 128.0);
@@ -826,7 +829,8 @@ simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas)
 {
   Super.LayoutMessage(Message, Canvas);
 
-  Message.PosY = FMax(Message.PosY, 0.16 * HudScale);
+  if (JBCamera(PlayerOwner.ViewTarget) == None)
+    Message.PosY = FMax(Message.PosY, 0.16 * HudScale);
 }
 
 

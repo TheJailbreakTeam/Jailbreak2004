@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.9 2004/03/05 00:53:28 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.10 2004/03/05 15:17:12 mychaeel Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -20,9 +20,12 @@
 //   410 (b)   Arena cancelled     Red Combatant    Blue Combatant   Arena
 //   420 (b)   Arena tie           Red Combatant    Blue Combatant   Arena
 //   430 (b)   Arena victory       Winner           Loser            Arena
+//   500 (l)   Keyboard arena
+//   510 (l)   Keyboard cameras
 //
 // Switches marked with (b) are broadcasted to all players, all other messages
-// are directly sent to the players in question.
+// are directly sent to the players in question. Messages marked with (l) are
+// sent locally to a single player.
 // ============================================================================
 
 
@@ -58,6 +61,14 @@ var localized string TextArenaEndLoser;
 var localized string TextArenaEndOther;
 
 
+var           string TextKeyboardArena;
+var localized string TextKeyboardArenaBound;
+var localized string TextKeyboardArenaUnbound;
+var           string TextKeyboardCamera;
+var localized string TextKeyboardCameraBound;
+var localized string TextKeyboardCameraUnbound;
+
+
 // Supported tags in all speech definitions:
 //   red         Local player is on the red team
 //   blue        Local player is on the blue team
@@ -89,15 +100,15 @@ var Class<JBLocalMessage> ClassLocalMessageConsole;  // console messages
 // and returns whether playback was successfully started.
 // ============================================================================
 
-static function bool PlaySpeech(PlayerController Player, string Definition)
+static function bool PlaySpeech(PlayerController PlayerController, string Definition)
 {
   local string Tags;
 
-       if (Player.PlayerReplicationInfo.bOnlySpectator)      Tags = "spectator";
-  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 0) Tags = "red";
-  else if (Player.PlayerReplicationInfo.Team.TeamIndex == 1) Tags = "blue";
+       if (PlayerController.PlayerReplicationInfo.bOnlySpectator)      Tags = "spectator";
+  else if (PlayerController.PlayerReplicationInfo.Team.TeamIndex == 0) Tags = "red";
+  else if (PlayerController.PlayerReplicationInfo.Team.TeamIndex == 1) Tags = "blue";
 
-  return Class'JBSpeechManager'.Static.PlayFor(Player.Level, Definition, Tags);
+  return Class'JBSpeechManager'.Static.PlayFor(PlayerController.Level, Definition, Tags);
 }
 
 
@@ -109,12 +120,15 @@ static function bool PlaySpeech(PlayerController Player, string Definition)
 // Otherwise plays sound and continues processing.
 // ============================================================================
 
-static function ClientReceive(PlayerController Player,
+static function ClientReceive(PlayerController PlayerController,
                               optional int Switch,
                               optional PlayerReplicationInfo PlayerReplicationInfo1,
                               optional PlayerReplicationInfo PlayerReplicationInfo2,
                               optional Object ObjectOptional)
 {
+  local string Key;
+  local string KeyPrev;
+  local string KeyNext;
   local Class<JBLocalMessage> ClassLocalMessageReplacement;
 
   if (Default.Class == Class'JBLocalMessage') {
@@ -125,7 +139,7 @@ static function ClientReceive(PlayerController Player,
        !IsLocalPlayer(PlayerReplicationInfo2))
       ClassLocalMessageReplacement = Default.ClassLocalMessageConsole;
 
-    Player.ReceiveLocalizedMessage(
+    PlayerController.ReceiveLocalizedMessage(
       ClassLocalMessageReplacement,
       Switch,
       PlayerReplicationInfo1,
@@ -135,25 +149,44 @@ static function ClientReceive(PlayerController Player,
   }
 
   switch (Switch) {
-    case 100:  PlaySpeech(Player, Default.SpeechTeamCaptured[TeamInfo(ObjectOptional).TeamIndex]);  break;
-    case 200:  PlaySpeech(Player, Default.SpeechTeamReleased[TeamInfo(ObjectOptional).TeamIndex]);  break;
-    case 300:  PlaySpeech(Player, Default.SpeechTeamStalemate);  break;
+    case 100:  PlaySpeech(PlayerController, Default.SpeechTeamCaptured[TeamInfo(ObjectOptional).TeamIndex]);  break;
+    case 200:  PlaySpeech(PlayerController, Default.SpeechTeamReleased[TeamInfo(ObjectOptional).TeamIndex]);  break;
+    case 300:  PlaySpeech(PlayerController, Default.SpeechTeamStalemate);  break;
     
-    case 403:  Player.PlayBeepSound();  break;
-    case 402:  Player.PlayBeepSound();  break;
-    case 401:  Player.PlayBeepSound();  break;
+    case 403:  PlayerController.PlayBeepSound();  break;
+    case 402:  PlayerController.PlayBeepSound();  break;
+    case 401:  PlayerController.PlayBeepSound();  break;
    
-    case 400:  PlaySpeech(Player, Default.SpeechArenaStart);   break;
-    case 410:  PlaySpeech(Player, Default.SpeechArenaCancel);  break;
-    case 420:  PlaySpeech(Player, Default.SpeechArenaTie);     break;
+    case 400:  PlaySpeech(PlayerController, Default.SpeechArenaStart);   break;
+    case 410:  PlaySpeech(PlayerController, Default.SpeechArenaCancel);  break;
+    case 420:  PlaySpeech(PlayerController, Default.SpeechArenaTie);     break;
 
     case 430:
-           if (Player.PlayerReplicationInfo == PlayerReplicationInfo1) PlaySpeech(Player, Default.SpeechArenaEndWinner);
-      else if (Player.PlayerReplicationInfo == PlayerReplicationInfo2) PlaySpeech(Player, Default.SpeechArenaEndLoser);
+           if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo1) PlaySpeech(PlayerController, Default.SpeechArenaEndWinner);
+      else if (PlayerController.PlayerReplicationInfo == PlayerReplicationInfo2) PlaySpeech(PlayerController, Default.SpeechArenaEndLoser);
+      break;
+
+    case 500:
+      Key = GetKeyForCommand(PlayerController, "ArenaCam");
+      if (Key == "")
+             Default.TextKeyboardArena =                   Default.TextKeyboardArenaUnbound;
+        else Default.TextKeyboardArena = StaticReplaceText(Default.TextKeyboardArenaBound, "%key%", Key);
+      break;
+
+    case 510:
+      KeyPrev = GetKeyForCommand(PlayerController, "PrevWeapon", "PrevWeapon");
+      KeyNext = GetKeyForCommand(PlayerController, "NextWeapon", "NextWeapon");
+      if (KeyPrev == "PrevWeapon" && KeyNext == "NextWeapon")
+        Default.TextKeyboardCamera = Default.TextKeyboardCameraUnbound;
+      else
+        Default.TextKeyboardCamera = StaticReplaceText(StaticReplaceText(
+          Default.TextKeyboardCameraBound,
+            "%keyprev%", KeyPrev),
+            "%keynext%", KeyNext);
       break;
   }
 
-  Super.ClientReceive(Player, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
+  Super.ClientReceive(PlayerController, Switch, PlayerReplicationInfo1, PlayerReplicationInfo2, ObjectOptional);
 }
 
 
@@ -300,7 +333,53 @@ static function string GetString(optional int Switch,
       if (IsLocalPlayer(PlayerReplicationInfo2))
         return ReplaceTextArena(Default.TextArenaEndLoser, PlayerReplicationInfo1, PlayerReplicationInfo2);
       return ReplaceTextArena(Default.TextArenaEndOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
+
+    case 500:  return Default.TextKeyboardArena;
+    case 510:  return Default.TextKeyboardCamera;
   }
+}
+
+
+// ============================================================================
+// GetKeyForCommand
+//
+// Returns the name of the key bound to the given command. Partial commands
+// match. Prefers actual keys over mouse commands over joystick commands.
+// Returns an the fallback string if no match is found.
+// ============================================================================
+
+static function string GetKeyForCommand(PlayerController PlayerController, string Command, optional string Fallback)
+{
+  local int iKey;
+  local int RatingKey;
+  local int RatingKeyBest;
+  local string Key;
+  local string KeyBest;
+  local string Binding;
+  
+  for (iKey = 0; iKey < 256; iKey++) {
+    Key = PlayerController.ConsoleCommand("keyname" @ iKey);
+    if (Key == "")
+      continue;
+    
+    Binding = PlayerController.ConsoleCommand("keybinding" @ Key);
+    if (InStr(Caps(Binding), Caps(Command)) < 0)
+      continue;
+    
+         if (Left(Key, 3) ~= "Joy")   RatingKey = 1;
+    else if (Left(Key, 5) ~= "Mouse") RatingKey = 2;
+    else                              RatingKey = 3;
+    
+    if (RatingKey > RatingKeyBest) {
+      KeyBest       = Key;
+      RatingKeyBest = RatingKey;
+    }
+  }
+
+  if (KeyBest != "")
+    return KeyBest;
+  
+  return Fallback;
 }
 
 
@@ -313,39 +392,44 @@ defaultproperties
   bIsConsoleMessage = False;
   bIsSpecial = False;
 
-  TextTeamCaptured[0]      = "The red team has been captured.";
-  TextTeamCaptured[1]      = "The blue team has been captured.";
-  TextTeamReleased[0]      = "The red team has been released.";
-  TextTeamReleased[1]      = "The blue team has been released.";
-  TextTeamReleasedBy[0]    = "The red team has been released by %player%.";
-  TextTeamReleasedBy[1]    = "The blue team has been released by %player%.";
-  TextTeamStalemate        = "Both teams captured, no score.";
+  TextTeamCaptured[0]       = "The red team has been captured.";
+  TextTeamCaptured[1]       = "The blue team has been captured.";
+  TextTeamReleased[0]       = "The red team has been released.";
+  TextTeamReleased[1]       = "The blue team has been released.";
+  TextTeamReleasedBy[0]     = "The red team has been released by %player%.";
+  TextTeamReleasedBy[1]     = "The blue team has been released by %player%.";
+  TextTeamStalemate         = "Both teams captured, no score.";
 
-  SpeechTeamCaptured[0]    = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenCaptured";
-  SpeechTeamCaptured[1]    = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenCaptured";
-  SpeechTeamReleased[0]    = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenReleased";
-  SpeechTeamReleased[1]    = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenReleased";
-  SpeechTeamStalemate      = "BothTeamsCaptured";
+  SpeechTeamCaptured[0]     = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenCaptured";
+  SpeechTeamCaptured[1]     = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenCaptured";
+  SpeechTeamReleased[0]     = "(red:  YourTeam) (blue: TheEnemyTeam) (spectator: TheRedTeam ) HasBeenReleased";
+  SpeechTeamReleased[1]     = "(blue: YourTeam) (red:  TheEnemyTeam) (spectator: TheBlueTeam) HasBeenReleased";
+  SpeechTeamStalemate       = "BothTeamsCaptured";
 
-  TextArenaCountdown[2]    = "Arena match is about to begin...3";
-  TextArenaCountdown[1]    = "Arena match is about to begin...2";
-  TextArenaCountdown[0]    = "Arena match is about to begin...1";
-  TextArenaStartCombatant  = "Arena match has begun!";
-  TextArenaStartOther      = "%teammate% is fighting %enemy% in the arena.";
-  TextArenaCancelCombatant = "Arena match between %teammate% and %enemy% cancelled.";
-  TextArenaCancelOther     = "Arena match has been cancelled.";
-  TextArenaTieCombatant    = "Arena match tied.";
-  TextArenaTieOther        = "Arena match between %teammate% and %enemy% tied.";
-  TextArenaEndWinner       = "You have won your freedom!";
-  TextArenaEndLoser        = "You have lost the arena match.";
-  TextArenaEndOther        = "%winner% has defeated %loser% in the arena.";
+  TextArenaCountdown[2]     = "Arena match is about to begin...3";
+  TextArenaCountdown[1]     = "Arena match is about to begin...2";
+  TextArenaCountdown[0]     = "Arena match is about to begin...1";
+  TextArenaStartCombatant   = "Arena match has begun!";
+  TextArenaStartOther       = "%teammate% is fighting %enemy% in the arena.";
+  TextArenaCancelCombatant  = "Arena match between %teammate% and %enemy% cancelled.";
+  TextArenaCancelOther      = "Arena match has been cancelled.";
+  TextArenaTieCombatant     = "Arena match tied.";
+  TextArenaTieOther         = "Arena match between %teammate% and %enemy% tied.";
+  TextArenaEndWinner        = "You have won your freedom!";
+  TextArenaEndLoser         = "You have lost the arena match.";
+  TextArenaEndOther         = "%winner% has defeated %loser% in the arena.";
 
-  SpeechArenaStart         = "ArenaMatchHasBegun";
-  SpeechArenaCancel        = "ArenaMatchHasBeenCancelled";
-  SpeechArenaTie           = "ArenaMatchTied";
-  SpeechArenaEndWinner     = "YouHaveWonTheArenaMatch";
-  SpeechArenaEndLoser      = "YouHaveLostTheArenaMatch";
+  SpeechArenaStart          = "ArenaMatchHasBegun";
+  SpeechArenaCancel         = "ArenaMatchHasBeenCancelled";
+  SpeechArenaTie            = "ArenaMatchTied";
+  SpeechArenaEndWinner      = "YouHaveWonTheArenaMatch";
+  SpeechArenaEndLoser       = "YouHaveLostTheArenaMatch";
 
-  ClassLocalMessageScreen  = Class'JBLocalMessageScreen';
-  ClassLocalMessageConsole = Class'JBLocalMessageConsole';
+  TextKeyboardArenaBound    = "Press [%key%] to watch this arena fight!";
+  TextKeyboardArenaUnbound  = "Enter 'ArenaCam' at the console to watch this arena fight!";
+  TextKeyboardCameraBound   = "Press [%keyprev%] and [%keynext%] to switch cameras";
+  TextKeyboardCameraUnbound = "Enter 'PrevWeapon' and 'NextWeapon' at the console to switch cameras";
+
+  ClassLocalMessageScreen   = Class'JBLocalMessageScreen';
+  ClassLocalMessageConsole  = Class'JBLocalMessageConsole';
 }
