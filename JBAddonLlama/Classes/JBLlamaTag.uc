@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.10 2004/05/21 20:44:48 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.11 2004/05/24 10:29:13 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -232,31 +232,34 @@ simulated function ResetCrosshairLocations()
 simulated function Tick(float DeltaTime)
 {
   local int CurrentCrosshair;
+  local PlayerController MyController;
   
   if ( bNotYetRegistered && Owner != None )
     InitLlamaTag();
   if ( bNotYetRegistered || Owner == None )
     return;
   
-  if ( PlayerController(Pawn(Owner).Controller) != None
-      && !PlayerController(Pawn(Owner).Controller).bBehindView
-      && (PlayerController(Pawn(Owner).Controller).ViewTarget == None
-          || PlayerController(Pawn(Owner).Controller).ViewTarget == Self
-          || PlayerController(Pawn(Owner).Controller).ViewTarget == Owner) ) {
-    PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation - ViewRotationOffset);
+  if ( Pawn(Owner) != None )
+    MyController = PlayerController(Pawn(Owner).Controller);
+  if ( MyController == None && TagPlayer != None )
+    MyController = PlayerController(TagPlayer.GetController());
+  
+  if ( MyController != None && (MyController.ViewTarget == MyController
+      || MyController.ViewTarget == Self || MyController.ViewTarget == Owner
+      || Vehicle(MyController.Pawn) != None && Vehicle(MyController.Pawn).Driver == Owner) ) {
+    MyController.SetRotation(MyController.Rotation - ViewRotationOffset);
     ViewRotationOffset.Pitch = 1536 * Sin(1.2 * Pi * (Level.TimeSeconds - LlamaStartTime));
     ViewRotationOffset.Yaw   = 1536 * Sin(0.9 * Pi * (Level.TimeSeconds - LlamaStartTime));
     ViewRotationOffset.Roll  = 1536 * Sin(1.1 * Pi * (Level.TimeSeconds - LlamaStartTime));
-    PlayerController(Pawn(Owner).Controller).SetRotation(PlayerController(Pawn(Owner).Controller).Rotation + ViewRotationOffset);
+    MyController.SetRotation(MyController.Rotation + ViewRotationOffset);
     bShiftedView = True;
   }
   else if ( bShiftedView ) {
-    if ( Pawn(Owner).Controller != None )
-      Pawn(Owner).Controller.SetRotation(Pawn(Owner).Controller.Rotation - ViewRotationOffset);
+    if ( MyController != None )
+      Pawn(Owner).Controller.SetRotation(MyController.Rotation - ViewRotationOffset);
     bShiftedView = False;
   }
   
-  //Pawn(Owner).SetHeadScale(2.0 + 1.0 * Cos(2.0 * Level.TimeSeconds));
   Pawn(Owner).SetHeadScale(0.01);
   
   if ( LocalHUD != None ) {
@@ -267,9 +270,9 @@ simulated function Tick(float DeltaTime)
         = 0.5 + 0.05 * Cos(Level.TimeSeconds * 4.0);
   }
   
-  if ( Pawn(Owner).Controller != None && Pawn(Owner).Controller.Pawn != None
-      && Trail != None && Trail.Owner != Pawn(Owner).Controller.Pawn )
-    Trail.SetOwner(Pawn(Owner).Controller.Pawn);
+  if ( MyController != None && MyController.Pawn != None
+      && Trail != None && Trail.Owner != MyController.Pawn )
+    Trail.SetOwner(MyController.Pawn);
   
   if ( Role == ROLE_Authority
       && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration ) {
