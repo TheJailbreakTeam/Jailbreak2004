@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.14 2004/05/17 21:05:03 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.15 2004/05/30 16:34:59 mychaeel Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -252,11 +252,16 @@ static function string ReplaceTextArena(string TextTemplate,
                                         PlayerReplicationInfo PlayerReplicationInfo1,
                                         PlayerReplicationInfo PlayerReplicationInfo2)
 {
+  local string PlayerNameTeammate;
+  local string PlayerNameEnemy;
+  local string PlayerNameWinner;
+  local string PlayerNameLoser;
   local PlayerController PlayerLocal;
   local PlayerReplicationInfo PlayerReplicationInfoTeammate;
   local PlayerReplicationInfo PlayerReplicationInfoEnemy;
 
-  PlayerLocal = PlayerReplicationInfo1.Level.GetLocalPlayerController();
+  if (PlayerReplicationInfo1 != None)
+    PlayerLocal = PlayerReplicationInfo1.Level.GetLocalPlayerController();
 
   if (PlayerLocal == None ||
       PlayerLocal.PlayerReplicationInfo.Team == PlayerReplicationInfo1.Team) {
@@ -267,13 +272,20 @@ static function string ReplaceTextArena(string TextTemplate,
     PlayerReplicationInfoEnemy    = PlayerReplicationInfo1;
   }
 
-  TextTemplate = StaticReplaceText(TextTemplate, "%teammate%", PlayerReplicationInfoTeammate.PlayerName);
-  if (PlayerReplicationInfoEnemy != None)
-    TextTemplate = StaticReplaceText(TextTemplate, "%enemy%", PlayerReplicationInfoEnemy.PlayerName);
+  PlayerNameTeammate = "???";
+  PlayerNameEnemy    = "???";
+  PlayerNameWinner   = "???";
+  PlayerNameLoser    = "???";
 
-  TextTemplate = StaticReplaceText(TextTemplate, "%winner%", PlayerReplicationInfo1.PlayerName);
-  if (PlayerReplicationInfo2 != None)
-    TextTemplate = StaticReplaceText(TextTemplate, "%loser%",  PlayerReplicationInfo2.PlayerName);
+  if (PlayerReplicationInfoTeammate != None) PlayerNameTeammate = PlayerReplicationInfoTeammate.PlayerName;
+  if (PlayerReplicationInfoEnemy    != None) PlayerNameEnemy    = PlayerReplicationInfoEnemy   .PlayerName;
+  if (PlayerReplicationInfo1        != None) PlayerNameWinner   = PlayerReplicationInfo1       .PlayerName;
+  if (PlayerReplicationInfo2        != None) PlayerNameLoser    = PlayerReplicationInfo2       .PlayerName;
+
+  TextTemplate = StaticReplaceText(TextTemplate, "%teammate%", PlayerNameTeammate);
+  TextTemplate = StaticReplaceText(TextTemplate, "%enemy%",    PlayerNameEnemy);
+  TextTemplate = StaticReplaceText(TextTemplate, "%winner%",   PlayerNameWinner);
+  TextTemplate = StaticReplaceText(TextTemplate, "%loser%",    PlayerNameLoser);
 
   return TextTemplate;
 }
@@ -290,6 +302,9 @@ static function bool IsLocalPlayer(PlayerReplicationInfo PlayerReplicationInfo1,
                           optional PlayerReplicationInfo PlayerReplicationInfo2)
 {
   local PlayerController PlayerLocal;
+
+  if (PlayerReplicationInfo1 == None)
+    return False;
 
   PlayerLocal = PlayerReplicationInfo1.Level.GetLocalPlayerController();
   if (PlayerLocal == None)
