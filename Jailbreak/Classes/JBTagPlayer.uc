@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.44 2004/04/14 15:13:20 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.45 2004/04/15 13:27:57 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -698,9 +698,7 @@ function NotifyJailOpening()
     Controller.Pawn.Health = Controller.Pawn.Default.Health;
 
   if (PlayerController(Controller) != None)
-    Camera = JBCamera(PlayerController(Controller).ViewTarget);
-  if (Camera != None)
-    Camera.DeactivateFor(Controller);
+    Jailbreak(Level.Game).ResetViewTarget(PlayerController(Controller));
 
   if (ArenaPending != None)
     ArenaPending.MatchCancel();

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.76 2004/04/25 17:30:33 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.77 2004/04/25 22:15:16 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1164,14 +1164,13 @@ function bool ExecutionInit()
 // ExecutionCommit
 //
 // Prepares and commits a team's execution. Selects a jail to view during the
-// execution sequence, respawns all other players, scores and announces the
-// capture.
+// execution sequence, deactivates all camera and third-person views, respawns
+// all other players, scores and announces the capture.
 // ============================================================================
 
 function ExecutionCommit(TeamInfo TeamExecuted)
 {
   local Controller thisController;
-  local JBCamera thisCamera;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
   local JBGameRules firstJBGameRules;
@@ -1188,8 +1187,9 @@ function ExecutionCommit(TeamInfo TeamExecuted)
           thisController.PlayerReplicationInfo.Team != TeamExecuted)
         ScorePlayer(thisController, 'Capture');
 
-    foreach DynamicActors(Class'JBCamera', thisCamera)
-      thisCamera.DeactivateForAll();
+    for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+      if (PlayerController(thisController) != None)
+        ResetViewTarget(PlayerController(thisController));
 
     JailExecution = FindJailExecution(TeamExecuted);
 
@@ -1248,11 +1248,8 @@ function ExecutionEnd()
     if (bEnableSpectatorDeathCam)
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (thisController.PlayerReplicationInfo != None &&
-            thisController.PlayerReplicationInfo.bOnlySpectator) {
-          Camera = JBCamera(PlayerController(thisController).ViewTarget);
-          if (Camera != None)
-            Camera.DeactivateFor(thisController);
-        }
+            thisController.PlayerReplicationInfo.bOnlySpectator)
+          ResetViewTarget(PlayerController(thisController));
 
     if ((Teams[0].Score >= GoalScore ||
          Teams[1].Score >= GoalScore) && GoalScore > 0)
@@ -1263,6 +1260,30 @@ function ExecutionEnd()
 
   else {
     Log("Warning: Cannot end execution while in state" @ GetStateName());
+  }
+}
+
+
+// ============================================================================
+// ResetViewTarget
+//
+// Resets the given player's view to normal first-person view.
+// ============================================================================
+
+static function ResetViewTarget(PlayerController PlayerController)
+{
+  if (JBCamera(PlayerController.ViewTarget) != None) {
+    JBCamera(PlayerController.ViewTarget).DeactivateFor(PlayerController);
+  }
+
+  else if (PlayerController.ViewTarget != PlayerController &&
+           PlayerController.ViewTarget != PlayerController.Pawn) {
+
+    PlayerController.SetViewTarget(PlayerController.Pawn);
+    PlayerController.bBehindView = False;
+
+    PlayerController.ClientSetViewTarget(PlayerController.ViewTarget);
+    PlayerController.ClientSetBehindView(PlayerController.bBehindView);
   }
 }
 
@@ -1503,14 +1524,14 @@ defaultproperties
   TextHintJailbreak[ 2] = "You can stand on teammates while they're crouching. Look out for jail escape routes requiring this cooperation!"
   TextHintJailbreak[ 3] = "Some jails have hidden escape routes. You may have to stand on a crouching teammate to reach them."
   TextHintJailbreak[ 4] = "There may be more than one release switch for your team. The faster a compass dot pulses, the more players can be released through the corresponding switch."
-  TextHintJailbreak[ 5] = "Sometimes it is better to hide away from the enemy team rather than to give them an easy capture."
+  TextHintJailbreak[ 5] = "Sometimes it is better to hide away from the enemy team than to give them an easy capture."
   TextHintJailbreak[ 6] = "If you killed the last free enemy, you can taunt the enemy team on the celebration screen during the execution sequence."
   TextHintJailbreak[ 7] = "Bored in jail? You can fight your teammates for fun with the Shield Gun without any penalties."
   TextHintJailbreak[ 8] = "Some jails contain monitors for surveillance cameras showing important spots in the map. Approach one of them to activate the camera."
   TextHintJailbreak[ 9] = "When you're jailed, you may be chosen for an arena match with a jailed enemy. Win the match to gain your freedom!"
   TextHintJailbreak[10] = "When an arena match is going on, press %ARENACAM% to watch a live feed!"
   TextHintJailbreak[11] = "Use %TEAMTACTICS UP% to increase and %TEAMTACTICS DOWN% to decrease the overall aggressiveness of the bots on your team."
-  TextHintJailbreak[12] = "The Jailbreak scoreboard shows the whereabouts of you and your teammates in a panorama minimap."
+  TextHintJailbreak[12] = "The Jailbreak scoreboard shows the whereabouts of you and your teammates on a panorama minimap."
   TextHintJailbreak[13] = "You can see what your human teammates are up to on the Jailbreak scoreboard: It shows whether they are attacking, defending or roaming the map."
   TextHintJailbreak[14] = "The red, yellow and green bars next to each player name in the Jailbreak scoreboard show that player's attack kills, defense kills and released teammates."
   TextHintJailbreak[15] = "The markers on the clock in the upper right corner of the Jailbreak scoreboard indicate team captures."
