@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.46 2003/06/02 16:57:59 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.47 2003/06/02 16:59:52 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1158,6 +1158,7 @@ defaultproperties {
   GameName                 = "Jailbreak";
   HUDType                  = "Jailbreak.JBInterfaceHud";
   ScoreBoardType           = "Jailbreak.JBInterfaceScores";
+  MapListType              = "Jailbreak.JBMapList";
   
   MessageClass             = Class'JBLocalMessage';
   GameReplicationInfoClass = Class'JBGameReplicationInfo';
