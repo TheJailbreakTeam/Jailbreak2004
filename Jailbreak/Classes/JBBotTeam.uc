@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.25 2003/06/15 21:42:08 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.26 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -846,7 +846,10 @@ function SetOrders(Bot Bot, name OrderName, Controller ControllerCommander)
     case 'TacticsEvasive':     SetTactics('Evasive');     return;
   }
 
-  if (TagPlayerBot.IsFree()) {
+  if (TagPlayerBot.IsFree() ||
+     (TagPlayerBot.IsInJail() &&
+      TagPlayerBot.GetJail().IsReleaseActive(Team))) {
+
     Super.SetOrders(Bot, OrderName, ControllerCommander);
     RequestReAssessment();
   }
