@@ -1,0 +1,30 @@
+; $Id$
+
+[Public]
+Object=(Name=JBVoiceFreak,Class=Class,MetaClass=Jailbreak.JBVoice,Description="HyperFreak")
+
+[Settings]
+Volume=2.0
+Pause=-0.150
+
+[Macros]
+LastMan="LastMan"
+LastSecondSave="LastSecondSave"
+TeamRed="(red: TeamSelf) (blue: TeamEnemy) (spectator: TeamRed)"
+TeamBlue="(red: TeamEnemy) (blue: TeamSelf) (spectator: TeamBlue)"
+TeamCapturedRed="$TeamRed Captured"
+TeamCapturedBlue="$TeamBlue Captured"
+TeamCapturedBoth="Tied"
+TeamReleasedRed="$TeamRed Released"
+TeamReleasedBlue="$TeamBlue Released"
+ArenaWarning="ArenaWarning"
+ArenaStart="ArenaStart"
+ArenaEndTimeout="ArenaEndLoser"
+ArenaEndWinner="ArenaEndWinner"
+ArenaEndLoser="ArenaEndLoser"
+GameStart="GameStart"
+GameOverWinnerRed="(red: GameOverWinner) (blue: GameOverLoser) (spectator: $TeamRed GameOverTeam)"
+GameOverWinnerBlue="(red: GameOverLoser) (blue: GameOverWinner) (spectator: $TeamBlue GameOverTeam)"
+AddonLlamaStart="LlamaStart"
+AddonLlamaDisconnect="LlamaDisconnect"
+AddonLlamaFragged="LlamaFragged"

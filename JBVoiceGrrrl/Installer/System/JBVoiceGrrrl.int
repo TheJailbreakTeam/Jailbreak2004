@@ -1,0 +1,39 @@
+; $Id$
+
+[Public]
+Object=(Name=JBVoiceGrrrl.Normal,Class=Class,MetaClass=Jailbreak.JBVoice,Description="UnrealGrrl")
+Object=(Name=JBVoiceGrrrl.Echo,Class=Class,MetaClass=Jailbreak.JBVoice,Description="UnrealGrrl (Echo)")
+
+[Settings]
+Volume=2.0
+
+[Settings.Normal]
+Pause=-0.150
+
+[Settings.Echo]
+Pause=-0.180
+
+[Settings.Robot]
+Pause=-0.150
+
+[Macros]
+LastMan="LastMan"
+LastSecondSave="LastSecondSave"
+TeamRed="(red: TeamSelf) (blue: TeamEnemy) (spectator: TeamRed)"
+TeamBlue="(red: TeamEnemy) (blue: TeamSelf) (spectator: TeamBlue)"
+TeamCapturedRed="$TeamRed Captured"
+TeamCapturedBlue="$TeamBlue Captured"
+TeamCapturedBoth="Tied"
+TeamReleasedRed="$TeamRed Released"
+TeamReleasedBlue="$TeamBlue Released"
+ArenaWarning="ArenaWarning"
+ArenaEndTimeout="ArenaEndLoser"
+ArenaEndWinner="ArenaEndWinner"
+ArenaEndLoser="ArenaEndLoser"
+GameStart="GameStart"
+GameOverWinnerRed="(red: GameOverWinner) (blue: GameOverLoser) (spectator: GameOverRed)"
+GameOverWinnerBlue="(red: GameOverLoser) (blue: GameOverWinner) (spectator: GameOverBlue)"
+AddonLlamaStart="LlamaStart"
+AddonLlamaDisconnect="LlamaDisconnect"
+AddonLlamaFragged="LlamaFragged"
+AddonVengeanceStart="Vengeance"
