@@ -1,5 +1,5 @@
 ===============================================================================
-Jailbreak 2003
+Jailbreak 2003a (SP1)
 Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
 ===============================================================================
 
@@ -84,6 +84,7 @@ Copyright
 ===============================================================================
 
 Jailbreak for Unreal Tournament 2003
+Jailbreak Service Pack 1
 
 Copyright (c) 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
 Contact <feedback@planetjailbreak.com> for feedback.
