@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroup
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroup.uc,v 1.5 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBDispositionGroup.uc,v 1.6 2004/04/05 22:27:55 mychaeel Exp $
 //
 // Manages the disposition of a group of players on a team. Takes care of
 // their visual arrangement of the icons on the screen and of drawing them.
@@ -219,5 +219,5 @@ protected function JBDispositionPlayer RemoveIconFromEnd()
 
 defaultproperties
 {
-  Scale = 0.8;
+  Scale = 0.9;
 }

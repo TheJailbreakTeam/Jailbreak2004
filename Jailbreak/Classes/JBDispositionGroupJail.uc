@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupJail.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBDispositionGroupJail.uc,v 1.7 2004/04/05 22:27:56 mychaeel Exp $
 //
 // Manages the icons of jailed players on a team, arranging them in the circle
 // displayed next to the team status widget.
@@ -174,7 +174,7 @@ defaultproperties
   ColorCounter[0] = (R=255,G=0,B=0,A=255);
   ColorCounter[1] = (R=0,G=0,B=255,A=255);
 
-  LocationFormation = (X=0.0515,Y=0.036);
+  LocationFormation = (X=0.056,Y=0.043);
   Formation[0] = (Scale=1.0,Location[0]=(X=+0.000,Y=+0.000,Z=1));
   Formation[1] = (Scale=1.0,Location[0]=(X=+0.008,Y=+0.000,Z=1),Location[1]=(X=-0.008,Y=+0.000,Z=1));
   Formation[2] = (Scale=0.9,Location[0]=(X=+0.010,Y=+0.008,Z=1),Location[1]=(X=-0.010,Y=+0.008,Z=1),Location[2]=(X=+0.000,Y=-0.012,Z=1));

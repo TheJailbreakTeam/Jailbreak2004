@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionGroupFree
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionGroupFree.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBDispositionGroupFree.uc,v 1.3 2004/04/05 22:27:55 mychaeel Exp $
 //
 // Manages the icons of free players on a team, arranging them in a horizontal
 // row below the team status widget.
@@ -63,7 +63,7 @@ function Setup()
 
 defaultproperties
 {
-  LocationPlayers = (X=0.078,Y=0.078);
+  LocationPlayers = (X=0.110,Y=0.085);
   WidthPlayer = 0.014;
 
   AddIconForFadein     = AddIconToEnd;

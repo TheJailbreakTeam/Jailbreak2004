@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.36 2004/04/05 22:27:56 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.37 2004/04/06 23:57:43 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -81,6 +81,7 @@ var Color ColorTextArenaNotifier;             // color of arena notifier text
 var private float AlphaArenaNotifier;         // transparency of arena notifier
 var private Font FontObjectArenaNotifier;     // dynamically loaded font object
 
+var SpriteWidget SpriteWidgetCompass[2];      // compass rings and jail circles
 var SpriteWidget SpriteWidgetCompassDot;      // compass dot showing releases
 var SpriteWidget SpriteWidgetHandcuffs[2];    // handcuff icons in circles
 var SpriteWidget SpriteWidgetArenaNotifier;   // arena notifier slider
@@ -772,6 +773,8 @@ simulated function ShowTeamScorePassA(Canvas Canvas)
     SetDisplayAdrenaline(True);
     Super.ShowTeamScorePassA(Canvas);
 
+    DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
+    DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
     DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
     DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
 
@@ -1054,8 +1057,8 @@ defaultproperties
 
   LocationChatScoreboard     = (X=0.050,Y=0.300);
 
-  LocationCompass            = (X=0.052,Y=0.036);
-  SizeCompass                = (X=0.021,Y=0.028);
+  LocationCompass            = (X=0.056,Y=0.043);
+  SizeCompass                = (X=0.023,Y=0.031);
   
   LocationTextTactics        = (X=0.049,Y=0.096);
   SizeIconTactics            = (Y=0.040);
@@ -1075,9 +1078,11 @@ defaultproperties
   ColorTactics[4]            = (R=255,G=112,B=000,A=192);
 
   SpriteWidgetArenaNotifier  = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.40,DrawPivot=DP_UpperMiddle,PosX=0.5,PosY=0,OffsetX=0,OffsetY=86,RenderStyle=STY_Alpha,Tints[0]=(R=000,G=000,B=000,A=150),Tints[1]=(R=000,G=000,B=000,A=150));
+  SpriteWidgetCompass[0]     = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.60,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0,OffsetX=-32,OffsetY=7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  SpriteWidgetCompass[1]     = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.60,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0,OffsetX=32,OffsetY=7,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
   SpriteWidgetCompassDot     = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=340,Y1=432,X2=418,Y2=510),TextureScale=0.12,DrawPivot=DP_MiddleMiddle,RenderStyle=STY_Alpha);
-  SpriteWidgetHandcuffs[0]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=064,Y1=400,X2=160,Y2=507),TextureScale=0.2,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-120,OffsetY=32,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=64),Tints[1]=(R=255,G=255,B=255,A=64));
-  SpriteWidgetHandcuffs[1]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=064,Y1=400,X1=160,Y2=507),TextureScale=0.2,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=120,OffsetY=32,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=64),Tints[1]=(R=255,G=255,B=255,A=64));
+  SpriteWidgetHandcuffs[0]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=064,Y1=400,X2=160,Y2=507),TextureScale=0.23,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-108,OffsetY=34,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=64),Tints[1]=(R=255,G=255,B=255,A=64));
+  SpriteWidgetHandcuffs[1]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=064,Y1=400,X1=160,Y2=507),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=108,OffsetY=34,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=64),Tints[1]=(R=255,G=255,B=255,A=64));
 
   SpriteWidgetTacticsBlob    = (WidgetTexture=Texture'HUDContent.Generic.GlowCircle',TextureCoords=(X1=0,Y1=0,X2=64,Y2=64),TextureScale=0.47,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=0,OffsetY=67,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=000,A=255),Tints[1]=(R=255,G=255,B=000,A=255));
   SpriteWidgetTacticsCircle  = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=00,OffsetY=60,RenderStyle=STY_Alpha,Tints[0]=(B=255,G=255,R=255,A=255),Tints[1]=(B=255,G=255,R=255,A=255));
@@ -1089,7 +1094,13 @@ defaultproperties
   SpriteWidgetTacticsIcon[4] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=240,X2=497,Y2=332),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=033,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsAuto    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=080,Y1=352,X2=136,Y2=371),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=038,OffsetY=098,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255),ScaleMode=SM_Left,Scale=1.0);
 
-  TeamSymbols[0]             = (TextureScale=0.0);
-  TeamSymbols[1]             = (TextureScale=0.0);
+  ScoreTeam[0]               = (PosX=0.442000);
+  ScoreTeam[1]               = (PosX=0.558000);
+  TeamScoreBackGround[0]     = (PosX=0.442000);
+  TeamScoreBackGround[1]     = (PosX=0.558000);
+  TeamScoreBackGroundDisc[0] = (PosX=0.442000);
+  TeamScoreBackGroundDisc[1] = (PosX=0.558000);
+  TeamSymbols[0]             = (PosX=0.442000);
+  TeamSymbols[1]             = (PosX=0.558000);
   TimerIcon                  = (TextureScale=0.54,OffsetY=11);
 }
