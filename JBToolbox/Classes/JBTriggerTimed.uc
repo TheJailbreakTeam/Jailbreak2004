@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTriggerTimed
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTriggerTimed.uc,v 1.1 2003/06/29 15:05:46 mychaeel Exp $
 //
 // Trigger that periodically fires a certain event. Can be activated and
 // deactivated by being triggered itself. Trigger times are randomly chosen
@@ -11,6 +11,13 @@
 
 class JBTriggerTimed extends Triggers
   placeable;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\JBTriggerTimed.pcx mips=off masked=on
 
 
 // ============================================================================
@@ -101,4 +108,5 @@ defaultproperties {
   bEnabled = True;
   bRepeating = True;
   bUseInstigator = False;
+  Texture = Texture'JBTriggerTimed';
   }
