@@ -1,16 +1,26 @@
 // ============================================================================
 // JBGameRulesTeleport
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-//gg
+// $Id$
+//
 // The rules for the teleport addon.
 // ============================================================================
+
+
 class JBGameRulesTeleport extends JBGameRules;
+
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const CHANCE_AMOUNT = 20; // seek maximum 5x time
 
 
 // ============================================================================
 // Variables
 // ============================================================================
-const CHANCE_AMOUNT = 20; // seek maximum 5x time
+
 var private int GetSpotChance;
 
 
@@ -19,6 +29,7 @@ var private int GetSpotChance;
 //
 // When a player release his team.
 // ============================================================================
+
 function bool CanRelease(TeamInfo Team, Pawn Releaser, GameObjective Objective)
 {
     local PlayerStart TeleportSpot;
@@ -49,6 +60,7 @@ function bool CanRelease(TeamInfo Team, Pawn Releaser, GameObjective Objective)
 //
 // Seek a free team PlayerStart.
 // ============================================================================
+
 final function PlayerStart GetTeleportSpot(byte Team)
 {
     local NavigationPoint NP;
@@ -74,8 +86,3 @@ final function PlayerStart GetTeleportSpot(byte Team)
 
     return GetTeleportSpot(Team);
 }
-
-
-// ============================================================================
-// Default properties
-// ============================================================================
