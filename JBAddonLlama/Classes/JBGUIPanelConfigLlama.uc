@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIPanelConfigLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIPanelConfigLlama.uc,v 1.6 2004/03/18 12:31:39 mychaeel Exp $
+// $Id: JBGUIPanelConfigLlama.uc,v 1.7 2004/03/18 20:08:52 tarquin Exp $
 //
 // User interface panel for Llama Hunt configuration.
 //=============================================================================
@@ -97,24 +97,26 @@ function ResetConfiguration()
 defaultproperties
 {
   Begin Object Class=GUILabel Name=LlamaKillRewardLabel
-    WinTop=0.2
-    WinLeft=0.05
-    WinHeight=0.1
-    WinWidth=0.8
+    WinTop    =0.2 // row 2
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
     Caption="Rewards for killing a Llama:"
   End Object
   Controls(0)=GUILabel'LlamaKillRewardLabel'
   
   Begin Object Class=JBGUIEditSlider Name=RewardAdrenaline
     WinTop=0.3
-    WinLeft=0.15
-    WinHeight=0.1
-    WinWidth=0.8
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    CaptionWidth  = -1;
+    SliderWidth   = 0.34;
+    EditBoxWidth  = 0.18;
+    LeftIndent    = 0.05
+
     Caption="Adrenaline"
     Hint="Adrenaline gained for killing a llama."
-    CaptionWidth=0.4
-    SliderWidth=-1
-    EditBoxWidth=0.2
     MinValue=0
     MaxValue=100
     bIntegerOnly=True
@@ -124,14 +126,16 @@ defaultproperties
   
   Begin Object Class=JBGUIEditSlider Name=RewardHealth
     WinTop=0.45
-    WinLeft=0.15
-    WinHeight=0.1
-    WinWidth=0.8
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    CaptionWidth  = -1;
+    SliderWidth   = 0.34;
+    EditBoxWidth  = 0.18;
+    LeftIndent    = 0.05
+
     Caption="Health"
     Hint="Health gained for killing a llama."
-    CaptionWidth=0.4
-    SliderWidth=-1
-    EditBoxWidth=0.2
     MinValue=0
     MaxValue=199
     bIntegerOnly=True
@@ -141,14 +145,16 @@ defaultproperties
   
   Begin Object Class=JBGUIEditSlider Name=RewardShield
     WinTop=0.6
-    WinLeft=0.15
-    WinHeight=0.1
-    WinWidth=0.8
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    CaptionWidth  = -1;
+    SliderWidth   = 0.34;
+    EditBoxWidth  = 0.18;
+    LeftIndent    = 0.05
+    
     Caption="Shield"
     Hint="Shield gained for killing a llama."
-    CaptionWidth=0.4
-    SliderWidth=-1
-    EditBoxWidth=0.2
     MinValue=0
     MaxValue=150
     bIntegerOnly=True
@@ -157,15 +163,16 @@ defaultproperties
   Controls(3)=JBGUIEditSlider'RewardShield'
   
   Begin Object Class=JBGUIEditSlider Name=MaximumLlamaDuration
-    WinTop=0.0
-    WinLeft=0.05
-    WinHeight=0.1
-    WinWidth=0.9
-    Caption="Llama Hunt Duration"
+    WinTop    =0.0 // row 1
+    WinLeft   =0.0
+    WinHeight =0.1
+    WinWidth  =1.0
+    CaptionWidth  = -1;
+    SliderWidth   = 0.34;
+    EditBoxWidth  = 0.18;
+  
+    Caption="Llama Hunt duration"
     Hint="Maximum duration of a llama hunt."
-    CaptionWidth=0.475
-    SliderWidth=-1
-    EditBoxWidth=0.175
     MinValue=10
     MaxValue=120
     bIntegerOnly=True
