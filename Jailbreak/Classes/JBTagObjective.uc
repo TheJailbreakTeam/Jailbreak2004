@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagObjective.uc,v 1.4 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: JBTagObjective.uc,v 1.5 2003/02/08 22:44:22 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBTagObjective extends JBTag
 replication {
 
   reliable if (Role == ROLE_Authority)
-    Objective, nPlayersReleasable;
+    nPlayersReleasable;
   }
 
 
@@ -33,8 +33,6 @@ var private float TimeCountPlayersReleasable;  // time of last count
 
 var transient int nPlayersCurrent;    // used by deployment functions
 var transient int nPlayersDeployed;   // used by deployment functions
-
-var private GameObjective Objective;  // replicated associated objective
 
 
 // ============================================================================
@@ -68,7 +66,6 @@ function Register() {
 
   Super.Register();
 
-  Objective = GameObjective(Owner);
   SetTimer(0.1, True);
   }
 
@@ -126,15 +123,11 @@ simulated function int CountPlayersReleasable(optional bool bCached) {
 
 
 // ============================================================================
-// GetObjective
-//
-// Returns a reference to the objective associated with this item.
+// Accessors
 // ============================================================================
 
 simulated function GameObjective GetObjective() {
-
-  return Objective;
-  }
+  return GameObjective(Keeper); }
 
 
 // ============================================================================
