@@ -5,7 +5,7 @@
 #  make-manualbot.pl
 #
 #  Copyright 2004 by tarquin <tarquin@planetjailbreak.com>
-#  $Id$
+#  $Id: make-manualbot.pl,v 1.1 2004/05/23 15:45:17 tarquin Exp $
 #
 #  Jailbreak manual maker bot
 #  Automatically creates the manual HTML files, reading the text from the JDN.
@@ -24,7 +24,7 @@ use File::Slurp;
 
 #################################### configuration
 
-$platform = 'ut2004'; # what platform are you creating the manual for? (you can override this with the command line)
+$platform = 'ut2003'; # what platform are you creating the manual for? (you can override this with the command line)
 
 #### read
 
