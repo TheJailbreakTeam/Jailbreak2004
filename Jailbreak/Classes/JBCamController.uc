@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamController
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBCamController.uc,v 1.1 2004/03/28 13:52:14 mychaeel Exp $
 //
 // Controls movement of a camera actor.
 // ============================================================================
@@ -158,6 +158,20 @@ function InterpolateRotation(rotator Rotation, float TimeDelta)
   if (TimeDelta == 0.0)
          Camera.SetRotation(Rotation);
     else Camera.SetRotation(Camera.Rotation + Normalize(Rotation - Camera.Rotation) * FMin(1.0, TimeDelta * 2.0));
+}
+
+
+// ============================================================================
+// InterpolateLocation
+//
+// Smoothly moves the camera to the given desired location.
+// ============================================================================
+
+function InterpolateLocation(vector Location, float TimeDelta)
+{
+  if (TimeDelta == 0.0)
+         Camera.SetLocation(Location);
+    else Camera.SetLocation(Camera.Location + (Location - Camera.Location) * FMin(1.0, TimeDelta * 3.0));
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.23 2004/03/14 16:19:13 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.24 2004/03/28 13:52:14 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -16,6 +16,17 @@ class JBCamera extends Keypoint
 // ============================================================================
 
 #exec texture import file=Textures\JBCamera.pcx mips=off masked=on
+
+
+// ============================================================================
+// Replication
+// ============================================================================
+
+replication
+{
+  reliable if (Role == ROLE_Authority)
+    Caption, Overlay, Switching, bWidescreen, FieldOfView, MotionBlur; 
+}
 
 
 // ============================================================================
@@ -47,6 +58,8 @@ struct TInfoOverlay
   var() Material Material;          // material overlaid on screen
   var() Color Color;                // material color and transparency
   var() EOverlayStyle Style;        // material arrangement style
+
+  var Actor Actor;                  // if present, has RenderOverlays called
 };
 
 
@@ -366,6 +379,22 @@ function bool IsViewer(Controller Controller)
 
 
 // ============================================================================
+// IsViewerAllowed
+//
+// Checks and returns whether the given player is allowed to view from this
+// camera.
+// ============================================================================
+
+function bool IsViewerAllowed(Controller Controller)
+{
+  if (PlayerController(Controller) == None)
+    return False;
+  
+  return True;
+}
+
+
+// ============================================================================
 // ActivateFor
 //
 // Activates this camera for the given player and adds the player to the
@@ -380,10 +409,10 @@ function ActivateFor(Controller Controller, optional bool bManual)
   local Actor ViewTargetPrev;
   local PlayerController ControllerPlayer;
 
-  ControllerPlayer = PlayerController(Controller);
-  if (IsViewer(Controller) || ControllerPlayer == None)
+  if (!IsViewerAllowed(Controller) || IsViewer(Controller))
     return;
 
+  ControllerPlayer = PlayerController(Controller);
   if (JBCamera(ControllerPlayer.ViewTarget) != None)
     JBCamera(ControllerPlayer.ViewTarget).DeactivateFor(Controller);
 
@@ -707,13 +736,34 @@ simulated function RenderOverlayCaption(Canvas Canvas)
 // ============================================================================
 // RenderOverlays
 //
-// Renders the overlay material on the user's screen.
+// Calls RenderOverlays for the overlay actor if one is present. Then renders
+// the overlay material and the caption on the screen.
 // ============================================================================
 
 simulated function RenderOverlays(Canvas Canvas)
 {
+  if (Overlay.Actor != None)
+    Overlay.Actor.RenderOverlays(Canvas);
+
   RenderOverlayMaterial(Canvas);
   RenderOverlayCaption(Canvas);
+}
+
+
+// ============================================================================
+// Destroyed
+//
+// Deactivates this camera for all viewers before it is destroyed. Since
+// cameras of this class have bNoDelete set and cannot be destroyed, this only
+// applies to subclasses.
+// ============================================================================
+
+event Destroyed()
+{
+  local int iInfoViewer;
+  
+  for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++)
+    DeactivateFor(ListInfoViewer[iInfoViewer].Controller);
 }
 
 

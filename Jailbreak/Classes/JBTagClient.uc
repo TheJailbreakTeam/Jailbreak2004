@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.2 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained.
@@ -19,7 +19,9 @@ class JBTagClient extends JBTag
 replication
 {
   reliable if (Role < ROLE_Authority)
-    ExecTeamTactics, ServerSynchronizeTime;
+    ExecTeamTactics,
+    ExecArenaCam,
+    ServerSynchronizeTime;
 
   reliable if (Role == ROLE_Authority)
     ClientSynchronizeTime;
@@ -62,6 +64,46 @@ function ExecTeamTactics(name Tactics, optional TeamInfo Team)
       (GetPlayerReplicationInfo().bAdmin ||
        GetPlayerReplicationInfo().Team == Team))
     JBBotTeam(UnrealTeamInfo(Team).AI).SetTactics(Tactics);
+}
+
+
+// ============================================================================
+// ExecArenaCam
+//
+// Activates the next viable arena cam, or deactivates arena cams for this
+// player if the player was viewing the last available one already.
+// ============================================================================
+
+function ExecArenaCam()
+{
+  local bool bFoundArenaCurrent;
+  local JBCamera CameraCurrent;
+  local JBCamera thisCamera;
+  local JBInfoArena ArenaCurrent;
+  local JBInfoArena firstArena;
+  local JBInfoArena thisArena;
+
+  firstArena = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstArena;
+
+  CameraCurrent = JBCamera(PlayerController(Keeper).ViewTarget);
+  if (CameraCurrent != None)
+    for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+      if (thisArena.ContainsActor(CameraCurrent))
+        ArenaCurrent = thisArena;
+
+  if (ArenaCurrent == None)
+    bFoundArenaCurrent = True;
+
+  for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+    if (thisArena == ArenaCurrent)
+      bFoundArenaCurrent = True;
+    else if (thisArena.IsInState('MatchRunning') && bFoundArenaCurrent)
+      break;
+
+  if (thisArena != None)
+    thisArena.ActivateCameraFor(PlayerController(Keeper));
+  else if (CameraCurrent != None && ArenaCurrent != None)
+    CameraCurrent.DeactivateFor(PlayerController(Keeper));
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.32 2004/03/08 02:01:29 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.33 2004/03/28 17:18:42 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1016,9 +1016,22 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
 
 
 // ============================================================================
+// exec ArenaCam
+//
+// Activates the next viable arena cam, or deactivates arena cams for this
+// player if the player was viewing the last available one already.
+// ============================================================================
+
+simulated exec function ArenaCam()
+{
+  GetTagClientOwner().ExecArenaCam();
+}
+
+
+// ============================================================================
 // exec SetupPanorama
 //
-// Allows mappers to interactively align the scoreboard overlook map. Creates
+// Allows mappers to interactively align the scoreboard panorama map. Creates
 // a JBInteractionSetupPanorama interaction and lets it handle the rest.
 // ============================================================================
 

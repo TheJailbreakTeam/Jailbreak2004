@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.24 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.25 2004/03/28 17:18:42 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -77,6 +77,7 @@ var(Events) name EventWaiting;
 
 var() float MaxCombatTime;
 
+var() name TagAttachCameras;
 var() name TagAttachStarts;
 var() name TagAttachPickups;
 
@@ -112,11 +113,14 @@ var private Font FontObjectNames;                  // loaded font object
 // ============================================================================
 // PostBeginPlay
 //
-// Spawns and sets up event probes for TagRequest and TagExclude.
+// Spawns and sets up event probes for TagRequest and TagExclude. Initializes
+// all attached cameras.
 // ============================================================================
 
 event PostBeginPlay()
 {
+  local JBCamera thisCamera;
+
   if (TagRequest != '' &&
       TagRequest != 'None') {
     ProbeEventRequest = Spawn(Class'JBProbeEvent', Self, TagRequest);
@@ -130,6 +134,10 @@ event PostBeginPlay()
     ProbeEventExclude.OnTrigger   = TriggerExclude;
     ProbeEventExclude.OnUnTrigger = UnTriggerExclude;
   }
+
+  foreach DynamicActors(Class'JBCamera', thisCamera)
+    if (ContainsActor(thisCamera))
+      thisCamera.Overlay.Actor = Self;
 }
 
 
@@ -168,6 +176,12 @@ function bool ContainsActor(Actor Actor)
       return Actor.Region.ZoneNumber == Region.ZoneNumber;
     else
       return Actor.Tag == TagAttachStarts;
+
+  if (JBCamera(Actor) != None)
+    if (TagAttachCameras == 'Auto')
+      return Actor.Region.ZoneNumber == Region.ZoneNumber;
+    else
+      return Actor.Tag == TagAttachCameras;
 
   if (Controller(Actor) != None &&
       Controller(Actor).PlayerReplicationInfo != None)
@@ -672,6 +686,70 @@ function Controller FindWinner()
 
 
 // ============================================================================
+// ActivateCameraFor
+//
+// Finds or spawns a suitable camera for the given watching player and
+// activates it.
+// ============================================================================
+
+function ActivateCameraFor(Controller Controller)
+{ 
+  local bool bFoundCamera;
+  local JBCamera thisCamera;
+  local JBCameraArena CameraArena;
+  local JBTagPlayer TagPlayerCombatantByTeam[2];
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  
+  if (IsInState('MatchRunning')) {
+    if (PlayerController(Controller)     == None ||
+        Controller.PlayerReplicationInfo == None)
+      return;
+  
+    foreach DynamicActors(Class'JBCamera', thisCamera)
+      if (JBCameraArena(thisCamera) == None && ContainsActor(thisCamera)) {
+        bFoundCamera = True;
+        thisCamera.Trigger(Self, Controller.Pawn);
+      }
+  
+    if (bFoundCamera)
+      return;
+  
+    foreach DynamicActors(Class'JBCameraArena', CameraArena)
+      if (CameraArena.Owner == Self && CameraArena.IsViewerAllowed(Controller))
+        break;
+    
+    if (CameraArena == None) {
+      CameraArena = Spawn(Class'JBCameraArena', Self);
+      
+      CameraArena.Arena         = Self;
+      CameraArena.Overlay.Actor = Self;
+      
+      firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+      for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+        if (thisTagPlayer.GetArena() == Self)
+          TagPlayerCombatantByTeam[thisTagPlayer.GetTeam().TeamIndex] = thisTagPlayer;
+      
+      if (Controller.PlayerReplicationInfo.Team == None ||
+          Controller.PlayerReplicationInfo.Team == TagPlayerCombatantByTeam[0].GetTeam()) {
+        CameraArena.TagPlayerFollowed = TagPlayerCombatantByTeam[0];
+        CameraArena.TagPlayerOpponent = TagPlayerCombatantByTeam[1];
+      } else {
+        CameraArena.TagPlayerFollowed = TagPlayerCombatantByTeam[1];
+        CameraArena.TagPlayerOpponent = TagPlayerCombatantByTeam[0];
+      }
+    }
+    
+    CameraArena.ActivateFor(Controller);  
+  }
+
+  else {
+    Log("Warning: Can't activate arena camera in" @ Self @ "because arena is in state" @ GetStateName());
+  }  
+}
+
+
+// ============================================================================
 // RenderOverlays
 //
 // Draws an arena time countdown on the screen.
@@ -1170,6 +1248,7 @@ defaultproperties
 
   MaxCombatTime = 60.0;
 
+  TagAttachCameras = Auto;
   TagAttachStarts  = Auto;
   TagAttachPickups = Auto;
 
