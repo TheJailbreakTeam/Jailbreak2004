@@ -753,7 +753,8 @@ auto state Waiting {
         ControllerInstigator = PawnInstigator.Controller;
 
       firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
-      if (CanReleaseBy(ControllerInstigator, TeamRelease) &&
+      if (Level.Game.IsInState('MatchInProgress') &&
+          CanReleaseBy(ControllerInstigator, TeamRelease) &&
           (firstJBGameRules == None ||
            firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease))) {
         Release(TeamRelease, ControllerInstigator);
