@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: Jailbreak.uc,v 1.95 2004/05/26 12:01:48 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1254,6 +1254,27 @@ function RestartTeam(TeamInfo Team)
     if (thisTagPlayer.GetTeam() == Team)
       thisTagPlayer.RestartInFreedom();
   }
+}
+
+
+// ============================================================================
+// GetDefaultPlayerClass
+//
+// Unlike the inherited method, returns the default Pawn class for the given
+// controller rather than the DefaultPlayerClassName class. Serves only to
+// avoid log messages that say that abstract Pawn cannot be spawned.
+// ============================================================================
+
+function Class<Pawn> GetDefaultPlayerClass(Controller Controller)
+{
+  local Class<Pawn> ClassPawn;
+  
+  ClassPawn = Super.GetDefaultPlayerClass(Controller);
+
+  if (ClassPawn == Class'Pawn' && Controller.PawnClass != None)
+    return Controller.PawnClass;
+
+  return ClassPawn;
 }
 
 
