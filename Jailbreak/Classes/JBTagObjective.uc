@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagObjective.uc,v 1.6 2003/02/26 18:11:29 mychaeel Exp $
+// $Id: JBTagObjective.uc,v 1.7 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -112,7 +112,7 @@ simulated function int CountPlayersReleasable(optional bool bCached) {
 
       if (JailPlayer != None &&
           JailPlayer.Tag == GetObjective().Event &&
-          JailPlayer.CanRelease(TeamPlayer))
+          JailPlayer.CanReleaseTeam(TeamPlayer))
         nPlayersReleasable += 1;
       }
     }

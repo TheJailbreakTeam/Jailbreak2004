@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.22 2003/02/22 09:50:50 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.23 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -143,12 +143,12 @@ function array<NavigationPoint> FindExits() {
 
 
 // ============================================================================
-// CanRelease
+// CanReleaseTeam
 //
 // Checks whether this jail can release players of the given team.
 // ============================================================================
 
-function bool CanRelease(TeamInfo Team) {
+function bool CanReleaseTeam(TeamInfo Team) {
 
   local Actor thisActor;
   
@@ -159,6 +159,28 @@ function bool CanRelease(TeamInfo Team) {
     return True;
   
   return False;
+  }
+
+
+// ============================================================================
+// CanReleaseBy
+//
+// Checks and returns whether the given player can trigger a release for the
+// given team.
+// ============================================================================
+
+function bool CanReleaseBy(Controller Controller, TeamInfo Team) {
+
+  local JBTagPlayer TagPlayer;
+  
+  if (Controller                       == None ||
+      Controller.PlayerReplicationInfo == None)
+    return False;
+  
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+  
+  return (TagPlayer != None &&
+          TagPlayer.IsFree());
   }
 
 
@@ -319,7 +341,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator) {
       return;
       }
 
-    if (CanRelease(Team)) {
+    if (CanReleaseTeam(Team)) {
       if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
         if (Jailbreak(Level.Game).CanFireEvent(Tag, True)) {
           if (ControllerInstigator != None)
@@ -625,28 +647,28 @@ auto state Waiting {
     
     if (TeamRelease != None) {
       if (Trigger(ActorOther) != None) {
-    if (TeamRelease == None)
-      return;
-    
-    if (Trigger(ActorOther) != None) {
-      firstObjective = UnrealTeamInfo(TeamRelease).AI.Objectives;
-      for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
-        if (thisObjective.DefenderTeamIndex != TeamRelease.TeamIndex &&
-            JBGameObjective(thisObjective) != None &&
-            JBGameObjective(thisObjective).TriggerRelease == ActorOther)
-          ObjectiveRelease = thisObjective;
-      }
-
-    if (Jailbreak(Level.Game).firstJBGameRules == None ||
-        Jailbreak(Level.Game).firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease)) {
+        firstObjective = UnrealTeamInfo(TeamRelease).AI.Objectives;
+        for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
+          if (thisObjective.DefenderTeamIndex != TeamRelease.TeamIndex &&
+              JBGameObjective(thisObjective) != None &&
+              JBGameObjective(thisObjective).TriggerRelease == ActorOther)
+            ObjectiveRelease = thisObjective;
+        }
+  
+      if (PawnInstigator != None)
+        ControllerInstigator = PawnInstigator.Controller;
   
       firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
-      Release(TeamRelease, ControllerInstigator);
+      if (CanReleaseBy(ControllerInstigator, TeamRelease) &&
+           firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease))) {
+          (Jailbreak(Level.Game).firstJBGameRules == None ||
+           Jailbreak(Level.Game).firstJBGameRules.CanRelease(TeamRelease, PawnInstigator, ObjectiveRelease))) {
+        }
+      }
+
     CancelRelease(TeamRelease);
     }
-    else {
-      CancelRelease(TeamRelease);
-      }
+
 
   // ================================================================
   // Timer
