@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.30 2004/04/27 17:13:41 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.31 2004/04/28 17:40:55 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -803,10 +803,7 @@ simulated function RenderOverlays(Canvas Canvas)
 
 event Destroyed()
 {
-  local int iInfoViewer;
-  
-  for (iInfoViewer = 0; iInfoViewer < ListInfoViewer.Length; iInfoViewer++)
-    DeactivateFor(ListInfoViewer[iInfoViewer].Controller);
+  DeactivateForAll();
 }
 
 
