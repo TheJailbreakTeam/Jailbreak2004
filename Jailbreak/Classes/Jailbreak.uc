@@ -64,9 +64,7 @@ var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 // ============================================================================
 // InitGame
 //
-// Initializes the game and interprets Jailbreak-specific parameters. Destroys
-// any WebServer actors left over from the previous match; fixes inability to
-// contact web admin interface after a level change.
+// Initializes the game and interprets Jailbreak-specific parameters.
 // ============================================================================
 
 event InitGame(string Options, out string Error)
@@ -78,21 +76,14 @@ event InitGame(string Options, out string Error)
   local string NameAddon;
   local WebServer thisWebServer;
 
-  foreach AllObjects(Class'WebServer', thisWebServer)
-    if (thisWebServer.Outer != Outer) {
-      Log("Destroying left-over WebServer actor" @ thisWebServer);
-      thisWebServer.Destroy();
-    }
-
   Super.InitGame(Options, Error);
 
   if (HasOption(Options, "Addon"))
-    OptionAddon = ParseOption(Options, "Addon");
-  else
-    OptionAddon = "JBAddonAvenger.JBAddonAvenger,"
-                $ "JBAddonCelebration.JBAddonCelebration,"
-                $ "JBAddonLlama.JBAddonLlama,"
-                $ "JBAddonProtection.JBAddonProtection";
+         OptionAddon = ParseOption(Options, "Addon");
+    else OptionAddon = "JBAddonAvenger.JBAddonAvenger,"
+                     $ "JBAddonCelebration.JBAddonCelebration,"
+                     $ "JBAddonLlama.JBAddonLlama,"
+                     $ "JBAddonProtection.JBAddonProtection";
 
   while (OptionAddon != "") {
     iCharSeparator = InStr(OptionAddon, ",");
