@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTagPlayer.uc,v 1.48 2004/05/24 15:09:01 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -299,20 +299,22 @@ event Timer()
 
 event Tick(float TimeDelta)
 {
-  local Pawn thisPawn;
+  local xPawn thisPawn;
 
   Pawn = Controller.Pawn;
 
   if (Pawn != None) {
     LocationPawnLast = Pawn.Location;
 
-    if (Pawn.bCanBeBaseForPawns && !Pawn.bIsCrouched)
-      foreach DynamicActors(Class'Pawn', thisPawn)
-        if (Pawn != thisPawn && Pawn.TouchingActor(thisPawn))
-          thisPawn.JumpOffPawn();
+    if (xPawn(Pawn) != None) {
+      if (Pawn.bCanBeBaseForPawns && !Pawn.bIsCrouched)
+        foreach DynamicActors(Class'xPawn', thisPawn)
+          if (Pawn != thisPawn && Pawn.TouchingActor(thisPawn))
+            thisPawn.JumpOffPawn();
 
-    Pawn.bCanBeBaseForPawns = Pawn.bIsCrouched;
-    bCanBeBaseForPawns = Pawn.bCanBeBaseForPawns;
+      Pawn.bCanBeBaseForPawns = Pawn.bIsCrouched;
+      bCanBeBaseForPawns = Pawn.bCanBeBaseForPawns;
+    }
   }
 }
 
