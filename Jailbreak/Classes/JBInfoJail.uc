@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.3 2002/11/20 18:55:12 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.4 2002/11/24 09:05:18 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -208,18 +208,22 @@ function Release(byte Team, optional Controller ControllerInstigator) {
           ControllerInstigator.PlayerReplicationInfo.Team.TeamIndex @ "attempted to release team" @ Team);
       return;
       }
-    
-    TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
-    
-    ListInfoReleaseByTeam[Team].bIsActive = True;
-    ListInfoReleaseByTeam[Team].Time = Level.TimeSeconds;
-    ListInfoReleaseByTeam[Team].ControllerInstigator = ControllerInstigator;
-    
-    InfoGame = JBReplicationInfoGame(Level.GRI);
-    
-    for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
-      if (InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
-        InfoGame.ListInfoPlayer[iInfoPlayer].ReleasePrepare();
+
+    if (CanRelease(Team)) {
+      TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
+      BroadcastLocalizedMessage(Class'JBLocalMessage', 200, ControllerInstigator.PlayerReplicationInfo, ,
+                                                            ControllerInstigator.PlayerReplicationInfo.Team);
+      
+      ListInfoReleaseByTeam[Team].bIsActive = True;
+      ListInfoReleaseByTeam[Team].Time = Level.TimeSeconds;
+      ListInfoReleaseByTeam[Team].ControllerInstigator = ControllerInstigator;
+      
+      InfoGame = JBReplicationInfoGame(Level.GRI);
+      
+      for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
+        if (InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
+          InfoGame.ListInfoPlayer[iInfoPlayer].ReleasePrepare();
+      }
     }
   
   else {

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.3 2002/11/20 18:56:24 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.4 2002/11/24 09:13:54 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -338,7 +338,7 @@ function bool ExecutionInit() {
         if (TeamCaptured < 0)
           TeamCaptured = iTeam;
         else {
-          // TODO: announce tie
+          BroadcastLocalizedMessage(Class'JBLocalMessage', 300);
           RestartAll();
           return False;
           }
@@ -358,6 +358,7 @@ function bool ExecutionInit() {
     for (iInfoJail = 0; iInfoJail < InfoGame.ListInfoJail.Length; iInfoJail++)
       InfoGame.ListInfoJail[iInfoJail].ExecutionInit();
     
+    BroadcastLocalizedMessage(Class'JBLocalMessage', 100, , , Teams[TeamCaptured]);
     return True;
     }
   
