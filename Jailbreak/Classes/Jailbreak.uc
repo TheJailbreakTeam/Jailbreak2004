@@ -25,6 +25,7 @@ var() const editconst string Build;
 var config bool bEnableJailFights;
 var config bool bEnableScreens;
 var config bool bEnableSpectatorDeathCam;
+var config bool bFavorHumansForArena;
 
 var config bool bEnableWebScoreboard;
 var config bool bEnableWebAdminExtension;
@@ -38,6 +39,7 @@ var config string WebScoreboardPath;
 // ============================================================================
 
 var localized string TextWebAdminEnableJailFights;
+var localized string TextWebAdminFavorHumansForArena;
 var localized string TextWebAdminPrefixAddon;
 
 
@@ -72,6 +74,7 @@ event InitGame(string Options, out string Error)
   local int iCharSeparator;
   local string OptionAddon;
   local string OptionJailFights;
+  local string OptionFavorHumansForArena;
   local string NameAddon;
   local WebServer thisWebServer;
 
@@ -106,6 +109,10 @@ event InitGame(string Options, out string Error)
   OptionJailFights = ParseOption(Options, "JailFights");
   if (OptionJailFights != "")
     bEnableJailFights = bool(OptionJailFights);
+
+  OptionFavorHumansForArena = ParseOption(Options, "FavorHumansForArena");
+  if (OptionFavorHumansForArena != "")
+    bFavorHumansForArena = bool(OptionFavorHumansForArena);
 
   bForceRespawn    = True;
   bTeamScoreRounds = False;
@@ -144,7 +151,8 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 {
   Super.FillPlayInfo(PlayInfo);
 
-  PlayInfo.AddSetting("Game", "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
+  PlayInfo.AddSetting("Game", "bEnableJailFights",    Default.TextWebAdminEnableJailFights,    0, 60, "Check");
+  PlayInfo.AddSetting("Game", "bFavorHumansForArena", Default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
 }
 
 
@@ -1623,8 +1631,9 @@ defaultproperties
 {
   Build = "%%%%-%%-%% %%:%%";
 
-  TextWebAdminEnableJailFights = "Allow Jail Fights";
-  TextWebAdminPrefixAddon      = "Jailbreak:";
+  TextWebAdminEnableJailFights    = "Allow Jail Fights";
+  TextWebAdminFavorHumansForArena = "Favor Humans For Arena";
+  TextWebAdminPrefixAddon         = "Jailbreak:";
 
   WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard";
   WebScoreboardPath  = "/scoreboard";
@@ -1632,6 +1641,7 @@ defaultproperties
   bEnableJailFights        = True;
   bEnableScreens           = True;
   bEnableSpectatorDeathCam = True;
+  bFavorHumansForArena     = False;
 
   bEnableWebScoreboard     = True;
   bEnableWebAdminExtension = True;

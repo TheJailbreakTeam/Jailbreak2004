@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelRules.uc,v 1.5 2004/03/07 01:03:06 mychaeel Exp $
+// $Id: JBGUITabPanelRules.uc,v 1.5.2.1 2004/05/30 16:21:28 mychaeel Exp $
 //
 // User interface panel for Jailbreak game rules.
 // ============================================================================
@@ -23,18 +23,20 @@ var localized string TextHintAddons;
 // Configuration
 // ============================================================================
 
-var config bool bLastJailFights;       // configuration for jail fights
+var config bool bLastJailFights;               // config for jail fights
+var config bool bLastFavorHumansForArena;      // config for humans in arena
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var string SongJailbreak;              // Jailbreak theme song
-var string SongPrev;                   // previously played song
+var string SongJailbreak;                      // Jailbreak theme song
+var string SongPrev;                           // previously played song
 
-var GUITabPanel GUITabPanelAddons;     // new tab panel for add-ons 
-var moCheckBox moCheckBoxJailFights;   // new checkbox for jail fights
+var GUITabPanel GUITabPanelAddons;             // new tab panel for add-ons 
+var moCheckBox moCheckBoxJailFights;           // checkbox for jail fights
+var moCheckBox moCheckBoxFavorHumansForArena;  // checkbox for humans in arena
 
 
 // ============================================================================
@@ -64,13 +66,16 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   GUIImageLeft .WinLeft = GUIImageTop.WinLeft;
   GUIImageRight.WinLeft = GUIImageTop.WinLeft + GUIImageTop.WinWidth - GUIImageRight.WinWidth;
 
-  MyFriendlyFire.WinTop = 0.667;
-  MyFriendlyFire.FriendlyLabel.WinTop = 0.600;
+  MyFriendlyFire.FriendlyLabel.WinTop = 0.643;
+  MyFriendlyFire.WinTop = 0.710;
 
   MyBrightSkins.WinTop = 0.844;
 
   moCheckBoxJailFights = moCheckBox(Controls[14]);
   moCheckBoxJailFights.Checked(bLastJailFights);
+  
+  moCheckBoxFavorHumansForArena = moCheckBox(Controls[15]);
+  moCheckBoxFavorHumansForArena.Checked(bLastFavorHumansForArena);
 }
 
 
@@ -118,10 +123,12 @@ function string Play()
 {
   local string Parameters;
 
-  bLastJailFights = moCheckBoxJailFights.IsChecked();
+  bLastJailFights          = moCheckBoxJailFights         .IsChecked();
+  bLastFavorHumansForArena = moCheckBoxFavorHumansForArena.IsChecked();
 
   Parameters = Super.Play();
-  Parameters = Parameters $ "?JailFights=" $ bLastJailFights;
+  Parameters = Parameters $ "?JailFights="          $ bLastJailFights;
+  Parameters = Parameters $ "?FavorHumansForArena=" $ bLastFavorHumansForArena;
   Parameters = Parameters $ JBGUITabPanelAddons(GUITabPanelAddons).Play();
 
   return Parameters;
@@ -373,6 +380,7 @@ defaultproperties
   LastGoalScore = 5;
   LastTimeLimit = 0;
   bLastJailFights = True;
+  bLastFavorHumansForArena = False;
 
   OnPreDraw = PreDraw;
 
@@ -383,6 +391,18 @@ defaultproperties
     WinHeight    = 0.040;
     WinLeft      = 0.050;
     WinTop       = 0.487;
+    bSquare      = True;
+    CaptionWidth = 0.900;
+    ComponentJustification = TXTA_Left;
+  End Object
+
+  Begin Object Class=moCheckBox Name=moCheckBoxFavorHumansForArenaDef
+    Caption      = "Favor Humans For Arena";
+    Hint         = "Always selects human players over bots for arena fights.";
+    WinWidth     = 0.400;
+    WinHeight    = 0.040;
+    WinLeft      = 0.050;
+    WinTop       = 0.546;
     bSquare      = True;
     CaptionWidth = 0.900;
     ComponentJustification = TXTA_Left;
@@ -400,5 +420,6 @@ defaultproperties
   End Object
 
   Controls[14] = moCheckBox'moCheckBoxJailFightsDef';
-  Controls[15] = GUIButton'GUIButtonConfigureAddonsDef';
+  Controls[15] = moCheckBox'moCheckBoxFavorHumansForArenaDef';
+  Controls[16] = GUIButton'GUIButtonConfigureAddonsDef';
 }
