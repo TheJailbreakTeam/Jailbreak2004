@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaArrow
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBLlamaArrow.uc,v 1.1 2003/07/26 20:20:34 wormbo Exp $
 //
 // A spinning arrow hovering above a llama's head.
 //=============================================================================
@@ -143,7 +143,7 @@ protected simulated function vector CalculateArrowLocation(Canvas C)
   DirectionToArrow = Normal(CalculatedLocation - CameraLocation);
   DistanceToArrow = VSize(CalculatedLocation - CameraLocation);
   CalculatedLocation = CameraLocation + DirectionToArrow * 20;
-  SetDrawScale(LlamaArrowSlidePosition * Default.DrawScale * 20 / FMin(DistanceToArrow, 1000));
+  SetDrawScale(LlamaArrowSlidePosition * Default.DrawScale * 20 / DistanceToArrow);
   
   return CalculatedLocation;
 }

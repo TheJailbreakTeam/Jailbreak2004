@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.1 2003/07/26 20:20:34 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -138,9 +138,13 @@ simulated function RenderOverlays(Canvas C)
   
   C.DrawColor = JailbreakHUD.GoldColor;
   for (i = 0; i < LlamaArrows.Length; i++) {
-    if ( LlamaArrows[i].LlamaTag != None ) {
-      thisLlama = Pawn(LlamaArrows[i].LlamaTag.Owner);
-      if ( C.Viewport.Actor.LineOfSightTo(thisLlama) )
+    if ( LlamaArrows[i].LlamaTag != None && Pawn(LlamaArrows[i].LlamaTag.Owner) != None ) {
+      if ( !Pawn(LlamaArrows[i].LlamaTag.Owner).bHidden )
+        thisLlama = Pawn(LlamaArrows[i].LlamaTag.Owner);
+      else if ( Pawn(LlamaArrows[i].LlamaTag.Owner).Controller != None )
+        thisLlama = Pawn(LlamaArrows[i].LlamaTag.Owner).Controller.Pawn;
+      
+      if ( thisLlama != None && C.Viewport.Actor.LineOfSightTo(thisLlama) )
         LlamaArrows[i].DrawArrow(C, thisLlama.Location + vect(0,0,1) * (thisLlama.CollisionHeight + 40.0));
       else
         LlamaArrows[i].DrawArrow(C);

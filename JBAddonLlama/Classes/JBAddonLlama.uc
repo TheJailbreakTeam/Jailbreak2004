@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBAddonLlama.uc,v 1.1 2003/07/26 20:20:32 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -16,6 +16,14 @@ class JBAddonLlama extends JBAddon config;
 
 var config int RewardHealth;
 var config int RewardAdrenaline;
+
+
+//=============================================================================
+// Localization
+//=============================================================================
+
+var localized string RewardHealthText;
+var localized string RewardAdrenalineText;
 
 
 //=============================================================================
@@ -192,6 +200,29 @@ function UnLlamaize(Controller ControllerPlayer)
 
 
 //=============================================================================
+// MutatorFillPlayInfo
+//
+// Adds configurable Llama Hunt properties to the web admin interface.
+//=============================================================================
+
+function MutatorFillPlayInfo(PlayInfo PlayInfo)
+{
+  // add current class to stack
+  PlayInfo.AddClass(Class);
+  
+  // now register any mutator settings
+  PlayInfo.AddSetting("Add-Ons", "RewardAdrenaline", RewardAdrenalineText, 0, 0, "Text", "3;0:100");
+  PlayInfo.AddSetting("Add-Ons", "RewardHealth",     RewardHealthText,     0, 0, "Text", "3;0:199");
+  
+  // remove mutator class from class stack
+  PlayInfo.PopClass();
+  
+  // call default implementation
+  Super.MutatorFillPlayInfo(PlayInfo);
+}
+
+
+//=============================================================================
 // default properties
 //=============================================================================
 
@@ -201,8 +232,10 @@ defaultproperties
   IconMaterialName="JBAddonLlama.Llama"
   FriendlyName="Llama Hunt"
   GroupName="LlamaHunt"
-  Description="Llama Hunt"
+  Description="Turns cheating players into llamas and lets other players perform a jolly hunt on them."
   Build="%%%%-%%-%% %%:%%"
   RewardAdrenaline=100
   RewardHealth=25
+  RewardAdrenalineText="Adrenaline gained for killing a Llama"
+  RewardHealthText="Health gained for killing a Llama"
 }

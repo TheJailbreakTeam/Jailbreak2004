@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGameRulesLlamaHunt.uc,v 1.1 2003/07/26 20:20:33 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -160,7 +160,7 @@ function ScoreKill(Controller Killer, Controller Killed)
   
   if ( bKillerIsLlama && !bKilledIsLlama )
     KilledByLlama(Killed);
-  else if ( bKilledIsLlama && !bKillerIsLlama )
+  else if ( bKilledIsLlama && !bKillerIsLlama && Killer != None )
     ScoreLlamaKill(Killer);
   
   Super.ScoreKill(Killer, Killed);
