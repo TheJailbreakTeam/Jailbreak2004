@@ -1,7 +1,7 @@
 // ============================================================================
 // JBScout
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBScout.uc,v 1.4 2004/02/16 17:17:02 mychaeel Exp $
+// $Id$
 //
 // Pawn used by JBTagNavigation to calculate travelling distances between two
 // arbitrary actors in a map.
@@ -19,7 +19,20 @@ class JBScout extends Pawn;
 
 function Died(Controller ControllerKiller, class<DamageType> ClassDamageType, vector LocationHit)
 {
+  Log(Level.TimeSeconds @ "JBScout.Died");
   Health = Default.Health;
+}
+
+
+// ============================================================================
+// Destroyed
+//
+// Logs a warning to help debugging.
+// ============================================================================
+
+event Destroyed()
+{
+  Log(Level.TimeSeconds @ "JBScout.Destroyed");
 }
 
 
