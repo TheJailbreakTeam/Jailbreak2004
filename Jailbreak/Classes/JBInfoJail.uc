@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.29 2004/03/05 20:52:08 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.30 2004/04/06 12:35:09 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -349,12 +349,16 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
       if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
         if (Jailbreak(Level.Game).CanFireEvent(Tag, True)) {
           if (ControllerInstigator != None)
-            BroadcastLocalizedMessage(MessageClass, 200, ControllerInstigator.PlayerReplicationInfo, , Team);
+                 BroadcastLocalizedMessage(MessageClass, 200, ControllerInstigator.PlayerReplicationInfo, , Team);
+            else BroadcastLocalizedMessage(MessageClass, 200, None,                                       , Team);
+
           JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
           JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleaseTeam(Tag, Team, ControllerInstigator);
         }
 
-        TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
+        if (ControllerInstigator != None)
+               TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
+          else TriggerEvent(GetEventRelease(Team), Self, None);
       }
 
       InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
