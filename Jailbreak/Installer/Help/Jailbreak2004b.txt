@@ -1,0 +1,60 @@
+===============================================================================
+Jailbreak 2004b (SP2 a.k.a. Editor's Choice Edition)
+Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
+===============================================================================
+
+For feedback, suggestions and bug reports, visit
+
+  PlanetJailbreak               http://www.planetjailbreak.com
+  PlanetJailbreak Forums        http://www.planetjailbreak.com/forums/
+
+
+===============================================================================
+Service Pack 2 Changes
+===============================================================================
+
+The following bugs have been fixed since the last release:
+
+
+Gameplay
+========
+
+136823 – Two padlock/emitter sets per switch on clients on listen servers.
+141180 – Last Man announcement sounds only once between stays in jail.
+137016 – Last Man announcement occasionally sounds during execution sequence.
+140777 – Last Man announcement occasionally sounds after the game ended.
+137156 – Enhancement: Announce release only when there are actually players
+         being actually released.
+140620 – Players are occasionally selected for arena match even while they are
+         being released.
+140806 – Spectator view stays on vehicle when player jumps out.
+141929 – Onslaught turrets are unpowered.
+143366 – Viewing arena match or teammate causes player to be stuck in turret.
+138290 – Pickups don't respawn at start of round.
+142604 – ViewTeam... commands switch to someone else when the watched bot dies.
+143400 – Burning execution effects not visible online.
+
+
+Bot Support
+===========
+
+138736 – Bots are too easily distracted by pickups during an attack.
+142605 – Enhancement: Reset individual bot attack orders when the switch they
+         are attacking is triggered; reset individual bot attack/defense orders
+         when manually switching team tactics.
+
+
+User Interface
+==============
+
+136159 – Scoreboard ping scaled by a constant factor of 1/4.
+142338 – Time limit announcements not played while viewing cameras.
+137285 – Last checkbox in Llama Add-on configuration panel is too big.
+141606 – Enhancement: Add-on list properly scrolls when more than eight add-ons
+         are available.
+140870 – Enhancement: Reducing HUD hides team tactics widget and jail circles.
+142934 – Camera captions don't show on clients in network games.
+143224 – Game always loads the smame map after finishing a match in any map.
+
+
+===============================================================================
