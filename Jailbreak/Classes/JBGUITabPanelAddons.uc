@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.9.2.1 2004/04/03 16:51:58 tarquin Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.10 2004/04/03 17:01:51 tarquin Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -29,10 +29,10 @@ struct TInfoAddon
 
 
 // ============================================================================
-// Configuration
+// Localization
 // ============================================================================
 
-var config string LastAddons;                   // comma-separated class list
+var localized string TextHintReset;             // hint for config reset button
 
 
 // ============================================================================
@@ -46,8 +46,6 @@ var GUIScrollTextBox    GUIScrollTextBoxAddon;  // text box for description
 var GUIPanel            GUIPanelConfigTemplate; // template for config panels
 var GUILabel            GUILabelConfigNone;     // shown if no config panel
 var GUIButton           GUIButtonReset;         // reset addon settings
-
-var localized string    ResetHintText;
 
 
 // ============================================================================
@@ -65,22 +63,20 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   ReadListInfoAddon();
   SortListInfoAddon(0, ListInfoAddon.Length - 1);
 
-  GUILabelConfigNone = GUILabel(Controls[2]); 
-  
-  GUIButtonReset = GUIButton(Controls[3]); 
-  
   GUIComponentTabsAddons = JBGUIComponentTabs(Controls[0]);
   GUIComponentTabsAddons.OnTabOpened = GUIComponentTabsAddons_TabOpened;
   GUIComponentTabsAddons.OnTabClosed = GUIComponentTabsAddons_TabClosed;
 
   GUIScrollTextBoxAddon = GUIScrollTextBox(GUIComponentTabsAddons.Controls[0]);
+  GUILabelConfigNone    = GUILabel        (GUIComponentTabsAddons.Controls[1]); 
+  GUIButtonReset        = GUIButton       (GUIComponentTabsAddons.Controls[2]); 
 
   for (iInfoAddon = 0; iInfoAddon < ListInfoAddon.Length; iInfoAddon++) {
     ListInfoAddon[iInfoAddon].moCheckBoxSelected =
       moCheckBox(GUIComponentTabsAddons.AddTab(ListInfoAddon[iInfoAddon].TextName));
 
     ListInfoAddon[iInfoAddon].moCheckBoxSelected.Checked(
-      InStr("," $ LastAddons                           $ ",",
+      InStr("," $ Class'Jailbreak'.Default.Addons      $ ",",
             "," $ ListInfoAddon[iInfoAddon].ClassAddon $ ",") >= 0);
 
     ListInfoAddon[iInfoAddon].moCheckBoxSelected.OnChange = moCheckBoxSelected_Change;
@@ -174,13 +170,14 @@ function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd)
 //
 // Called when a tab is opened. Shows the corresponding add-on description. 
 // Loads and displays its configuration panel if one is available, or
-// shows a label informing the user no options exist.
-// Shows a reset button if the panel class is a child of JBGUIPanelConfig
+// shows a label informing the user no options exist. Shows a reset button if
+// the panel class is a child of JBGUIPanelConfig.
 // ============================================================================
 
 function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMenuOption GUIMenuOptionTab)
 {
   local int iInfoAddon;
+  local string TextHintResetReplaced;
   local GUIPanel GUIPanelConfig;
 
   iInfoAddon = GUIComponentTabsAddons.GetTabIndex(GUIMenuOptionTab);
@@ -188,8 +185,8 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
   GUIScrollTextBoxAddon.SetContent(ListInfoAddon[iInfoAddon].TextDescription);
   
   if (ListInfoAddon[iInfoAddon].ClassGUIPanelConfig == None) {
-    GUILabelConfigNone.bVisible = True;
-    GUIButtonReset.bVisible     = False;
+    GUILabelConfigNone.SetVisibility(True);
+    GUIButtonReset    .SetVisibility(False);
   }
   else {
     if (ListInfoAddon[iInfoAddon].GUIPanelConfig == None) {
@@ -205,14 +202,17 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
       GUIPanelConfig.WinWidth  = GUIPanelConfigTemplate.WinWidth;
       GUIPanelConfig.WinHeight = GUIPanelConfigTemplate.WinHeight;
       
-      GUIComponentTabsAddons.AddComponent(GUIPanelConfig);
+      GUIComponentTabsAddons.AddComponentObject(GUIPanelConfig);
     }
     
-    GUIButtonReset.bVisible = (JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig) != None);
-    GUIButtonReset.Hint = ResetHintText @ ListInfoAddon[iInfoAddon].TextName $ ".";  
+    TextHintResetReplaced = TextHintReset;
+    ReplaceText(TextHintResetReplaced, "%addon%", ListInfoAddon[iInfoAddon].TextName);
+
+    GUIButtonReset.SetVisibility(JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig) != None);
+    GUIButtonReset.SetHint(TextHintResetReplaced);
     
-    GUILabelConfigNone.bVisible = False;
-    ListInfoAddon[iInfoAddon].GUIPanelConfig.bVisible = True;
+    GUILabelConfigNone.SetVisibility(False);
+    ListInfoAddon[iInfoAddon].GUIPanelConfig.SetVisibility(True);
   }
 }
 
@@ -279,24 +279,8 @@ function moCheckBoxSelected_Change(GUIComponent GUIComponentSender)
           ListInfoAddon[iInfoAddon].Group ~= ListInfoAddon[iInfoAddonChanged].Group)
         ListInfoAddon[iInfoAddon].moCheckBoxSelected.Checked(False);
 
-  LastAddons = GetAddons();
-  SaveConfig();
-}
-
-
-// ============================================================================
-// Play
-//
-// Called when a game is started using the current settings. Returns additions
-// to the game parameter string.
-// ============================================================================
-
-function string Play()
-{
-  LastAddons = GetAddons();
-  SaveConfig();
-
-  return "?Addon=" $ LastAddons;
+  Class'Jailbreak'.Default.Addons = GetAddons();
+  Class'Jailbreak'.Static.StaticSaveConfig();
 }
 
 
@@ -341,39 +325,62 @@ function bool GUIButtonConfigReset_Click(GUIComponent GUIComponentClicked)
 
 defaultproperties
 {
-  LastAddons = "JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
-  ResetHintText = "Reset options for"; // ... name of add-on added in code
+  TextHintReset = "Reset options for %addon%."
   
   WinLeft   = 0.000;
   WinWidth  = 1.000;
   WinHeight = 0.770;
 
   bAcceptsInput = False;
+  FadeInTime = 0.25;
 
   Begin Object Class=GUIScrollTextBox Name=GUIScrollTextBoxAddonDef
     StyleName    = "NoBackground";
-    WinTop       = 0.050;
-    WinLeft      = 0.360;
-    WinWidth     = 0.610;
-    WinHeight    = 0.200;
+    WinTop       = 0.090;
+    WinLeft      = 0.370;
+    WinWidth     = 0.590;
+    WinHeight    = 0.160;
     CharDelay    = 0.0025;
     EOLDelay     = 0.5000;
   End Object
 
+  Begin Object Class=GUILabel Name=GUILabelConfigDefaultDef
+    Caption      = "This add-on has no user options.";
+    TextColor    = (B=0,G=180,R=220);
+    WinTop       = 0.840;
+    WinLeft      = 0.370;
+    WinWidth     = 0.590;
+    WinHeight    = 0.068;
+  End Object
+
+  Begin Object Class=GUIButton Name=GUIButtonConfigResetDef
+    Caption      = "Reset Options";
+    Hint         = "Reset this add-on's options.";
+    OnClick      = GUIButtonConfigReset_Click;
+    WinTop       = 0.843;
+    WinLeft      = 0.765;
+    WinWidth     = 0.184;
+    WinHeight    = 0.058;
+  End Object
+
   Begin Object Class=JBGUIComponentTabs Name=GUIComponentTabsAddonsDef
-    WinTop       = 0.025;
-    WinLeft      = 0.022;
-    WinWidth     = 0.957;
-    WinHeight    = 0.936;
+    TabOrder     = 1;
+    WinTop       = 0.016;
+    WinLeft      = 0.002;
+    WinWidth     = 0.996;
+    WinHeight    = 0.960;
     Controls[0]  = GUIScrollTextBox'GUIScrollTextBoxAddonDef';
+    Controls[1]  = GUILabel'GUILabelConfigDefaultDef';
+    Controls[2]  = GUIButton'GUIButtonConfigResetDef';
   End Object
 
   Begin Object Class=GUIButton Name=GUIButtonDownloadAddonsDef
+    TabOrder     = 2;
     Caption      = "Download More Add-Ons!";
     Hint         = "Opens the add-on download page on PlanetJailbreak in a web browser.";
     WinTop       = 0.898;
-    WinLeft      = 0.022;
-    WinWidth     = 0.288;
+    WinLeft      = 0.010;
+    WinWidth     = 0.300;
     WinHeight    = 0.060;
     OnClick      = GUIButtonDownloadAddons_Click;
     OnClickSound = CS_Down;
@@ -382,33 +389,13 @@ defaultproperties
   Begin Object Class=GUIPanel Name=GUIPanelConfigTemplateDef
     bVisible     = False;
     WinTop       = 0.330;
-    WinLeft      = 0.360;
-    WinWidth     = 0.610;
-    WinHeight    = 0.570;
-  End Object
-
-  Begin Object class=GUILabel Name=GUILabelConfigDefault
-    Caption      = "This add-on has no user options.";
-    WinTop       = 0.860;
-    WinLeft      = 0.360;
-    WinWidth     = 0.610;
-    WinHeight    = 0.068;
-  End Object
-
-  Begin Object class=GUIButton Name=GUIButtonConfigReset
-    Caption      = "Reset Options";
-    Hint         = "Reset this add-on's options.";
-    OnClick      = GUIButtonConfigReset_Click;
-    WinTop       = 0.863;
-    WinLeft      = 0.765;
-    WinWidth     = 0.184;
-    WinHeight    = 0.058;
+    WinLeft      = 0.370;
+    WinWidth     = 0.590;
+    WinHeight    = 0.550;
   End Object
 
   Controls[0] = JBGUIComponentTabs'GUIComponentTabsAddonsDef';
   Controls[1] = GUIButton'GUIButtonDownloadAddonsDef';
-  Controls[2] = GUILabel'GUILabelConfigDefault';
-  Controls[3] = GUIButton'GUIButtonConfigReset';
 
   GUIPanelConfigTemplate = GUIPanel'GUIPanelConfigTemplateDef';
 }

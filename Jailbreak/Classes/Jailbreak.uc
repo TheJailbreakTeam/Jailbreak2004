@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.66 2004/03/06 17:57:37 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.67 2004/03/09 01:29:47 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -22,6 +22,7 @@ var() const editconst string Build;
 // Configuration
 // ============================================================================
 
+var config string Addons;
 var config bool bEnableJailFights;
 var config bool bEnableSpectatorDeathCam;
 
@@ -33,6 +34,9 @@ var config string WebScoreboardPath;
 // Localization
 // ============================================================================
 
+var(LoadingHints) localized array<string> TextHintJailbreak;
+
+var localized string TextDescriptionEnableJailFights;
 var localized string TextWebAdminEnableJailFights;
 var localized string TextWebAdminPrefixAddon;
 
@@ -51,6 +55,7 @@ var private JBCamera CameraExecution;    // camera for execution sequence
 var private float TimeEventFired;        // time of last fired singular event
 var private array<name> ListEventFired;  // singular events fired this tick
 
+var transient CacheManager.MutatorRecord MutatorRecord;  // for web admin hack
 var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 
 
@@ -72,9 +77,7 @@ event InitGame(string Options, out string Error)
   if (HasOption(Options, "Addon"))
     OptionAddon = ParseOption(Options, "Addon");
   else
-    OptionAddon = "JBAddonCelebration.JBAddonCelebration,"
-                $ "JBAddonLlama.JBAddonLlama,"
-                $ "JBAddonProtection.JBAddonProtection";
+    OptionAddon = Addons;
 
   while (OptionAddon != "") {
     iCharSeparator = InStr(OptionAddon, ",");
@@ -120,6 +123,27 @@ function AddMutator(string NameMutator, optional bool bUserAdded)
 
 
 // ============================================================================
+// GetAllLoadHints
+//
+// Returns hints for this game type.
+// ============================================================================
+
+static function array<string> GetAllLoadHints(optional bool bThisClassOnly)
+{
+  local int iHint;
+  local array<string> Hints;
+
+  if (!bThisClassOnly || Default.TextHintJailbreak.Length == 0)
+    Hints = Super.GetAllLoadHints();
+
+  for (iHint = 0; iHint < Default.TextHintJailbreak.Length; iHint++)
+    Hints[Hints.Length] = Default.TextHintJailbreak[iHint];
+
+  return Hints;
+}
+
+
+// ============================================================================
 // FillPlayInfo
 //
 // Adds Jailbreak-specific settings to the PlayInfo object.
@@ -130,6 +154,24 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   Super.FillPlayInfo(PlayInfo);
 
   PlayInfo.AddSetting("Game", "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
+}
+
+
+// ============================================================================
+// GetDescriptionText
+//
+// Returns hints for Jailbreak options. Also hooks the Add-Ons tab into the
+// menu system.
+// ============================================================================
+
+static event string GetDescriptionText(string Property)
+{
+  Class'JBGUIHook'.Static.Hook();
+
+  if (Property ~= "bEnableJailFights")
+    return Default.TextDescriptionEnableJailFights;
+
+  return Super.GetDescriptionText(Property);
 }
 
 
@@ -183,13 +225,15 @@ function ReadAddonsForWebAdmin()
         ClassAddon.Default.FriendlyName == Class'JBAddon'.Default.FriendlyName)
       continue;
 
-    iInfoAddon = UTServerAdmin.AllMutators.Length;
-    UTServerAdmin.AllMutators.Length = UTServerAdmin.AllMutators.Length + 1;
+    // workaround for the MutatorRecord struct members being marked constant
+    SetPropertyText("MutatorRecord", "("
+      $ "ClassName"    $ "=\"" $ NameClassAddon                                            $ "\","
+      $ "FriendlyName" $ "=\"" $ TextWebAdminPrefixAddon @ ClassAddon.Default.FriendlyName $ "\","
+      $ "Description"  $ "=\"" $                           ClassAddon.Default.Description  $ "\","
+      $ "GroupName"    $ "=\"" $                           ClassAddon.Default.GroupName    $ "\")");
 
-    UTServerAdmin.AllMutators[iInfoAddon].ClassName    = NameClassAddon;
-    UTServerAdmin.AllMutators[iInfoAddon].FriendlyName = TextWebAdminPrefixAddon @ ClassAddon.Default.FriendlyName;
-    UTServerAdmin.AllMutators[iInfoAddon].Description  =                           ClassAddon.Default.Description;
-    UTServerAdmin.AllMutators[iInfoAddon].GroupName    =                           ClassAddon.Default.GroupName;
+    iInfoAddon = UTServerAdmin.AllMutators.Length;
+    UTServerAdmin.AllMutators[iInfoAddon] = MutatorRecord;
 
     for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
       if (thisMutator.bUserAdded &&
@@ -1412,12 +1456,35 @@ defaultproperties
 {
   Build = "%%%%-%%-%% %%:%%";
 
-  TextWebAdminEnableJailFights = "Allow Jail Fights";
-  TextWebAdminPrefixAddon      = "Jailbreak:";
+  Description = "Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point."
+
+  TextHintJailbreak[ 0] = "Watch the compass dots: The faster they pulse, the more players can be released by the corresponding switch."
+  TextHintJailbreak[ 1] = "Use %PREVWEAPON% and %NEXTWEAPON% to switch view points when watching through a surveillance camera."
+  TextHintJailbreak[ 2] = "You can stand on teammates while they're crouching. Look out for jail escape routes requiring this cooperation!"
+  TextHintJailbreak[ 3] = "Some jails have hidden escape routes. You may have to stand on a crouching teammate to reach them."
+  TextHintJailbreak[ 4] = "There may be more than one release switch for your team. The faster a compass dot pulses, the more players can be released through the corresponding switch."
+  TextHintJailbreak[ 5] = "Sometimes it is better to hide away from the enemy team rather than to give them an easy capture."
+  TextHintJailbreak[ 6] = "If you killed the last free enemy, you can taunt the enemy team on the celebration screen during the execution sequence."
+  TextHintJailbreak[ 7] = "Bored in jail? You can fight your teammates for fun with the Shield Gun without any penalties."
+  TextHintJailbreak[ 8] = "Some jails contain monitors for surveillance cameras showing important spots in the map. Approach one of them to activate the camera."
+  TextHintJailbreak[ 9] = "When you're jailed, you may be chosen for an arena match with a jailed enemy. Win the match to gain your freedom!"
+  TextHintJailbreak[10] = "When an arena match is going on, press %ARENACAM% to watch a live feed!"
+  TextHintJailbreak[11] = "Use %TEAMTACTICS UP% to increase and %TEAMTACTICS DOWN% to decrease the overall aggressiveness of the bots on your team."
+  TextHintJailbreak[12] = "The Jailbreak scoreboard shows the whereabouts of you and your teammates in a panorama minimap."
+  TextHintJailbreak[13] = "You can see what your human teammates are up to on the Jailbreak scoreboard: It shows whether they are attacking, defending or roaming the map."
+  TextHintJailbreak[14] = "The red, yellow and green bars next to each player name in the Jailbreak scoreboard show that player's attack kills, defense kills and released teammates."
+  TextHintJailbreak[15] = "The markers on the clock in the upper right corner of the Jailbreak scoreboard indicate team captures."
+  TextHintJailbreak[16] = "Don't try to cheat by reconnecting to the server while you're in jail! The game will make you a llama (quite literally) and give other players bonus points for killing you."
+  TextHintJailbreak[17] = "Don't attack protected players who were just released from jail. You may get llamaized for it!"
+
+  TextDescriptionEnableJailFights = "Allows jail inmates to fight each other with their Shield Guns for fun."
+  TextWebAdminEnableJailFights    = "Allow Jail Fights";
+  TextWebAdminPrefixAddon         = "Jailbreak:";
 
   WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard";
   WebScoreboardPath  = "/scoreboard";
 
+  Addons = "JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
   bEnableJailFights        = True;
   bEnableSpectatorDeathCam = True;
 

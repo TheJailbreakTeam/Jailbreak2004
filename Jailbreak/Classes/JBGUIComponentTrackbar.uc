@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIEditSlider
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUIEditSlider.uc,v 1.1 2004/03/09 18:55:04 wormbo Exp $
+// $Id: JBGUIEditSlider.uc,v 1.2 2004/03/26 20:42:16 tarquin Exp $
 //
 // User interface component: Combines a slider and an editbox with a label.
 //=============================================================================
@@ -15,14 +15,14 @@ class JBGUIEditSlider extends GUIMultiComponent;
 //=============================================================================
 
 var GUILabel MyLabel;
-var JBGUIComponentSlider MySlider;
-var JBGUIComponentEdit MyEditBox;
+var GUISlider MySlider;
+var GUIComponent MyEditBox;
 
 var(Menu) protected float MinValue;
 var(Menu) protected float MaxValue;
 var(Menu) protected float Value;
 var(Menu) protected bool bIntegerOnly;
-var(Menu) protected bool bSpinButtons;
+var(Menu) protected bool bSpinButtons;  // ignored in UT2004
 
 var(Menu) localized string Caption;     // Caption for the label
 var(Menu) string LabelFont;             // Name of the Font for the label
@@ -43,9 +43,14 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
   Super.InitComponent(MyController, MyOwner);
   
-  MyLabel   = GUILabel(Controls[0]);
-  MySlider  = JBGUIComponentSlider(Controls[1]);
-  MyEditBox = JBGUIComponentEdit(Controls[2]);
+  if ( bIntegerOnly )
+         RemoveComponent(Controls[3]);
+    else RemoveComponent(Controls[2]);
+  
+  MyLabel   = GUILabel (Controls[0]);
+  MySlider  = GUISlider(Controls[1]);
+  MyEditBox =           Controls[2];
+
   OnPreDraw = InternalOnPreDraw;
   
   // label
@@ -54,31 +59,35 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   MyLabel.TextColor = LabelColor;
 
   // slider
-  MySlider.OnChange          = InternalOnChange;
-  MySlider.OnValueChanged    = InternalOnValueChanged;
-  MySlider.Hint              = Hint;
-  MySlider.FriendlyLabels[0] = MyLabel;
-  MySlider.SetSliderRange(MinValue, MaxValue);
-  MySlider.SetIntSlider(bIntegerOnly);
-  MySlider.SetValue(Value, True);
+  MySlider.OnChange            = InternalOnChange;
+  MySlider.OnCapturedMouseMove = InternalCapturedMouseMove;
+  MySlider.FriendlyLabel       = MyLabel;
+  MySlider.MinValue            = MinValue;
+  MySlider.MaxValue            = MaxValue;
+  MySlider.bIntSlider          = bIntegerOnly;
+  MySlider.SetHint(Hint);
+  MySlider.SetValue(Value);
   
   // editbox
-  if ( bIntegerOnly )
-    MyEditBox.SetIntEdit(MinValue >= 0 && MaxValue >= 0);
-  else
-    MyEditBox.SetFloatEdit(MinValue >= 0 && MaxValue >= 0);
-  MyEditBox.SetNumericRange(MinValue, MaxValue);
-  MyEditBox.SetSpinButtons(bSpinButtons);
-  MyEditBox.SetValue(Value);
-  MyEditBox.OnChange          = InternalOnChange;
-  MyEditBox.Hint              = Hint;
-  MyEditBox.FriendlyLabels[0] = MyLabel;
-  MyEditBox.OnEnterPressed    = InternalOnEnterPressed;
+  if ( GUINumericEdit(MyEditBox) != None ) {
+    GUINumericEdit(MyEditBox).MinValue = MinValue;
+    GUINumericEdit(MyEditBox).MaxValue = MaxValue;
+    GUINumericEdit(MyEditBox).SetValue(Value);
+  }
+  else if ( GUIFloatEdit(MyEditBox) != None ) {
+    GUIFloatEdit(MyEditBox).MinValue = MinValue;
+    GUIFloatEdit(MyEditBox).MaxValue = MaxValue;
+    GUIFloatEdit(MyEditBox).SetValue(Value);
+  }
+  
+  MyEditBox.OnChange      = InternalOnChange;
+  MyEditBox.FriendlyLabel = MyLabel;
+  MyEditBox.SetHint(Hint);
   
   // layout
-  MyLabel.WinWidth    = CaptionWidth;
-  MySlider.WinWidth   = SliderWidth;
-  MyEditBox.WinWidth  = EditboxWidth;
+  MyLabel  .WinWidth = CaptionWidth;
+  MySlider .WinWidth = SliderWidth;
+  MyEditBox.WinWidth = EditboxWidth;
   
   switch (
     int( CaptionWidth == -1 ) +
@@ -93,16 +102,16 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     case 2:
       // two defaults, one measurement
       if( CaptionWidth != -1 ) {
-        MySlider.WinWidth   = 0.5 * ( 1 - CaptionWidth);
-        MyEditBox.WinWidth  = 0.5 * ( 1 - CaptionWidth);
+        MySlider.WinWidth  = 0.5 * ( 1 - CaptionWidth);
+        MyEditBox.WinWidth = 0.5 * ( 1 - CaptionWidth);
       }
       if( SliderWidth != -1 ) {
         MyLabel.WinWidth   = 0.5 * ( 1 - SliderWidth);
-        MyEditBox.WinWidth  = 0.5 * ( 1 - SliderWidth);
+        MyEditBox.WinWidth = 0.5 * ( 1 - SliderWidth);
       }
       if( EditboxWidth != -1 ) {
         MyLabel.WinWidth   = 0.5 * ( 1 - EditboxWidth);
-        MySlider.WinWidth   = 0.5 * ( 1 - EditboxWidth);
+        MySlider.WinWidth  = 0.5 * ( 1 - EditboxWidth);
       }
       break;
     case 1:
@@ -111,10 +120,10 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
         MyLabel.WinWidth   = 1 - SliderWidth - EditboxWidth;
       }
       if( SliderWidth == -1 ) {
-        MySlider.WinWidth   = 1 - CaptionWidth - EditboxWidth;
+        MySlider.WinWidth  = 1 - CaptionWidth - EditboxWidth;
       }
       if( EditboxWidth == -1 ) {
-        MyEditBox.WinWidth  = 1 - CaptionWidth - SliderWidth;
+        MyEditBox.WinWidth = 1 - CaptionWidth - SliderWidth;
       }
     break;
     // case 0: covered before switch statement
@@ -122,31 +131,13 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   MySlider.WinLeft  = MyLabel.WinWidth;
   MyEditBox.WinLeft = 1 - MyEditBox.WinWidth;
   
+  // shorten slider a bit for a small gap
+  MySlider.WinWidth *= 0.9;
+  
   // tweak for indent
   MyLabel.WinLeft   = LeftIndent / WinWidth;
-  MyLabel.WinWidth  -= LeftIndent / WinWidth;
+  MyLabel.WinWidth -= LeftIndent / WinWidth;
 }
-
-
-//=============================================================================
-// InternalOnEnterPressed
-//
-// Called when the Enter key is pressed while the editbox is focused.
-//=============================================================================
-
-function InternalOnEnterPressed(GUIComponent Sender)
-{
-  OnEnterPressed(Self);
-}
-
-
-//=============================================================================
-// delegate OnEnterPressed
-//
-// Called when the Enter key is pressed while this editbox is focused.
-//=============================================================================
-
-delegate OnEnterPressed(GUIComponent Sender);
 
 
 //=============================================================================
@@ -187,11 +178,14 @@ function float GetValue()
 function SetValue(float NewValue)
 {
   Value = NewValue;
+
   if ( bIntegerOnly )
-    Value = Round(Value);
-  else
-    Value = Round(Value * 100) * 0.01;
-  MyEditBox.SetValue(Value);
+       Value = Round(Value);
+  else Value = Round(Value * 100) * 0.01;
+
+       if ( GUINumericEdit(MyEditBox) != None ) GUINumericEdit(MyEditBox).SetValue(Value);
+  else if ( GUIFloatEdit  (MyEditBox) != None ) GUIFloatEdit  (MyEditBox).SetValue(Value);
+
   MySlider.SetValue(Value);
 }
 
@@ -205,13 +199,7 @@ function SetValue(float NewValue)
 function IntegerOnly(bool bIntOnly)
 {
   bIntegerOnly = bIntOnly;
-  MySlider.SetIntSlider(bIntOnly);
-  if ( bIntOnly ) {
-    MyEditBox.SetIntEdit(MinValue >= 0 && MaxValue >= 0);
-    Value = Round(Value);
-  }
-  else
-    MyEditBox.SetFloatEdit(MinValue >= 0 && MaxValue >= 0);
+  Log("Warning:" @ Self @ "bIntegerOnly change ignored");
 }
 
 
@@ -225,14 +213,25 @@ function NumericRange(float NewMin, float NewMax)
 {
   MinValue = FMin(NewMin, NewMax);
   MaxValue = FMax(NewMin, NewMax);
+
   if ( bIntegerOnly ) {
     MinValue = Round(MinValue);
     MaxValue = Round(MaxValue);
   }
+
   Value = FClamp(Value, MinValue, MaxValue);
-  MyEditBox.SetNumericRange(MinValue, MaxValue);
-  MySlider.SetSliderRange(MinValue, MaxValue);
-  MyEditBox.bPositiveOnly = MinValue >= 0 && MaxValue >= 0;
+
+  if ( GUINumericEdit(MyEditBox) != None ) {
+    GUINumericEdit(MyEditBox).MinValue = MinValue;
+    GUINumericEdit(MyEditBox).MaxValue = MaxValue;
+  }
+  else if ( GUIFloatEdit(MyEditBox) != None ) {
+    GUIFloatEdit(MyEditBox).MinValue = MinValue;
+    GUIFloatEdit(MyEditBox).MaxValue = MaxValue;
+  }
+
+  MySlider.MinValue = MinValue;
+  MySlider.MaxValue = MaxValue;
 }
 
 
@@ -245,7 +244,7 @@ function NumericRange(float NewMin, float NewMax)
 function SpinButtons(bool bShow)
 {
   bSpinButtons = bShow;
-  MyEditBox.SetSpinButtons(bShow);
+  Log("Warning:" @ Self @ "bSpinButtons change ignored");
 }
 
 
@@ -257,29 +256,41 @@ function SpinButtons(bool bShow)
 
 singular function InternalOnChange(GUIComponent Sender)
 {
+  local float NewValue;
+
   if ( Sender == MyEditBox ) {
-    MySlider.SetValue(MyEditBox.GetFloatValue());
-    Value = MyEditBox.GetFloatValue();
+         if ( GUINumericEdit(MyEditBox) != None ) NewValue = int  (GUINumericEdit(MyEditBox).Value);
+    else if ( GUIFloatEdit  (MyEditBox) != None ) NewValue = float(GUIFloatEdit  (MyEditBox).Value);
+    MySlider.SetValue(NewValue);
   }
   else if ( Sender == MySlider ) {
-    MyEditBox.SetValue(MySlider.GetValue(), True);
-    Value = MyEditBox.GetFloatValue();
+    NewValue = MySlider.Value;
+         if ( GUINumericEdit(MyEditBox) != None ) GUINumericEdit(MyEditBox).SetValue(NewValue);
+    else if ( GUIFloatEdit  (MyEditBox) != None ) GUIFloatEdit  (MyEditBox).SetValue(NewValue);
   }
   
+  Value = NewValue;
   OnChange(self);
 }
 
 
 //=============================================================================
-// InternalOnDrawCaption
+// InternalCapturedMouseMove
 //
-// Called when the slider wants to draw its caption.
+// Called by the slider when the slider button is moved. Updates the edit box
+// without calling the global OnChange event.
 //=============================================================================
 
-function InternalOnValueChanged(JBGUIComponentSlider Sender)
+function bool InternalCapturedMouseMove(float deltaX, float deltaY)
 {
-  MyEditBox.SetValue(MySlider.GetValue(), True);
-  Value = MyEditBox.GetFloatValue();
+  local bool bResult;
+  
+  bResult = MySlider.InternalCapturedMouseMove(deltaX, deltaY);
+  
+       if ( GUINumericEdit(MyEditBox) != None ) GUINumericEdit(MyEditBox).SetValue(MySlider.Value);
+  else if ( GUIFloatEdit  (MyEditBox) != None ) GUIFloatEdit  (MyEditBox).SetValue(MySlider.Value);
+
+  return bResult;
 }
 
 
@@ -300,7 +311,7 @@ defaultproperties
   End Object
   Controls(0)=GUILabel'Label'
   
-  Begin Object Class=JBGUIComponentSlider Name=Slider
+  Begin Object Class=GUISlider Name=Slider
     bScaleToParent=True
     bBoundToParent=True
     WinTop=0
@@ -308,18 +319,27 @@ defaultproperties
     WinHeight=1
     WinWidth=0.4
   End Object
-  Controls(1)=JBGUIComponentSlider'Slider'
+  Controls(1)=GUISlider'Slider'
   
-  Begin Object Class=JBGUIComponentEdit Name=EditBox
+  Begin Object Class=GUINumericEdit Name=EditBoxInt
     bScaleToParent=True
     bBoundToParent=True
     WinTop=0
     WinLeft=0.7
     WinHeight=1
     WinWidth=0.3
-    bNumericEdit=True
   End Object
-  Controls(2)=JBGUIComponentEdit'EditBox'
+  Controls(2)=GUINumericEdit'EditBoxInt'
+
+  Begin Object Class=GUIFloatEdit Name=EditBoxFloat
+    bScaleToParent=True
+    bBoundToParent=True
+    WinTop=0
+    WinLeft=0.7
+    WinHeight=1
+    WinWidth=0.3
+  End Object
+  Controls(3)=GUIFloatEdit'EditBoxFloat'
   
   WinWidth=0.5
   WinHeight=0.06

@@ -1,3 +1,0 @@
-[Public]
-Object=(Name=Jailbreak.Jailbreak,Class=Class,MetaClass=Engine.GameInfo,Description="JB|Jailbreak|Jailbreak.JBGUITabPanelRules|Jailbreak.JBMapList|True")
-Object=(Name=Jailbreak.JBGUIUserKeyBinding,Class=Class,MetaClass=XInterface.GUIUserKeyBinding)

@@ -1,20 +1,21 @@
 // ============================================================================
 // JBGUIComponentTabs
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIComponentTabs.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBGUIComponentTabs.uc,v 1.4 2004/03/10 12:56:05 mychaeel Exp $
 //
 // User interface component: Has a column of tabs on the left side, each
 // containing an instance of a specified component class such as a checkbox.
 // ============================================================================
 
 
-class JBGUIComponentTabs extends JBGUIComponent;
+class JBGUIComponentTabs extends GUIPanel;
 
 
 // ============================================================================
 // Imports
 // ============================================================================
 
+#exec texture import file=Textures\GUITabBlurred.dds    alpha=on mips=off
 #exec texture import file=Textures\GUITabWatched.dds    alpha=on mips=off
 #exec texture import file=Textures\GUITabFocused.dds    alpha=on mips=off
 
@@ -93,7 +94,7 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
 // open, opens the first one.
 // ============================================================================
 
-event bool FocusFirst(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops)
+event bool FocusFirst(GUIComponent GUIComponentSender)
 {
   if (MenuState == MSAT_Disabled || !bVisible)
     return False;
@@ -101,7 +102,7 @@ event bool FocusFirst(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops
   if (iTabOpen < 0)
     iTabOpen = 0;
 
-  return GetCurrentTabComponent().FocusFirst(Self, False);
+  return GetCurrentTabComponent().FocusFirst(Self);
 }
 
 
@@ -112,7 +113,7 @@ event bool FocusFirst(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops
 // currently active tab if none exists.
 // ============================================================================
 
-event bool FocusLast(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops)
+event bool FocusLast(GUIComponent GUIComponentSender)
 {
   local int iControl;
 
@@ -120,10 +121,10 @@ event bool FocusLast(GUIComponent GUIComponentSender, bool bIgnoreMultiTabStops)
     return False;
 
   for (iControl = Controls.Length - 1; iControl >= nTabs; iControl--)
-    if (Controls[iControl].FocusLast(Self, bIgnoreMultiTabStops))
+    if (Controls[iControl].FocusLast(Self))
       return True;
 
-  return FocusFirst(Self, bIgnoreMultiTabStops);  // focus on tab
+  return FocusFirst(Self);  // focus on tab
 }
 
 
@@ -146,13 +147,13 @@ event bool PrevControl(GUIComponent GUIComponentSender)
     if (MenuOwner != None)
       return MenuOwner.PrevControl(Self);
     else
-      return FocusLast(Self, False);
+      return FocusLast(Self);
 
   for (iControl = iControlCurrent - 1; iControl >= nTabs; iControl--)
-    if (Controls[iControl].FocusLast(Self, False))
+    if (Controls[iControl].FocusLast(Self))
       return True;
 
-  return FocusFirst(Self, False);
+  return FocusFirst(Self);
 }
 
 
@@ -171,13 +172,13 @@ event bool NextControl(GUIComponent GUIComponentSender)
   iControlCurrent = FindComponentIndex(GUIComponentSender);
 
   for (iControl = Max(nTabs, iControlCurrent + 1); iControl < Controls.Length; iControl++)
-    if (Controls[iControl].FocusFirst(Self, False))
+    if (Controls[iControl].FocusFirst(Self))
       return True;
 
   if (MenuOwner != None)
     return MenuOwner.NextControl(Self);
 
-  return FocusFirst(Self, True);
+  return FocusFirst(Self);
 }
 
 
@@ -266,9 +267,8 @@ function bool Draw(Canvas Canvas)
 
   for (iTab = 0; iTab < nTabs; iTab++)
     if (iTab == iTabOpen)
-      DrawTab(Canvas, iTab, MSAT_Focused);
-    else
-      DrawTab(Canvas, iTab, GUIMenuOption(Controls[iTab]).MyLabel.MenuState);
+           DrawTab(Canvas, iTab, MSAT_Focused);
+      else DrawTab(Canvas, iTab, GUIMenuOption(Controls[iTab]).MyLabel.MenuState);
 
   DrawPanel(Canvas, iTabOpen);
 
@@ -286,7 +286,7 @@ function bool Draw(Canvas Canvas)
 function CalcTabMetrics(int iTab, optional out vector LocationTab, optional out vector SizeTab)
 {
   LocationTab.X = int(ActualLeft());
-  LocationTab.Y = int(ActualTop() + iTab * (TabHeight + TabSpacing) * ActualHeight());
+  LocationTab.Y = int(ActualTop() + iTab * (TabHeight + TabSpacing) * ActualHeight() + 32.0);
 
   SizeTab.X = int(TabWidth  * ActualWidth());
   SizeTab.Y = int(TabHeight * ActualHeight());
@@ -296,8 +296,7 @@ function CalcTabMetrics(int iTab, optional out vector LocationTab, optional out 
 // ============================================================================
 // DrawTab
 //
-// Draws the background for the given tab in the given state. Emulates the
-// behavior of DrawTileStretched using only the left half of the material.
+// Draws the background for the given tab in the given state.
 // ============================================================================
 
 function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab)
@@ -307,9 +306,9 @@ function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab)
   local Material Material;
 
   switch (MenuStateTab) {
-    case EMenuState.MSAT_Blurry:   Material = Texture'GUITabFocused';  Canvas.SetDrawColor(255, 255, 255,  40);  break;
-    case EMenuState.MSAT_Watched:  Material = Texture'GUITabWatched';  Canvas.SetDrawColor(255, 255, 255, 255);  break;
-    case EMenuState.MSAT_Focused:  Material = Texture'GUITabFocused';  Canvas.SetDrawColor(255, 255, 255, 160);  break;
+    case EMenuState.MSAT_Blurry:   Material = Texture'GUITabBlurred';  break;
+    case EMenuState.MSAT_Watched:  Material = Texture'GUITabWatched';  break;
+    case EMenuState.MSAT_Focused:  Material = Texture'GUITabFocused';  break;
   }
 
   if (Material == None)
@@ -319,6 +318,7 @@ function DrawTab(Canvas Canvas, int iTab, EMenuState MenuStateTab)
 
   Canvas.Style = EMenuRenderStyle.MSTY_Alpha;
   Canvas.SetPos(LocationTab.X, LocationTab.Y);
+  Canvas.SetDrawColor(255, 255, 255, 255);
   Canvas.DrawTileStretched(Material, SizeTab.X, SizeTab.Y);
 }
 
@@ -345,20 +345,16 @@ function DrawPanel(Canvas Canvas, int iTab)
   SizePanel.Y = int(ActualHeight());
 
   Canvas.Style = EMenuRenderStyle.MSTY_Alpha;
-  Canvas.SetDrawColor(255, 255, 255, 160);
+  Canvas.SetDrawColor(255, 255, 255, 255);
 
-  if (iTab == 0) {
-    Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
-    Canvas.DrawTileStretched(Texture'GUIPanelTopRight', SizePanel.X, SizeTab.Y);
-  }
+  Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
 
-  else {
-    Canvas.SetPos(LocationPanel.X, LocationPanel.Y);
-    Canvas.DrawTileStretched(Texture'GUIPanelTop', SizePanel.X, LocationTab.Y - LocationPanel.Y);
+  if (iTab == 0)
+         Canvas.DrawTileStretched(Texture'GUIPanelTopRight', SizePanel.X, 32.0);
+    else Canvas.DrawTileStretched(Texture'GUIPanelTop',      SizePanel.X, LocationTab.Y - LocationPanel.Y);
 
-    Canvas.SetPos(LocationPanel.X, LocationTab.Y);
-    Canvas.DrawTileStretched(Texture'GUIPanelRight', SizePanel.X, SizeTab.Y);
-  }
+  Canvas.SetPos(LocationPanel.X, LocationTab.Y);
+  Canvas.DrawTileStretched(Texture'GUIPanelRight', SizePanel.X, SizeTab.Y);
 
   Canvas.SetPos(LocationPanel.X, LocationTab.Y + SizeTab.Y);
   Canvas.DrawTileStretched(Texture'GUIPanelBottom', SizePanel.X, LocationPanel.Y + SizePanel.Y - Canvas.CurY);
@@ -398,24 +394,27 @@ function GUIMenuOption AddTab(string TextCaption, optional string TextHint)
   if (iTabOpen < 0)
     iTabOpen = iTabAdded;
 
-  Controls.Insert(iTabAdded, 1);
-  Controls[iTabAdded] = GUIMenuOptionTab;
+  Controls  .Insert(iTabAdded, 1);  Controls  [iTabAdded] = GUIMenuOptionTab;
+  Components.Insert(iTabAdded, 1);  Components[iTabAdded] = GUIMenuOptionTab;
 
   return GUIMenuOptionTab;
 }
 
 
 // ============================================================================
-// AddComponent
+// AddComponentObject
 //
 // Adds an arbitrary control to this component, initializes it and returns a
 // reference to it.
 // ============================================================================
 
-function GUIComponent AddComponent(GUIComponent GUIComponent)
+function GUIComponent AddComponentObject(GUIComponent GUIComponent)
 {
-  Controls[Controls.Length] = GUIComponent;
+  Controls  [Controls  .Length] = GUIComponent;
+  Components[Components.Length] = GUIComponent;
+
   GUIComponent.InitComponent(Controller, Self);
+  GUIComponent.Opened(Self);
 
   return GUIComponent;
 }
@@ -475,6 +474,8 @@ function PlaceTab(GUIMenuOption GUIMenuOptionTab, int iTab)
 
   GUIMenuOptionTab.WinTop  += (TabHeight       - TabComponentHeight)            / 2;
   GUIMenuOptionTab.WinLeft += (TabWidth * (1.0 - TabComponentWidth) * WinWidth) / 2;
+
+  GUIMenuOptionTab.WinTop = int(GUIMenuOptionTab.WinTop * ActualHeight() + 32.0);
 }
 
 
@@ -530,7 +531,8 @@ function int           GetCurrentTabIndex()     { return                 iTabOpe
 
 defaultproperties
 {
-  bIsMultiComponent = True;
+  bTabStop = True;
+  PropagateVisibility = False;
 
   iTabOpen     = -1;
   iTabOpenPrev = -1;
@@ -541,5 +543,5 @@ defaultproperties
 
   TabComponentClass  = Class'moCheckBox';
   TabComponentWidth  = 0.850;
-  TabComponentHeight = 0.040;
+  TabComponentHeight = 0.035;
 }
