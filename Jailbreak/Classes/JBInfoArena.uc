@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.2 2002/11/20 18:55:12 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.3 2002/11/24 13:22:21 mychaeel Exp $
 //
 // Holds information about an arena.
 // ============================================================================
@@ -55,10 +55,10 @@ var() name TagAttachPickups;
 var private JBProbeEvent ProbeEventRequest;
 var private JBProbeEvent ProbeEventExclude;
 
-var array<Controller> ListControllerExclude;
+var private array<Controller> ListControllerExclude;
 
-var private float TimeCountdownStart;  // Time until the match starts
-var private float TimeCountdownTie;    // Time until a tie is announced
+var private float TimeCountdownStart;  // time until the match starts
+var private float TimeCountdownTie;    // time until a tie is announced
 
 
 // ============================================================================
@@ -69,13 +69,15 @@ var private float TimeCountdownTie;    // Time until a tie is announced
 
 event PostBeginPlay() {
 
-  if (TagRequest != '') {
+  if (TagRequest != '' &&
+      TagRequest != 'None') {
     ProbeEventRequest = Spawn(Class'JBProbeEvent', Self, TagRequest);
     ProbeEventRequest.OnTrigger   = TriggerRequest;
     ProbeEventRequest.OnUnTrigger = UnTriggerRequest;
     }
   
-  if (TagExclude != '') {
+  if (TagExclude != '' &&
+      TagExclude != 'None') {
     ProbeEventExclude = Spawn(Class'JBProbeEvent', Self, TagExclude);
     ProbeEventExclude.OnTrigger   = TriggerExclude;
     ProbeEventExclude.OnUnTrigger = UnTriggerExclude;
