@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.10 2003/02/26 17:46:15 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.11 2003/02/26 20:01:30 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -15,37 +15,60 @@ class JBInterfaceHud extends HudBTeamDeathMatch
 // Imports
 // ============================================================================
 
-#exec texture import file=Textures\IconDot.tga mips=on alpha=on
+#exec texture import file=Textures\SpriteWidgetHud.dds mips=on alpha=on
 
 
 // ============================================================================
 // Localization
 // ============================================================================
 
-var localized string TextMenuEntryTactics;
-var localized string TextMenuTitleTactics;
-var localized string TextOrderName[6];
+var localized string TextMenuEntryTactics;   // tactics entry in order menu
+var localized string TextMenuTitleTactics;   // title for tactics submenu
+var localized string TextOrderName[6];       // selections in tactics submenu
+var localized string TextTactics[5];         // tactics names for widget
 
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-var SpriteWidget SpriteWidgetCompass[2];
-
 var bool bWidescreen;                        // display widescreen bars
 var private float RatioWidescreen;           // widescreen scroll-in progress
 
+var private transient JBTagPlayer TagPlayerOwner;   // player state for owner
+
 var private float TimeUpdateCompass;         // last compass rendering
 var private float TimeUpdateDisposition;     // last disposition rendering
+var private float TimeUpdateTactics;         // last tactics rendering
 var private float TimeUpdateWidescreen;      // last widescreen bar rendering
 
 var private byte SpeechMenuState;            // current speech menu state
 var private bool bSpeechMenuVisible;         // speech menu displayed
 var private bool bSpeechMenuVisibleTactics;  // tactics submenu displayed
 
+var private float AlphaCompass;              // transparency of compass dots
 var private JBDispositionTeam DispositionTeamRed;   // red team disposition
 var private JBDispositionTeam DispositionTeamBlue;  // blue team disposition
+
+var string FontTactics;                      // name of font for tactics text
+var vector LocationTextTactics;              // location of tactics text
+var vector SizeIconTactics;                  // size of tactics icons
+var vector SizeTextTactics;                  // relative size of tactics text
+var Color ColorTactics[5];                   // colors for the tactics blob
+var private float TacticsInterpolated;       // currently displayed tactics
+var private Font FontObjectTactics;          // dynamically loaded font object
+
+var SpriteWidget SpriteWidgetCompass[2];
+var SpriteWidget SpriteWidgetCompassDot;
+var SpriteWidget SpriteWidgetHandcuffs[2];
+
+var SpriteWidget SpriteWidgetTacticsCircle;
+var SpriteWidget SpriteWidgetTacticsBlob;
+var SpriteWidget SpriteWidgetTacticsFill;
+var SpriteWidget SpriteWidgetTacticsTint;
+var SpriteWidget SpriteWidgetTacticsFrame;
+var SpriteWidget SpriteWidgetTacticsIcon[5];
+var SpriteWidget SpriteWidgetTacticsAuto;
 
 
 // ============================================================================
@@ -131,6 +154,8 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 
 simulated event PostRender(Canvas Canvas) {
 
+  TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PawnOwner.PlayerReplicationInfo);
+
   ShowWidescreen(Canvas);
 
   if (JBCamera(PlayerOwner.ViewTarget) != None) {
@@ -168,7 +193,7 @@ simulated function ShowPersonalScore(Canvas Canvas);
 // ============================================================================
 // ShowWidescreen
 //
-// Updates the size and draws the widescreen bars.
+// Updates the size of and draws the widescreen bars.
 // ============================================================================
 
 simulated function ShowWidescreen(Canvas Canvas) {
@@ -191,6 +216,106 @@ simulated function ShowWidescreen(Canvas Canvas) {
   
   Canvas.SetPos(0, 0);             Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX,  HeightBars);
   Canvas.SetPos(0, Canvas.ClipY);  Canvas.DrawTileStretched(Texture'BlackTexture', Canvas.ClipX, -HeightBars);
+  }
+
+
+// ============================================================================
+// ShowTactics
+//
+// Updates and displays the team tactics widget.
+// ============================================================================
+
+simulated function ShowTactics(Canvas Canvas) {
+
+  local float AlphaTactics;
+  local float TacticsSelected;
+  local float TimeDelta;
+  local JBTagTeam TagTeam;
+
+  TimeDelta = Level.TimeSeconds - TimeUpdateTactics;
+  TimeUpdateTactics = Level.TimeSeconds;
+
+  TagTeam = Class'JBTagTeam'.Static.FindFor(PawnOwner.PlayerReplicationInfo.Team);
+
+  switch (TagTeam.GetTactics()) {
+    case 'Evasive':     TacticsSelected = 0.0;  break;
+    case 'Defensive':   TacticsSelected = 1.0;  break;
+    case 'Normal':      TacticsSelected = 2.0;  break;
+    case 'Aggressive':  TacticsSelected = 3.0;  break;
+    case 'Suicidal':    TacticsSelected = 4.0;  break;
+    }
+
+  if (TacticsSelected > TacticsInterpolated)
+    TacticsInterpolated = FMin(TacticsSelected, TacticsInterpolated + TimeDelta * 4.0);
+  else
+    TacticsInterpolated = FMax(TacticsSelected, TacticsInterpolated - TimeDelta * 4.0);
+
+  AlphaTactics = TacticsInterpolated - int(TacticsInterpolated);
+  
+  if (AlphaTactics == 0.0)
+    SpriteWidgetTacticsBlob.Tints[TeamIndex] = ColorTactics[int(TacticsInterpolated)];
+  else {
+    SpriteWidgetTacticsBlob.Tints[TeamIndex] =
+      ColorTactics[int(TacticsInterpolated)    ]   * (1.0 - AlphaTactics) + 
+      ColorTactics[int(TacticsInterpolated) + 1]   *        AlphaTactics;
+    SpriteWidgetTacticsBlob.Tints[TeamIndex].A =
+      ColorTactics[int(TacticsInterpolated)    ].A * (1.0 - AlphaTactics) + 
+      ColorTactics[int(TacticsInterpolated) + 1].A *        AlphaTactics;
+    }
+
+  if (TacticsInterpolated < 1.0 ||
+      TacticsInterpolated > 3.0)
+    SpriteWidgetTacticsBlob.Tints[TeamIndex].A =
+    SpriteWidgetTacticsBlob.Tints[TeamIndex].A *
+      (1.0 - (Abs(2.0 - TacticsInterpolated) - 1.0) * (Level.TimeSeconds % 0.3) / 0.6);
+
+  if (TagTeam.GetTacticsAuto())
+    SpriteWidgetTacticsAuto.Scale = FMin(1.0, SpriteWidgetTacticsAuto.Scale + TimeDelta * 3.0);
+  else
+    SpriteWidgetTacticsAuto.Scale = FMax(0.0, SpriteWidgetTacticsAuto.Scale - TimeDelta * 3.0);
+  SpriteWidgetTacticsAuto.PosY = -0.016 * (1.0 - SpriteWidgetTacticsAuto.Scale);
+
+  DrawSpriteWidget(Canvas, SpriteWidgetTacticsFill);
+  DrawSpriteWidget(Canvas, SpriteWidgetTacticsTint);
+  DrawSpriteWidget(Canvas, SpriteWidgetTacticsFrame);
+  DrawSpriteWidget(Canvas, SpriteWidgetTacticsAuto);
+  DrawSpriteWidget(Canvas, SpriteWidgetTacticsCircle);
+  DrawSpriteWidget(Canvas, SpriteWidgetTacticsBlob);
+
+  if (FontObjectTactics == None)
+    FontObjectTactics = Font(DynamicLoadObject(FontTactics, Class'Font'));
+
+  ShowTacticsIcon(Canvas, int(TacticsInterpolated), AlphaTactics);
+  if (AlphaTactics > 0.0)
+    ShowTacticsIcon(Canvas, int(TacticsInterpolated) + 1, AlphaTactics - 1.0);
+  }
+
+
+// ============================================================================
+// ShowTacticsIcon
+//
+// Displays a tactics icon and the accompanying text, faded and scrolled to
+// the given alpha. Negative alpha values mean that the icon is above its
+// normal position, positive values mean that it is below.
+// ============================================================================
+
+simulated function ShowTacticsIcon(Canvas Canvas, int iTactics, float Alpha) {
+
+  SpriteWidgetTacticsIcon[iTactics].Tints[TeamIndex].A = 255 - 255 * Abs(Alpha);
+  SpriteWidgetTacticsIcon[iTactics].PosY = SizeIconTactics.Y * Alpha;
+  DrawSpriteWidget(Canvas, SpriteWidgetTacticsIcon[iTactics]);
+  
+  Canvas.Font = FontObjectTactics;
+  Canvas.FontScaleX = SizeTextTactics.X * HUDScale * Canvas.ClipX / 1600;
+  Canvas.FontScaleY = SizeTextTactics.Y * HUDScale * Canvas.ClipY / 1200;
+  Canvas.DrawScreenText(
+    TextTactics[iTactics],
+    HUDScale *  LocationTextTactics.X,
+    HUDScale * (LocationTextTactics.Y + SizeIconTactics.Y * Alpha / 2.0),
+    DP_MiddleRight);
+
+  Canvas.FontScaleX = Canvas.Default.FontScaleX;
+  Canvas.FontScaleY = Canvas.Default.FontScaleY;
   }
 
 
@@ -240,9 +365,6 @@ simulated function ShowCompass(Canvas Canvas) {
 
   local int nPlayersReleasable;
   local float AngleDot;
-  local float OffsetX;
-  local float OffsetY;
-  local float ScaleDot;
   local float TimeDelta;
   local vector LocationOwner;
   local GameObjective Objective;
@@ -257,35 +379,56 @@ simulated function ShowCompass(Canvas Canvas) {
   else
     LocationOwner = PlayerOwner.Location;
   
+  if (TagPlayerOwner != None)
+    if (TagPlayerOwner.IsFree())
+      AlphaCompass = FMin(1.0, AlphaCompass + TimeDelta * 2.0);
+    else
+      AlphaCompass = FMax(0.0, AlphaCompass - TimeDelta * 2.0);
+  
+  if (AlphaCompass == 0.0)
+    return;
+  
   firstTagObjective = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagObjective;
   for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
     Objective = thisTagObjective.GetObjective();
     
     switch (Objective.DefenderTeamIndex) {
-      case 0:  Canvas.DrawColor = RedColor;   OffsetX = -0.033;  OffsetY = 0.048;  break;
-      case 1:  Canvas.DrawColor = BlueColor;  OffsetX =  0.033;  OffsetY = 0.048;  break;
+      case 0:
+        SpriteWidgetCompassDot.Tints[TeamIndex] = RedColor;
+        SpriteWidgetCompassDot.PosX = -0.034;
+        SpriteWidgetCompassDot.PosY =  0.048;
+        break;
+
+      case 1:
+        SpriteWidgetCompassDot.Tints[TeamIndex] = BlueColor;
+        SpriteWidgetCompassDot.PosX =  0.034;
+        SpriteWidgetCompassDot.PosY =  0.048;
+        break;
       }
 
     nPlayersReleasable = thisTagObjective.CountPlayersReleasable(True);
 
-    ScaleDot = 1.0;
     if (nPlayersReleasable > 0) {
       thisTagObjective.ScaleDot -= 0.5 * nPlayersReleasable * TimeDelta;
       if (thisTagObjective.ScaleDot < 1.0)
         thisTagObjective.ScaleDot = (thisTagObjective.ScaleDot % 0.5) + 1.0;
-      ScaleDot = thisTagObjective.ScaleDot;
       }
-    
+
+    else if (thisTagObjective.ScaleDot != 1.0) {
+      thisTagObjective.ScaleDot -= 0.5 * TimeDelta;
+      if (thisTagObjective.ScaleDot < 1.0)
+        thisTagObjective.ScaleDot = 1.0;
+      }
+
     AngleDot = ((rotator(Objective.Location - LocationOwner).Yaw - PlayerOwner.Rotation.Yaw) & 65535) * Pi / 32768;
+    SpriteWidgetCompassDot.PosX +=  0.0305 * Sin(AngleDot) + 0.5;
+    SpriteWidgetCompassDot.PosY += -0.0405 * Cos(AngleDot);
     
-    Canvas.Style = ERenderStyle.STY_Alpha;
-    SetRelativePos(Canvas, OffsetX + 0.0305 * Sin(AngleDot),
-                           OffsetY - 0.0405 * Cos(AngleDot), DP_UpperMiddle);
-    Canvas.CurX -= 12 * Canvas.ClipX * HUDScale * ScaleDot / 1600;
-    Canvas.CurY -= 12 * Canvas.ClipX * HUDScale * ScaleDot / 1600;
-    Canvas.DrawRect(Texture'IconDot',
-      24 * Canvas.ClipX * HUDScale * ScaleDot / 1600,
-      24 * Canvas.ClipX * HUDScale * ScaleDot / 1600);
+    SpriteWidgetCompassDot.Tints[TeamIndex] = SpriteWidgetCompassDot.Tints[TeamIndex] * (1.0 / thisTagObjective.ScaleDot);
+    SpriteWidgetCompassDot.Tints[TeamIndex].A = 255 * AlphaCompass;
+    SpriteWidgetCompassDot.TextureScale = Default.SpriteWidgetCompassDot.TextureScale * thisTagObjective.ScaleDot;
+    
+    DrawSpriteWidget(Canvas, SpriteWidgetCompassDot);
     }
   }
 
@@ -298,17 +441,14 @@ simulated function ShowCompass(Canvas Canvas) {
 
 simulated function ShowBuild(Canvas Canvas) {
 
-  local vector SizeText;
-
   Canvas.Font = GetConsoleFont(Canvas);
-  Canvas.DrawColor = WhiteColor;
 
-  Canvas.TextSize("X", SizeText.X, SizeText.Y);
-  SizeText.Y = int(SizeText.Y * 1.1);
+  Canvas.DrawColor = WhiteColor;
+  Canvas.DrawColor.A = 64;
   
-  Canvas.CurX = 8;  Canvas.CurY = 8;                   Canvas.DrawText(PlayerOwner.PlayerReplicationInfo.PlayerName);
-  Canvas.CurX = 8;  Canvas.CurY = 8 + SizeText.Y;      Canvas.DrawText("Jailbreak 2003, %%%%-%%-%% %%:%%");
-  Canvas.CurX = 8;  Canvas.CurY = 8 + SizeText.Y * 2;  Canvas.DrawText("Not for release or distribution");
+  Canvas.DrawScreenText(
+    PlayerOwner.PlayerReplicationInfo.PlayerName $ ", Jailbreak 2003, build %%%%-%%-%% %%:%%",
+    0.5, 0.94, DP_LowerMiddle);
   }
 
 
@@ -325,20 +465,13 @@ simulated function ShowTeamScorePassA(Canvas Canvas) {
   DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
   DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
   
-  LTeamHud[0].OffsetX = -95;  RTeamHud[0].OffsetX = 95;
-  LTeamHud[1].OffsetX = -95;  RTeamHud[1].OffsetX = 95;
-  LTeamHud[2].OffsetX = -95;  RTeamHud[2].OffsetX = 95;
+  DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
+  DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
   
-  TeamSymbols[0].OffsetX      =  -600;  TeamSymbols[1].OffsetX      =   600;
-  TeamSymbols[0].OffsetY      =    90;  TeamSymbols[1].OffsetY      =    90;
-  TeamSymbols[0].PosY         = 0.014;  TeamSymbols[1].PosY         = 0.014;
-  TeamSymbols[0].TextureScale = 0.075;  TeamSymbols[1].TextureScale = 0.075;
-
-  ScoreTeam[0].OffsetX = -270;  ScoreTeam[1].OffsetX = 180;
-  ScoreTeam[0].OffsetY =   75;  ScoreTeam[1].OffsetY =  75;
-  
+  ShowTactics(Canvas);
   ShowCompass(Canvas);
   ShowDisposition(Canvas);
+
   ShowBuild(Canvas);
   }
 
@@ -497,7 +630,7 @@ private simulated function SetupSpeechMenuTactics(ExtendedConsole Console) {
     Console.SMIndexArray[iOrderNameTactics] = InfoGame.OrderNameTactics[iOrderNameTactics].iOrderName;
     }
 
-  TagTeam = Class'JBTagTeam'.Static.FindFor(PlayerOwner.PlayerReplicationInfo.Team);
+  TagTeam = Class'JBTagTeam'.Static.FindFor(PawnOwner.PlayerReplicationInfo.Team);
 
   if (TagTeam.GetTacticsAuto())
     Console.HighlightRow = 0;
@@ -549,6 +682,7 @@ defaultproperties {
 
   TextMenuEntryTactics = "Team tactics";
   TextMenuTitleTactics = "Team Tactics"
+
   TextOrderName[0] = "[AUTO]";
   TextOrderName[1] = "Suicidal";
   TextOrderName[2] = "Aggressive";
@@ -556,11 +690,53 @@ defaultproperties {
   TextOrderName[4] = "Defensive";
   TextOrderName[5] = "Evasive";
 
-  SpriteWidgetCompass[0] = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=0,Y1=880,X1=142,Y2=1023),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-2,OffsetY=5,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
-  SpriteWidgetCompass[1] = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X2=0,Y1=880,X1=142,Y2=1023),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=2,OffsetY=5,ScaleMode=SM_Right,Scale=1.0,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  LocationTextTactics = (X=0.155,Y=0.028);
+  SizeIconTactics     = (X=0.042,Y=0.054);
+  SizeTextTactics     = (X=1.200,Y=1.200);
 
-  ScoreBg[0] = (TextureCoords=(X2=0,Y1=0,X1=0,Y2=0));
-  ScoreBg[1] = (TextureCoords=(X2=0,Y1=0,X1=0,Y2=0));
-  ScoreBg[2] = (TextureCoords=(X2=0,Y1=0,X1=0,Y2=0));
-  ScoreBg[3] = (TextureCoords=(X2=0,Y1=0,X1=0,Y2=0));
+  FontTactics     = "UT2003Fonts.jFontMedium";
+  TextTactics[0]  = "evasive";
+  TextTactics[1]  = "defensive";
+  TextTactics[2]  = "normal";
+  TextTactics[3]  = "aggressive";
+  TextTactics[4]  = "suicidal";
+
+  ColorTactics[0] = (R=000,G=255,B=000,A=192);
+  ColorTactics[1] = (R=128,G=255,B=128,A=192);
+  ColorTactics[2] = (R=192,G=192,B=192,A=192);
+  ColorTactics[3] = (R=255,G=192,B=128,A=192);
+  ColorTactics[4] = (R=255,G=192,B=000,A=192);
+
+  SpriteWidgetCompass[0]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-2,OffsetY=6,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  SpriteWidgetCompass[1]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=2,OffsetY=6,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  SpriteWidgetCompassDot     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=304,Y1=352,X2=336,Y2=384),TextureScale=0.3,DrawPivot=DP_MiddleMiddle,RenderStyle=STY_Alpha);
+  SpriteWidgetHandcuffs[0]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=064,Y1=400,X2=160,Y2=507),TextureScale=0.3,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-29,OffsetY=23,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=51),Tints[1]=(R=255,G=255,B=255,A=51));
+  SpriteWidgetHandcuffs[1]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=064,Y1=400,X1=160,Y2=507),TextureScale=0.3,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=29,OffsetY=23,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=51),Tints[1]=(R=255,G=255,B=255,A=51));
+
+  SpriteWidgetTacticsBlob    = (WidgetTexture=Material'InterfaceContent.Hud.SkinA',TextureCoords=(X1=810,Y1=200,X2=1023,Y2=413),TextureScale=0.20,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=-15,OffsetY=-28,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=0,A=255),Tints[1]=(R=255,G=255,B=0,A=255))
+  SpriteWidgetTacticsCircle  = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=000,OffsetY=000,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  SpriteWidgetTacticsFill    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=016,X2=382,Y2=109),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=098,OffsetY=010,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=200),Tints[1]=(R=048,G=075,B=120,A=200))
+  SpriteWidgetTacticsTint    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=128,X2=382,Y2=211),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=098,OffsetY=010,RenderStyle=STY_Alpha,Tints[0]=(R=100,G=000,B=000,A=100),Tints[1]=(R=037,G=066,B=102,A=150))
+  SpriteWidgetTacticsFrame   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=016,Y1=240,X2=382,Y2=333),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=098,OffsetY=010,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255))
+  SpriteWidgetTacticsIcon[0] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=016,X2=502,Y2=100),TextureScale=0.20,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=036,OffsetY=040,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  SpriteWidgetTacticsIcon[1] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=128,X2=496,Y2=223),TextureScale=0.20,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=035,OffsetY=038,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  SpriteWidgetTacticsIcon[2] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=176,Y1=400,X2=252,Y2=498),TextureScale=0.20,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=044,OffsetY=034,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  SpriteWidgetTacticsIcon[3] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=272,Y1=400,X2=351,Y2=488),TextureScale=0.20,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=043,OffsetY=037,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  SpriteWidgetTacticsIcon[4] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=240,X2=497,Y2=332),TextureScale=0.20,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=033,OffsetY=037,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255));
+  SpriteWidgetTacticsAuto    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=080,Y1=352,X2=288,Y2=383),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=060,OffsetY=102,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255),ScaleMode=SM_Up,Scale=1.0)
+
+  LHud1[3]       = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494));
+  RHud1[3]       = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494));
+  Adrenaline[3]  = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=368,Y1=352,X2=510,Y2=494));
+  AdrenalineIcon = (OffsetX=-1,OffsetY=10);
+  ScoreTeam[0]   = (OffsetX=-270,OffsetY=75);
+  ScoreTeam[1]   = (OffsetX=180,OffsetY=75);
+  LTeamHud[0]    = (OffsetX=-95);
+  LTeamHud[1]    = (OffsetX=-95);
+  LTeamHud[2]    = (OffsetX=-95);
+  RTeamHud[0]    = (OffsetX=95);
+  RTeamHud[1]    = (OffsetX=95);
+  RTeamHud[2]    = (OffsetX=95);
+  TeamSymbols[0] = (OffsetX=-600,OffsetY=90,PosY=0.014,TextureScale=0.075);
+  TeamSymbols[1] = (OffsetX=600,OffsetY=90,PosY=0.014,TextureScale=0.075);
   }
