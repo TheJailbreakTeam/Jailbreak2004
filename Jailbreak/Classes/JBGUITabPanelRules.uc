@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelRules.uc,v 1.4 2004/03/06 13:10:12 mychaeel Exp $
+// $Id: JBGUITabPanelRules.uc,v 1.5 2004/03/07 01:03:06 mychaeel Exp $
 //
 // User interface panel for Jailbreak game rules.
 // ============================================================================
@@ -329,6 +329,36 @@ function string PlaySong(string Song, optional float TimeFadeOut, optional float
 
 
 // ============================================================================
+// PreDraw
+//
+// Sets the level-of-detail of map preview images to interface level to work
+// around blurred images at low texture detail settings.
+// ============================================================================
+
+function bool PreDraw(Canvas Canvas)
+{
+  local int iSequenceItem;
+  local GUIImage GUIImagePreview;
+  local MaterialSequence MaterialSequencePreview;
+  
+  foreach AllObjects(Class'GUIImage', GUIImagePreview)
+    if (Tab_InstantActionMain  (GUIImagePreview.MenuOwner) != None ||
+        Tab_MultiplayerHostMain(GUIImagePreview.MenuOwner) != None) {
+
+      MaterialSequencePreview = MaterialSequence(GUIImagePreview.Image);
+      if (MaterialSequencePreview == None)
+        continue;
+
+      for (iSequenceItem = 0; iSequenceItem < MaterialSequencePreview.SequenceItems.Length; iSequenceItem++)
+        if (Texture(MaterialSequencePreview.SequenceItems[iSequenceItem].Material) != None)
+          Texture(MaterialSequencePreview.SequenceItems[iSequenceItem].Material).LODSet = LODSET_Interface;
+    }
+
+  return False;
+}
+
+
+// ============================================================================
 // Defaults
 // ============================================================================
 
@@ -343,6 +373,8 @@ defaultproperties
   LastGoalScore = 5;
   LastTimeLimit = 0;
   bLastJailFights = True;
+
+  OnPreDraw = PreDraw;
 
   Begin Object Class=moCheckBox Name=moCheckBoxJailFightsDef
     Caption      = "Allow Jail Fights";
