@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechClient
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechClient.uc,v 1.2 2004/03/12 14:10:58 mychaeel Exp $
+// $Id: JBSpeechClient.uc,v 1.3 2004/04/13 10:48:10 mychaeel Exp $
 //
 // Parses and interprets a speech sequence definition and plays it.
 // 
@@ -535,6 +535,8 @@ simulated state Playing
   // ================================================================
 
   Begin:
+
+    Sleep(0.0);  // start with next tick to account for loading delay
 
     for (iSegmentPlayed = 0; iSegmentPlayed < ListSegment.Length; iSegmentPlayed++) {
       PlayAnnouncement(ListSegment[iSegmentPlayed].Sound);
