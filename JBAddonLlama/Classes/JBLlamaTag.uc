@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.12 2004/05/28 15:27:51 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.13 2004/05/31 11:14:57 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -140,9 +140,9 @@ simulated function InitLlamaTag()
       TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner.Owner).PlayerReplicationInfo);
     else
       TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner).PlayerReplicationInfo);
-    bNotYetRegistered = False;
   }
-  else if ( TagPlayer == None ) {
+  
+  if ( TagPlayer == None ) {
     //warn("Owner ="@Owner);
     bNotYetRegistered = True;
     return;
