@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionPlayer.uc,v 1.2 2003/01/02 15:07:57 mychaeel Exp $
+// $Id: JBDispositionPlayer.uc,v 1.3 2003/01/19 21:55:50 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -50,6 +50,7 @@ var private bool bInitial;
 function SetTarget(vector NewLocationTarget, float NewScaleTarget) {
 
   LocationTarget = NewLocationTarget;
+locationtarget.y=0.2;
   ScaleTarget = NewScaleTarget;
   }
 
@@ -74,7 +75,8 @@ function Move(float TimeDelta) {
     }
 
   else {
-    DistanceTotal = VSize(LocationTarget - Location);
+    DistanceTotal = Sqrt(Square(LocationTarget.X - Location.X) +
+                         Square(LocationTarget.Y - Location.Y));
   
     if (DistanceTotal > 0.0) {
       Velocity += 1.0 * TimeDelta;
