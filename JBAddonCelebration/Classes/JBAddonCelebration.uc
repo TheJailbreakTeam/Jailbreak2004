@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBAddonCelebration.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
 //
 // The Celebration Screen add-on for Jailbreak.
 //=============================================================================
@@ -52,13 +52,36 @@ static function string GetRandomCapturedMessage(PlayerReplicationInfo PRI, TeamI
   else
     CapturedMessage = default.CapturedOtherMessage[Rand(default.NumCapturedOtherMessages)];
   
-  PRI.ReplaceText(CapturedMessage, "%p", PRI.PlayerName);
+  StaticReplaceText(CapturedMessage, "%p", PRI.PlayerName);
   
   TeamName = default.TeamString[Team.TeamIndex];
-  PRI.ReplaceText(CapturedMessage, "%t", TeamName);
-  PRI.ReplaceText(CapturedMessage, "%T", Caps(Left(TeamName, 1)) $ Mid(TeamName, 1));
+  StaticReplaceText(CapturedMessage, "%t", TeamName);
+  StaticReplaceText(CapturedMessage, "%T", Caps(Left(TeamName, 1)) $ Mid(TeamName, 1));
   
   return CapturedMessage;
+}
+
+
+//=============================================================================
+// StaticReplaceText
+//
+// Static version of Actor.ReplaceText()
+//=============================================================================
+
+static final function StaticReplaceText(out string Text, string Replace, string With)
+{
+  local int i;
+  local string Input;
+    
+  Input = Text;
+  Text = "";
+  i = InStr(Input, Replace);
+  while(i != -1) {  
+    Text = Text $ Left(Input, i) $ With;
+    Input = Mid(Input, i + Len(Replace));  
+    i = InStr(Input, Replace);
+  }
+  Text = Text $ Input;
 }
 
 

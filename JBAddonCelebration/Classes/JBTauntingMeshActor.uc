@@ -1,7 +1,7 @@
 //=============================================================================
 // JBTauntingMeshActor
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBTauntingMeshActor.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
 //
 // Plays taunting animations for the celebration screen.
 //=============================================================================
@@ -61,6 +61,37 @@ function Tick(float DeltaTime)
 
 
 //=============================================================================
+// PlayNamedTauntAnim
+//
+// Stub function for Taunting state.
+//=============================================================================
+
+function PlayNamedTauntAnim(name AnimName);
+
+
+//=============================================================================
+// GetRandomTauntAnim
+//
+// Returns a random taunt animation name.
+//=============================================================================
+
+function name GetRandomTauntAnim()
+{
+  local int i;
+  
+  while (TauntAnims.Length > 0) {
+    i = Rand(TauntAnims.Length);
+    if ( HasAnim(TauntAnims[i]) )
+      return TauntAnims[i];
+    else
+      TauntAnims.Remove(i, 1);
+  }
+  
+  return '';
+}
+
+
+//=============================================================================
 // state Taunting
 //
 // Automatically play some taunt animations.
@@ -76,19 +107,31 @@ state Taunting
   
   function PlayTauntAnim()
   {
-    local int i;
+    local name TauntName;
     
-    while (TauntAnims.Length > 0) {
-      i = Rand(TauntAnims.Length);
-      if ( HasAnim(TauntAnims[i]) ) {
-        PlayAnim(TauntAnims[i],, 0.2);
-        return;
-      }
-      else
-        TauntAnims.Remove(i, 1);
+    TauntName = GetRandomTauntAnim();
+    if ( HasAnim(TauntName) )
+      PlayAnim(TauntName,, 0.2);
+  }
+  
+  
+  //===========================================================================
+  // PlayNamedTauntAnim
+  //
+  // Tries to play the specified taunt animation.
+  //===========================================================================
+  
+  function PlayNamedTauntAnim(name AnimName)
+  {
+    if ( HasAnim(AnimName) ) {
+      PlayAnim(AnimName,, 0.2);
+      //AnimBlendParams(1, 1.0, 0.2, 0.3);
+      //AnimBlendToAlpha(1, 1.0, 0.3);
+      GotoState('');
+      GotoState('Taunting', 'FinishTaunt');
     }
   }
-
+  
 BeginTaunting:
   LoopAnim(IdleAnims[Rand(IdleAnims.Length)]);
 Taunt:
@@ -96,9 +139,17 @@ Taunt:
   PlayTauntAnim();
   FinishAnim();
   LoopAnim(IdleAnims[Rand(IdleAnims.Length)],, 0.3);
-  Sleep(FRand() + 1.5);
+  Sleep(1.5 * FRand() + 1);
   Goto('Taunt');
-Begin:
+
+ManualTaunting:
+  LoopAnim(IdleAnims[Rand(IdleAnims.Length)]);
+  //AnimBlendParams(1, 1.0, 0.2, 0.2);
+  Stop;
+
+FinishTaunt:
+  FinishAnim();
+  LoopAnim(IdleAnims[Rand(IdleAnims.Length)],, 0.3);
 }
 
 

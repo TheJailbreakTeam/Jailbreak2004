@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBInteractionCelebration.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -17,6 +17,8 @@ class JBInteractionCelebration extends Interaction
 
 var JBTauntingMeshActor PlayerMesh;
 var string CaptureMessage;
+var JBGameRulesCelebration CelebrationGameRules;
+var name TauntAnim;
 
 var() vector MeshLoc;
 var() JBGameRulesCelebration.TPlayerInfo PlayerInfo;
@@ -65,6 +67,91 @@ function PostRender(Canvas C)
 
 
 //=============================================================================
+// KeyEvent
+//
+// Catch taunt keys.
+//=============================================================================
+
+function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
+{
+  local string KeyBind;
+  local array<string> Binds;
+  local string TauntName;
+  local int i;
+  
+  if ( Action == IST_Press ) {
+    KeyBind = ViewportOwner.Actor.ConsoleCommand("KEYNAME" @ Key);
+    KeyBind = ViewportOwner.Actor.ConsoleCommand("KEYBINDING" @ KeyBind);
+    
+    if ( KeyBind != "" && Split(KeyBind, "|", Binds) > 0 ) {
+      for (i = 0; i < Binds.Length; i++) {
+        if ( Divide(Trim(Binds[i]), " ", KeyBind, TauntName) && Keybind ~= "Taunt" && TauntName != "" ) {
+          Taunt(TauntName);
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "RandomTaunt" ) {
+          RandomTaunt();
+          break;
+        }
+      }
+    }
+  }
+  return Super.KeyEvent(Key, Action, Delta);
+}
+
+
+//=============================================================================
+// Trim
+//
+// Trims leading and trailing space chars.
+//=============================================================================
+
+static final function string Trim(coerce string S)
+{
+  while (Left(S, 1) == " ")
+    S = Right(S, Len(S) - 1);
+  while (Right(S, 1) == " ")
+    S = Left(S, Len(S) - 1);
+  return S;
+}
+
+
+//=============================================================================
+// Taunt
+//
+// Plays the specified taunt animation.
+//=============================================================================
+
+function Taunt(string AnimName)
+{
+  if ( CelebrationGameRules == None || PlayerMesh == None )
+    return;
+  
+  SetPropertyText("TauntAnim", AnimName); // hacky string to name "typecasting"
+  if ( PlayerInfo.Player != None && PlayerInfo.Player.GetController() == ViewportOwner.Actor
+      && PlayerMesh.HasAnim(TauntAnim) )
+    CelebrationGameRules.ServerSetTauntAnim(AnimName);
+}
+
+
+//=============================================================================
+// RandomTaunt
+//
+// Plays a random taunt animation.
+//=============================================================================
+
+function RandomTaunt()
+{
+  if ( CelebrationGameRules == None || PlayerMesh == None )
+    return;
+  
+  TauntAnim = PlayerMesh.GetRandomTauntAnim();
+  if ( PlayerInfo.Player != None && PlayerInfo.Player.GetController() == ViewportOwner.Actor && TauntAnim != '' )
+    CelebrationGameRules.ServerSetTauntAnim(string(TauntAnim));
+}
+
+
+//=============================================================================
 // SetupPlayerMesh
 //
 // Sets up the player mesh.
@@ -74,11 +161,12 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
 {
   local Material ActorSkin;
   local Mesh ActorMesh;
+  local xUtil.PlayerRecord rec;
   
   PlayerInfo = NewPlayerInfo;
   
   if ( PlayerMesh == None && PlayerInfo.Player != None && (PlayerInfo.Player.GetPawn() != None
-      || !PlayerInfo.bSuicide && PlayerInfo.bBot) )
+      || !PlayerInfo.bSuicide) )
     PlayerMesh = ViewportOwner.Actor.Spawn(class'JBTauntingMeshActor', PlayerInfo.Player.GetPawn(),,
         MeshLoc, rot(0,26000,0));
   else if ( PlayerMesh == None )
@@ -92,22 +180,31 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
   }
   else {
     PlayerMesh.bAnimByOwner = False;
-    ActorMesh = Mesh(DynamicLoadObject(PlayerInfo.MeshName, class'Mesh'));
+    rec = class'xUtil'.static.FindPlayerRecord(PlayerInfo.PRI.CharacterName);
+    if ( rec.DefaultName == "" )
+      rec = class'xUtil'.static.FindPlayerRecord("Gorge");
+    ActorMesh = Mesh(DynamicLoadObject(rec.MeshName, class'Mesh'));
     if ( ActorMesh != None ) {
       PlayerMesh.LinkMesh(ActorMesh);
-      ActorSkin = Material(DynamicLoadObject(PlayerInfo.BodySkinName$"_"$PlayerInfo.Team, class'Material'));
+      ActorSkin = Material(DynamicLoadObject(rec.BodySkinName$"_"$PlayerInfo.PRI.Team.TeamIndex, class'Material'));
       if ( ActorSkin == None )
-        ActorSkin = Material(DynamicLoadObject(PlayerInfo.BodySkinName, class'Material'));
+        ActorSkin = Material(DynamicLoadObject(rec.BodySkinName, class'Material'));
       if ( ActorSkin != None )
         PlayerMesh.Skins[0] = ActorSkin;
-      ActorSkin = Material(DynamicLoadObject(PlayerInfo.HeadSkinName, class'Material'));
+      ActorSkin = Material(DynamicLoadObject(rec.FaceSkinName, class'Material'));
       if ( ActorSkin != None )
         PlayerMesh.Skins[1] = ActorSkin;
     }
   }
-  PlayerMesh.bAnimByOwner = !PlayerInfo.bBot || PlayerInfo.bSuicide;
-  if ( !PlayerMesh.bAnimByOwner )
-    PlayerMesh.GotoState('Taunting');
+  
+  if ( !PlayerMesh.bAnimByOwner ) {
+    if ( PlayerInfo.bBot )
+      PlayerMesh.GotoState('Taunting', 'BeginTaunting');
+    else {
+      PlayerMesh.bStartedTaunting = true;
+      PlayerMesh.GotoState('Taunting', 'ManualTaunting');
+    }
+  }
 }
 
 
@@ -121,6 +218,10 @@ function Remove()
 {
   if ( PlayerMesh != None )
     PlayerMesh.Destroy();
+  
+  PlayerMesh = None;
+  CelebrationGameRules = None;
+  
   Master.RemoveInteraction(Self);
 }
 

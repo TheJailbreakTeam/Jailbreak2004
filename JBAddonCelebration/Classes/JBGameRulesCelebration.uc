@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGameRulesCelebration.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
 //
 // The JBGameRules class for the Celebration Screen used to get Jailbreak
 // notifications.
@@ -19,13 +19,20 @@ class JBGameRulesCelebration extends JBGameRules
 // information about a player's appearance
 struct TPlayerInfo {
   var JBTagPlayer Player;
-  var string PlayerName;
-  var string MeshName;
-  var string BodySkinName;
-  var string HeadSkinName;
-  var byte Team;
+  //var string PlayerName;
+  var PlayerReplicationInfo PRI;
+  //var string MeshName;
+  //var string BodySkinName;
+  //var string HeadSkinName;
+  //var byte Team;
   var bool bBot;
   var bool bSuicide;
+};
+
+// information about a player's appearance
+struct TRepTaunt {
+  var string TauntAnim;
+  var int Counter;
 };
 
 
@@ -37,6 +44,9 @@ var bool bInExecutionSequence;
 var JBTagPlayer LastKiller, LastKilled;
 var TPlayerInfo LastKillerInfo;
 var TeamInfo CapturedTeam;
+var TRepTaunt ReplicatedTaunt;
+var int ClientTauntNum;
+var name ClientTauntAnim;
 
 var JBInteractionCelebration CelebrationInteraction;
 
@@ -48,7 +58,10 @@ var JBInteractionCelebration CelebrationInteraction;
 replication
 {
   reliable if ( Role == ROLE_Authority )
-    bInExecutionSequence, LastKillerInfo, CapturedTeam;
+    bInExecutionSequence, LastKillerInfo, CapturedTeam, ReplicatedTaunt;
+  
+  unreliable if ( Role < ROLE_Authority )
+    ServerSetTauntAnim;
 }
 
 
@@ -107,6 +120,22 @@ function ScoreKill(Controller Killer, Controller Killed)
 
 
 //=============================================================================
+// ServerSetTauntAnim
+//
+// Get rid of the PlayerMesh after execution is over.
+//=============================================================================
+
+function ServerSetTauntAnim(string TauntAnim)
+{
+  ReplicatedTaunt.TauntAnim = TauntAnim;
+  ReplicatedTaunt.Counter++;
+  ReplicatedTaunt = ReplicatedTaunt;  // force replication
+  if ( Level.NetMode != NM_DedicatedServer )
+    PostNetReceive();
+}
+
+
+//=============================================================================
 // PostNetReceive
 //
 // Get rid of the PlayerMesh after execution is over.
@@ -125,19 +154,28 @@ simulated event PostNetReceive()
     if ( LocalPlayer != None ) {
       CelebrationInteraction = JBInteractionCelebration(LocalPlayer.Player.InteractionMaster.AddInteraction(
           string(class'JBInteractionCelebration'), LocalPlayer.Player));
-      if ( LastKillerInfo.MeshName != "" )
+      CelebrationInteraction.CelebrationGameRules = Self;
+      if ( LastKillerInfo.PRI != None ) {
         CelebrationInteraction.SetupPlayerMesh(LastKillerInfo);
-      if ( LastKillerInfo.Player != None && CapturedTeam != None )
-        CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetRandomCapturedMessage(
-            LastKillerInfo.Player.GetPlayerReplicationInfo(), CapturedTeam);
+        if ( CapturedTeam != None )
+          CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetRandomCapturedMessage(
+             LastKillerInfo.PRI, CapturedTeam);
+      }
     }
   }
-  else if ( bInExecutionSequence && CelebrationInteraction != None && LastKillerInfo.MeshName != "" ) {
+  else if ( bInExecutionSequence && CelebrationInteraction != None && LastKillerInfo.PRI != None ) {
     CelebrationInteraction.SetupPlayerMesh(LastKillerInfo);
   }
-  else if ( CelebrationInteraction.CaptureMessage == "" && LastKillerInfo.Player != None && CapturedTeam != None )
+  else if ( CelebrationInteraction.CaptureMessage == "" && LastKillerInfo.PRI != None && CapturedTeam != None )
     CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetRandomCapturedMessage(
-        LastKillerInfo.Player.GetPlayerReplicationInfo(), CapturedTeam);
+        LastKillerInfo.PRI, CapturedTeam);
+  
+  if ( ReplicatedTaunt.Counter > ClientTauntNum ) {
+    ClientTauntNum = ReplicatedTaunt.Counter;
+    SetPropertyText("ClientTauntAnim", ReplicatedTaunt.TauntAnim);
+    if ( CelebrationInteraction != None && CelebrationInteraction.PlayerMesh != None )
+      CelebrationInteraction.PlayerMesh.PlayNamedTauntAnim(ClientTauntAnim);
+  }
 }
 
 
@@ -151,7 +189,7 @@ simulated event PostNetReceive()
 
 function NotifyExecutionCommit(TeamInfo Team)
 {
-  local xUtil.PlayerRecord rec;
+  //local xUtil.PlayerRecord rec;
   
   bInExecutionSequence = True;
   CapturedTeam = Team;
@@ -162,16 +200,19 @@ function NotifyExecutionCommit(TeamInfo Team)
   if ( LastKiller != None ) {
     LastKillerInfo.bBot = PlayerController(LastKiller.GetController()) == None;
     if ( LastKiller.GetController() != None ) {
-      LastKillerInfo.PlayerName = LastKiller.GetController().PlayerReplicationInfo.PlayerName;
-      if ( LastKiller.GetController().PlayerReplicationInfo.Team != None )
-        LastKillerInfo.Team = LastKiller.GetController().PlayerReplicationInfo.Team.TeamIndex;
-      rec = class'xUtil'.static.FindPlayerRecord(LastKiller.GetController().PlayerReplicationInfo.CharacterName);
-      LastKillerInfo.MeshName = rec.MeshName;
-      LastKillerInfo.BodySkinName = rec.BodySkinName;
-      LastKillerInfo.HeadSkinName = rec.FaceSkinName;
+      //LastKillerInfo.PlayerName = LastKiller.GetController().PlayerReplicationInfo.PlayerName;
+      //if ( LastKiller.GetController().PlayerReplicationInfo.Team != None )
+      //  LastKillerInfo.Team = LastKiller.GetController().PlayerReplicationInfo.Team.TeamIndex;
+      LastKillerInfo.PRI = LastKiller.GetController().PlayerReplicationInfo;
+      //rec = class'xUtil'.static.FindPlayerRecord(LastKiller.GetController().PlayerReplicationInfo.CharacterName);
+      //LastKillerInfo.MeshName = rec.MeshName;
+      //LastKillerInfo.BodySkinName = rec.BodySkinName;
+      //LastKillerInfo.HeadSkinName = rec.FaceSkinName;
     }
     if ( LastKiller.GetPawn() != None )
       LastKiller.GetPawn().bAlwaysRelevant = True;
+    if ( !LastKillerInfo.bBot && LastKillerInfo.PRI.Team != Team )
+      SetOwner(LastKiller.GetController());
   }
   
   Super.NotifyExecutionCommit(Team);
@@ -196,6 +237,8 @@ function NotifyExecutionEnd()
   if ( LastKiller != None && LastKiller.GetPawn() != None )
     LastKiller.GetPawn().bAlwaysRelevant = False;
   
+  SetOwner(None);
+  
   LastKillerInfo = EmptyPlayerInfo;
   LastKiller = None;
   LastKilled = None;
@@ -213,6 +256,6 @@ defaultproperties
 {
   bAlwaysRelevant=True
   bNetNotify=True
-  bOnlyDirtyReplication=True
+  bOnlyDirtyReplication=False
   RemoteRole=ROLE_SimulatedProxy
 }
