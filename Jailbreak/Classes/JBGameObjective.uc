@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGameObjective.uc,v 1.1 2002/12/20 20:54:30 mychaeel Exp $
 //
 // Dummy game objective automatically spawned by the game to mark release
 // switches that are simple triggers.
@@ -13,10 +13,23 @@ class JBGameObjective extends GameObjective
 
 
 // ============================================================================
+// Replication
+// ============================================================================
+
+replication {
+
+  reliable if (Role == ROLE_Authority)
+    RepDefenderTeamIndex;
+  }
+
+
+// ============================================================================
 // Variables
 // ============================================================================
 
-var Trigger Trigger;
+var Trigger TriggerRelease;
+
+var private int RepDefenderTeamIndex;  // replicated value
 
 
 // ============================================================================
@@ -43,7 +56,37 @@ event PostBeginPlay() {
       thisObjective.NextObjective = Self;
     }
   
+  Class'JBInventoryObjective'.Static.SpawnFor(Self);
+  
   Super.PostBeginPlay();
+  }
+
+
+// ============================================================================
+// Tick
+//
+// Replicates the value of DefenderTeamIndex.
+// ============================================================================
+
+event Tick(float TimeDelta) {
+
+  RepDefenderTeamIndex = DefenderTeamIndex;
+  Disable('Tick');
+  }
+
+
+// ============================================================================
+// PostNetBeginPlay
+//
+// Sets the DefenderTeamIndex variable to the replicated server-side value.
+// Only required because this actor is dynamically spawned instead of
+// statically placed in the map by level designers.
+// ============================================================================
+
+simulated event PostNetBeginPlay() {
+
+  if (Role < ROLE_Authority)
+    DefenderTeamIndex = RepDefenderTeamIndex;
   }
 
 
@@ -55,8 +98,8 @@ event PostBeginPlay() {
 
 function bool TellBotHowToDisable(Bot Bot) {
 
-  if (Trigger != None)
-    return Bot.Squad.FindPathToObjective(Bot, Trigger);
+  if (TriggerRelease != None)
+    return Bot.Squad.FindPathToObjective(Bot, TriggerRelease);
 
   Log("Warning: Objective" @ Self @ "has no associated release trigger");
   }
@@ -68,6 +111,7 @@ function bool TellBotHowToDisable(Bot Bot) {
 
 defaultproperties {
 
-  bStatic   = False;
-  bNoDelete = False;
+  bStatic         = False;
+  bNoDelete       = False;
+  bAlwaysRelevant = True;
   }

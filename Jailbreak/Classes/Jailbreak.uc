@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.14 2002/12/20 20:54:30 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.15 2002/12/22 13:41:22 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -739,16 +739,18 @@ defaultproperties {
 
   bEnableJailFights = True;
 
-  ClassLocalMessage = Class'JBLocalMessage';
-  DeathMessageClass = Class'xDeathMessage';
-
   MapPrefix  = "JB";
   BeaconName = "JB";
   GameName   = "Jailbreak";
-
-  GameReplicationInfoClass = Class'JBReplicationInfoGame';
-  DefaultEnemyRosterClass = "Jailbreak.JBReplicationInfoTeam";
+ 
+  HUDType                  = "Jailbreak.JBInterfaceHUD";
+  ScoreBoardType           = "Jailbreak.JBInterfaceScores";
+  DefaultEnemyRosterClass  = "Jailbreak.JBReplicationInfoTeam";
   
+  ClassLocalMessage        = Class'JBLocalMessage';
+  GameReplicationInfoClass = Class'JBReplicationInfoGame';
+  DeathMessageClass        = Class'xDeathMessage';
+
   TeamAIType[0] = Class'JBBotTeam';
   TeamAIType[1] = Class'JBBotTeam';
   

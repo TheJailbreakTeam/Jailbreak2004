@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.2 2002/12/22 02:06:13 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.3 2002/12/22 13:40:59 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -70,6 +70,7 @@ event Timer() {
 function SetObjectiveLists() {
 
   local Trigger thisTrigger;
+  local GameObjective thisObjective;
   local JBGameObjective Objective;
   local JBInfoJail thisJail;
 
@@ -83,13 +84,16 @@ function SetObjectiveLists() {
       continue;
 
     Objective = Spawn(Class'JBGameObjective', , , thisTrigger.Location);
-    Objective.Trigger = thisTrigger;
+    Objective.TriggerRelease = thisTrigger;
     Objective.DefenderTeamIndex = EnemyTeam.TeamIndex;
     Objective.StartTeam = EnemyTeam.TeamIndex;
     Objective.Event = thisJail.Tag;
     }
 
   Super.SetObjectiveLists();
+
+  for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    Class'JBInventoryObjective'.Static.SpawnFor(thisObjective);
   }
 
 
@@ -263,29 +267,13 @@ function int CountPlayersAtObjective(GameObjective GameObjective) {
 
 function int CountPlayersReleasable(GameObjective GameObjective) {
 
-  local int iInfoPlayer;
-  local int nPlayersReleasable;
-  local JBInfoJail JailPlayer;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
-  local UnrealTeamInfo TeamPlayer;
-  
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    TeamPlayer = UnrealTeamInfo(InfoPlayer.GetPlayerReplicationInfo().Team);
+  local JBInventoryObjective InventoryObjective;
 
-    if (TeamPlayer.TeamIndex != GameObjective.DefenderTeamIndex) {
-      JailPlayer = InfoPlayer.GetJail();
-      if (JailPlayer != None &&
-          JailPlayer.Tag == GameObjective.Event &&
-          JailPlayer.CanRelease(TeamPlayer))
-        nPlayersReleasable++;
-      }
-    }
-
-  return nPlayersReleasable;
+  InventoryObjective = JBInventoryObjective(Class'JBInventoryObjective'.Static.FindFor(GameObjective));
+  if (InventoryObjective != None)
+    return InventoryObjective.CountPlayersReleasable();
+  
+  return 0;
   }
 
 
@@ -300,10 +288,13 @@ static function float CalcDistance(Controller Controller, GameObjective GameObje
 
   local Actor ActorTarget;
 
+  if (Controller.Pawn == None)
+    return 0.0;  // no pathfinding without pawn
+
   if (JBGameObjective(GameObjective) == None)
     ActorTarget = GameObjective;
   else
-    ActorTarget = JBGameObjective(GameObjective).Trigger;
+    ActorTarget = JBGameObjective(GameObjective).TriggerRelease;
   
   if (Controller.FindPathToward(ActorTarget) == None)
     return VSize(ActorTarget.Location - Controller.Pawn.Location);

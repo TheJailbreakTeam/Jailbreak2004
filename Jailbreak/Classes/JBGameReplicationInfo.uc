@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoGame
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoGame.uc,v 1.2 2002/11/20 18:55:12 mychaeel Exp $
+// $Id: JBReplicationInfoGame.uc,v 1.3 2002/11/20 22:56:50 mychaeel Exp $
 //
 // Replicated information for a the entire game.
 // ============================================================================
@@ -19,6 +19,21 @@ var array<JBInfoArena> ListInfoArena;
 var array<JBInfoJail> ListInfoJail;
 
 var array<JBReplicationInfoPlayer> ListInfoPlayer;
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Gives every GameObjective a JBInventoryObjective item.
+// ============================================================================
+
+event PostBeginPlay() {
+
+  local GameObjective thisObjective;
+
+  foreach AllActors(Class'GameObjective', thisObjective)
+    Class'JBInventoryObjective'.Static.SpawnFor(thisObjective);
+  }
 
 
 // ============================================================================

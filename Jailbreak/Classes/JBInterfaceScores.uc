@@ -1,0 +1,2 @@
+class JBInterfaceScores extends ScoreBoardTeamDeathMatch
+  notplaceable;
