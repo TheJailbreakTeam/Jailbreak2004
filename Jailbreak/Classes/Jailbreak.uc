@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.113 2004/07/25 18:27:49 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.114 2004/08/09 22:36:21 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1711,11 +1711,12 @@ state MatchInProgress {
   //
   // Only calls the superclass function if this state is entered the
   // first time. Resets the orders for all bots, and restarts the
-  // client-side match time counters.
+  // client-side match time counters. Powers up turrets.
   // ================================================================
 
   event BeginState()
   {
+    local ONSStationaryWeaponPawn thisStationaryWeaponPawn;
     local JBTagPlayer firstTagPlayer;
     local JBTagPlayer thisTagPlayer;
     local JBGameReplicationInfo InfoGame;
@@ -1741,6 +1742,9 @@ state MatchInProgress {
 
     InfoGame.StartMatchTimer();
     InfoGame.SynchronizeMatchTimer(ElapsedTime);
+    
+    foreach DynamicActors(Class'ONSStationaryWeaponPawn', thisStationaryWeaponPawn)
+      thisStationaryWeaponPawn.bPowered = True;
   }
 
 
