@@ -593,6 +593,29 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
 
 
 // ============================================================================
+// PreventDeath
+//
+// Removes the killed player's weapon if the player was killed in jail or in
+// an arena fight. Prevents that the weapon is auto-tossed around.
+// ============================================================================
+
+function bool PreventDeath(Pawn PawnVictim, Controller ControllerKiller, Class<DamageType> ClassDamageType, vector LocationHit)
+{
+  local JBTagPlayer TagPlayerVictim;
+
+  if (Super.PreventDeath(PawnVictim, ControllerKiller, ClassDamageType, LocationHit))
+    return True;
+
+  TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(PawnVictim.PlayerReplicationInfo);
+  if (TagPlayerVictim != None &&
+     !TagPlayerVictim.IsFree())
+    PawnVictim.Weapon = None;
+  
+  return False;
+}
+
+
+// ============================================================================
 // Killed
 //
 // Sets the killed player's restart time with a short delay for effect. If the
