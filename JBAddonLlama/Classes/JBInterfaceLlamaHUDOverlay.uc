@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.6 2004/01/04 16:14:00 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.7 2004/04/15 09:58:27 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -304,11 +304,11 @@ simulated function RenderOverlays(Canvas C)
   
   C.DrawColor = JailbreakHUD.GoldColor;
   for (i = 0; i < LlamaArrows.Length; i++) {
-    if ( LlamaArrows[i].LlamaTag != None && Pawn(LlamaArrows[i].LlamaTag.Owner) != None ) {
-      if ( !Pawn(LlamaArrows[i].LlamaTag.Owner).bHidden )
-        thisLlama = Pawn(LlamaArrows[i].LlamaTag.Owner);
-      else if ( Pawn(LlamaArrows[i].LlamaTag.Owner).Controller != None )
-        thisLlama = Pawn(LlamaArrows[i].LlamaTag.Owner).Controller.Pawn;
+    if ( LlamaArrows[i].LlamaTag != None && LlamaArrows[i].GetArrowOwner() != None ) {
+      if ( !LlamaArrows[i].GetArrowOwner().bHidden )
+        thisLlama = LlamaArrows[i].GetArrowOwner();
+      else if ( LlamaArrows[i].GetArrowOwner().Controller != None )
+        thisLlama = LlamaArrows[i].GetArrowOwner().Controller.Pawn;
       
       if ( thisLlama != None && C.Viewport.Actor.LineOfSightTo(thisLlama) )
         LlamaArrows[i].DrawArrow(C, thisLlama.Location + vect(0,0,1) * (2 * thisLlama.default.CollisionHeight - thisLlama.CollisionHeight + 40));
@@ -318,7 +318,8 @@ simulated function RenderOverlays(Canvas C)
     else
       LlamaArrows[i].DrawArrow(C);
     
-    if ( LlamaArrows[i].LlamaTag != None && LlamaArrows[i].LlamaTag != LocalLlamaTag ) {
+    if ( LlamaArrows[i].LlamaTag != None && LlamaArrows[i].LlamaTag != LocalLlamaTag
+        && LlamaArrows[i].LlamaTag.TagPlayer != None ) {
       AngleDot = ((rotator(LlamaArrows[i].LlamaTag.TagPlayer.GetLocationPawn() - LocationOwner).Yaw - JailbreakHUD.PlayerOwner.Rotation.Yaw) & 65535) * Pi / 32768;
       LlamaCompassDot.PosX = LlamaCompassIconBG.PosX + 0.0305 * Sin(AngleDot) * JailbreakHUD.HudScale;
       LlamaCompassDot.PosY = LlamaCompassIconBG.PosY - 0.0405 * Cos(AngleDot) * JailbreakHUD.HudScale;

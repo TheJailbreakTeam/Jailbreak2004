@@ -1,13 +1,13 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.7 2004/05/11 10:53:10 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.8 2004/05/20 14:08:29 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
 
 
-class JBAddonLlama extends JBAddon config;
+class JBAddonLlama extends JBAddon config cacheexempt;
 
 
 //=============================================================================

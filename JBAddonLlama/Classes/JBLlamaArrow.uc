@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaArrow
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaArrow.uc,v 1.3 2003/07/27 18:27:39 wormbo Exp $
+// $Id: JBLlamaArrow.uc,v 1.4 2003/08/11 20:34:25 wormbo Exp $
 //
 // A spinning arrow hovering above a llama's head.
 //=============================================================================
@@ -37,12 +37,12 @@ var private bool       bLlamaDied;
 
 
 //=============================================================================
-// PostBeginPlay
+// PostNetBeginPlay
 //
 // Initializes dds this arrow to the list in JBAddonLlama.
 //=============================================================================
 
-simulated event PostBeginPlay()
+simulated event PostNetBeginPlay()
 {
   LlamaTag = JBLlamaTag(Owner);
   if ( LlamaTag != None && LlamaTag.HUDOverlay != None ) {
@@ -71,8 +71,10 @@ simulated function LlamaDied()
 
 simulated function Pawn GetArrowOwner()
 {
-  if ( LlamaTag != None )
+  if ( LlamaTag != None && Pawn(LlamaTag.Owner) != None )
     return Pawn(LlamaTag.Owner);
+  else if ( LlamaTag != None && LlamaTag.TagPlayer != None )
+    return LlamaTag.TagPlayer.GetPawn();
   else
     return None;
 }
