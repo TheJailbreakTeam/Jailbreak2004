@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.3.2.1 2004/04/05 21:32:41 tarquin Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.4 2004/04/05 21:42:18 tarquin Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -47,9 +47,6 @@ var() class<Decoration> ClassKey;       // class for key (not yet used)
 var() StaticMesh      StaticMeshRing;   // static mesh to display for ring
 var() StaticMesh      StaticMeshKey;    // static mesh to display for key
 
-var() Material        SkinBaseRed;      // skin for base mesh: red
-var() Material        SkinBaseBlue;     // skin for base mesh: blue
-
 var() Material        SkinRingNeutral;  // skin for ring mesh: neutral 
 
 var() Material        SkinKeyRed;       // skin for the red key
@@ -66,8 +63,8 @@ var() vector          OffsetKey;        // offset from the switch of the key
 var bool bDisabledRep;                  // replicated flag
 var bool bDisabledPrev;                 // previous state of flag
 
-var JBDecoSwitchRing  SwitchRing;       // reference to the ring
-var JBDecoSwitchKey   SwitchKey;        // reference to the key
+var Decoration SwitchRing;       // reference to the ring
+var Decoration SwitchKey;        // reference to the key
 
 
 // ============================================================================
@@ -85,17 +82,11 @@ simulated function PostBeginPlay()
 
   if (Level.NetMode != NM_DedicatedServer) {
     SwitchRing = Spawn(
-      class'JBToolbox.JBDecoSwitchRing', self, , 
+      ClassRing, self, , 
       Location + OffsetRing, Rotation );
     SwitchKey = Spawn(
-      class'JBToolbox.JBDecoSwitchKey', self, , 
+      ClassKey, self, , 
       Location + OffsetKey, Rotation );
-  }
-  if( DefenderTeamIndex == 0 ) {
-    Skins[0] = SkinBaseRed;
-  }
-  else {
-    Skins[0] = SkinBaseBlue;
   }
 }
 
@@ -244,38 +235,33 @@ defaultproperties
   //Skins(0)=Texture'XGameTextures.DominationPointTex'            
   //Skins(1)=XGameShaders.DomShaders.DomPointACombiner
   
-  /* JB base mesh */
-  // this is just to give the mapper something pretty to look at
-  StaticMesh    = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseBase';
-  Skins(0)      = Texture'JBToolbox.SwitchSkins.JBReleaseBaseRed';
-
-  /* */
+  /* mapper convenience */
   bEdShouldSnap = True;
-  bHidden       = False;
-  OffsetRing    = (X=0.0,Y=0.0,Z=40.0); 
-  OffsetKey     = (X=0.0,Y=0.0,Z=40.0); // = 40 (from base) 
-  
-  PrePivot        = (X=0.0,Y=0.0,Z=49.0);
+  PrePivot        = (X=0.0,Y=0.0,Z=44.0); // for BSP. some static meshes like 49
   
   /* parent overrides */
   DestructionMessage  = "";
   
-  ClassRing     = class'JBToolbox.JBDecoSwitchRing';
-  ClassKey      = class'JBToolbox.JBDecoSwitchKey';
-  
   /* display */
+  bHidden       = False;
+  
+  /* base  */
+  StaticMesh    = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseBase';
+  Skins(0)      = Texture'JBToolbox.SwitchSkins.JBReleaseBaseNeutral';
+  
+  /* ring  */
+  ClassRing     = class'JBToolbox.JBDecoSwitchRing';
+  OffsetRing    = (X=0.0,Y=0.0,Z=40.0); 
   StaticMeshRing  = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseRing';
-  StaticMeshKey   = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseKey';
-  
-  SkinBaseRed   = Texture'JBToolbox.SwitchSkins.JBReleaseBaseRed';
-  SkinBaseBlue  = Texture'JBToolbox.SwitchSkins.JBReleaseBaseBlue';
-  
   SkinRingNeutral = Texture'JBToolbox.SwitchSkins.JBReleaseRingWhite'; 
   
+  /* key  */
+  ClassKey      = class'JBToolbox.JBDecoSwitchKey';
+  OffsetKey     = (X=0.0,Y=0.0,Z=40.0); // = 40 (from base) 
+  StaticMeshKey   = StaticMesh'JBToolbox.SwitchMeshes.JBReleaseKey';
   SkinKeyRed    = Shader'JBToolbox.SwitchSkins.JBKeyFinalRed';
   SkinKeyBlue   = Shader'JBToolbox.SwitchSkins.JBKeyFinalBlue';
   
-  // prepivot of Z=44 works nicely on BSP surfaces. consider setting this as default
 
   /* network */
   RemoteRole = ROLE_SimulatedProxy;
