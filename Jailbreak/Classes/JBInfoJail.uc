@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.19 2003/01/30 23:18:18 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.20 2003/02/09 12:10:32 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -436,7 +436,9 @@ function NotifyJailEntered(JBTagPlayer TagPlayer) {
   
   if (InfoReleaseByTeam[iTeam].bIsActive &&
       InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
-  if (InfoReleaseByTeam[iTeam].bIsActive) {
+
+    TagPlayer.NotifyJailOpening();
+
     if (!InfoReleaseByTeam[iTeam].bIsOpening)
       TagPlayer.NotifyJailOpened();
     }
