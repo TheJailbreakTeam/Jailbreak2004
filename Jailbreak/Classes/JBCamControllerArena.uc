@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamControllerArena
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamControllerArena.uc,v 1.3 2004/05/28 17:09:56 mychaeel Exp $
+// $Id: JBCamControllerArena.uc,v 1.4 2004/05/29 20:13:29 mychaeel Exp $
 //
 // Camera trailing a given player and focusing on another player when that
 // player is visible.
@@ -24,6 +24,8 @@ var private vector LocationPawnFollowed;  // location of followed pawn in arena
 var private vector LocationPawnOpponent;  // location of opponent pawn in arena
 
 var private float TimeTrack;              // time to track invisible opponent
+var private bool bHasSeenFollowed;        // followed pawn has been seen
+var private bool bHasSeenOpponent;        // opponent pawn has been seen
 
 
 // ============================================================================
@@ -44,23 +46,32 @@ function UpdateMovement(float TimeDelta)
   local Pawn PawnPlayerFollowed;
   local Pawn PawnPlayerOpponent;
   local JBCameraArena CameraArena;
-  
+
   CameraArena = JBCameraArena(Camera);
   if (CameraArena == None)
     return;
 
   Alpha = FMin(1.0, TimeDelta * 3.0);
 
-  if (CameraArena.TagPlayerFollowed != None)
+  if (CameraArena.TagPlayerFollowed != None &&
+      CameraArena.TagPlayerFollowed.IsInArena())
     PawnPlayerFollowed = CameraArena.TagPlayerFollowed.GetPawn();
-  if (PawnPlayerFollowed != None && CameraArena.TagPlayerFollowed.IsInArena())
+  if (CameraArena.TagPlayerOpponent != None &&
+      CameraArena.TagPlayerOpponent.IsInArena())
+    PawnPlayerOpponent = CameraArena.TagPlayerOpponent.GetPawn();
+
+  if (!bHasSeenFollowed)
+    TimeDelta = 0.0;
+
+  if (PawnPlayerFollowed != None) bHasSeenFollowed = True;
+  if (PawnPlayerOpponent != None) bHasSeenOpponent = True;
+
+  if (PawnPlayerFollowed != None)
     if (TimeDelta == 0.0)
            LocationPawnFollowed  =  PawnPlayerFollowed.Location;
       else LocationPawnFollowed += (PawnPlayerFollowed.Location - LocationPawnFollowed) * Alpha;
   
-  if (CameraArena.TagPlayerOpponent != None)
-    PawnPlayerOpponent = CameraArena.TagPlayerOpponent.GetPawn();
-  if (PawnPlayerOpponent != None && CameraArena.TagPlayerOpponent.IsInArena())
+  if (PawnPlayerOpponent != None)
     if (TimeDelta == 0.0)
            LocationPawnOpponent  =  PawnPlayerOpponent.Location;
       else LocationPawnOpponent += (PawnPlayerOpponent.Location - LocationPawnOpponent) * Alpha;
@@ -69,18 +80,15 @@ function UpdateMovement(float TimeDelta)
          Distance  =  DistanceMax;
     else Distance += (DistanceMax - Distance) * Alpha;
 
-  if (Camera.FastTrace(LocationPawnFollowed, LocationPawnOpponent))
-         TimeTrack =      3.0;
-    else TimeTrack = FMax(0.0, TimeTrack - TimeDelta);
+  if (bHasSeenFollowed && bHasSeenOpponent)
+    if (Camera.FastTrace(LocationPawnFollowed, LocationPawnOpponent))
+           TimeTrack =      3.0;
+      else TimeTrack = FMax(0.0, TimeTrack - TimeDelta);
 
-  if (TimeTrack > 0.0 ||
-      CameraArena.TagPlayerFollowed == None ||
-     !CameraArena.TagPlayerFollowed.IsInArena()) {
+  if (TimeTrack > 0.0)
     Rotation = rotator(LocationPawnOpponent - LocationPawnFollowed);
-  }
-  else if (PawnPlayerFollowed == None) {
+  else if (PawnPlayerFollowed == None)
     Rotation = Camera.Rotation;
-  }
   else {
     VectorRotation = vector(PawnPlayerFollowed.Rotation);
     VectorRotation.Z = 0;
