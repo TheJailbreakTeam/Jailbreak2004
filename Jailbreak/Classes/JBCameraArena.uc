@@ -60,15 +60,16 @@ function bool IsViewerAllowed(Controller Controller)
 // ============================================================================
 // Tick
 //
-// Checks whether the followed player has left the arena. If so, 
+// Checks whether the followed player has left the arena. If so, enters state
+// Finished which will wait a bit and then destroy the camera.
 // ============================================================================
 
 simulated event Tick(float TimeDelta)
 {
   Super.Tick(TimeDelta);
 
-  if (!TagPlayerFollowed.IsInArena() &&
-      !TagPlayerOpponent.IsInArena())
+  if ((TagPlayerFollowed == None || !TagPlayerFollowed.IsInArena()) &&
+      (TagPlayerOpponent == None || !TagPlayerOpponent.IsInArena()))
     GotoState('Finished');
 }
 
