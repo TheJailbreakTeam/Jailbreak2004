@@ -4,8 +4,8 @@ TextArena="combat dans l'arène"
 [JBBotSquadJail]
 TextJailed="en prison"
 
-[JBGUICustomHUDMenu]
-WindowName="Jailbreak Client Options"
+[JBGUIPageClientOptions]
+DialogTitle.Caption="Jailbreak Client Options"
 CancelButton.Caption="Annuler"
 CancelButton.Hint="Cliquez pour fermer ce menu en rejetant les modifications."
 EnableScreens.Caption="Activer les Textures des Ecrans Dynamiques"
@@ -16,6 +16,8 @@ ResetButton.Caption="Par défaut"
 ResetButton.Hint="Restaurer les valeurs par défaut."
 VoicePack.Caption="Annonceur"
 VoicePack.Hint="L'annonceur à utiliser dans Jailbreak."
+TestVoicePackButton.Caption="Test"
+TestVoicePackButton.Hint="Cliquez pour jouer un son au hazard du voice pack selectionné"
 
 [JBGUIHook]
 TextCaptionGoalScore="Limite de Captures"
