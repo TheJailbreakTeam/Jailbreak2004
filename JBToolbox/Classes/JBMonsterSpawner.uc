@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 0.1 2003/03/15 23:41:31 will Exp $
+// $Id: JBMonsterSpawner.uc,v 1.1 2003/03/16 12:08:58 will Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -53,13 +53,8 @@ Function PostBeginPlay()
 
 	If (DynamicLoadObject("Skaarjpack.Monster", Class'class', True) == None)
 		{
-		ForEach DynamicActors(Class'JBinfoJail', Jails)
-			{
-			If (Jails != None)
-				{
+		For (Jails = JBGameReplicationInfo(Level.Game.GameReplicatonInfo).FirstJail; Jails != None; Jails = Jails.NextJail)
 				Jails.ExecutionDelayFallback = 3;
-				}
-			}
 
 		Self.Destroy();
 		}
@@ -73,7 +68,6 @@ Function PostBeginPlay()
 		}
 
 	StartSpot = Self.Location;
-	MonsterClass.Default.ControllerClass.Default.bIsPlayer = False;
 }
 
 // ============================================================================
@@ -100,6 +94,8 @@ Function SpawnMonster()
 			If (MonsterSkin[i] != None)
 				MyMonster.Skins[i] = MonsterSkin[i];
 			}
+		MyMonster.bIsPlayer = False;
+
 		MyMonster.DamageScaling = 6.5;
 		}
 }
