@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUICustomHUDMenu
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUICustomHUDMenu.uc,v 1.1 2004/05/14 19:00:41 wormbo Exp $
+// $Id: JBGUICustomHUDMenu.uc,v 1.2 2004/05/17 19:14:58 mychaeel Exp $
 //
 // custom HUD configuration menu for Jailbreak's clientside settings.
 // ============================================================================
@@ -15,7 +15,10 @@ class JBGUICustomHUDMenu extends UT2K4CustomHUDMenu;
 // ============================================================================
 
 var automated moCombobox co_VoicePack;
+var automated GUIButton b_TestVoicePack;
 var automated moCheckbox ch_EnableScreens;
+
+var private string VoicePackPrev;
 
 
 // ============================================================================ 
@@ -28,7 +31,7 @@ var automated moCheckbox ch_EnableScreens;
 function bool InitializeGameClass(string GameClassName)
 {
   LoadVoicePacks();
-  return true;
+  return True;
 }
 
 
@@ -62,8 +65,27 @@ function LoadVoicePacks()
 
 function LoadSettings()
 {
-  co_VoicePack.Find(Class'JBSpeechManager'.Static.GetVoicePack(), , True);
+  VoicePackPrev = Class'JBSpeechManager'.Static.GetVoicePack();
+
+  co_VoicePack.Find(VoicePackPrev, , True);
+  co_VoicePack.OnChange = VoicePackChange;
+
   ch_EnableScreens.Checked(GetEnableScreens());
+}
+
+
+// ============================================================================
+// Closed
+//
+// Resets the original voice pack if cancelled.
+// ============================================================================
+
+event Closed(GUIComponent GUIComponentSender, bool bCancelled)
+{
+  if (bCancelled)
+    Class'JBSpeechManager'.Static.SetVoicePack(VoicePackPrev);
+
+  Super.Closed(GUIComponentSender, bCancelled);
 }
 
 
@@ -90,6 +112,67 @@ function RestoreDefaults()
 {
   co_VoicePack.Find("JBVoiceGrrrl.Echo", , True);
   ch_EnableScreens.Checked(True);
+}
+
+
+// ============================================================================
+// VoicePackChange
+//
+// Plays a test sample when the user selects another voice pack.
+// ============================================================================
+
+function VoicePackChange(GUIComponent GUIComponentSender)
+{
+  TestVoicePack();
+}
+
+
+// ============================================================================
+// TestVoicePackClick
+//
+// Plays a test sample when the user clicks the Test button.
+// ============================================================================
+
+function bool TestVoicePackClick(GUIComponent GUIComponentSender)
+{
+  TestVoicePack();
+  return True;
+}
+
+
+// ============================================================================
+// TestVoicePack
+//
+// Plays a random test sample for the currently selected voice pack.
+// ============================================================================
+
+function TestVoicePack()
+{
+  local string Macro;
+  local string Tags;
+
+  switch (Rand(11)) {
+    case  0:  Macro = "LastMan";           break;
+    case  1:  Macro = "LastSecondSave";    break;
+    case  2:  Macro = "TeamCapturedRed";   break;
+    case  3:  Macro = "TeamCapturedBlue";  break;
+    case  4:  Macro = "TeamCapturedBoth";  break;
+    case  5:  Macro = "TeamReleasedRed";   break;
+    case  6:  Macro = "TeamReleasedBlue";  break;
+    case  7:  Macro = "ArenaWarning";      break;
+    case  8:  Macro = "ArenaEndTimeout";   break;
+    case  9:  Macro = "ArenaEndWinner";    break;
+    case 10:  Macro = "ArenaEndLoser";     break;
+  }
+
+  switch (Rand(3)) {
+    case 0:  Tags = "red";        break;
+    case 1:  Tags = "blue";       break;
+    case 2:  Tags = "spectator";  break;
+  }
+
+  Class'JBSpeechManager'.Static.SetVoicePack(co_VoicePack.GetExtra());
+  Class'JBSpeechManager'.Static.PlayFor(PlayerOwner().Level, "$" $ Macro, Tags);
 }
 
 
@@ -147,11 +230,23 @@ defaultproperties
     bReadOnly              = True;
     WinTop                 = 0.40;
     WinLeft                = 0.24;
-    WinWidth               = 0.52;
+    WinWidth               = 0.43;
     TabOrder               = 1;
     Hint = "The voice pack to use in Jailbreak.";
   End Object
   co_VoicePack=VoicePack
+  
+  Begin Object Class=GUIButton Name=TestVoicePackButton
+    Caption                = "Test";
+    WinTop                 = 0.395;
+    WinLeft                = 0.68;
+    WinWidth               = 0.08;
+    WinHeight              = 0.04;
+    TabOrder               = 2;
+    OnClick                = TestVoicePackClick;
+    Hint = "Click to play a random test sample from the selected voice pack.";
+  End Object
+  b_TestVoicePack=TestVoicePackButton
   
   Begin Object Class=moCheckBox Name=EnableScreens
     Caption                = "Enable Dynamic Screen Textures";
@@ -160,7 +255,7 @@ defaultproperties
     WinTop                 = 0.50;
     WinLeft                = 0.24;
     WinWidth               = 0.52;
-    TabOrder               = 2;
+    TabOrder               = 3;
     Hint = "Whether you want to see the dynamic screens placed in some Jailbreak maps. Disabling this setting may increase your framerate."
   End Object
   ch_EnableScreens=EnableScreens
@@ -171,7 +266,7 @@ defaultproperties
     WinLeft                = 0.24;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 3;
+    TabOrder               = 4;
     OnClick                = InternalOnClick;
     Hint = "Restore all settings to their default value.";
   End Object
@@ -183,7 +278,7 @@ defaultproperties
     WinLeft                = 0.50;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 4;
+    TabOrder               = 5;
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, discarding changes.";
   End Object
@@ -195,7 +290,7 @@ defaultproperties
     WinLeft                = 0.64;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 5;
+    TabOrder               = 6;
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, saving changes.";
   End Object
