@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGUIComponentOptions
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGUIComponentOptions.uc,v 1.2.2.1 2004/04/04 00:50:17 mychaeel Exp $
+// $Id: JBGUIComponentOptions.uc,v 1.2.2.2 2004/04/04 11:35:28 mychaeel Exp $
 //
 // A group of radio button options
 //=============================================================================
@@ -14,9 +14,10 @@ class JBGUIComponentOptions extends GUIMultiComponent;
 // Variables
 // ============================================================================
 
-var(Menu) array<string> OptionText;   // text for each option
-var(Menu) array<string> OptionHint;   // hint for each option
-var(Menu) string        GroupCaption; // requests label for the entire group
+var(Menu) localized array<string> OptionText;   // text for each option
+var(Menu) localized array<string> OptionHint;   // hint for each option
+var(Menu) localized string        GroupCaption; // requests label for the entire group
+
 var(Menu) string        GroupCaptionFont;
 var(Menu) Color         GroupCaptionColor;
 var(Menu) string        GroupCaptionStyleName;
