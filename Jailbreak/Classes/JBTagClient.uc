@@ -112,7 +112,7 @@ function ExecArenaCam()
   local JBTagPlayer TagPlayerOwner;
 
   TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PlayerController(Owner).PlayerReplicationInfo);
-  if (TagPlayerOwner == None ||
+  if (TagPlayerOwner            != None &&
       TagPlayerOwner.GetArena() != None)
     return;
 
