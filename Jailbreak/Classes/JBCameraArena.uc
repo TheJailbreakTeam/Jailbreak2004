@@ -111,6 +111,9 @@ auto state Active
 
 state Finished
 {
+  ignores IsViewerAllowed;  // no viewers accepted in this state
+
+
   // ================================================================
   // State Code
   // ================================================================
@@ -130,19 +133,8 @@ state Finished
 
 state Deactivate
 {
-  ignores Tick;  // implicit deactivation by DeactivateFor fails
-  
-
-  // ================================================================
-  // IsViewerAllowed
-  //
-  // Does not accept any more viewers while pending destruction.
-  // ================================================================
-
-  function bool IsViewerAllowed(Controller Controller)
-  {
-    return False;
-  }
+  ignores IsViewerAllowed;  // no viewers accepted in this state
+  ignores Tick;             // implicit deactivation by DeactivateFor fails
 
 
   // ================================================================
