@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.4 2004/03/06 12:41:40 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.7 2004/05/11 08:47:59 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -72,6 +72,11 @@ function PostRender(Canvas C)
     PlayerMesh.OverlayMaterial = None;
     PlayerMesh.SetLocation(MeshLoc);
     C.DrawScreenActor(PlayerMesh, 30, False, True);
+    
+    // redraw the console messages since otherwise they would be hidden behind the player mesh
+    ViewportOwner.Actor.myHUD.DisplayMessages(C);
+    if ( Console(Master.Console).bTyping )
+      ViewportOwner.Actor.myHUD.DrawTypingPrompt(C, Console(Master.Console).TypedStr);
   }
   if ( CaptureMessage != "" ) {
     MessageSize = 3;
@@ -111,6 +116,22 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
         }
         else if ( Trim(Binds[i]) ~= "RandomTaunt" ) {
           RandomTaunt();
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "MoveForward" ) {
+          Taunt("PThrust");
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "MoveBackward" ) {
+          Taunt("AssSmack");
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "StrafeLeft" ) {
+          Taunt("ThroatCut");
+          break;
+        }
+        else if ( Trim(Binds[i]) ~= "StrafeRight" ) {
+          Taunt("Specific_1");
           break;
         }
       }

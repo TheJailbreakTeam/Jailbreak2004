@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesCelebration.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
+// $Id: JBGameRulesCelebration.uc,v 1.3 2004/05/11 08:47:58 wormbo Exp $
 //
 // The JBGameRules class for the Celebration Screen used to get Jailbreak
 // notifications.
@@ -41,7 +41,7 @@ struct TRepTaunt {
 //=============================================================================
 
 var bool bInExecutionSequence;
-var JBTagPlayer LastKiller, LastKilled;
+var JBTagPlayer LastKiller[2], LastKilled[2];
 var TPlayerInfo LastKillerInfo;
 var TeamInfo CapturedTeam;
 var TRepTaunt ReplicatedTaunt;
@@ -108,12 +108,16 @@ function BeginPlay()
 
 function ScoreKill(Controller Killer, Controller Killed)
 {
+  local int TeamNum;
+  
   if ( Killed != None ) {
-    LastKilled = class'JBTagPlayer'.static.FindFor(Killed.PlayerReplicationInfo);
+    if ( Killed.PlayerReplicationInfo != None && Killed.PlayerReplicationInfo.Team != None )
+      TeamNum = Killed.PlayerReplicationInfo.Team.TeamIndex;
+    LastKilled[TeamNum] = class'JBTagPlayer'.static.FindFor(Killed.PlayerReplicationInfo);
     if ( Killer != None )
-      LastKiller = class'JBTagPlayer'.static.FindFor(Killer.PlayerReplicationInfo);
+      LastKiller[TeamNum] = class'JBTagPlayer'.static.FindFor(Killer.PlayerReplicationInfo);
     else
-      LastKiller = LastKilled;
+      LastKiller[TeamNum] = LastKilled[TeamNum];
   }
   Super.ScoreKill(Killer, Killed);
 }
@@ -189,30 +193,25 @@ simulated event PostNetReceive()
 
 function NotifyExecutionCommit(TeamInfo Team)
 {
-  //local xUtil.PlayerRecord rec;
+  local int TeamNum;
   
   bInExecutionSequence = True;
   CapturedTeam = Team;
+  if ( CapturedTeam != None )
+    TeamNum = CapturedTeam.TeamIndex;
   
   // fill LastKillerInfo
-  LastKillerInfo.Player = LastKiller;
-  LastKillerInfo.bSuicide = LastKiller == LastKilled;
-  if ( LastKiller != None ) {
-    LastKillerInfo.bBot = PlayerController(LastKiller.GetController()) == None;
-    if ( LastKiller.GetController() != None ) {
-      //LastKillerInfo.PlayerName = LastKiller.GetController().PlayerReplicationInfo.PlayerName;
-      //if ( LastKiller.GetController().PlayerReplicationInfo.Team != None )
-      //  LastKillerInfo.Team = LastKiller.GetController().PlayerReplicationInfo.Team.TeamIndex;
-      LastKillerInfo.PRI = LastKiller.GetController().PlayerReplicationInfo;
-      //rec = class'xUtil'.static.FindPlayerRecord(LastKiller.GetController().PlayerReplicationInfo.CharacterName);
-      //LastKillerInfo.MeshName = rec.MeshName;
-      //LastKillerInfo.BodySkinName = rec.BodySkinName;
-      //LastKillerInfo.HeadSkinName = rec.FaceSkinName;
+  LastKillerInfo.Player = LastKiller[TeamNum];
+  LastKillerInfo.bSuicide = LastKiller[TeamNum] == LastKilled[TeamNum];
+  if ( LastKiller[TeamNum] != None ) {
+    LastKillerInfo.bBot = PlayerController(LastKiller[TeamNum].GetController()) == None;
+    if ( LastKiller[TeamNum].GetController() != None ) {
+      LastKillerInfo.PRI = LastKiller[TeamNum].GetController().PlayerReplicationInfo;
     }
-    if ( LastKiller.GetPawn() != None )
-      LastKiller.GetPawn().bAlwaysRelevant = True;
+    if ( LastKiller[TeamNum].GetPawn() != None )
+      LastKiller[TeamNum].GetPawn().bAlwaysRelevant = True;
     if ( !LastKillerInfo.bBot && LastKillerInfo.PRI.Team != Team )
-      SetOwner(LastKiller.GetController());
+      SetOwner(LastKiller[TeamNum].GetController());
   }
   
   Super.NotifyExecutionCommit(Team);
@@ -231,17 +230,19 @@ function NotifyExecutionCommit(TeamInfo Team)
 function NotifyExecutionEnd()
 {
   local TPlayerInfo EmptyPlayerInfo;
+  local int i;
   
   bInExecutionSequence = False;
   CapturedTeam = None;
-  if ( LastKiller != None && LastKiller.GetPawn() != None )
-    LastKiller.GetPawn().bAlwaysRelevant = False;
-  
+  for (i = 0; i < ArrayCount(LastKiller); i++) {
+    if ( LastKiller[i] != None && LastKiller[i].GetPawn() != None )
+      LastKiller[i].GetPawn().bAlwaysRelevant = False;
+    LastKiller[i] = None;
+    LastKilled[i] = None;
+  }
   SetOwner(None);
   
   LastKillerInfo = EmptyPlayerInfo;
-  LastKiller = None;
-  LastKilled = None;
   Super.NotifyExecutionEnd();
   if ( Level.NetMode != NM_DedicatedServer )
     PostNetReceive();

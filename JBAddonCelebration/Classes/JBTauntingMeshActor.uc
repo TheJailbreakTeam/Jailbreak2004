@@ -1,7 +1,7 @@
 //=============================================================================
 // JBTauntingMeshActor
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBTauntingMeshActor.uc,v 1.1 2004/02/02 14:13:27 wormbo Exp $
+// $Id: JBTauntingMeshActor.uc,v 1.3 2004/04/24 22:10:46 wormbo Exp $
 //
 // Plays taunting animations for the celebration screen.
 //=============================================================================
@@ -9,6 +9,13 @@
 
 class JBTauntingMeshActor extends Actor
     notplaceable;
+
+
+//=============================================================================
+// Import
+//=============================================================================
+
+#exec obj load file=..\Animations\Jugg.ukx
 
 
 //=============================================================================
