@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionDepressurize
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurize.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
+// $Id: JBExecutionDepressurize.uc,v 1.1 2003/06/27 11:13:32 crokx Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
@@ -73,12 +73,10 @@ function Tick(float DeltaTime)
 
     for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
-        if((JailedPlayer != None)
-        && (JailedPlayer.GetJail() == GetTargetJail())
-        && (JailedPlayer.GetController() != None)
-        && (JailedPlayer.GetController().Pawn != None))
+        if((JailedPlayer.GetJail() == GetTargetJail())
+        && (JailedPlayer.GetPawn() != None))
         {
-            DepressurizePawn = JailedPlayer.GetController().Pawn;
+            DepressurizePawn = JailedPlayer.GetPawn();
             DepressurizePawn.SetHeadScale(1 + (DepressurizeToHeadScale-1) * ratio);
 
             // pain screem :(

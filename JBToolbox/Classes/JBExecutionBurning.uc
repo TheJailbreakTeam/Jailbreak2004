@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionBurning
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionBurning.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
+// $Id: JBExecutionBurning.uc,v 1.4 2003/06/27 12:32:38 crokx Exp $
 //
 // An burning execution.
 // ============================================================================
@@ -11,10 +11,24 @@ class JBExecutionBurning extends JBExecution;
 // ============================================================================
 // Variables
 // ============================================================================
+const DESTROY_FLAME_DELAY = 0.15; // 0.125001
 var() float BurningTime;
 var HitFlameBig Flame[5];
 var private name AttachFlamePart[5];
-const DESTROY_FLAME_DELAY = 0.15; // 0.125001
+var private float RealBurningTime;
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Calculate the buirning time.
+// ============================================================================
+function PostBeginPlay()
+{
+    Super.PostBeginPlay();
+
+    RealBurningTime = FMax((BurningTime-DESTROY_FLAME_DELAY), 1);
+}
 
 
 // ============================================================================
@@ -48,23 +62,8 @@ function ExecuteJailedPlayer(Pawn Victim)
 // ============================================================================
 function Trigger(Actor A, Pawn P)
 {
-    local float f;
-
     Super.Trigger(A, P);
 
-    f = FMax((BurningTime-DESTROY_FLAME_DELAY), 1);
-    SetTimer(f, FALSE);
-}
-
-
-// ============================================================================
-// Timer
-//
-// End of execution, remove flames, destroy damager, go execute player.
-// ============================================================================
-function Timer()
-{
-    DestroyAllDamager();
     GoToState('WaitAndKill');
 }
 
@@ -72,12 +71,15 @@ function Timer()
 // ============================================================================
 // WaitAndKill
 //
+// End of execution, remove flames, destroy damagers, go execute player.
 // Wait a little for make sure the flame effect are removed and execute player.
 // Like the French expression say: On y voit que du feu :)
 // ============================================================================
 state WaitAndKill
 {
     Begin:
+    Sleep(RealBurningTime); // burning length
+    DestroyAllDamagers();
     Sleep(DESTROY_FLAME_DELAY);
     ExecuteAllJailedPlayers(TRUE, class'FellLava');
 }

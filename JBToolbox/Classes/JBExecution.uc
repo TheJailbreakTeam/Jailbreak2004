@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecution
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecution.uc,v 1.2 2003/03/15 23:41:31 mychaeel Exp $
+// $Id: JBExecution.uc,v 1.3 2003/06/27 11:11:57 crokx Exp $
 //
 // Base of all triggered execution.
 // ============================================================================
@@ -25,15 +25,12 @@ function PostBeginPlay()
 
     for(Jail=GetFirstJail(); Jail!=None; Jail=Jail.NextJail)
     {
-        if(Jail != None)
+        if((Jail.EventExecutionCommit == Tag)
+        || (Jail.EventExecutionEnd == Tag)
+        || (Jail.EventExecutionInit == Tag))
         {
-            if((Jail.EventExecutionCommit == Tag)
-            || (Jail.EventExecutionEnd == Tag)
-            || (Jail.EventExecutionInit == Tag))
-            {
-                TargetJail = Jail;
-                break;
-            }
+            TargetJail = Jail;
+            break;
         }
     }
 
@@ -62,20 +59,14 @@ function ExecuteJailedPlayer(Pawn Victim);
 event ExecuteAllJailedPlayers(optional bool bInstantKill, optional class<DamageType> KillType)
 {
     local JBTagPlayer JailedPlayer;
-    local Controller JailedController;
 
     for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
-        if((JailedPlayer != None)
-        && (JailedPlayer.GetJail() == TargetJail))
+        if((JailedPlayer.GetJail() == TargetJail)
+        && (JailedPlayer.GetPawn() != None))
         {
-            JailedController = JailedPlayer.GetController();
-            if((JailedController != None)
-            && (JailedController.Pawn != None))
-            {
-                if(bInstantKill) JailedController.Pawn.Died(None, KillType, vect(0,0,0));
-                else ExecuteJailedPlayer(JailedController.Pawn);
-            }
+            if(bInstantKill) JailedPlayer.GetPawn().Died(None, KillType, vect(0,0,0));
+            else ExecuteJailedPlayer(JailedPlayer.GetPawn());
         }
     }
 }
@@ -107,11 +98,11 @@ final function GiveDamagerTo(Pawn Victim, class<JBDamager> DamagerType)
 
 
 // ============================================================================
-// DestroyAllDamager
+// DestroyAllDamagers
 //
-// Destroy all damager.
+// Destroy all damagers.
 // ============================================================================
-final function DestroyAllDamager()
+final function DestroyAllDamagers()
 {
     local JBDamager Damager;
 
