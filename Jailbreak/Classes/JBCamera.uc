@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.20 2003/06/01 14:44:24 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.21 2004/02/16 17:17:02 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -24,29 +24,29 @@ class JBCamera extends Keypoint
 
 enum EOverlayStyle
 {
-  OverlayStyle_ScaleDistort,
-  OverlayStyle_ScaleProportional,
-  OverlayStyle_Tile,
+  OverlayStyle_ScaleDistort,        // stretch to screen dimensions
+  OverlayStyle_ScaleProportional,   // scale proportionally to fill screen
+  OverlayStyle_Tile,                // keep dimensions and tile on screen
 };
 
 
 struct TInfoCaption
 {
-  var() bool bBlinking;       // caption pulses
-  var() Color Color;          // caption color and transparency
-  var() string Font;          // caption font name
-  var() string Text;          // caption text
-  var() float Position;       // relative vertical position
+  var() bool bBlinking;             // caption pulses
+  var() Color Color;                // caption color and transparency
+  var() string Font;                // caption font name
+  var() string Text;                // caption text
+  var() float Position;             // relative vertical position
 
-  var Font FontObject;        // loaded Font object
+  var Font FontObject;              // loaded Font object
 };
 
 
 struct TInfoOverlay
 {
-  var() Material Material;    // material overlaid on screen
-  var() Color Color;          // material color and transparency
-  var() EOverlayStyle Style;  // material arrangement style
+  var() Material Material;          // material overlaid on screen
+  var() Color Color;                // material color and transparency
+  var() EOverlayStyle Style;        // material arrangement style
 };
 
 
@@ -274,10 +274,8 @@ protected simulated function ActivateForLocal()
     JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = bWidescreen;
 
   if (MotionBlur > 0) {
-    CameraEffectMotionBlur = MotionBlur(Level.ObjectPool.AllocateObject(Class'MotionBlur'));
+    CameraEffectMotionBlur = MotionBlur(FindCameraEffect(Class'MotionBlur'));
     CameraEffectMotionBlur.BlurAlpha = 255 - MotionBlur;
-
-    ControllerPlayer.CameraEffects.Length = 0;
     ControllerPlayer.AddCameraEffect(CameraEffectMotionBlur);
   }
 
@@ -302,10 +300,10 @@ protected simulated function DeactivateForLocal()
   if (JBInterfaceHud(ControllerPlayer.myHUD) != None)
     JBInterfaceHud(ControllerPlayer.myHUD).bWidescreen = False;
 
-  if (CameraEffectMotionBlur != None)
-    Level.ObjectPool.FreeObject(CameraEffectMotionBlur);
-  CameraEffectMotionBlur = None;
-  ControllerPlayer.CameraEffects.Length = 0;
+  if (CameraEffectMotionBlur != None) {
+    RemoveCameraEffect(CameraEffectMotionBlur);
+    CameraEffectMotionBlur = None;
+  }
 
   bIsActiveLocal = False;
 }
@@ -446,6 +444,65 @@ simulated function RenderOverlays(Canvas Canvas)
 {
   RenderOverlayMaterial(Canvas);
   RenderOverlayCaption(Canvas);
+}
+
+
+// ============================================================================
+// FindCameraEffect
+//
+// Returns a reference to an object of the given CameraEffect class. First
+// tries to find one in the local PlayerController's CameraEffects array. If
+// none exists there, gets one from the ObjectPool.
+//
+// When used in conjunction with PlayerController.AddCameraEffect and the
+// RemoveCameraEffect below, ensures that all code adhering to this convention
+// gracefully works along with each other. It may happen that the same
+// CameraEffect object appears multiple times in the PlayerController's
+// CameraEffects array, but that does not seem to be a problem.
+// ============================================================================
+
+simulated function CameraEffect FindCameraEffect(Class<CameraEffect> ClassCameraEffect)
+{
+  local int iCameraEffect;
+  local PlayerController PlayerControllerLocal;
+  
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+  if (PlayerControllerLocal == None)
+    return None;
+
+  for (iCameraEffect = 0; iCameraEffect < PlayerControllerLocal.CameraEffects.Length; iCameraEffect++)
+    if (PlayerControllerLocal.CameraEffects[iCameraEffect] != None &&
+        PlayerControllerLocal.CameraEffects[iCameraEffect].Class == ClassCameraEffect)
+      return PlayerControllerLocal.CameraEffects[iCameraEffect];
+
+  return CameraEffect(Level.ObjectPool.AllocateObject(ClassCameraEffect));
+}
+
+
+// ============================================================================
+// RemoveCameraEffect
+//
+// Removes exactly one reference to the given CameraEffect object from the
+// local PlayerController's CameraEffects array. Frees the object into the
+// ObjectPool only if no further references exist in the CameraEffects array.
+// ============================================================================
+
+simulated function RemoveCameraEffect(CameraEffect CameraEffect)
+{
+  local int iCameraEffect;
+  local PlayerController PlayerControllerLocal;
+  
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+  if (PlayerControllerLocal == None)
+    return;
+
+  PlayerControllerLocal.RemoveCameraEffect(CameraEffect);
+  
+  for (iCameraEffect = 0; iCameraEffect < PlayerControllerLocal.CameraEffects.Length; iCameraEffect++)
+    if (PlayerControllerLocal.CameraEffects[iCameraEffect] == CameraEffect)
+      return;
+  
+  Level.ObjectPool.FreeObject(CameraEffect);
 }
 
 
