@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMonsterSpawner
 // Copyright 2003 by Will ([-will-]).
-// $Id: JBMonsterSpawner.uc,v 1.7.2.2 2004/04/12 12:36:35 tarquin Exp $
+// $Id: JBMonsterSpawner.uc,v 1.7.2.3 2004/04/12 16:40:30 tarquin Exp $
 //
 // Monster Spawner Actor.
 // ============================================================================
@@ -9,6 +9,13 @@
 
 Class JBMonsterSpawner Extends Keypoint
   Placeable;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\JBMonsterSpawner.pcx mips=off masked=on group=icons
 
 
 // ============================================================================
@@ -331,6 +338,7 @@ State MonsterAttack {
 
 DefaultProperties
 {
+  Texture = Texture'JBToolbox.icons.JBMonsterSpawner';  
   MonsterType = SkaarjPupae
   bHidden     = True
   bDirectional= True
