@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.31 2004/04/22 15:04:29 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.32 2004/04/25 21:22:16 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -1386,9 +1386,21 @@ function GameObjective GetPriorityAttackObjective()
       if (nPlayersSuggested == 0)
         continue;
 
-      if (ObjectiveSelected == None || nPlayersSuggested < nPlayersSuggestedMin) {
+      if (ObjectiveSelected == None || nPlayersSuggested <= nPlayersSuggestedMin) {
         nPlayersReleasable = CountPlayersReleasable(thisObjective);
-        if (ObjectiveSelected == None || nPlayersReleasable > nPlayersReleasableMax) {
+        if (ObjectiveSelected == None || nPlayersReleasable >= nPlayersReleasableMax) {
+          if (ObjectiveSelected != None &&
+              nPlayersSuggested  == nPlayersSuggestedMin &&
+              nPlayersReleasable == nPlayersReleasableMax) {
+
+            if (thisObjective.DefensePriority > ObjectiveSelected.DefensePriority) continue;
+            if (thisObjective.DefensePriority < ObjectiveSelected.DefensePriority) break;
+
+            if (Class'JBTagObjective'.Static.FindFor(thisObjective    ).GetRandomWeight() <
+                Class'JBTagObjective'.Static.FindFor(ObjectiveSelected).GetRandomWeight())
+              continue;
+          }
+
           nPlayersSuggestedMin  = nPlayersSuggested;
           nPlayersReleasableMax = nPlayersReleasable;
           ObjectiveSelected = thisObjective;

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagObjective.uc,v 1.8 2003/03/16 12:02:56 mychaeel Exp $
+// $Id: JBTagObjective.uc,v 1.9 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -30,6 +30,9 @@ var float ScaleDot;                   // used for pulsing compass dot
 
 var private int nPlayersReleasable;   // number of releasable players
 var private float TimeCountPlayersReleasable;  // time of last count
+
+var private float RandomWeight;       // random weight for bot support
+var private float TimeRandomWeight;   // last time random weight was updated
 
 var transient int nPlayersCurrent;    // used by deployment functions
 var transient int nPlayersDeployed;   // used by deployment functions
@@ -119,6 +122,26 @@ simulated function int CountPlayersReleasable(optional bool bCached)
 
   TimeCountPlayersReleasable = Level.TimeSeconds;
   return nPlayersReleasable;
+}
+
+
+// ============================================================================
+// GetRandomWeight
+//
+// Returns a random value between 0.0 and 1.0 which changes only once in a
+// while, not each time the function is called. Used by bot support to select
+// one of several equally-weighted objectives to attack.
+// ============================================================================
+
+function float GetRandomWeight()
+{
+  if (TimeRandomWeight == 0.0 || Level.TimeSeconds - TimeRandomWeight > 2.0) {
+    if (RandomWeight == 0.0 || FRand() < 0.1)
+      RandomWeight = FRand();
+    TimeRandomWeight = Level.TimeSeconds;
+  }
+  
+  return RandomWeight;
 }
 
 
