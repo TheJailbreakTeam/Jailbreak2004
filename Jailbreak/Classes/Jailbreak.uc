@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.108 2004/05/31 19:28:32 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.109 2004/06/01 11:59:38 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -425,21 +425,21 @@ event PostBeginPlay()
 
 
 // ============================================================================
-// Login
+// PostLogin
 //
-// Gives every player new JBTagPlayer and JBTagClient actors.
+// Spawns a JBTagClient actor for every new client and registers new players.
+// This must happen in PostLogin rather than implicitly by ChangeTeam since
+// GetPlayerIDHash does not return the correct value prior to PostLogin.
 // ============================================================================
 
-event PlayerController Login(string Portal, string Options, out string Error)
+event PostLogin(PlayerController PlayerControllerLogin)
 {
-  local PlayerController PlayerLogin;
+  Class'JBTagClient'.Static.SpawnFor(PlayerControllerLogin);
 
-  PlayerLogin = Super.Login(Portal, Options, Error);
+  if (PlayerControllerLogin.PlayerReplicationInfo.Team != None)
+    RegisterPlayer(PlayerControllerLogin);
 
-  if (PlayerLogin != None)
-    Class'JBTagClient'.Static.SpawnFor(PlayerLogin);
-
-  return PlayerLogin;
+  Super.PostLogin(PlayerControllerLogin);
 }
 
 
@@ -456,8 +456,12 @@ function RegisterPlayer(Controller Controller)
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer TagPlayerRegistering;
 
+  if (                                  PlayerController(Controller)  != None &&
+      Class'JBTagClient'.Static.FindFor(PlayerController(Controller)) == None)
+    return;  // player login not finished yet, waiting for PostLogin
+
   if (Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo) != None)
-    return;
+    return;  // has been registered before already
 
   if (Controller                            != None &&
       Controller.PlayerReplicationInfo      != None &&
