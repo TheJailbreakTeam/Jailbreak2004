@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.34 2003/06/14 21:52:31 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.35 2003/06/15 22:00:02 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -700,22 +700,24 @@ function NotifyJailClosed() {
 // RestartPlayer
 //
 // Restarts the player, making sure everything is properly cleaned up before
-// doing so.
+// doing so. Plays a teleport effect at the place where the player teleports
+// away from.
 // ============================================================================
 
 private function RestartPlayer(ERestart RestartCurrent) {
 
   local xPawn xPawn;
 
+  if (Controller.Pawn != None)
+    Controller.Pawn.PlayTeleportEffect(True, True);
+
   while (Controller.Pawn != None) {
     xPawn = xPawn(Controller.Pawn);
     
     if (xPawn != None) {
-      if (xPawn.CurrentCombo != None) {
+      if (xPawn.CurrentCombo != None)
         xPawn.CurrentCombo.Destroy();
-        xPawn.Controller.Adrenaline = 0;
-        }
-  
+
       if (xPawn.UDamageTimer != None) {
         xPawn.UDamageTimer.Destroy();
         xPawn.DisableUDamage();
@@ -748,14 +750,10 @@ function RestartInJail()    { RestartPlayer(Restart_Jail);    }
 // ============================================================================
 // RestartInArena
 //
-// Restarts the player in a specified arena. Plays a teleport effect at the
-// place where the player teleports away from.
+// Restarts the player in a specified arena.
 // ============================================================================
 
 function RestartInArena(JBInfoArena Arena) {
-
-  if (Controller.Pawn != None)
-    Controller.Pawn.PlayTeleportEffect(True, True);
 
   ArenaRestart = Arena;
   RestartPlayer(Restart_Arena);
