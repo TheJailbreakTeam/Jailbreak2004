@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.57 2003/06/28 11:43:51 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.58 2003/06/29 14:44:13 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -88,8 +88,9 @@ event InitGame(string Options, out string Error) {
   if (OptionJailFights != "")
     bEnableJailFights = bool(OptionJailFights);
   
-  bForceRespawn = True;
-  MaxLives = 0;
+  bForceRespawn    = True;
+  bTeamScoreRounds = False;
+  MaxLives         = 0;
   }
 
 
@@ -104,6 +105,24 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
   Super.FillPlayInfo(PlayInfo);
   
   PlayInfo.AddSetting("Game", "bEnableJailFights", Default.TextWebAdminEnableJailFights, 0, 60, "Check");
+  }
+
+
+// ============================================================================
+// AcceptPlayInfoProperty
+//
+// Hides several properties from the web admin interface that don't apply for
+// Jailbreak games.
+// ============================================================================
+
+static event bool AcceptPlayInfoProperty(string Property) {
+
+  if (Property ~= "MaxLives"         ||
+      Property ~= "bForceRespawn"    ||
+      Property ~= "bTeamScoreRounds")
+    return False;
+
+  return Super.AcceptPlayInfoProperty(Property);
   }
 
 
