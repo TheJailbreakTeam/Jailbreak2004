@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBBotTeam.uc,v 1.1 2002/12/20 20:54:30 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -76,7 +76,7 @@ function SetObjectiveLists() {
   foreach DynamicActors(Class'Trigger', thisTrigger) {
     foreach DynamicActors(Class'JBInfoJail', thisJail)
       if (thisJail.Tag == thisTrigger.Event &&
-          thisJail.CanRelease(Team.TeamIndex))
+          thisJail.CanRelease(Team))
         break;
     
     if (thisJail == None)
@@ -94,6 +94,29 @@ function SetObjectiveLists() {
 
 
 // ============================================================================
+// PutOnFreelance
+//
+// Puts the given bot on the first freelance squad found that can still take
+// new players. Creates a new freelance squad if none is found.
+// ============================================================================
+
+function PutOnFreelance(Bot Bot) {
+
+  local SquadAI SquadFreelance;
+  
+  for (SquadFreelance = Squads; SquadFreelance != None; SquadFreelance = SquadFreelance.NextSquad)
+    if (SquadFreelance.bFreelance &&
+        SquadFreelance.MaxSquadSize > SquadFreelance.GetSize())
+      break;
+  
+  if (SquadFreelance == None)
+    Super.PutOnFreelance(Bot);
+  else
+    SquadFreelance.AddBot(Bot);
+  }
+
+
+// ============================================================================
 // PutOnSquad
 //
 // Puts the given bot on the squad attacking or defending the given objective.
@@ -106,7 +129,6 @@ function PutOnSquad(Bot Bot, GameObjective GameObjective) {
       AttackSquad = AddSquadWithLeader(Bot, GameObjective);
     else
       AttackSquad.AddBot(Bot);
-log("PutOnSquad: Putting"@bot.playerreplicationinfo.playername@"on squad"@attacksquad.name@"attacking"@gameobjective.name);
     }
   
   else if (IsObjectiveDefense(GameObjective)) {
@@ -114,7 +136,6 @@ log("PutOnSquad: Putting"@bot.playerreplicationinfo.playername@"on squad"@attack
       GameObjective.DefenseSquad = AddSquadWithLeader(Bot, GameObjective);
     else
       GameObjective.DefenseSquad.AddBot(Bot);
-log("PutOnSquad: Putting"@bot.playerreplicationinfo.playername@"on squad"@GameObjective.DefenseSquad.Name@"defending"@gameobjective.name);
     }
   
   else {
@@ -200,24 +221,35 @@ function int CountObjectives() {
 
 
 // ============================================================================
-// CountPlayersObjective
+// CountPlayersAtObjective
 //
 // Returns the number of players attacking or defending the given objective.
 // Takes human players into consideration.
 // ============================================================================
 
-function int CountPlayersObjective(GameObjective GameObjective) {
+function int CountPlayersAtObjective(GameObjective GameObjective) {
 
-  local int nPlayersObjective;
+  local int iInfoPlayer;
+  local int nPlayersAtObjective;
+  local JBReplicationInfoGame InfoGame;
+  local JBReplicationInfoPlayer InfoPlayer;
   local SquadAI thisSquad;
 
-  // TODO: take human players into consideration
+  InfoGame = JBReplicationInfoGame(Level.GRI);
+  
+  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
+    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
+    if (PlayerController(InfoPlayer.Owner) != None &&
+        InfoPlayer.GetPlayerReplicationInfo().Team == Team &&
+        InfoPlayer.GuessObjective() == GameObjective)
+      nPlayersAtObjective++;
+    }
 
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
     if (thisSquad.SquadObjective == GameObjective)
-      nPlayersObjective += thisSquad.GetSize();
+      nPlayersAtObjective += thisSquad.GetSize();
 
-  return nPlayersObjective;
+  return nPlayersAtObjective;
   }
 
 
@@ -231,28 +263,51 @@ function int CountPlayersObjective(GameObjective GameObjective) {
 function int CountPlayersReleasable(GameObjective GameObjective) {
 
   local int iInfoPlayer;
-  local int iTeamPlayer;
   local int nPlayersReleasable;
   local JBInfoJail JailPlayer;
   local JBReplicationInfoGame InfoGame;
   local JBReplicationInfoPlayer InfoPlayer;
+  local UnrealTeamInfo TeamPlayer;
   
   InfoGame = JBReplicationInfoGame(Level.GRI);
   
   for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
     InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    iTeamPlayer = InfoPlayer.GetPlayerReplicationInfo().Team.TeamIndex;
+    TeamPlayer = UnrealTeamInfo(InfoPlayer.GetPlayerReplicationInfo().Team);
 
-    if (iTeamPlayer != GameObjective.DefenderTeamIndex) {
+    if (TeamPlayer.TeamIndex != GameObjective.DefenderTeamIndex) {
       JailPlayer = InfoPlayer.GetJail();
       if (JailPlayer != None &&
           JailPlayer.Tag == GameObjective.Event &&
-          JailPlayer.CanRelease(iTeamPlayer))
+          JailPlayer.CanRelease(TeamPlayer))
         nPlayersReleasable++;
       }
     }
 
   return nPlayersReleasable;
+  }
+
+
+// ============================================================================
+// CalcDistance
+//
+// Calculates the traveling distance of the given player or bot to the given
+// objective. Expensive, so use sparingly.
+// ============================================================================
+
+static function float CalcDistance(Controller Controller, GameObjective GameObjective) {
+
+  local Actor ActorTarget;
+
+  if (JBGameObjective(GameObjective) == None)
+    ActorTarget = GameObjective;
+  else
+    ActorTarget = JBGameObjective(GameObjective).Trigger;
+  
+  if (Controller.FindPathToward(ActorTarget) == None)
+    return VSize(ActorTarget.Location - Controller.Pawn.Location);
+  
+  return Controller.RouteDist;
   }
 
 
@@ -660,7 +715,6 @@ function DeployExecute() {
   local SquadAI thisSquad;
   local Controller thisController;
 
-log("DeployExecute:");
   for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
     if (JBBotSquad(thisSquad) != None) {
       for (iDeployment = 0; iDeployment < ListDeployment.Length; iDeployment++)
@@ -671,35 +725,14 @@ log("DeployExecute:");
         JBBotSquad(thisSquad).nPlayersRemove = thisSquad.GetSize();
       else
         JBBotSquad(thisSquad).nPlayersRemove =
-          Max(0, CountPlayersObjective(thisSquad.SquadObjective) - ListDeployment[iDeployment].nPlayersOrdered);
-log("Squad"@thissquad.name@"(size"@thisSquad.GetSize()$") with objective"@thissquad.squadobjective.name@"nPlayersRemove="$JBBotSquad(thisSquad).nPlayersRemove);
-/*
-log("  Squad leader:"@thissquad.LeaderPRI.playername);
-for (botnearest=thissquad.SquadMembers;
-     botnearest!=none;
-     botnearest=botnearest.nextsquadmember)
-  log("  Squad member:"@botnearest.playerreplicationinfo.playername);
-*/
+          Max(0, CountPlayersAtObjective(thisSquad.SquadObjective) - ListDeployment[iDeployment].nPlayersOrdered);
       }
 
   for (iDeployment = ListDeployment.Length - 1; iDeployment >= 0; iDeployment--) {
-    ListDeployment[iDeployment].nPlayersCurrent = CountPlayersObjective(ListDeployment[iDeployment].Objective);
-log("Objective"@ListDeployment[iDeployment].Objective@
-    "nPlayersCurrent="$ListDeployment[iDeployment].nPlayersCurrent@
-    "nPlayersOrdered="$ListDeployment[iDeployment].nPlayersOrdered);
+    ListDeployment[iDeployment].nPlayersCurrent = CountPlayersAtObjective(ListDeployment[iDeployment].Objective);
     if (ListDeployment[iDeployment].nPlayersCurrent >=
         ListDeployment[iDeployment].nPlayersOrdered)
-{
-/*
-log("  Defense squad leader:"@ListDeployment[iDeployment].Objective.DefenseSquad.LeaderPRI.playername);
-for (botnearest=ListDeployment[iDeployment].Objective.DefenseSquad.SquadMembers;
-     botnearest!=none;
-     botnearest=botnearest.nextsquadmember)
-  log("  Defense squad member:"@botnearest.playerreplicationinfo.playername);
-*/
-log("  Removed from deployment list");
       ListDeployment.Remove(iDeployment, 1);
-}
     }
 
   while (True) {
@@ -713,7 +746,7 @@ log("  Removed from deployment list");
           JBBotSquad(Bot(thisController).Squad).nPlayersRemove > 0)
 
         for (iDeployment = 0; iDeployment < ListDeployment.Length; iDeployment++) {
-          Distance = VSize(ListDeployment[iDeployment].Objective.Location - thisController.Pawn.Location);
+          Distance = CalcDistance(thisController, ListDeployment[iDeployment].Objective);
           if (BotNearest == None || Distance < DistanceNearest) {
             BotNearest = Bot(thisController);
             DistanceNearest = Distance;
@@ -722,13 +755,7 @@ log("  Removed from deployment list");
           }
 
     if (BotNearest == None)
-{
-if(listdeployment.length>0)
-log(listdeployment.length@"deployment orders left, but no bot found to follow them");
       break;
-}
-log("Found"@botnearest.playerreplicationinfo.playername@"to go to objective"@
-    ListDeployment[iDeploymentNearest].Objective.Name);
 
     JBBotSquad(BotNearest.Squad).nPlayersRemove--;
     PutOnSquad(BotNearest, ListDeployment[iDeploymentNearest].Objective);
@@ -794,9 +821,9 @@ auto state TacticsNormal {
 
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective) {
       if (IsObjectiveAttack(thisObjective))
-        nPlayersNeeded = SuggestStrengthAttack(thisObjective) - CountPlayersObjective(thisObjective);
+        nPlayersNeeded = SuggestStrengthAttack(thisObjective) - CountPlayersAtObjective(thisObjective);
       else if (IsObjectiveDefense(thisObjective))
-        nPlayersNeeded = SuggestStrengthDefense(thisObjective) - CountPlayersObjective(thisObjective);
+        nPlayersNeeded = SuggestStrengthDefense(thisObjective) - CountPlayersAtObjective(thisObjective);
       else
         continue;
       
@@ -871,33 +898,26 @@ auto state TacticsNormal {
     local GameObjective ObjectiveAttack;
     local GameObjective ObjectiveDefense;
 
-log("----- Team"@team.teamindex);
     nPlayersFree   = JBReplicationInfoTeam(Team).CountPlayersFree();
     nPlayersJailed = JBReplicationInfoTeam(Team).CountPlayersJailed();
-log("nPlayersFree="$nplayersfree@"nPlayersJailed="$nplayersjailed);
 
     for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
       if (IsObjectiveDefense(thisObjective)) {
         nPlayersDefending = SuggestStrengthDefense(thisObjective);
-log("Switch to release team"@(1-thisobjective.defenderteamindex)@"requires"@nplayersdefending@"players on defense");
         nPlayersDefendingMax += nPlayersDefending;
         if (nPlayersDefendingMin == 0 ||
             nPlayersDefendingMin > nPlayersDefending)
           nPlayersDefendingMin = nPlayersDefending;
         }
-log("nPlayersDefendingMin="$nplayersdefendingmin@"nPlayersDefendingMax="$nplayersdefendingmax);
 
     if (nPlayersJailed > 0) {
       ObjectiveAttack = GetPriorityAttackObjective();
-log(">> Players jailed, attack objective"@objectiveattack.name);
       nPlayersAttacking = SuggestStrengthAttack(ObjectiveAttack);
       }
-log("nPlayersAttacking="$nplayersattacking);
 
     nPlayersRequired = nPlayersAttacking + nPlayersDefendingMin;
 
     if (nPlayersRequired > nPlayersFree && nPlayersAttacking > 0) {
-log(">> Too many players required, attempting distribution");
       nPlayersDefending = Max(0, nPlayersFree - Abs(nPlayersDefendingMin - nPlayersAttacking) / 2 - 0.5);
       if (nPlayersDefending <= nPlayersDefendingMin / 2)
         nPlayersDefending = 0;  // no use defending
@@ -913,86 +933,24 @@ log(">> Too many players required, attempting distribution");
             }
           }
 
-log(">> Sending"@nPlayersAttacking@"players on attack,"@nplayersdefending@"players on defense");
       DeployPlayers(ObjectiveAttack,  nPlayersAttacking);
       DeployPlayers(ObjectiveDefense, nPlayersDefending);
       DeployExecute();
       }
     
     else {
-log(">> Enough players for defense, putting rest on attack");
       nPlayersDefending = Min(nPlayersFree - nPlayersAttacking, nPlayersDefendingMax);
 
       if (nPlayersAttacking > 0)
         nPlayersAttacking = nPlayersFree - nPlayersDefending;  // attack with full force
 
-log(">> Sending"@nplayersattacking@"players on attack, distributing"@nplayersdefending@"players on defense");
       DeployPlayers(ObjectiveAttack, nPlayersAttacking);
       DeployPlayersDefense(nPlayersDefending);
       DeployExecute();  // rest goes on freelance
       }
-
-logorders();
     }
 
   } // state TacticsNormal
-
-
-// ============================================================================
-// LogOrders
-//
-// Logs the current orders and objectives for bots of this team. Used for
-// debugging purposes.
-// ============================================================================
-
-function LogOrders() {
-
-  local int iInfoPlayer;
-  local Bot Bot;
-  local JBReplicationInfoGame InfoGame;
-  local JBReplicationInfoPlayer InfoPlayer;
-  local PlayerReplicationInfo PlayerReplicationInfo;
-  
-  Log("----- Orders for" @ Team.TeamName @ Team.ColorNames[Team.TeamIndex]);
-  
-  InfoGame = JBReplicationInfoGame(Level.GRI);
-  
-  for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
-    InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
-    Bot = Bot(InfoPlayer.Owner);
-    PlayerReplicationInfo = InfoPlayer.GetPlayerReplicationInfo();
-    
-    if (PlayerReplicationInfo.Team == Team) {
-      if (InfoPlayer.IsInArena())
-        Log(PlayerReplicationInfo.PlayerName @ "is in arena" @ InfoPlayer.GetArena().Name);
-  
-      else if (InfoPlayer.IsInJail())
-        Log(PlayerReplicationInfo.PlayerName @ "is in jail" @ InfoPlayer.GetJail().Name);
-  
-      else if (Bot == None)
-        Log(PlayerReplicationInfo.PlayerName @ "is human");
-  
-      else if (Bot.Squad.bFreelance)
-        Log(PlayerReplicationInfo.PlayerName @ "is freelancing");
-  
-      else if (IsObjectiveAttack(Bot.Squad.SquadObjective))
-        Log(PlayerReplicationInfo.PlayerName @ "is attacking" @ Bot.Squad.SquadObjective.Name @
-            "(" $ CountPlayersReleasable(Bot.Squad.SquadObjective) @ "players could be released)");
-  
-      else if (IsObjectiveDefense(Bot.Squad.SquadObjective))
-        Log(PlayerReplicationInfo.PlayerName @ "is defending" @ Bot.Squad.SquadObjective.Name @
-            "(" $ CountPlayersReleasable(Bot.Squad.SquadObjective) @ "enemies imprisoned)");
-      }
-    }
-
-  Log("-----");
-  }
-
-
-function PutOnFreelance(Bot Bot) {
-Super.PutOnFreelance(Bot);
-log("PutOnFreelance: Putting"@bot.playerreplicationinfo.playername@"on freelance squad"@bot.squad.name);
-}
 
 
 // ============================================================================

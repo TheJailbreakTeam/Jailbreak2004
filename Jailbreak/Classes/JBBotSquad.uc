@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBBotSquad.uc,v 1.1 2002/12/20 20:54:30 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -86,7 +86,7 @@ function int CountEnemies() {
 // GetSize
 //
 // Unlike its superclass counterpart, returns the actual number of human
-// players and bots in this squad. Bugfix.
+// players and bots in this squad. Bugfix for Epic's code.
 // ============================================================================
 
 function int GetSize() {
@@ -95,4 +95,17 @@ function int GetSize() {
     return Size;
 
   return Size + 1;  // plus human leader
+  }
+
+
+// ============================================================================
+// AddBot
+//
+// Retasks bots added to this squad.
+// ============================================================================
+
+function AddBot(Bot Bot) {
+
+  Super.AddBot(Bot);
+  Retask(Bot);
   }

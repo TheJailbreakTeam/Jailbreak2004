@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.8 2002/11/24 18:14:03 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.9 2002/12/20 20:54:30 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -42,6 +42,7 @@ var() name TagAttachZones;
 struct TInfoRelease {
 
   var bool bIsActive;
+  var bool bIsOpen;
   var float Time;
   var Controller ControllerInstigator;
   };
@@ -55,6 +56,27 @@ var class<LocalMessage> ClassLocalMessage;
 
 var private TInfoRelease ListInfoReleaseByTeam[2];
 
+var private array<Door> ListDoor;
+var private array<NavigationPoint> ListNavigationPointExit;
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Fills the ListDoor array with a list of Door actors that mark releases of
+// this jail.
+// ============================================================================
+
+event PostBeginPlay() {
+
+  local Door thisDoor;
+  
+  foreach AllActors(Class'Door', thisDoor)
+    if (thisDoor.DoorTag == EventReleaseRed ||
+        thisDoor.DoorTag == EventReleaseBlue)
+      ListDoor[ListDoor.Length] = thisDoor;
+  }
+
 
 // ============================================================================
 // CanRelease
@@ -62,7 +84,7 @@ var private TInfoRelease ListInfoReleaseByTeam[2];
 // Checks whether this jail can release players of the given team.
 // ============================================================================
 
-function bool CanRelease(byte Team) {
+function bool CanRelease(UnrealTeamInfo Team) {
 
   local Actor thisActor;
   
@@ -83,9 +105,9 @@ function bool CanRelease(byte Team) {
 // given team index.
 // ============================================================================
 
-function name GetEventRelease(byte Team) {
+function name GetEventRelease(UnrealTeamInfo Team) {
 
-  switch (Team) {
+  switch (Team.TeamIndex) {
     case 0:  return EventReleaseRed;
     case 1:  return EventReleaseBlue;
     }
@@ -93,24 +115,22 @@ function name GetEventRelease(byte Team) {
 
 
 // ============================================================================
-// IsMoverClosed
+// IsDoorOpen
 //
-// Returns whether the given mover is currently in its default, closed state.
-// Also returns True if the mover has no clear closed state.
+// Checks and returns whether any doors to this jail for the given team are
+// currently open.
 // ============================================================================
 
-function bool IsMoverClosed(Mover Mover) {
+function bool IsDoorOpen(UnrealTeamInfo Team) {
 
-  if (Mover.InitialState == 'TriggerPound'  ||
-      Mover.InitialState == 'ConstantLoop'  ||
-      Mover.InitialState == 'RotatingMover')
-    return True;
-
-  if (Mover.KeyNum > 0 ||
-      Mover.bInterpolating)
-    return False;
+  local int iDoor;
   
-  return True;
+  for (iDoor = 0; iDoor < ListDoor.Length; iDoor++)
+    if (ListDoor[iDoor].DoorTag == GetEventRelease(Team) &&
+        ListDoor[iDoor].bDoorOpen)
+      return True;
+  
+  return False;
   }
 
 
@@ -181,16 +201,16 @@ function int CountPlayers(byte Team) {
 function int CountPlayersTotal() {
 
   local int iInfoPlayer;
-  local int nInfoPlayerJailed;
+  local int nPlayersJailed;
   local JBReplicationInfoGame InfoGame;
   
   InfoGame = JBReplicationInfoGame(Level.GRI);
   
   for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++)
     if (InfoGame.ListInfoPlayer[iInfoPlayer].GetJail() == Self)
-      nInfoPlayerJailed++;
+      nPlayersJailed++;
   
-  return nInfoPlayerJailed;
+  return nPlayersJailed;
   }
 
 
@@ -201,32 +221,32 @@ function int CountPlayersTotal() {
 // only in state Waiting and logs a warning otherwise.
 // ============================================================================
 
-function Release(byte Team, optional Controller ControllerInstigator) {
+function Release(UnrealTeamInfo Team, optional Controller ControllerInstigator) {
 
   if (IsInState('Waiting')) {
-    if (ListInfoReleaseByTeam[Team].bIsActive)
+    if (ListInfoReleaseByTeam[Team.TeamIndex].bIsActive)
       return;
     
     if (ControllerInstigator != None &&
-        ControllerInstigator.PlayerReplicationInfo.Team.TeamIndex != Team) {
+        ControllerInstigator.PlayerReplicationInfo.Team != Team) {
 
       Log("Warning:" @ ControllerInstigator.PlayerReplicationInfo.PlayerName @ "on team" @
-          ControllerInstigator.PlayerReplicationInfo.Team.TeamIndex @ "attempted to release team" @ Team);
+          ControllerInstigator.PlayerReplicationInfo.Team.TeamIndex @ "attempted to release team" @ Team.TeamIndex);
       return;
       }
 
     if (CanRelease(Team)) {
       if (Jailbreak(Level.Game).CanFireEvent(GetEventRelease(Team), True)) {
-        BroadcastLocalizedMessage(ClassLocalMessage, 200, ControllerInstigator.PlayerReplicationInfo, ,
-                                                          ControllerInstigator.PlayerReplicationInfo.Team);
+        if (Jailbreak(Level.Game).CanFireEvent(Tag, True))
+          BroadcastLocalizedMessage(ClassLocalMessage, 200, ControllerInstigator.PlayerReplicationInfo, ,
+                                                            ControllerInstigator.PlayerReplicationInfo.Team);
         TriggerEvent(GetEventRelease(Team), Self, ControllerInstigator.Pawn);
         }
       
-      ListInfoReleaseByTeam[Team].bIsActive = True;
-      ListInfoReleaseByTeam[Team].Time = Level.TimeSeconds;
-      ListInfoReleaseByTeam[Team].ControllerInstigator = ControllerInstigator;
-
-      JailOpened(TeamGame(Level.Game).Teams[Team], ControllerInstigator);
+      ListInfoReleaseByTeam[Team.TeamIndex].bIsActive = True;
+      ListInfoReleaseByTeam[Team.TeamIndex].bIsOpen = False;
+      ListInfoReleaseByTeam[Team.TeamIndex].Time = Level.TimeSeconds;
+      ListInfoReleaseByTeam[Team.TeamIndex].ControllerInstigator = ControllerInstigator;
       }
     }
   
@@ -239,8 +259,8 @@ function Release(byte Team, optional Controller ControllerInstigator) {
 // ============================================================================
 // JailOpened
 // called. Disables all GameObjectives that can be used to trigger this jail's
-// Called when this jail is opened. Communicates that event to all inmates and
-// temporarily disables all objectives that can be used to open this jail.
+// Called when this jail is opened. Temporarily disables all objectives that
+// can be used to open this jail and communicates that event to all inmates.
 function NotifyJailOpening(TeamInfo Team) {
 
 function JailOpened(UnrealTeamInfo Team, optional Controller ControllerInstigator) {
@@ -252,17 +272,17 @@ function JailOpened(UnrealTeamInfo Team, optional Controller ControllerInstigato
   for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
   InfoGame = JBReplicationInfoGame(Level.GRI);
   
+  for (thisObjective = Team.AI.Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
+      thisObjective.bDisabled = True;
+
+  firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
   for (iInfoPlayer = 0; iInfoPlayer < InfoGame.ListInfoPlayer.Length; iInfoPlayer++) {
     InfoPlayer = InfoGame.ListInfoPlayer[iInfoPlayer];
     if (InfoPlayer.GetJail() == Self &&
         InfoPlayer.GetPlayerReplicationInfo().Team == Team)
       InfoPlayer.JailOpened();
     }
-  
-  for (thisObjective = Team.AI.Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
-    if (thisObjective.Event == Tag &&
-        thisObjective.DefenderTeamIndex != Team.TeamIndex)
-      thisObjective.bDisabled = True;
 
 // ============================================================================
 // NotifyJailClosed
@@ -375,8 +395,11 @@ auto state Waiting {
 
     local Controller ControllerInstigator;
     local GameObjective firstObjective;
-    if (PawnInstigator.GetTeam() != None)
-      Release(PawnInstigator.GetTeam().TeamIndex, PawnInstigator.Controller);
+    local UnrealTeamInfo TeamInstigator;
+
+    TeamInstigator = UnrealTeamInfo(PawnInstigator.GetTeam());
+    if (TeamInstigator != None)
+      Release(TeamInstigator, PawnInstigator.Controller);
 
   // ================================================================
   // Timer
@@ -391,25 +414,28 @@ auto state Waiting {
     local int iTeam;
     local TeamInfo Team;
     
-    local Mover thisMover;
+    local UnrealTeamInfo Team;
       Team = TeamGame(Level.Game).Teams[iTeam];
-    for (iTeam = 0; iTeam < ArrayCount(ListInfoReleaseByTeam); iTeam++)
-      if (ListInfoReleaseByTeam[iTeam].bIsActive) {
+    for (iTeam = 0; iTeam < ArrayCount(ListInfoReleaseByTeam); iTeam++) {
+      if (!InfoReleaseByTeam[iTeam].bIsActive)
+        continue;
+      if (!ListInfoReleaseByTeam[iTeam].bIsActive ||
+           ListInfoReleaseByTeam[iTeam].bIsOpen == IsDoorOpen(Team))
+      if (InfoReleaseByTeam[iTeam].bIsOpening) {
+
+      if (ListInfoReleaseByTeam[iTeam].bIsOpen) {
         ListInfoReleaseByTeam[iTeam].bIsActive = False;
-
-        foreach DynamicActors(Class'Mover', thisMover, GetEventRelease(iTeam))
-          if (!IsMoverClosed(thisMover)) {
-            ListInfoReleaseByTeam[iTeam].bIsActive = True;
-            break;
-            }
-
-        if (!ListInfoReleaseByTeam[iTeam].bIsActive) {
-          ListInfoReleaseByTeam[iTeam].Time = 0.0;
-          ListInfoReleaseByTeam[iTeam].ControllerInstigator = None;
-
-          JailClosed(TeamGame(Level.Game).Teams[iTeam]);
-          }
+        ListInfoReleaseByTeam[iTeam].bIsOpen = False;
+        ListInfoReleaseByTeam[iTeam].Time = 0.0;
+        ListInfoReleaseByTeam[iTeam].ControllerInstigator = None;
+        JailClosed(Team);
+        }
+    
+      else {
+        ListInfoReleaseByTeam[iTeam].bIsOpen = True;
+        JailOpened(Team);
     }
+
 
   // ================================================================
   // EndState

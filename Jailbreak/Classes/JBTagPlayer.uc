@@ -1,7 +1,7 @@
 // ============================================================================
 // JBReplicationInfoPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBReplicationInfoPlayer.uc,v 1.4 2002/11/24 14:39:39 mychaeel Exp $
+// $Id: JBReplicationInfoPlayer.uc,v 1.5 2002/12/20 20:54:30 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -50,6 +50,11 @@ var private float TimeArenaRequest;    // time of the arena request
 
 var private JBInfoJail Jail;           // jail the player is currently in
 var private float TimeRelease;         // time of last release from jail
+
+var private float TimeObjectiveGuessed;          // time of last guess
+var private Pawn PawnObjectiveGuessed;           // pawn used at last guess
+var private GameObjective ObjectiveGuessed;      // last guessed objective
+var private array<float> ListDistanceObjective;  // distances to all objectives
 
 
 // ============================================================================
@@ -380,6 +385,75 @@ function SetArenaRequest(JBInfoArena NewArenaRequest) {
 
   ArenaRequest = NewArenaRequest;
   TimeArenaRequest = Level.TimeSeconds;
+  }
+
+
+// ============================================================================
+// GuessObjective
+//
+// Takes a guess which objective this player is currently attacking or
+// defending based on the players location and recent movement in relation to
+// the available objectives. All calls within a three-second interval will
+// yield the same result; then the function evaluates its guess again.
+// ============================================================================
+
+function GameObjective GuessObjective() {
+
+  local int iObjective;
+  local float Distance;
+  local float DistanceApproached;
+  local float DistanceApproachedMax;
+  local float DistanceClosest;
+  local float DistanceTravelledMax;
+  local GameObjective thisObjective;
+  local GameObjective ObjectiveApproachedMax;
+  local GameObjective ObjectiveClosest;
+
+  if (Controller(Owner).Pawn == None)
+    return None;
+
+  if (TimeObjectiveGuessed + 3.0 > Level.TimeSeconds &&
+      Controller(Owner).Pawn == PawnObjectiveGuessed)
+    return ObjectiveGuessed;
+  
+  if (Controller(Owner).Pawn != PawnObjectiveGuessed)
+    ListDistanceObjective.Length = 0;  // clear list after respawn
+  PawnObjectiveGuessed = Controller(Owner).Pawn;
+
+  for (thisObjective = UnrealTeamInfo(PlayerReplicationInfo.Team).AI.Objectives;
+       thisObjective != None;
+       thisObjective = thisObjective.NextObjective) {
+
+    Distance = Class'JBBotTeam'.Static.CalcDistance(Controller(Owner), thisObjective);
+    
+    if (ObjectiveClosest == None || Distance < DistanceClosest) {
+      ObjectiveClosest = thisObjective;
+      DistanceClosest = Distance;
+      }
+    
+    // assumes that number and order of objectives never change
+    
+    if (iObjective < ListDistanceObjective.Length) {
+      DistanceApproached = ListDistanceObjective[iObjective] - Distance;
+      if (ObjectiveApproachedMax == None || DistanceApproached > DistanceApproachedMax) {
+        ObjectiveApproachedMax = thisObjective;
+        DistanceApproachedMax = DistanceApproached;
+        }
+      }
+    
+    ListDistanceObjective[iObjective] = Distance;
+    iObjective++;
+    }
+  
+  DistanceTravelledMax = Controller(Owner).Pawn.GroundSpeed * (Level.TimeSeconds - TimeObjectiveGuessed);
+  
+  if (DistanceApproachedMax > DistanceTravelledMax * 0.3)
+    ObjectiveGuessed = ObjectiveApproachedMax;  // moving towards objective
+  else
+    ObjectiveGuessed = ObjectiveClosest;  // located in vicinity of objective
+  
+  TimeObjectiveGuessed = Level.TimeSeconds;
+  return ObjectiveGuessed;  
   }
 
 
