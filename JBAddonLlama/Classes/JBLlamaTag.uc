@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBLlamaTag.uc,v 1.1 2003/07/26 20:20:35 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -100,6 +100,40 @@ simulated function InitLlamaTag()
     //JBInterfaceHud(PlayerControllerLocal.myHud).RegisterOverlay(Self);
     HUDOverlay.SetLocalLlamaTag(Self);
   }
+  
+  // attach the llama head
+  AttachToPawn(Pawn(Owner));
+}
+
+
+//=============================================================================
+// AttachToPawn
+//
+// Hides the player's head and attaches a llama head instead.
+//=============================================================================
+
+function AttachToPawn(Pawn P)
+{
+  if ( ThirdPersonActor == None ) {
+    ThirdPersonActor = Spawn(AttachmentClass,Owner);
+    InventoryAttachment(ThirdPersonActor).InitFor(self);
+  }
+  P.AttachToBone(ThirdPersonActor, Pawn(Owner).HeadBone);
+  
+  ThirdPersonActor.SetRelativeRotation(rot(16384,16384,-18000));
+}
+
+
+//=============================================================================
+// DetachFromPawn
+//
+// Detaches the llama head and restores the original head.
+//=============================================================================
+
+function DetachFromPawn(Pawn P)
+{
+  Super.DetachFromPawn(P);
+  Pawn(Owner).SetHeadScale(P.default.HeadScale);
 }
 
 
@@ -126,6 +160,8 @@ simulated event Destroyed()
     LlamaArrow.LlamaDied();
   }
   
+  DetachFromPawn(Pawn(Owner));
+  
   Super.Destroyed();
 }
 
@@ -138,7 +174,8 @@ simulated event Destroyed()
 
 simulated function Tick(float DeltaTime)
 {
-  Pawn(Owner).SetHeadScale(2.0 + 1.0 * Cos(2.0 * Level.TimeSeconds));
+  //Pawn(Owner).SetHeadScale(2.0 + 1.0 * Cos(2.0 * Level.TimeSeconds));
+  Pawn(Owner).SetHeadScale(0.01);
   
   if ( Pawn(Owner).Controller != None && Pawn(Owner).Controller.Pawn != None
       && Trail != None && Trail.Owner != Pawn(Owner).Controller.Pawn )
@@ -154,4 +191,5 @@ defaultproperties
   bGameRelevant=True
   bAlwaysRelevant=True
   bOnlyRelevantToOwner=False
+  AttachmentClass=class'JBLlamaHeadAttachment'
 }

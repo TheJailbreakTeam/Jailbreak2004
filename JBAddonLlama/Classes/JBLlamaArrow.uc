@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaArrow
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaArrow.uc,v 1.1 2003/07/26 20:20:34 wormbo Exp $
+// $Id: JBLlamaArrow.uc,v 1.2 2003/07/26 23:24:50 wormbo Exp $
 //
 // A spinning arrow hovering above a llama's head.
 //=============================================================================
@@ -200,7 +200,7 @@ defaultproperties
   SlideInTime=1.0
   SlideOutTime=1.0
   SlideOutDistance=500
-  HoverBobTime=1.0
+  HoverBobTime=0.7
   HoverBobDistance=20.0
   
   DrawScale=0.5
