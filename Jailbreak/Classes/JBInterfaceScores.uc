@@ -1003,7 +1003,7 @@ simulated function TTableLayout CalcTableLayout(Canvas Canvas, TTable Table)
   Canvas.Font = FontObjectMain;  Canvas.TextSize("X", SizeText.X, SizeText.Y);  Layout.HeightEntry  = SizeText.Y;
   Canvas.Font = FontObjectInfo;  Canvas.TextSize("X", SizeText.X, SizeText.Y);  Layout.HeightEntry += SizeText.Y;
 
-  Layout.SpacingEntry = Layout.HeightEntry * 0.4;
+  Layout.SpacingEntry = Min(Layout.HeightEntry * 0.4, Canvas.ClipY * 0.7 / Table.nEntriesDisplayed - Layout.HeightEntry);
 
   Layout.WidthLineMain  = Canvas.ClipX * 0.003;
   Layout.WidthLineStats = Canvas.ClipX * 0.002;
