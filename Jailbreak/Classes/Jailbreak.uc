@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.62 2003/12/15 22:09:42 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.63 2003/12/28 20:31:59 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1174,8 +1174,8 @@ function ExecutionEnd() {
             thisController.PlayerReplicationInfo.bOnlySpectator)
           CameraExecution.DeactivateFor(thisController);
 
-    if (Teams[0].Score >= GoalScore ||
-        Teams[1].Score >= GoalScore)
+    if ((Teams[0].Score >= GoalScore ||
+         Teams[1].Score >= GoalScore) && GoalScore > 0)
       EndGame(None, "TeamScoreLimit");
     else if (bOverTime)
       EndGame(None, "TimeLimit");
