@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.12 2004/05/24 16:03:07 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.13 2004/05/25 12:36:09 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained and not
@@ -71,25 +71,18 @@ simulated event PostBeginPlay()
 
 
 // ============================================================================
-// Tick
+// RegisterLocal
 //
-// Registers the JBInteractionKeys interaction client-side.
+// Adds the JBInteractionKeys interaction client-side.
 // ============================================================================
 
-simulated event Tick(float TimeDelta)
+protected simulated function RegisterLocal()
 {
   local PlayerController PlayerControllerLocal;
 
-  if (Level.NetMode == NM_DedicatedServer) {
-    Disable('Tick');
-  }
-  else {
-    PlayerControllerLocal = Level.GetLocalPlayerController();
-    if (PlayerControllerLocal != None) {
-      PlayerControllerLocal.Player.InteractionMaster.AddInteraction("Jailbreak.JBInteractionKeys", PlayerControllerLocal.Player);
-      Disable('Tick');
-    }
-  }
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+  if (PlayerControllerLocal == Keeper)
+    PlayerControllerLocal.Player.InteractionMaster.AddInteraction("Jailbreak.JBInteractionKeys", PlayerControllerLocal.Player);
 }
 
 
@@ -376,5 +369,6 @@ function PlayerReplicationInfo GetPlayerReplicationInfo() {
 defaultproperties
 {
   RemoteRole = ROLE_SimulatedProxy;
+  bAlwaysRelevant = False;
   bOnlyRelevantToOwner = True;
 }
