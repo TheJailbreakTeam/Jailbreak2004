@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.1.1.1 2002/11/16 20:35:10 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.2 2002/11/17 11:57:28 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -15,10 +15,65 @@ class Jailbreak extends TeamGame
 // Variables
 // ============================================================================
 
-var private JBCamera CameraExecution;  // Camera for execution sequence
+var private JBCamera CameraExecution;  // camera for execution sequence
 
-var private float TimeExecution;       // Time when execution starts
-var private float TimeRestart;         // Time when next round starts
+var private float TimeExecution;       // time when execution starts
+var private float TimeRestart;         // time when next round starts
+
+
+// ============================================================================
+// Login
+//
+// Gives every player a JBReplicationInfoPlayer actor.
+// ============================================================================
+
+event PlayerController Login(string Portal, string Options, out string Error) {
+
+  local PlayerController PlayerLogin;
+  
+  PlayerLogin = Super.Login(Portal, Options, Error);
+  if (PlayerLogin != None)
+    Spawn(Class'JBReplicationInfoPlayer', PlayerLogin);
+  
+  return PlayerLogin;
+  }
+
+
+// ============================================================================
+// SpawnBot
+//
+// Gives every new bot a JBReplicationInfoPlayer actor.
+// ============================================================================
+
+function Bot SpawnBot(optional string NameBot) {
+
+  local Bot BotSpawned;
+  
+  BotSpawned = Super.SpawnBot(NameBot);
+  if (BotSpawned != None)
+    Spawn(Class'JBReplicationInfoPlayer', BotSpawned);
+  
+  return BotSpawned;
+  }
+
+
+// ============================================================================
+// Logout
+//
+// Destroys the JBReplicationInfoPlayer actor for the given player or bot if
+// one exists.
+// ============================================================================
+
+function Logout(Controller ControllerExiting) {
+
+  local JBReplicationInfoPlayer InfoPlayer;
+  
+  InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(ControllerExiting.PlayerReplicationInfo);
+  if (InfoPlayer != None)
+    InfoPlayer.Destroy();
+
+  Super.Logout(ControllerExiting);
+  }
 
 
 // ============================================================================
@@ -30,10 +85,17 @@ var private float TimeRestart;         // Time when next round starts
 
 function float RatePlayerStart(NavigationPoint NavigationPoint, byte Team, Controller Controller) {
 
+  local byte Restart;
   local JBInfoArena Arena;
   local JBReplicationInfoPlayer InfoPlayer;
+
+  if (Controller != None)
+    InfoPlayer = Class'JBReplicationInfoPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+
+  if (InfoPlayer != None)
+    Restart = int(InfoPlayer.GetRestart());  // cannot cast to byte
   
-  switch (int(InfoPlayer.GetRestart())) {
+  switch (Restart) {
     case 0:  // ERestart.Restart_Jail
       if (!ContainsActorJail(NavigationPoint))
         return -20000000;
