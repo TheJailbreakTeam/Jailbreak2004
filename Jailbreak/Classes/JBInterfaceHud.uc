@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInterfaceHud.uc,v 1.35.2.16 2004/07/25 15:18:17 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -891,7 +891,7 @@ simulated function SetDisplayAdrenaline(bool bDisplay)
 
 
 // ============================================================================
-// ShowTeamScorePassA
+// ShowTeamScore
 //
 // Draws team status and compass.
 // ============================================================================
@@ -909,15 +909,20 @@ simulated function ShowTeamScorePassA(Canvas Canvas)
     SetDisplayAdrenaline(True);
     Super.ShowTeamScorePassA(Canvas);
 
-    DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
-    DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
-    DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
-    DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
+    if (bShowPoints) {
+      DrawSpriteWidget(Canvas, SpriteWidgetCompass[0]);
+      DrawSpriteWidget(Canvas, SpriteWidgetCompass[1]);
+      DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[0]);
+      DrawSpriteWidget(Canvas, SpriteWidgetHandcuffs[1]);
+    }
 
     ShowArenaNotifier(Canvas);
-    ShowTactics(Canvas);
-    ShowCompass(Canvas);
-    ShowDisposition(Canvas);
+    
+    if (bShowPoints) {
+      ShowTactics(Canvas);
+      ShowCompass(Canvas);
+      ShowDisposition(Canvas);
+    }
   }
 
   // ShowBuild(Canvas);
