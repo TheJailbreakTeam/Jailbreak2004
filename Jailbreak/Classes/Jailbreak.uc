@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.58 2003/06/29 14:44:13 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.59 2003/07/15 09:59:06 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -221,10 +221,13 @@ function SetupWebScoreboard() {
 // PostBeginPlay
 //
 // Spawns JBTagTeam actors for both teams. Reads the add-on list for the web
-// admin interface. Sets up the Jailbreak Web Scoreboard.
+// admin interface. Sets up the Jailbreak Web Scoreboard. Calls InitAddon for
+// all already registered add-ons.
 // ============================================================================
 
 event PostBeginPlay() {
+
+  local Mutator thisMutator;
 
   Super.PostBeginPlay();
   
@@ -233,6 +236,10 @@ event PostBeginPlay() {
 
   ReadAddonsForWebAdmin();
   SetupWebScoreboard();
+
+  for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
+    if (JBAddon(thisMutator) != None)
+      JBAddon(thisMutator).InitAddon();
   }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.1 2003/06/25 19:01:45 mychaeel Exp $
+// $Id: JBAddon.uc,v 1.2 2003/07/15 09:05:59 mychaeel Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -42,12 +42,14 @@ function bool MutatorIsAllowed() {
 
 
 // ============================================================================
-// PostNetBeginPlay
+// InitAddon
 //
-// Sets the JBGameReplicationInfo reference both client- and server-side.
+// Called server- and client-side when the game type has finished its own
+// initialization. Sets the JBGameReplicationInfo reference and registers the
+// addon as an overlay actor if bIsOverlay is set.
 // ============================================================================
 
-simulated event PostNetBeginPlay() {
+simulated function InitAddon() {
 
   local PlayerController PlayerControllerLocal;
 
@@ -58,6 +60,20 @@ simulated event PostNetBeginPlay() {
   if (Level.Game != None)
          JBGameReplicationInfo = JBGameReplicationInfo(Level.Game.GameReplicationInfo);
     else JBGameReplicationInfo = JBGameReplicationInfo(PlayerControllerLocal.GameReplicationInfo);
+  }
+
+
+// ============================================================================
+// PostNetBeginPlay
+//
+// Calls the InitAddon function client-side. Server-side, InitAddon is called
+// by the game type PostBeginPlay event itself.
+// ============================================================================
+
+simulated event PostNetBeginPlay() {
+
+  if (Role < ROLE_Authority)
+    InitAddon();
   }
 
 
