@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDispositionPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDispositionPlayer.uc,v 1.6 2003/03/15 18:32:17 mychaeel Exp $
+// $Id: JBDispositionPlayer.uc,v 1.7 2003/06/15 21:31:33 mychaeel Exp $
 //
 // Encapsulates a single player icon on the heads-up display.
 // ============================================================================
@@ -151,8 +151,8 @@ function Draw(Canvas Canvas) {
   SizeIcon.X = Abs(SizeIconTexture.X) * Canvas.ClipX / 640.0 * ScaleIconTexture;
   SizeIcon.Y = Abs(SizeIconTexture.Y) * Canvas.ClipY / 480.0 * ScaleIconTexture;
 
-  LocationIcon.X = Canvas.ClipX * (Location.X * ScaleWidget + 0.5) - SizeIcon.X / 2.0;
-  LocationIcon.Y = Canvas.ClipY *  Location.Y * ScaleWidget        - SizeIcon.Y / 2.0;
+  LocationIcon.X = (Location.X * ScaleWidget + 0.5) - SizeIcon.X / 2.0 / Canvas.ClipX;
+  LocationIcon.Y =  Location.Y * ScaleWidget        - SizeIcon.Y / 2.0 / Canvas.ClipY;
 
   Canvas.Style = 5;  // ERenderStyle.STY_Alpha
   Canvas.DrawColor = SpriteWidgetPlayer.Tints[DispositionTeam.Team.TeamIndex];
