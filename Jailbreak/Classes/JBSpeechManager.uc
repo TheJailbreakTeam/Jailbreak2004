@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBSpeechManager.uc,v 1.2.2.4 2004/05/30 17:01:27 mychaeel Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -136,10 +136,7 @@ simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFall
 {
   local int iCharSeparator;
   local int iInfoVoicePack;
-  local string Package;
-  local string Group;
   
-log("LoadVoicePack"@VoicePackNew@bNoFallbackToDefault);
   if (InfoVoicePack.Package ~= VoicePackNew)
     return True;
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBTagPlayer.uc,v 1.43.2.7 2004/05/29 12:48:42 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -716,8 +716,6 @@ function NotifyJailLeft(JBInfoJail JailPrev)
 
 function NotifyJailOpening()
 {
-  local JBCamera Camera;
-
   if (Controller.Pawn != None &&
       Controller.Pawn.Health < Controller.Pawn.Default.Health)
     Controller.Pawn.Health = Controller.Pawn.Default.Health;

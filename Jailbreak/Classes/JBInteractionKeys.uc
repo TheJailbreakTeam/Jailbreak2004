@@ -171,17 +171,17 @@ event Initialized()
 function string GetAutoBoundKeys()
 {
   local int iBinding;
-  local string AutoBoundKeys;
+  local string Result;
 
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++)
     if (Bindings[iBinding].bIsBoundAuto)
-           AutoBoundKeys = AutoBoundKeys $ GetEnum(Enum'EInputKey', Bindings[iBinding].iKeyAuto) $ ",";
-      else AutoBoundKeys = AutoBoundKeys $ "None,";
+           Result = Result $ GetEnum(Enum'EInputKey', Bindings[iBinding].iKeyAuto) $ ",";
+      else Result = Result $ "None,";
 
-  if (Len(AutoBoundKeys) > 0)
-    AutoBoundKeys = Left(AutoBoundKeys, Len(AutoBoundKeys) - 1);
+  if (Len(Result) > 0)
+    Result = Left(Result, Len(Result) - 1);
 
-  return AutoBoundKeys;
+  return Result;
 }
 
 
