@@ -1,7 +1,7 @@
 // ============================================================================
 // JBPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBPanorama.uc,v 1.2 2003/06/30 20:59:00 mychaeel Exp $
+// $Id: JBPanorama.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Marks the viewpoint for the panoramic map overview in the scoreboard.
 // ============================================================================
@@ -328,6 +328,8 @@ defaultproperties
   TextSetup   = "enter SetupPanorama at the console"
   TextPreview = "preview only, assign TexturePanorama"
 
+  RemoteRole      = ROLE_SimulatedProxy;
+  bGameRelevant   = True;
   bDirectional    = True;
   bStatic         = False;
   bAlwaysRelevant = True;
