@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDecoSwitchBasket
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBDecoSwitchBasket.uc,v 1.2 2004/05/10 14:53:05 mychaeel Exp $
 //
 // Holder for emitter resembling a basket for the standard release switch.
 // ============================================================================
@@ -81,4 +81,6 @@ defaultproperties
   bBlockPlayers             = False;
   bCollideActors            = False;
   bCollideWorld             = False;
+
+  RemoteRole                = ROLE_None;
 }
