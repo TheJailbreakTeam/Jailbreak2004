@@ -1,7 +1,7 @@
 // ============================================================================
 // JBScreenMap
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBScreenMap.uc,v 1.1.1.1 2003/06/30 22:05:18 mychaeel Exp $
+// $Id: JBScreenMap.uc,v 1.2 2004/05/17 14:46:29 mychaeel Exp $
 //
 // Base class for client actors for a ScriptedTexture drawing player locations
 // on a minimap. 
@@ -190,10 +190,16 @@ simulated function vector CalcLocation(vector LocationWorld);
 simulated function bool IsIconDisplayed(JBTagPlayer TagPlayer) {
 
   local int iTeam;
+  local TeamInfo Team;
   
-  if (TagPlayer.GetHealth(True) <= 0) return False;
+  if (TagPlayer.GetHealth(True) <= 0)
+    return False;
   
-  iTeam = TagPlayer.GetTeam().TeamIndex;
+  Team = TagPlayer.GetTeam();
+  if (Team == None)
+    return False;
+  
+  iTeam = Team.TeamIndex;
   if (iTeam == 0 && !bShowTeamRed)  return False;
   if (iTeam == 1 && !bShowTeamBlue) return False;
 
