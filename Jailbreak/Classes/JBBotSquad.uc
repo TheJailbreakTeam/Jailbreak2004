@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.12 2003/05/31 17:06:05 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.13 2003/06/14 18:05:55 mychaeel Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -537,8 +537,7 @@ state Evasive {
   // ================================================================
   // BeginState
   //
-  // Puts this squad on freelance, and sets the aggressiveness of
-  // all bots in this squad to low.
+  // Puts this squad on freelance.
   // ================================================================
 
   event BeginState() {
@@ -550,10 +549,6 @@ state Evasive {
     bFreelanceDefend = False;
     
     SquadObjective = None;
-
-    if (CountEnemies() == 0)
-      for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
-        thisBot.Aggressiveness = -10.0;  // retreat instead of starting fight
     }
 
 
@@ -596,14 +591,8 @@ state Evasive {
               ListNavigationPointCover,
               ListNavigationPointChecked);
 
-    if (ListNavigationPointCover.Length == 0) {
-      if (Bot.Enemy.Controller != None &&
-          Bot.Enemy.Controller.CanSee(Bot.Pawn))
-        for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
-          thisBot.Aggressiveness = Bot.BaseAggressiveness;
-
+    if (ListNavigationPointCover.Length == 0)
       return Super.CheckSquadObjectives(Bot);
-      }
   
     for (iNavigationPoint = 0; iNavigationPoint < ListNavigationPointCover.Length; iNavigationPoint++) {
       NavigationPointCurrent = ListNavigationPointCover[iNavigationPoint];
@@ -707,44 +696,6 @@ state Evasive {
   function bool MustKeepEnemy(Pawn PawnEnemy) {
 
     return False;
-    }
-
-
-  // ================================================================
-  // LostEnemy
-  //
-  // If this squad is not aware of any enemies anymore, reset its
-  // aggressiveness to a very low value.
-  // ================================================================
-
-  function bool LostEnemy(Bot Bot) {
-  
-    local bool bResult;
-    local Bot thisBot;
-    
-    bResult = Super.LostEnemy(Bot);
-    
-    if (CountEnemies() == 0)
-      for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
-        thisBot.Aggressiveness = -10.0;
-
-    return bResult;
-    }
-
-
-  // ================================================================
-  // EndState
-  //
-  // Resets the aggressiveness of all bots in this squad. The squad
-  // remains on freelance.
-  // ================================================================
-
-  event EndState() {
-
-    local Bot thisBot;
-    
-    for (thisBot = SquadMembers; thisBot != None; thisBot = thisBot.NextSquadMember)
-      thisBot.Aggressiveness = thisBot.BaseAggressiveness;  
     }
 
   } // state Evasive
