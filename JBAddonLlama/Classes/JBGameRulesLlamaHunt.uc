@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.4 2003/07/29 19:06:54 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.6 2004/05/11 10:53:11 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -224,12 +224,12 @@ protected function LlamaSuicided(Controller Killed)
 // Makes sure Llamas aren't allowed to fight for their freedom in the arena.
 //=============================================================================
 
-function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena)
+function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena, out byte bForceSendToArena)
 {
   if ( TagPlayer.GetPawn() != None && TagPlayer.GetPawn().FindInventoryType(class'JBLlamaTag') != None )
     return false;
   else
-    return Super.CanSendToArena(TagPlayer, Arena);
+    return Super.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
 }
 
 
