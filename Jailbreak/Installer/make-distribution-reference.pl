@@ -5,7 +5,7 @@
 #  make-distribution-reference.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id$
+#  $Id: make-distribution-reference.pl,v 1.1 2004/05/31 23:19:17 mychaeel Exp $
 #
 #  Creates a reference text file reporting on the file versions contained in a
 #  zip installer. Used later to create a delta installer.
