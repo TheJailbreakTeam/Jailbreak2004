@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.1 2003/06/27 11:14:32 crokx Exp $
+// $Id: JBGameRulesProtection.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
 //
 // The rules for the protection mutator.
 // ============================================================================
@@ -12,7 +12,7 @@ class JBGameRulesProtection extends JBGameRules;
 // Variables
 // ============================================================================
 var JBAddonProtection MyAddon;
-var private JBInfoProtection MyProtection;
+//var private JBInfoProtection MyProtection;
 var private Shader RedHitEffect, BlueHitEffect;
 var private sound ProtectionHitSound;
 
@@ -24,9 +24,9 @@ var private sound ProtectionHitSound;
 // ============================================================================
 function NotifyPlayerJailed(JBTagPlayer NewJailedPlayer)
 {
-    if(NewJailedPlayer.GetPlayerReplicationInfo().PlayerID == MyAddon.LastRestartedPlayerID)
+    if(NewJailedPlayer.GetPlayerReplicationInfo() == MyAddon.LastRestartedPRI)
     {
-        MyAddon.LastRestartedPlayerID = -1;
+        MyAddon.LastRestartedPRI = None;
 
         if(NewJailedPlayer.GetJail().IsReleaseActive(NewJailedPlayer.GetTeam()))
             GiveProtectionTo(NewJailedPlayer, TRUE);
@@ -63,6 +63,8 @@ function NotifyJailOpening(JBInfoJail Jail)
 // ============================================================================
 function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
 {
+    local JBInfoProtection MyProtection;
+
     MyProtection = GetMyProtection(TagPlayer.GetPlayerReplicationInfo());
     if(MyProtection != None) MyProtection.StartProtectionLife();
 
@@ -78,6 +80,7 @@ function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
 function NotifyJailClosed(JBInfoJail Jail)
 {
     local JBTagPlayer ReJailedPlayer;
+    local JBInfoProtection MyProtection;
 
     for(ReJailedPlayer=GetFirstTagPlayer(); ReJailedPlayer!=None; ReJailedPlayer=ReJailedPlayer.NextTag)
     {
@@ -100,6 +103,8 @@ function NotifyJailClosed(JBInfoJail Jail)
 // ============================================================================
 function NotifyExecutionCommit(TeamInfo Team)
 {
+    local JBInfoProtection MyProtection;
+
     foreach DynamicActors(class'JBInfoProtection', MyProtection)
         if(MyProtection != None)
             MyProtection.Destroy();
@@ -116,6 +121,7 @@ function NotifyExecutionCommit(TeamInfo Team)
 function NotifyArenaStart(JBInfoArena Arena)
 {
     local JBTagPlayer Fighter;
+    local JBInfoProtection MyProtection;
 
     for(Fighter=GetFirstTagPlayer(); Fighter!=None; Fighter=Fighter.NextTag)
     {
@@ -151,16 +157,15 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 // ============================================================================
 function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
 {
-    if((TagPlayer.GetController() != None) // for make sure no GetPawn() here
-    && (TagPlayer.GetController().Pawn != None)
-    && (TagPlayer.GetController().Pawn.ReducedDamageType == None))
+    local JBInfoProtection MyProtection;
+    local Pawn P;
+
+    P = TagPlayer.GetController().Pawn; // for make sure no GetPawn() here
+    if((P != None) && (P.Health > 0) && (P.ReducedDamageType == None))
     {
-        MyProtection = Spawn(class'JBInfoProtection', TagPlayer.GetController().Pawn);
-        if(MyProtection != None)
-        {
-            MyProtection.RelatedID = TagPlayer.GetPlayerReplicationInfo().PlayerID;
-            if(bProtectNow) MyProtection.StartProtectionLife();
-        }
+        MyProtection = Spawn(class'JBInfoProtection', P);
+        if((MyProtection != None) && (bProtectNow))
+            MyProtection.StartProtectionLife();
     }
 }
 
@@ -174,14 +179,16 @@ function HitShieldEffect(Pawn ProtectedPawn)
 {
     local xPawn xProtectedPawn;
 
-    if(ProtectedPawn.IsA('xPawn') == FALSE) return;
-
     xProtectedPawn = xPawn(ProtectedPawn);
-    xProtectedPawn.PlaySound(ProtectionHitSound, SLOT_Pain, TransientSoundVolume*2,, 400);
+    if(xProtectedPawn != None)
+    {
+        xProtectedPawn.PlaySound(ProtectionHitSound, SLOT_Pain, TransientSoundVolume*2,, 400);
 
-    if(xProtectedPawn.PlayerReplicationInfo.Team.TeamIndex == 0)
-        xProtectedPawn.SetOverlayMaterial(RedHitEffect, xProtectedPawn.ShieldHitMatTime, FALSE);
-    else xProtectedPawn.SetOverlayMaterial(BlueHitEffect, xProtectedPawn.ShieldHitMatTime, FALSE);
+        if(xProtectedPawn.PlayerReplicationInfo.Team.TeamIndex == 0)
+            xProtectedPawn.SetOverlayMaterial(RedHitEffect, xProtectedPawn.ShieldHitMatTime, FALSE);
+        else
+            xProtectedPawn.SetOverlayMaterial(BlueHitEffect, xProtectedPawn.ShieldHitMatTime, FALSE);
+    }
 }
 
 
@@ -192,6 +199,8 @@ function HitShieldEffect(Pawn ProtectedPawn)
 // ============================================================================
 function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn InstigatedBy, vector HitLocation, out vector Momentum, class<DamageType> DamageType)
 {
+    local JBInfoProtection MyProtection;
+
     if(Injured.ReducedDamageType == class'JBDamageTypeNone')
     {
         HitShieldEffect(Injured);
@@ -228,12 +237,11 @@ final function JBTagPlayer GetFirstTagPlayer() {
 
 final function JBInfoProtection GetMyProtection(PlayerReplicationInfo PRI)
 {
+    local JBInfoProtection MyProtection;
+
     foreach DynamicActors(class'JBInfoProtection', MyProtection)
-    {
-        if((MyProtection != None)
-        && (MyProtection.RelatedID == PRI.PlayerID))
+        if((MyProtection != None) && (MyProtection.RelatedPRI == PRI))
             return MyProtection;
-    }
 
     return None;
 }

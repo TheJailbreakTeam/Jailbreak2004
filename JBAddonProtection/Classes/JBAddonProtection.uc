@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.1 2003/06/27 11:14:32 crokx Exp $
+// $Id: JBAddonProtection.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
 //
 // This mutator protect the released players.
 // ============================================================================
@@ -15,7 +15,10 @@ var() const editconst string Build;
 var() config byte ProtectionType;
 var() config bool bProtectArenaWinner;
 var() config float ProtectionTime;
-var int LastRestartedPlayerID;
+var PlayerReplicationInfo LastRestartedPRI;
+var localized string desc_ProtectionType;
+var localized string desc_ProtectionTime;
+var localized string desc_ProtectArenaWinner;
 
 
 // ============================================================================
@@ -39,7 +42,7 @@ function PostBeginPlay()
     }
     else
     {
-        LOG("!!!!!"@name$".PostBeginPlay() : Fail to registre the JBGameRulesProtection !!!!!");
+        LOG("!!!!!"@name$".PostBeginPlay() : Fail to spawn JBGameRulesProtection !!!!!");
         Destroy();
     }
 }
@@ -48,29 +51,28 @@ function PostBeginPlay()
 // ============================================================================
 // ModifyPlayer
 //
-// When a player restart, save his PlayerID.
+// When a player restart, save his PRI.
 // ============================================================================
 function ModifyPlayer(Pawn P)
 {
-    if(P.PlayerReplicationInfo != None)
-        LastRestartedPlayerID = P.PlayerReplicationInfo.PlayerID;
+    LastRestartedPRI = P.PlayerReplicationInfo;
 
     Super.ModifyPlayer(P);
 }
 
 
 // ============================================================================
-// MutatorFillPlayInfo
+// FillPlayInfo
 //
-// ?????
+// Adds configurable addon properties to the web admin interface.
 // ============================================================================
-function MutatorFillPlayInfo(PlayInfo PlayInfo)
+static function FillPlayInfo(PlayInfo PlayInfo)
 {
-    PlayInfo.AddClass(class);
-    PlayInfo.AddSetting("Release protection", "bProtectArenaWinner", "When enabled, the arena winner gain protection.", 0, 0, "Check");
+    PlayInfo.AddClass(default.class);
+    PlayInfo.AddSetting(default.FriendlyName, "ProtectionType", default.desc_ProtectionType, 0, 0, "Text", "3;0:2");
+    PlayInfo.AddSetting(default.FriendlyName, "ProtectionTime", default.desc_ProtectionTime, 0, 0, "Text", "3;1:10");
+    PlayInfo.AddSetting(default.FriendlyName, "bProtectArenaWinner", default.desc_ProtectArenaWinner , 0, 0, "Check");
     PlayInfo.PopClass();
-
-    Super.MutatorFillPlayInfo(PlayInfo);
 }
 
 
@@ -86,4 +88,7 @@ defaultproperties
     FriendlyName="Release protection"
     Description="The released players are protected some time."
     ConfigMenuClassName="JBAddonProtection.JBGUIPanelProtectionConfig"
+    desc_ProtectionTime="The protection delay."
+    desc_ProtectionType="The protection type."
+    desc_ProtectArenaWinner="When enabled, the arena winner gain protection."
 }

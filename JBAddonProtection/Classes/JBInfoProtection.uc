@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBInfoProtection.uc,v 1.1 2003/06/27 11:14:32 crokx Exp $
+// $Id: JBInfoProtection.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -12,7 +12,7 @@ class JBInfoProtection extends Info;
 // Variables
 // ============================================================================
 var JBxEmitterProtectionRed ProtectionEffect;
-var int RelatedID;
+var PlayerReplicationInfo RelatedPRI;
 var private Pawn ProtectedPawn;
 var private float EndProtectionTime;
 var private float ProtectionCharge;
@@ -24,43 +24,35 @@ var private HUDBase.SpriteWidget ProtectionTrim;
 
 
 // ============================================================================
-// PreBeginPlay
-//
-// Save the pawn owner to ProtectedPawn.
-// ============================================================================
-function PreBeginPlay()
-{
-    ProtectedPawn = Pawn(Owner);
-    if(ProtectedPawn == None)
-    {
-        LOG("!!!!!"@name$".PreBeginPlay() : ProtectedPawn not found !!!!!");
-        Destroy();
-    }
-
-    Super.PreBeginPlay();
-}
-
-
-// ============================================================================
 // PostBeginPlay
 //
 // Protect the ProtectedPawn.
 // ============================================================================
 function PostBeginPlay()
 {
+    ProtectedPawn = Pawn(Owner);
+    if(ProtectedPawn == None)
+    {
+        LOG("!!!!!"@name$".PostBeginPlay() : ProtectedPawn not found !!!!!");
+        Destroy();
+        return;
+    }
+
+    RelatedPRI = ProtectedPawn.PlayerReplicationInfo;
+
     Super.PostBeginPlay();
 
     ProtectedPawn.ReducedDamageType = class'JBDamageTypeNone';
 
-    if(ProtectedPawn.PlayerReplicationInfo.Team.TeamIndex == 0)
+    if(RelatedPRI.Team.TeamIndex == 0)
         ProtectionEffect = Spawn(class'JBxEmitterProtectionRed', ProtectedPawn,, ProtectedPawn.Location);
-    else ProtectionEffect = Spawn(class'JBxEmitterProtectionBlue', ProtectedPawn,, ProtectedPawn.Location);
-    if(ProtectionEffect != None) ProtectionEffect.SetBase(ProtectedPawn);
+    else
+        ProtectionEffect = Spawn(class'JBxEmitterProtectionBlue', ProtectedPawn,, ProtectedPawn.Location);
 
     if((ProtectedPawn.Controller != None)
-    && (ProtectedPawn.Controller.IsA('PlayerController'))
+    && (PlayerController(ProtectedPawn.Controller) != None)
     && (PlayerController(ProtectedPawn.Controller).myHUD != None)
-    && (PlayerController(ProtectedPawn.Controller).myHUD.IsA('JBInterfaceHud')))
+    && (JBInterfaceHud(PlayerController(ProtectedPawn.Controller).myHUD) != None))
     {
         LocalHUD = JBInterfaceHud(PlayerController(ProtectedPawn.Controller).myHUD);
         LocalHUD.RegisterOverlay(SELF);
@@ -75,9 +67,14 @@ function PostBeginPlay()
 // ============================================================================
 function Tick(float DeltaTime)
 {
-    if(EndProtectionTime == 0) return;
+    if(EndProtectionTime == 0)
+        return;
+
     ProtectionCharge = (EndProtectionTime - Level.TimeSeconds);
-    if(ProtectionCharge < 0) Destroy();
+
+    if((ProtectionCharge < 0)
+    || (ProtectedPawn.HasUDamage()))
+        Destroy();
 }
 
 
@@ -104,8 +101,10 @@ function RenderOverlays(Canvas C)
     || (LocalHUD.bShowLocalStats))
         return;
 
-    if(EndProtectionTime == 0) ProtectionFill.Scale = 1.0;
-    else ProtectionFill.Scale = (ProtectionCharge / class'JBAddonProtection'.default.ProtectionTime);
+    if(EndProtectionTime == 0)
+        ProtectionFill.Scale = 1.0;
+    else
+        ProtectionFill.Scale = (ProtectionCharge / class'JBAddonProtection'.default.ProtectionTime);
 
     LocalHUD.DrawSpriteWidget(C, ProtectionFill);
     LocalHUD.DrawSpriteWidget(C, ProtectionTint);
@@ -120,9 +119,15 @@ function RenderOverlays(Canvas C)
 // ============================================================================
 function Destroyed()
 {
-    if(ProtectedPawn != None) ProtectedPawn.ReducedDamageType = None;
-    if(ProtectionEffect != None) ProtectionEffect.Destroy();
-    if(LocalHUD != None) LocalHUD.UnregisterOverlay(SELF);
+    if(ProtectedPawn != None)
+        ProtectedPawn.ReducedDamageType = None;
+
+    if(ProtectionEffect != None)
+    //    ProtectionEffect.Destroy();
+        ProtectionEffect.mRegen = FALSE;
+
+    if(LocalHUD != None)
+        LocalHUD.UnregisterOverlay(SELF);
 
     Super.Destroyed();
 }
