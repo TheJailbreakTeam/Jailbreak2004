@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBInterfaceScores.uc,v 1.3 2003/05/31 17:06:05 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -669,18 +669,13 @@ simulated function UpdateListEntry() {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
-  for (iEntry = ListEntry.Length - 1; iEntry >= 0; iEntry--)
-    if (ListEntry[iEntry].AlphaPosition == 1.0 &&
-        ListEntry[iEntry].PositionCurrent.bOutside &&
-       !ListEntry[iEntry].PositionPending.bIsSet)
-      ListEntry.Remove(iEntry, 1);
-
   firstTagPlayer = JBGameReplicationInfo(GRI).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     thisTagPlayer.bIsInScoreboard = False;
 
   for (iEntry = 0; iEntry < ListEntry.Length; iEntry++) {
-    ListEntry[iEntry].TagPlayer.bIsInScoreboard = True;
+    if (ListEntry[iEntry].TagPlayer != None)
+      ListEntry[iEntry].TagPlayer.bIsInScoreboard = True;
     
     if (!UpdateEntry(ListEntry[iEntry]))
       SetEntryPosition(
@@ -701,6 +696,12 @@ simulated function UpdateListEntry() {
       UpdateEntry(ListEntry[iEntryNew]);
       }
 
+  for (iEntry = ListEntry.Length - 1; iEntry >= 0; iEntry--)
+    if (ListEntry[iEntry].AlphaPosition == 1.0   &&
+        ListEntry[iEntry].PositionCurrent.bIsSet &&
+        ListEntry[iEntry].PositionCurrent.bOutside)
+      ListEntry.Remove(iEntry, 1);
+
   SortListEntry(0, ListEntry.Length - 1);
 
   for (iTable = 0; iTable < ArrayCount(Table); iTable++)
@@ -710,6 +711,10 @@ simulated function UpdateListEntry() {
   ScorePartialMax = 0;
 
   for (iEntry = 0; iEntry < ListEntry.Length; iEntry++) {
+    if (ListEntry[iEntry].PositionCurrent.bIsSet &&
+        ListEntry[iEntry].PositionCurrent.bOutside)
+      continue;
+  
     if (ListEntry[iEntry].bIsLocal)
       iEntryOwner = iEntry;
 
