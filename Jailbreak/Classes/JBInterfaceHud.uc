@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.35.2.10 2004/05/17 22:46:28 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.35.2.11 2004/05/17 23:06:35 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -313,7 +313,7 @@ simulated function LinkActors()
 simulated function CheckLastMan()
 {
   local int nPlayersFree;
-  local int nPlayersCaptured;
+  local int nPlayersJailed;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   
@@ -330,12 +330,12 @@ simulated function CheckLastMan()
   
     firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetTeam() == PawnOwner.PlayerReplicationInfo.Team)
-        if (thisTagPlayer.IsFree())
-               nPlayersFree     += 1;
-          else nPlayersCaptured += 1;
+      if (thisTagPlayer.GetTeam() == PawnOwner.PlayerReplicationInfo.Team) {
+             if (thisTagPlayer.IsFree())   nPlayersFree   += 1;
+        else if (thisTagPlayer.IsInJail()) nPlayersJailed += 1;
+      }
 
-    if (nPlayersFree == 1 && nPlayersCaptured > 0) {
+    if (nPlayersFree == 1 && nPlayersJailed > 0) {
       if (!bIsLastMan)
              PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 600);
         else PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 610);
