@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.3 2004/03/06 17:57:37 mychaeel Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -117,6 +117,9 @@ function ReadListInfoAddon()
     if (ClassAddon.Default.ConfigMenuClassName != "")
       ListInfoAddon[iInfoAddon].ClassGUIPanelConfig =
         Class<GUIPanel>(DynamicLoadObject(ClassAddon.Default.ConfigMenuClassName, Class'Class', True));
+    else
+      ListInfoAddon[iInfoAddon].ClassGUIPanelConfig = class'JBGUIAddonDefaultConfigPanel';
+    // else load default panel (tarq)
   }
 }
 
@@ -185,8 +188,8 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
     ListInfoAddon[iInfoAddon].GUIPanelConfig = GUIPanelConfig;
 
     GUIPanelConfig.bBoundToParent = True;
-	GUIPanelConfig.bScaleToParent = True;
-	GUIPanelConfig.Background = None;
+  GUIPanelConfig.bScaleToParent = True;
+  GUIPanelConfig.Background = None;
 
     GUIPanelConfig.WinTop    = GUIPanelConfigTemplate.WinTop;
     GUIPanelConfig.WinLeft   = GUIPanelConfigTemplate.WinLeft;
