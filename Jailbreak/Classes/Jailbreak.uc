@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.67 2004/03/09 01:29:47 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.68 2004/04/04 00:41:42 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -692,6 +692,10 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
   else if (SameTeam(ControllerKiller, ControllerVictim))
     ScorePlayer(ControllerKiller, 'Teamkill');
 
+  else if (TagPlayerVictim != None &&
+           TagPlayerVictim.IsInArena())
+    ScorePlayer(ControllerKiller, 'ArenaAttack');
+
   else {
     DistanceReleaseMin = -1.0;
 
@@ -704,9 +708,8 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
     }
 
     if (DistanceRelease < 1024.0)
-      ScorePlayer(ControllerKiller, 'Defense');
-    else
-      ScorePlayer(ControllerKiller, 'Attack');
+           ScorePlayer(ControllerKiller, 'Defense');
+      else ScorePlayer(ControllerKiller, 'Attack');
 
     ControllerKiller.PlayerReplicationInfo.Kills  += 1;
     ControllerVictim.PlayerReplicationInfo.Deaths += 1;
@@ -772,17 +775,19 @@ function ScorePlayer(Controller Controller, name Event)
     return;
 
   switch (Event) {
-    case 'Suicide':   ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
-    case 'Teamkill':  ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
-    case 'Attack':    ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialAttack  += 1;  break;
-    case 'Defense':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  TagPlayer.ScorePartialDefense += 1;  break;
-    case 'Release':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialRelease += 1;  break;
-    case 'Capture':   ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
+    case 'Suicide':       ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
+    case 'Teamkill':      ScoreObjective(Controller.PlayerReplicationInfo, -1);  break;
+    case 'Attack':        ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialAttack  += 1;  break;
+    case 'Defense':       ScoreObjective(Controller.PlayerReplicationInfo, +2);  TagPlayer.ScorePartialDefense += 1;  break;
+    case 'Release':       ScoreObjective(Controller.PlayerReplicationInfo, +1);  TagPlayer.ScorePartialRelease += 1;  break;
+    case 'Capture':       ScoreObjective(Controller.PlayerReplicationInfo, +1);  break;
+    case 'ArenaAttack':   ScoreObjective(Controller.PlayerReplicationInfo, +2);  break;
   }
 
   switch (Event) {
-    case 'Defense':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
-    case 'Release':   Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'Defense':       Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'Release':       Controller.AwardAdrenaline(ADR_MinorBonus);  break;
+    case 'ArenaVictory':  Controller.AwardAdrenaline(ADR_MinorBonus);  break;
   }
 }
 
@@ -818,9 +823,8 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
 
     if (ControllerKiller == None ||
         ControllerKiller == ControllerVictim)
-      SwitchMessage = 1;  // suicide
-    else
-      SwitchMessage = 0;  // homicide
+           SwitchMessage = 1;  // suicide
+      else SwitchMessage = 0;  // homicide
 
     firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -1474,8 +1478,8 @@ defaultproperties
   TextHintJailbreak[13] = "You can see what your human teammates are up to on the Jailbreak scoreboard: It shows whether they are attacking, defending or roaming the map."
   TextHintJailbreak[14] = "The red, yellow and green bars next to each player name in the Jailbreak scoreboard show that player's attack kills, defense kills and released teammates."
   TextHintJailbreak[15] = "The markers on the clock in the upper right corner of the Jailbreak scoreboard indicate team captures."
-  TextHintJailbreak[16] = "Don't try to cheat by reconnecting to the server while you're in jail! The game will make you a llama (quite literally) and give other players bonus points for killing you."
-  TextHintJailbreak[17] = "Don't attack protected players who were just released from jail. You may get llamaized for it!"
+  TextHintJailbreak[16] = "Don't try to cheat by reconnecting to the server while you're in jail! The game will turn you into a llama (quite literally) and give other players bonus points for hunting you down."
+  TextHintJailbreak[17] = "Don't attack protected players who were just released from jail. You might get llamaized for it!"
 
   TextDescriptionEnableJailFights = "Allows jail inmates to fight each other with their Shield Guns for fun."
   TextWebAdminEnableJailFights    = "Allow Jail Fights";
@@ -1487,6 +1491,7 @@ defaultproperties
   Addons = "JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
   bEnableJailFights        = True;
   bEnableSpectatorDeathCam = True;
+  GoalScore                = 5;
 
   Acronym                  = "JB";
   MapPrefix                = "JB";
