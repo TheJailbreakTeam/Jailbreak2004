@@ -1,25 +1,25 @@
 //=============================================================================
-// JBGUIIntEdit
+// JBGUIEditFloat
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGUIEditFloat.uc,v 1.1 2004/03/09 15:39:12 wormbo Exp $
 //
-// User interface component: Combines a JBGUIComponentEditBox with a label and allowes
-// integer values in the specified range.
+// User interface component: Combines a JBGUIComponentEdit with a label and allowes
+// float values in the specified range.
 //=============================================================================
 
 
-class JBGUIIntEdit extends GUIMenuOption;
+class JBGUIEditFloat extends GUIMenuOption;
 
 
 //=============================================================================
 // Variables
 //=============================================================================
 
-var JBGUIComponentEditBox MyEditBox;
+var JBGUIComponentEdit MyEditBox;
 
 var(Menu) bool bReadOnly;
-var(Menu) int MinValue;
-var(Menu) int MaxValue;
+var(Menu) float MinValue;
+var(Menu) float MaxValue;
 var(Menu) bool bPositiveOnly;
 var(Menu) bool bSpinButtons;
 
@@ -34,8 +34,8 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
   Super.InitComponent(MyController, MyOwner);
   
-  MyEditBox = JBGUIComponentEditBox(MyComponent);
-  MyEditBox.SetIntEdit(MinValue >= 0 && MaxValue >= 0);
+  MyEditBox = JBGUIComponentEdit(MyComponent);
+  MyEditBox.SetFloatEdit(MinValue >= 0 && MaxValue >= 0);
   MyEditBox.SetNumericRange(MinValue, MaxValue);
   MyEditBox.SetSpinButtons(bSpinButtons);
   MyEditBox.SetReadOnly(bReadOnly);
@@ -70,9 +70,9 @@ delegate OnEnterPressed(GUIComponent Sender);
 // Returns the editbox' value.
 //=============================================================================
 
-function int GetValue()
+function float GetValue()
 {
-  return MyEditBox.GetIntValue();
+  return MyEditBox.GetFloatValue();
 }
 
 
@@ -82,7 +82,7 @@ function int GetValue()
 // Sets the editbox' value.
 //=============================================================================
 
-function SetValue(int NewValue)
+function SetValue(float NewValue)
 {
   MyEditBox.SetValue(NewValue);
 }
@@ -106,7 +106,7 @@ function ReadOnly(bool b)
 // Change the editbox' numeric range.
 //=============================================================================
 
-function NumericRange(int Min, int Max)
+function NumericRange(float Min, float Max)
 {
   MinValue = Min;
   MaxValue = Max;
@@ -127,7 +127,7 @@ function NumericRange(int Min, int Max)
 function PositiveOnly(bool b)
 {
   bPositiveOnly = b;
-  MyEditBox.SetIntEdit(b);
+  MyEditBox.SetFloatEdit(b);
   if ( bPositiveOnly && MinValue != MaxValue )
     NumericRange(Max(MinValue, 0), Max(MaxValue, 0));
 }
@@ -152,7 +152,7 @@ function SpinButtons(bool b)
 
 defaultproperties
 {
-  ComponentClassName="Jailbreak.JBGUIComponentEditBox"
+  ComponentClassName="Jailbreak.JBGUIComponentEdit"
   bSpinButtons=True
   bHeightFromComponent=False
 }

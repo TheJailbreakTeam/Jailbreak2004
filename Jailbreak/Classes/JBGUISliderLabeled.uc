@@ -1,13 +1,13 @@
 //=============================================================================
-// JBGUILabeledSlider
+// JBGUISliderLabeled
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGUISliderLabeled.uc,v 1.1 2004/03/09 15:39:13 wormbo Exp $
 //
 // User interface component: A slider with labels for caption and value.
 //=============================================================================
 
 
-class JBGUILabeledSlider extends GUIMultiComponent;
+class JBGUISliderLabeled extends GUIMultiComponent;
 
 
 //=============================================================================
@@ -204,7 +204,7 @@ function InternalOnValueChanged(JBGUIComponentSlider Sender)
 // Returns the displayed value.
 //=============================================================================
 
-delegate string OnDrawCaption(JBGUILabeledSlider Sender)
+delegate string OnDrawCaption(JBGUISliderLabeled Sender)
 {
   if ( bVerticalLayout ) {
     if ( bIntegerOnly )

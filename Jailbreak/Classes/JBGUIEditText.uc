@@ -1,27 +1,26 @@
 //=============================================================================
-// JBGUIFloatEdit
+// JBGUIEditText
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGUIEditText.uc,v 1.1 2004/03/09 15:39:14 wormbo Exp $
 //
-// User interface component: Combines a JBGUIComponentEditBox with a label and allowes
-// float values in the specified range.
+// User interface component: Combines a JBGUIComponentEdit with a label and allowes
+// any type of text input.
 //=============================================================================
 
 
-class JBGUIFloatEdit extends GUIMenuOption;
+class JBGUIEditText extends GUIMenuOption;
 
 
 //=============================================================================
 // Variables
 //=============================================================================
 
-var JBGUIComponentEditBox MyEditBox;
+var JBGUIComponentEdit MyEditBox;
 
 var(Menu) bool bReadOnly;
-var(Menu) float MinValue;
-var(Menu) float MaxValue;
-var(Menu) bool bPositiveOnly;
-var(Menu) bool bSpinButtons;
+var(Menu) bool bMasked;
+var(Menu) bool bConvertIllegalChars;
+var(Menu) string AllowedCharSet;
 
 
 //=============================================================================
@@ -34,11 +33,10 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
   Super.InitComponent(MyController, MyOwner);
   
-  MyEditBox = JBGUIComponentEditBox(MyComponent);
-  MyEditBox.SetFloatEdit(MinValue >= 0 && MaxValue >= 0);
-  MyEditBox.SetNumericRange(MinValue, MaxValue);
-  MyEditBox.SetSpinButtons(bSpinButtons);
-  MyEditBox.SetReadOnly(bReadOnly);
+  MyEditBox = JBGUIComponentEdit(MyComponent);
+  ReadOnly(bReadOnly);
+  MaskText(bMasked);
+  SetAllowedCharSet(AllowedCharSet, bConvertIllegalChars);
   MyEditBox.OnEnterPressed = InternalOnEnterPressed;
 }
 
@@ -65,26 +63,26 @@ delegate OnEnterPressed(GUIComponent Sender);
 
 
 //=============================================================================
-// GetValue
+// GetText
 //
 // Returns the editbox' value.
 //=============================================================================
 
-function float GetValue()
+function string GetText()
 {
-  return MyEditBox.GetFloatValue();
+  return MyEditBox.GetValue();
 }
 
 
 //=============================================================================
-// SetValue
+// SetText
 //
 // Sets the editbox' value.
 //=============================================================================
 
-function SetValue(float NewValue)
+function SetText(string NewText)
 {
-  MyEditBox.SetValue(NewValue);
+  MyEditBox.SetValue(NewText);
 }
 
 
@@ -96,53 +94,39 @@ function SetValue(float NewValue)
 
 function ReadOnly(bool b)
 {
+  bReadOnly = b;
   MyEditBox.SetReadOnly(b);
 }
 
 
 //=============================================================================
-// NumericRange
+// MaskText
 //
-// Change the editbox' numeric range.
+// Change the editbox' mask char.
 //=============================================================================
 
-function NumericRange(float Min, float Max)
+function MaskText(bool b)
 {
-  MinValue = Min;
-  MaxValue = Max;
-  MyEditBox.SetNumericRange(Min, Max);
-  if ( Min != Max ) {
-    bPositiveOnly = Min >= 0 && Max >= 0;
-    MyEditBox.bPositiveOnly = bPositiveOnly;
-  }
+  bMasked = b;
+  if ( b )
+    MyEditBox.SetMaskedTextEdit("#");
+  else
+    MyEditBox.SetMaskedTextEdit("");
 }
 
 
 //=============================================================================
-// PositiveOnly
+// SetAllowedCharSet
 //
-// Change the editbox' positive-only status.
+// Change the editbox' mask char.
 //=============================================================================
 
-function PositiveOnly(bool b)
+function SetAllowedCharSet(string CharSet, optional bool bConvertIllegal)
 {
-  bPositiveOnly = b;
-  MyEditBox.SetFloatEdit(b);
-  if ( bPositiveOnly && MinValue != MaxValue )
-    NumericRange(Max(MinValue, 0), Max(MaxValue, 0));
-}
-
-
-//=============================================================================
-// SpinButtons
-//
-// Change the editbox' positive-only status.
-//=============================================================================
-
-function SpinButtons(bool b)
-{
-  bSpinButtons = b;
-  MyEditBox.SetSpinButtons(b);
+  MyEditBox.AllowedCharSet = CharSet;
+  MyEditBox.SetConvertDisallowedChars(bConvertIllegal);
+  MyLabel.Hint = Hint;
+  MyLabel.FocusInstead = MyEditBox;
 }
 
 
@@ -152,7 +136,6 @@ function SpinButtons(bool b)
 
 defaultproperties
 {
-  ComponentClassName="Jailbreak.JBGUIComponentEditBox"
-  bSpinButtons=True
+  ComponentClassName="Jailbreak.JBGUIComponentEdit"
   bHeightFromComponent=False
 }

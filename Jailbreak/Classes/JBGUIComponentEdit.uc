@@ -1,7 +1,7 @@
 //=============================================================================
-// JBGUIComponentEditBox
+// JBGUIComponentEdit
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGUIComponentEdit.uc,v 1.1 2004/03/09 15:39:10 wormbo Exp $
 //
 // User interface component: An editbox which supports partial selections via
 // mouse and keyboard, supports limitation of the allowed range of characters,
@@ -10,7 +10,7 @@
 //=============================================================================
 
 
-class JBGUIComponentEditBox extends JBGUIComponent;
+class JBGUIComponentEdit extends JBGUIComponent;
 
 
 //=============================================================================

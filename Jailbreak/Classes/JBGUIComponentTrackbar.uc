@@ -1,13 +1,13 @@
 //=============================================================================
-// JBGUISliderEdit
+// JBGUIEditSlider
 // Copyright 2003-2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGUIEditSlider.uc,v 1.1 2004/03/09 15:39:13 wormbo Exp $
 //
 // User interface component: Combines a slider and an editbox with a label.
 //=============================================================================
 
 
-class JBGUISliderEdit extends GUIMultiComponent;
+class JBGUIEditSlider extends GUIMultiComponent;
 
 
 //=============================================================================
@@ -16,7 +16,7 @@ class JBGUISliderEdit extends GUIMultiComponent;
 
 var GUILabel MyLabel;
 var JBGUIComponentSlider MySlider;
-var JBGUIComponentEditBox MyEditBox;
+var JBGUIComponentEdit MyEditBox;
 
 var(Menu) protected float MinValue;
 var(Menu) protected float MaxValue;
@@ -44,7 +44,7 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   
   MyLabel   = GUILabel(Controls[0]);
   MySlider  = JBGUIComponentSlider(Controls[1]);
-  MyEditBox = JBGUIComponentEditBox(Controls[2]);
+  MyEditBox = JBGUIComponentEdit(Controls[2]);
   OnPreDraw = InternalOnPreDraw;
   
   MyLabel.Caption   = Caption;
@@ -282,7 +282,7 @@ defaultproperties
   End Object
   Controls(1)=JBGUIComponentSlider'Slider'
   
-  Begin Object Class=JBGUIComponentEditBox Name=EditBox
+  Begin Object Class=JBGUIComponentEdit Name=EditBox
     bScaleToParent=True
     bBoundToParent=True
     WinTop=0
@@ -291,7 +291,7 @@ defaultproperties
     WinWidth=0.3
     bNumericEdit=True
   End Object
-  Controls(2)=JBGUIComponentEditBox'EditBox'
+  Controls(2)=JBGUIComponentEdit'EditBox'
   
   WinWidth=0.5
   WinHeight=0.06
