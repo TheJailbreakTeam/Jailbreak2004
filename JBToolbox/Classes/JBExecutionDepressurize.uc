@@ -1,17 +1,27 @@
 // ============================================================================
 // JBExecutionDepressurize
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurize.uc,v 1.1 2003/06/27 11:13:32 crokx Exp $
+// $Id: JBExecutionDepressurize.uc,v 1.2 2003/06/30 06:54:37 crokx Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
 // ============================================================================
+
+
 class JBExecutionDepressurize extends JBExecution;
+
+
+// ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\JBExecutionDepressurize.pcx mips=off masked=on group=icons
 
 
 // ============================================================================
 // Variables
 // ============================================================================
+
 var() float DepressurizeTime;
 var() float DepressurizeToHeadScale;
 var() float DepressurizeStartFogScale;
@@ -27,12 +37,13 @@ var float TimePassed;
 //
 // Disable Tick() and remove evantuel ambient sound.
 // ============================================================================
+
 function PostBeginPlay()
 {
-    Super.PostBeginPlay();
+  Super.PostBeginPlay();
 
-    Disable('Tick');
-    AmbientSound = None;
+  Disable('Tick');
+  AmbientSound = None;
 }
 
 
@@ -41,15 +52,16 @@ function PostBeginPlay()
 //
 // Reset depressurized player head scale.
 // ============================================================================
+
 function MakeNormal(Pawn DepressurizedPawn)
 {
-    if(DepressurizedPawn == None) return;
+  if(DepressurizedPawn == None) return;
 
-    DepressurizedPawn.SetHeadScale(1.0);
+  DepressurizedPawn.SetHeadScale(1.0);
 
-    if((DepressurizedPawn.Controller != None)
-    && (DepressurizedPawn.Controller.IsA('PlayerController')))
-        PlayerController(DepressurizedPawn.Controller).SetFOVAngle(PlayerController(DepressurizedPawn.Controller).Default.FOVAngle);
+  if((DepressurizedPawn.Controller != None)
+  && (DepressurizedPawn.Controller.IsA('PlayerController')))
+    PlayerController(DepressurizedPawn.Controller).SetFOVAngle(PlayerController(DepressurizedPawn.Controller).Default.FOVAngle);
 }
 
 
@@ -58,55 +70,52 @@ function MakeNormal(Pawn DepressurizedPawn)
 //
 // Increase head scaling of all jailed players before explode this players.
 // ============================================================================
+
 function Tick(float DeltaTime)
 {
-    local JBTagPlayer JailedPlayer;
-    local Pawn DepressurizePawn;
-    local PlayerController DepressurizePlayer;
-    local float ratio;
-    local float FogScale;
-    local vector Fog;
+  local JBTagPlayer JailedPlayer;
+  local Pawn DepressurizePawn;
+  local PlayerController DepressurizePlayer;
+  local float ratio;
+  local float FogScale;
+  local vector Fog;
 
-    TimePassed += DeltaTime;
-    ratio = TimePassed/DepressurizeTime;
-    if(ratio > 1.0) ratio = 1.0;
+  TimePassed += DeltaTime;
+  ratio = TimePassed/DepressurizeTime;
+  if(ratio > 1.0) ratio = 1.0;
 
-    for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
+  for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag) {
+    if((JailedPlayer.GetJail() == GetTargetJail()) 
+      && (JailedPlayer.GetPawn() != None))
     {
-        if((JailedPlayer.GetJail() == GetTargetJail())
-        && (JailedPlayer.GetPawn() != None))
-        {
-            DepressurizePawn = JailedPlayer.GetPawn();
-            DepressurizePawn.SetHeadScale(1 + (DepressurizeToHeadScale-1) * ratio);
+      DepressurizePawn = JailedPlayer.GetPawn();
+      DepressurizePawn.SetHeadScale(1 + (DepressurizeToHeadScale-1) * ratio);
 
-            // pain screem :(
-            if((ratio > 0.1)
-            && (ratio < 0.9) // make sure to hear the gib sound
-            && (FRand() < 0.03))
-                DepressurizePawn.PlayDyingSound();
+      // pain screem :(
+      if((ratio > 0.1)
+        && (ratio < 0.9) // make sure to hear the gib sound
+        && (FRand() < 0.03))
+        DepressurizePawn.PlayDyingSound();
 
-            if(DepressurizePawn.Controller.IsA('PlayerController'))
-            {
-                DepressurizePlayer = PlayerController(DepressurizePawn.Controller);
-                FogScale = (DepressurizeToFogScale-DepressurizeStartFogScale)*ratio + DepressurizeStartFogScale;
-                Fog = (DepressurizeToFog*ratio)*1000;
-                DepressurizePlayer.ClientFlash(FogScale, Fog);
-                DepressurizePlayer.SetFOVAngle((DepressurizeToFOV-DepressurizePlayer.default.FOVAngle)*ratio + DepressurizePlayer.default.FOVAngle);
-            }
+      if(DepressurizePawn.Controller.IsA('PlayerController')) {
+        DepressurizePlayer = PlayerController(DepressurizePawn.Controller);
+        FogScale = (DepressurizeToFogScale-DepressurizeStartFogScale)*ratio + DepressurizeStartFogScale;
+        Fog = (DepressurizeToFog*ratio)*1000;
+        DepressurizePlayer.ClientFlash(FogScale, Fog);
+        DepressurizePlayer.SetFOVAngle((DepressurizeToFOV-DepressurizePlayer.default.FOVAngle)*ratio + DepressurizePlayer.default.FOVAngle);
+      }
 
-            if(ratio == 1.0)
-            {
-                ExecuteAllJailedPlayers();
-                if(AmbientSound != None) AmbientSound = None;
-            }
-        }
+      if(ratio == 1.0) {
+        ExecuteAllJailedPlayers();
+        if(AmbientSound != None) AmbientSound = None;
+      }
     }
+  }
 
-    if(TimePassed >= DepressurizeTime)
-    {
-        Disable('Tick');
-        Enable('Trigger');
-    }
+  if(TimePassed >= DepressurizeTime) {
+    Disable('Tick');
+    Enable('Trigger');
+  }
 }
 
 
@@ -115,10 +124,11 @@ function Tick(float DeltaTime)
 //
 // Execute a player.
 // ============================================================================
+
 function ExecuteJailedPlayer(Pawn Victim)
 {
-    MakeNormal(Victim); // before dead for make sure to spawn normal gib
-    Victim.Died(None, class'Depressurized', vect(0,0,0));
+  MakeNormal(Victim); // before dead for make sure to spawn normal gib
+  Victim.Died(None, class'Depressurized', vect(0,0,0));
 }
 
 
@@ -127,26 +137,29 @@ function ExecuteJailedPlayer(Pawn Victim)
 //
 // Start execution, activate Tick().
 // ============================================================================
+
 function Trigger(Actor A, Pawn P)
 {
-//    Super.Trigger(A, P); -> don't execute now all jailed players!
+  //    Super.Trigger(A, P); -> don't execute now all jailed players!
 
-    Disable('Trigger');
-    TimePassed = 0;
-    if(DepressurizeAmbientSound != None) AmbientSound = DepressurizeAmbientSound;
-    Enable('Tick');
+  Disable('Trigger');
+  TimePassed = 0;
+  if(DepressurizeAmbientSound != None) AmbientSound = DepressurizeAmbientSound;
+  Enable('Tick');
 }
 
 
 // ============================================================================
 // Default properties
 // ============================================================================
+
 defaultproperties
 {
-    DepressurizeTime=2.500000
-    DepressurizeToHeadScale=2.500000
-    DepressurizeStartFogScale=2.000000
-    DepressurizeToFog=(X=1000,Y=0,Z=0)
-    DepressurizeToFogScale=0.250000
-    DepressurizeToFov=150
+  Texture = Texture'JBToolbox.icons.JBExecutionDepressurize';  
+  DepressurizeTime=2.500000
+  DepressurizeToHeadScale=2.500000
+  DepressurizeStartFogScale=2.000000
+  DepressurizeToFog=(X=1000,Y=0,Z=0)
+  DepressurizeToFogScale=0.250000
+  DepressurizeToFov=150
 }
