@@ -1,7 +1,7 @@
 // ============================================================================
 // JBWebApplicationScoreboard
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBWebApplicationScoreboard.uc,v 1.1 2003/06/28 11:43:51 mychaeel Exp $
+// $Id: JBWebApplicationScoreboard.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Serves the Jailbreak Web Scoreboard to web browsers.
 // ============================================================================
@@ -242,7 +242,7 @@ function string GetGameURL()
 
   GameURL = Mid(WebServer.ServerURL, 7);  // strip protocol
   GameURL = Left(GameURL, InStr(GameURL $ ":", ":"));
-  GameURL = "unreal://" $ GameURL $ ":" $ Level.Game.GetServerPort();
+  GameURL = "ut2004://" $ GameURL $ ":" $ Level.Game.GetServerPort();
 
   return GameURL;
 }
