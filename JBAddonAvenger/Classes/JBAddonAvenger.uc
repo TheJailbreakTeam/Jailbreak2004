@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonAvenger.uc,v 1.1.2.3 2004/05/19 15:52:43 tarquin Exp $
+// $Id: JBAddonAvenger.uc,v 1.1.2.4 2004/05/23 12:37:37 tarquin Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -38,6 +38,7 @@ var class<Combo> ComboClasses[4];
 var localized string PowerTimeMultiplierText;
 var localized string PowerTimeMaximumText;
 var localized string PowerComboIndexText;
+var localized string PowerComboIndexOptions;
 
 
 // ============================================================================
@@ -81,7 +82,7 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   // now register any mutator settings
   PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMultiplier", default.PowerTimeMultiplierText,  0, 0, "Text", "3;1:200");
   PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMaximum",    default.PowerTimeMaximumText,     0, 0, "Text", "3;10:60");
-  PlayInfo.AddSetting(PlayInfoGroup(), "PowerComboIndex",     default.PowerComboIndexText,      0, 0, "Select", "0;Speed;1;Berserk;2;Booster;3;Invisible;4;Random");
+  PlayInfo.AddSetting(PlayInfoGroup(), "PowerComboIndex",     default.PowerComboIndexText,     0, 0, "Select", default.PowerComboIndexOptions);
 
   // remove mutator class from class stack
   PlayInfo.PopClass();
@@ -129,6 +130,8 @@ defaultproperties
   PowerTimeMaximumText    = "Maximum avenger time allowable";
   PowerComboIndexText     = "Combo awarded to the avenger";
     
+  PowerComboIndexOptions = "0;Speed;1;Berserk;2;Booster;3;Invisible;4;Random";
+
   ComboClasses(0)=class'XGame.ComboSpeed'
   ComboClasses(1)=class'XGame.ComboBerserk'
   ComboClasses(2)=class'XGame.ComboDefensive'
