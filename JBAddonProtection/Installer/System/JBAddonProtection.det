@@ -1,0 +1,21 @@
+[JBAddonProtection]
+caption_ProtectionType="Typ des Schutzes"
+caption_ProtectionTime="Dauer des Schutzes"
+caption_ProtectArenaWinner="Arena-Gewinner schützen"
+caption_LlamaizeCampers="Gefängnis-Camper zum Lama machen"
+desc_ProtectionType="Ob eigene Waffen keinen Schaden anrichten oder ob der Schutz verloren geht, wenn geschossen wird."
+desc_ProtectionTime="Dauer des Schutzes in Sekunden."
+desc_ProtectArenaWinner="Ob der Gewinner eines Arena-Kampfs Schutz erhält."
+desc_LlamaizeCampers="Ob Spieler, die geschützten Gegnern eine an sich tödliche Menge Schaden zufügen, zum Lama werden."
+options_ProtectionType="0;Keinen Schaden zufügen;1;Schutz verlieren beim Abfeuern"
+FriendlyName="Schutz"
+Description="Spieler, die aus dem Gefängnis freigelassen werden, werden vor gegnerischem Feuer geschützt."
+
+[JBGUIPanelConfigProtection]
+LlamaizeCampersCheckBox.Caption="Gefängnis-Camper zum Lama machen"
+LlamaizeCampersCheckBox.Hint="Ob Spieler, die geschützten Gegnern eine an sich tödliche Menge Schaden zufügen, zum Lama werden."
+ProtectArenaWinnerCheckBox.Caption="Arena-Gewinner schützen"
+ProtectArenaWinnerCheckBox.Hint="Ob der Gewinner eines Arena-Kampfs Schutz erhält."
+TrackbarProtectionTime.Caption="Dauer des Schutzes"
+TrackbarProtectionTime.Hint="Dauer des Schutzes in Sekunden."
+
