@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.5 2003/07/20 08:30:53 mychaeel Exp $
+// $Id: JBMutatorDebug.uc,v 1.6 2004/02/16 17:17:02 mychaeel Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -54,6 +54,10 @@ event PostBeginPlay()
 // Provides commands to influence Jailbreak gameplay. Commands and their
 // switches are not case-sensitive.
 //
+//   CauseEvent <event>            Works like the CauseEvent console command
+//                                 available in standalone games, but works in
+//                                 online games too.
+//
 //   SetSwitch On|Off [Red|Blue]   Enables or disables the release switches
 //                                 for the given team. If no team is specified,
 //                                 affects both teams.
@@ -61,6 +65,8 @@ event PostBeginPlay()
 //   CanBeJailed On|Off [<name>]   Sets whether the given player will be sent
 //                                 to jail after being killed or not. If no
 //                                 name is specified, affects all players.
+//
+//   KillPlayer <name>             Kills the given player. Splat.
 //
 // ============================================================================
 
@@ -70,13 +76,20 @@ function Mutate(string TextMutate, PlayerController Sender)
   local string TextFlag;
   local string TextName;
   local string TextTeam;
+  local Actor thisActor;
   local Controller ControllerKilled;
 
   Super.Mutate(TextMutate, Sender);
 
   TextCommand = GetParam(TextMutate);
 
-  if (TextCommand ~= "SetSwitch") {
+  if (TextCommand ~= "CauseEvent") {
+    foreach DynamicActors(Class'Actor', thisActor)
+      if (string(thisActor.Tag) ~= TextMutate)
+        thisActor.Trigger(Sender.Pawn, Sender.Pawn);
+  }
+
+  else if (TextCommand ~= "SetSwitch") {
     TextFlag = GetParam(TextMutate);
     TextTeam = GetParam(TextMutate);
 
