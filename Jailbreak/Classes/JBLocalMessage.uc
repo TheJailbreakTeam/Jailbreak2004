@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.2 2002/11/24 16:36:21 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.3 2002/11/24 18:14:03 mychaeel Exp $
 //
 // Localized messages for generic Jailbreak announcements.
 // ============================================================================
@@ -73,6 +73,35 @@ static function ClientReceive(PlayerController Player,
 
 
 // ============================================================================
+// StaticReplaceText
+//
+// Works almost like ReplaceText defined in Actor, but returns its result
+// instead of employing an out parameter, and is static and can thus be called
+// from other static functions.
+// ============================================================================
+
+static function string StaticReplaceText(string TextTemplate, string TextPlaceholder, string TextReplacement) {
+
+  local int OffsetPlaceholder;
+  local string TextOutput;
+  
+  while (True) {
+    OffsetPlaceholder = InStr(TextTemplate, TextPlaceholder);
+    if (OffsetPlaceholder < 0)
+      break;
+
+    TextOutput = TextOutput $ Left(TextTemplate, OffsetPlaceholder);
+    TextOutput = TextOutput $ TextReplacement;
+    
+    TextTemplate = Mid(TextTemplate, OffsetPlaceholder + Len(TextReplacement));
+    }
+
+  TextOutput = TextOutput $ TextTemplate;
+  return TextOutput;
+  }
+
+
+// ============================================================================
 // ReplaceTextPlayer
 //
 // Replaces player name placeholder in the given template and returns the
@@ -81,8 +110,7 @@ static function ClientReceive(PlayerController Player,
 
 static function string ReplaceTextPlayer(string TextTemplate, PlayerReplicationInfo PlayerReplicationInfo) {
 
-  PlayerReplicationInfo.ReplaceText(TextTemplate, "%player%", PlayerReplicationInfo.PlayerName);
-  return TextTemplate;
+  return StaticReplaceText(TextTemplate, "%player%", PlayerReplicationInfo.PlayerName);
   }
 
 
@@ -114,13 +142,13 @@ static function string ReplaceTextArena(string TextTemplate,
     PlayerReplicationInfoEnemy    = PlayerReplicationInfo1;
     }
 
-  PlayerLocal.ReplaceText(TextTemplate, "%teammate%", PlayerReplicationInfoTeammate.PlayerName);
+  TextTemplate = StaticReplaceText(TextTemplate, "%teammate%", PlayerReplicationInfoTeammate.PlayerName);
   if (PlayerReplicationInfoEnemy != None)
-    PlayerLocal.ReplaceText(TextTemplate, "%enemy%", PlayerReplicationInfoEnemy.PlayerName);
+    TextTemplate = StaticReplaceText(TextTemplate, "%enemy%", PlayerReplicationInfoEnemy.PlayerName);
   
-  PlayerLocal.ReplaceText(TextTemplate, "%winner%", PlayerReplicationInfo1.PlayerName);
+  TextTemplate = StaticReplaceText(TextTemplate, "%winner%", PlayerReplicationInfo1.PlayerName);
   if (PlayerReplicationInfo2 != None)
-    PlayerLocal.ReplaceText(TextTemplate, "%loser%",  PlayerReplicationInfo2.PlayerName);
+    TextTemplate = StaticReplaceText(TextTemplate, "%loser%",  PlayerReplicationInfo2.PlayerName);
 
   return TextTemplate;
   }
