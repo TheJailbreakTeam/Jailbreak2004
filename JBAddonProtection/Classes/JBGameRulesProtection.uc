@@ -1,16 +1,19 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.1 2003/07/27 03:24:30 crokx Exp $
+// $Id: JBGameRulesProtection.uc,v 1.2 2004/01/15 07:25:40 crokx Exp $
 //
-// The rules for the protection mutator.
+// The rules for the protection add-on.
 // ============================================================================
+
+
 class JBGameRulesProtection extends JBGameRules;
 
 
 // ============================================================================
 // Variables
 // ============================================================================
+
 var JBAddonProtection MyAddon;
 //var private JBInfoProtection MyProtection;
 var private Shader RedHitEffect, BlueHitEffect;
@@ -20,8 +23,10 @@ var private sound ProtectionHitSound;
 // ============================================================================
 // NotifyPlayerJailed
 //
-// When a player was jailed, this player are protected.
+// give protection to a newly-jailed player, if the jail is in the process of 
+// releasing his team
 // ============================================================================
+
 function NotifyPlayerJailed(JBTagPlayer NewJailedPlayer)
 {
     if(NewJailedPlayer.GetPlayerReplicationInfo() == MyAddon.LastRestartedPRI)
@@ -39,20 +44,24 @@ function NotifyPlayerJailed(JBTagPlayer NewJailedPlayer)
 // ============================================================================
 // NotifyJailOpening
 //
-// Called when a jail start the opening, give protection to jailed players.
+// Called when a jail starts the opening, give protection to jailed players.
 // ============================================================================
-function NotifyJailOpening(JBInfoJail Jail)
+
+function NotifyJailOpening(JBInfoJail Jail, TeamInfo Team)
 {
     local JBTagPlayer JailedPlayer;
 
     for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
-        if((JailedPlayer != None) // is not obligate to found jailed player
-        && (JailedPlayer.GetJail() == Jail))
+        if(
+          (JailedPlayer != None) // might find no jailed players at all
+          && (JailedPlayer.GetJail() == Jail) // must be in this jail
+          && (JailedPlayer.GetTeam() == Team) // must be of team being released
+          )
             GiveProtectionTo(JailedPlayer);
     }
 
-    Super.NotifyJailOpening(Jail);
+    Super.NotifyJailOpening(Jail, Team);
 }
 
 
@@ -77,7 +86,7 @@ function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
 //
 // Called when the jail door was re-closed, remove evantual protection.
 // ============================================================================
-function NotifyJailClosed(JBInfoJail Jail)
+function NotifyJailClosed(JBInfoJail Jail, TeamInfo Team)
 {
     local JBTagPlayer ReJailedPlayer;
     local JBInfoProtection MyProtection;
@@ -92,7 +101,7 @@ function NotifyJailClosed(JBInfoJail Jail)
         }
     }
 
-    Super.NotifyJailClosed(Jail);
+    Super.NotifyJailClosed(Jail, Team);
 }
 
 
