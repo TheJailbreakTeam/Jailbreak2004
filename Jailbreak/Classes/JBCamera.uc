@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.25 2004/03/28 22:45:37 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.26 2004/03/30 16:17:49 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -359,6 +359,18 @@ function float RateCurrentView()
     return 0.0;
 
   return CamController.RateCurrentView();
+}
+
+
+// ============================================================================
+// HasViewers
+//
+// Checks and returns whether this camera has viewers.
+// ============================================================================
+
+function bool HasViewers()
+{
+  return ListInfoViewer.Length > 0;
 }
 
 

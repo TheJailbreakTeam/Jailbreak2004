@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCameraArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBCameraArena.uc,v 1.1 2004/03/28 22:45:37 mychaeel Exp $
 //
 // Arena follower camera which tracks the arena opponent. Destroys itself when
 // the trailed player dies or is respawned or when the last viewer is gone.
@@ -83,7 +83,7 @@ function DeactivateFor(Controller Controller)
 {
   Super.DeactivateFor(Controller);
   
-  if (ListInfoViewer.Length == 0)
+  if (!HasViewers())
     Destroy();
 }
 
