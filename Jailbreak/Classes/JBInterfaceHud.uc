@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.12 2003/03/15 18:32:17 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.13 2003/03/15 18:47:14 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -154,7 +154,8 @@ simulated function SetRelativePos(Canvas Canvas, float X, float Y, EDrawPivot Pi
 
 simulated event PostRender(Canvas Canvas) {
 
-  TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PawnOwner.PlayerReplicationInfo);
+  if (PawnOwner != None)
+    TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PawnOwner.PlayerReplicationInfo);
 
   ShowWidescreen(Canvas);
 
