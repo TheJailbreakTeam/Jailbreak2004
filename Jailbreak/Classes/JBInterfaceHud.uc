@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.20 2003/03/22 19:38:51 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.21 2003/03/23 08:24:59 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -15,7 +15,7 @@ class JBInterfaceHud extends HudBTeamDeathMatch
 // Imports
 // ============================================================================
 
-#exec texture import file=Textures\SpriteWidgetHud.dds mips=on alpha=on
+#exec texture import file=Textures\SpriteWidgetHud.dds mips=on alpha=on lodset=LODSET_Interface
 
 
 // ============================================================================
