@@ -1,6 +1,6 @@
 ===============================================================================
 Jailbreak 2003
-Copyright 2004 by Team Jailbreak <team@planetjailbreak.com>
+Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
 ===============================================================================
 
 For feedback, suggestions and bug report, visit
@@ -34,6 +34,8 @@ Zip Installation
   
     *.u     System\
     *.int   System\
+    *.det   System\
+    *.frt   System\
 
     *.ogg   Music\
     *.uax   Sounds\
@@ -47,7 +49,7 @@ Zip Installation
     *.gif   Help\Jailbreak\Images\
 
 
-* Open UT200.ini, look for the section already containing several lines
+* Open UT2003.ini, look for the section already containing several lines
   starting with "ServerPackages=" and add the following lines to it:
 
     ServerPackages=Jailbreak
