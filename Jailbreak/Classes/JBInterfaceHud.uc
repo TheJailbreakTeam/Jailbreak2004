@@ -439,7 +439,8 @@ simulated function ShowTactics(Canvas Canvas)
   local float TimeDelta;
   local JBTagTeam TagTeam;
 
-  if (PawnOwner == None)
+  if (PawnOwner                       == None ||
+      PawnOwner.PlayerReplicationInfo == None)
     return;
 
   TimeDelta = Level.TimeSeconds - TimeUpdateTactics;
@@ -1053,10 +1054,30 @@ simulated exec function TeamTactics(string TextTactics, optional string TextTeam
 // player if the player was viewing the last available one already.
 // ============================================================================
 
-simulated exec function ArenaCam()
-{
-  GetTagClientOwner().ExecArenaCam();
-}
+simulated exec function ArenaCam() { GetTagClientOwner().ExecArenaCam(); }
+
+
+// ============================================================================
+// exec ViewTeamFree
+// exec ViewTeamJailed
+// exec ViewTeamAny
+//
+// Allows players to spectate one of their teammates. If no subset of players
+// is given, switches only between free players.
+// ============================================================================
+
+simulated exec function ViewTeamFree()   { GetTagClientOwner().ExecViewTeam('Free'  ); }
+simulated exec function ViewTeamJailed() { GetTagClientOwner().ExecViewTeam('Jailed'); }
+simulated exec function ViewTeamAny()    { GetTagClientOwner().ExecViewTeam('Any'   ); }
+
+
+// ============================================================================
+// exec ViewSelf
+//
+// Resets the player's view point to normal first-person view.
+// ============================================================================
+
+simulated exec function ViewSelf() { GetTagClientOwner().ExecViewSelf(); }
 
 
 // ============================================================================

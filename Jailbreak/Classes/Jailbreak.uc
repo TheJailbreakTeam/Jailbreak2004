@@ -1107,14 +1107,13 @@ function bool ExecutionInit()
 // ExecutionCommit
 //
 // Prepares and commits a team's execution. Selects a jail to view during the
-// execution sequence, respawns all other players, scores and announces the
-// capture.
+// execution sequence, deactivates all camera and third-person views, respawns
+// all other players, scores and announces the capture.
 // ============================================================================
 
 function ExecutionCommit(TeamInfo TeamExecuted)
 {
   local Controller thisController;
-  local JBCamera thisCamera;
   local JBInfoJail firstJail;
   local JBInfoJail thisJail;
   local JBGameRules firstJBGameRules;
@@ -1131,8 +1130,9 @@ function ExecutionCommit(TeamInfo TeamExecuted)
           thisController.PlayerReplicationInfo.Team != TeamExecuted)
         ScorePlayer(thisController, 'Capture');
 
-    foreach DynamicActors(Class'JBCamera', thisCamera)
-      thisCamera.DeactivateForAll();
+    for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+      if (PlayerController(thisController) != None)
+        ResetViewTarget(PlayerController(thisController));
 
     JailExecution = FindJailExecution(TeamExecuted);
 
@@ -1191,11 +1191,8 @@ function ExecutionEnd()
     if (bEnableSpectatorDeathCam)
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (thisController.PlayerReplicationInfo != None &&
-            thisController.PlayerReplicationInfo.bOnlySpectator) {
-          Camera = JBCamera(PlayerController(thisController).ViewTarget);
-          if (Camera != None)
-            Camera.DeactivateFor(thisController);
-        }
+            thisController.PlayerReplicationInfo.bOnlySpectator)
+          ResetViewTarget(PlayerController(thisController));
 
     if ((Teams[0].Score >= GoalScore ||
          Teams[1].Score >= GoalScore) && GoalScore > 0)
@@ -1206,6 +1203,30 @@ function ExecutionEnd()
 
   else {
     Log("Warning: Cannot end execution while in state" @ GetStateName());
+  }
+}
+
+
+// ============================================================================
+// ResetViewTarget
+//
+// Resets the given player's view to normal first-person view.
+// ============================================================================
+
+static function ResetViewTarget(PlayerController PlayerController)
+{
+  if (JBCamera(PlayerController.ViewTarget) != None) {
+    JBCamera(PlayerController.ViewTarget).DeactivateFor(PlayerController);
+  }
+
+  else if (PlayerController.ViewTarget != PlayerController &&
+           PlayerController.ViewTarget != PlayerController.Pawn) {
+
+    PlayerController.SetViewTarget(PlayerController.Pawn);
+    PlayerController.bBehindView = False;
+
+    PlayerController.ClientSetViewTarget(PlayerController.ViewTarget);
+    PlayerController.ClientSetBehindView(PlayerController.bBehindView);
   }
 }
 

@@ -21,6 +21,8 @@ replication
   reliable if (Role < ROLE_Authority)
     ExecTeamTactics,
     ExecArenaCam,
+    ExecViewTeam,
+    ExecViewSelf,
     ServerSynchronizeTime;
 
   reliable if (Role == ROLE_Authority)
@@ -126,6 +128,70 @@ function ExecArenaCam()
     thisArena.ActivateCameraFor(PlayerController(Keeper));
   else if (CameraCurrent != None && ArenaCurrent != None)
     CameraCurrent.DeactivateFor(PlayerController(Keeper));
+}
+
+
+// ============================================================================
+// ExecViewTeam
+//
+// Switches to the next teammate's viewpoint (or through all players for
+// admins and spectators), optionally choosing only from the given subset of
+// players (jailed, free or all).
+// ============================================================================
+
+function ExecViewTeam(optional name Whom)
+{
+  local Pawn PawnViewTarget;
+  local TeamInfo Team;
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  
+  if (!Level.Game.IsInState('MatchInProgress'))
+    return;
+
+  PawnViewTarget = Pawn(PlayerController(Keeper).ViewTarget);
+  if (PawnViewTarget == None ||
+      PawnViewTarget == Controller(Keeper).Pawn ||
+      PawnViewTarget.PlayerReplicationInfo == None)
+         firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
+    else firstTagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnViewTarget.PlayerReplicationInfo).nextTag;
+
+  if (!Controller(Keeper).PlayerReplicationInfo.bAdmin)
+    Team = Controller(Keeper).PlayerReplicationInfo.Team;
+
+  for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+    if (thisTagPlayer.GetPawn()       != None &&
+        thisTagPlayer.GetController() != Keeper)
+      if (Whom == 'Any'                                 ||
+         (Whom == 'Jailed' && thisTagPlayer.IsInJail()) ||
+         (Whom == 'Free'   && thisTagPlayer.IsFree()))
+        if (Team == None ||
+            Team == thisTagPlayer.GetTeam())
+          break;
+
+  if (thisTagPlayer == None) {
+    Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
+  }
+  else {
+    PlayerController(Keeper).SetViewTarget(thisTagPlayer.GetPawn());
+    PlayerController(Keeper).bBehindView = True;
+    PlayerController(Keeper).ViewTarget.BecomeViewTarget();
+    
+    PlayerController(Keeper).ClientSetViewTarget(PlayerController(Keeper).ViewTarget);
+    PlayerController(Keeper).ClientSetBehindView(PlayerController(Keeper).bBehindView);
+  }
+}
+
+
+// ============================================================================
+// ExecViewSelf
+//
+// Resets the player's view point to normal first-person view.
+// ============================================================================
+
+function ExecViewSelf()
+{
+  Jailbreak(Level.Game).ResetViewTarget(PlayerController(Keeper));
 }
 
 

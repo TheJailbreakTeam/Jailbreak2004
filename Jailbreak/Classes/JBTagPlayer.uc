@@ -698,9 +698,7 @@ function NotifyJailOpening()
     Controller.Pawn.Health = Controller.Pawn.Default.Health;
 
   if (PlayerController(Controller) != None)
-    Camera = JBCamera(PlayerController(Controller).ViewTarget);
-  if (Camera != None)
-    Camera.DeactivateFor(Controller);
+    Jailbreak(Level.Game).ResetViewTarget(PlayerController(Controller));
 
   if (ArenaPending != None)
     ArenaPending.MatchCancel();
