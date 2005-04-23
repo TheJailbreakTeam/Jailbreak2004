@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadArena.uc,v 1.4 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBBotSquadArena.uc,v 1.5 2004/05/18 20:00:00 mychaeel Exp $
 //
 // Controls the bots fighting in an arena.
 // ============================================================================
@@ -79,6 +79,21 @@ function AssignCombo(Bot Bot)
 simulated function string GetOrderStringFor(TeamPlayerReplicationInfo TeamPlayerReplicationInfo)
 {
   return TextArena;
+}
+
+
+// ============================================================================
+// AssignSquadResponsibility
+//
+// Makes bots use vehicles in the arena if there are any.
+// ============================================================================
+
+function bool AssignSquadResponsibility(Bot Bot)
+{
+  if (CheckVehicle(Bot))
+    return True;
+
+  return Super.AssignSquadResponsibility(Bot);
 }
 
 
