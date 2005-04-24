@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.117 2004/08/21 17:50:55 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.118 2004/08/25 09:26:41 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1761,10 +1761,7 @@ state MatchInProgress {
     local ONSStationaryWeaponPawn thisStationaryWeaponPawn;
   
     foreach DynamicActors(Class'Pickup', thisPickup)
-      if (thisPickup.PickupBase != None &&
-          thisPickup.PickupBase.bDelayedSpawn)
-             thisPickup.GotoState('Sleeping');
-        else thisPickup.GotoState('Pickup');
+      thisPickup.Reset();
 
     foreach AllActors(Class'xPickupBase', thisPickupBase)
       thisPickupBase.TurnOn();
