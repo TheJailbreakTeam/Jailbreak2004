@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.57 2004/07/25 17:20:06 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.58 2004/08/19 14:22:18 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -671,12 +671,14 @@ simulated function ShowDisposition(Canvas Canvas)
     DispositionTeamBlue.Initialize(PlayerOwner.GameReplicationInfo.Teams[1]);
   }
 
-  if (TimeUpdateDisposition > 0.0)
-    TimeDelta = Level.TimeSeconds - TimeUpdateDisposition;
-  TimeUpdateDisposition = Level.TimeSeconds;
-
-  DispositionTeamRed .Update(TimeDelta);
-  DispositionTeamBlue.Update(TimeDelta);
+  if (!JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).bIsExecuting) {
+    if (TimeUpdateDisposition > 0.0)
+      TimeDelta = Level.TimeSeconds - TimeUpdateDisposition;
+    TimeUpdateDisposition = Level.TimeSeconds;
+  
+    DispositionTeamRed .Update(TimeDelta);
+    DispositionTeamBlue.Update(TimeDelta);
+  }
 
   DispositionTeamRed .Draw(Canvas);
   DispositionTeamBlue.Draw(Canvas);
