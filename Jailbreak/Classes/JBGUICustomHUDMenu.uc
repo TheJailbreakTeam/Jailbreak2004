@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUICustomHUDMenu
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUICustomHUDMenu.uc,v 1.3 2004/05/25 12:52:21 mychaeel Exp $
+// $Id: JBGUICustomHUDMenu.uc,v 1.4 2004/05/26 11:21:50 mychaeel Exp $
 //
 // custom HUD configuration menu for Jailbreak's clientside settings.
 // ============================================================================
@@ -17,6 +17,7 @@ class JBGUICustomHUDMenu extends UT2K4CustomHUDMenu;
 var automated moCombobox co_VoicePack;
 var automated GUIButton b_TestVoicePack;
 var automated moCheckbox ch_EnableScreens;
+var automated moCheckbox ch_ReverseSwitchColors;
 
 var private string VoicePackPrev;
 
@@ -70,7 +71,8 @@ function LoadSettings()
   co_VoicePack.Find(VoicePackPrev, , True);
   co_VoicePack.OnChange = VoicePackChange;
 
-  ch_EnableScreens.Checked(GetEnableScreens());
+  ch_EnableScreens      .Checked(GetEnableScreens());
+  ch_ReverseSwitchColors.Checked(GetReverseSwitchColors());
 }
 
 
@@ -111,7 +113,9 @@ function SaveSettings()
 function RestoreDefaults()
 {
   co_VoicePack.Find("JBVoiceGrrrl.Classic", , True);
-  ch_EnableScreens.Checked(True);
+
+  ch_EnableScreens      .Checked(True);
+  ch_ReverseSwitchColors.Checked(False);
 }
 
 
@@ -189,6 +193,18 @@ function bool GetEnableScreens()
 
 
 // ============================================================================
+// GetReverseSwitchColors
+//
+// Returns whether switch colors are reversed.
+// ============================================================================
+
+function bool GetReverseSwitchColors()
+{
+  return Class'Jailbreak'.Default.bReverseSwitchColors;
+}
+
+
+// ============================================================================
 // SetEnableScreens
 //
 // Sets the config setting which enables JBScreen actors and updates any
@@ -209,6 +225,29 @@ function SetEnableScreens(bool bEnableScreens)
   foreach PlayerOwner().DynamicActors(Class'Info', thisInfo)
     if (thisInfo.IsA('JBScreen'))
       thisInfo.Reset();
+}
+
+
+// ============================================================================
+// SetReverseSwitchColors
+//
+// Sets the config setting which reverses switch colors and updates any
+// present objectives to reflect those changes.
+// ============================================================================
+
+function SetReverseSwitchColors(bool bReverseSwitchColors)
+{
+  local GameObjective thisGameObjective;
+  local Jailbreak thisJailbreak;
+
+  Class'Jailbreak'.Default.bReverseSwitchColors = bReverseSwitchColors;
+  Class'Jailbreak'.Static.StaticSaveConfig();
+
+  foreach PlayerOwner().DynamicActors(Class'Jailbreak', thisJailbreak)
+    thisJailbreak.bReverseSwitchColors = bReverseSwitchColors;
+
+  foreach PlayerOwner().AllActors(Class'GameObjective', thisGameObjective)
+    thisGameObjective.SetTeam(thisGameObjective.DefenderTeamIndex);
 }
 
 
@@ -252,7 +291,7 @@ defaultproperties
     Caption                = "Enable Dynamic Screen Textures";
     CaptionWidth           = 0.10;
     ComponentJustification = TXTA_Center;
-    WinTop                 = 0.50;
+    WinTop                 = 0.46;
     WinLeft                = 0.24;
     WinWidth               = 0.52;
     TabOrder               = 3;
@@ -260,13 +299,25 @@ defaultproperties
   End Object
   ch_EnableScreens=EnableScreens
   
+  Begin Object Class=moCheckBox Name=ReverseSwitchColors
+    Caption                = "Reverse Switch Colors";
+    CaptionWidth           = 0.10;
+    ComponentJustification = TXTA_Center;
+    WinTop                 = 0.52;
+    WinLeft                = 0.24;
+    WinWidth               = 0.52;
+    TabOrder               = 4;
+    Hint = "Whether you want to reverse release switch colors so that the switch attacked by the red team is blue, and vice-versa."
+  End Object
+  ch_ReverseSwitchColors=ReverseSwitchColors
+  
   Begin Object Class=GUIButton Name=ResetButton
     Caption                = "Defaults";
     WinTop                 = 0.60;
     WinLeft                = 0.24;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 4;
+    TabOrder               = 5;
     OnClick                = InternalOnClick;
     Hint = "Restore all settings to their default value.";
   End Object
@@ -278,7 +329,7 @@ defaultproperties
     WinLeft                = 0.50;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 5;
+    TabOrder               = 6;
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, discarding changes.";
   End Object
@@ -290,7 +341,7 @@ defaultproperties
     WinLeft                = 0.64;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 6;
+    TabOrder               = 7;
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, saving changes.";
   End Object

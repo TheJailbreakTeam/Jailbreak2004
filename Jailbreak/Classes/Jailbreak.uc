@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.118 2004/08/25 09:26:41 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.119 2005/04/24 16:09:09 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -28,6 +28,7 @@ var config bool bEnableJailFights;
 var config bool bEnableScreens;
 var config bool bEnableSpectatorDeathCam;
 var config bool bFavorHumansForArena;
+var config bool bReverseSwitchColors;
 
 var config bool bEnableWebScoreboard;
 var config bool bEnableWebAdminExtension;
