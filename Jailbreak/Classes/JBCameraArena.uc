@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCameraArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCameraArena.uc,v 1.5 2004/05/31 18:15:45 mychaeel Exp $
+// $Id: JBCameraArena.uc,v 1.6 2004/06/01 12:19:27 mychaeel Exp $
 //
 // Arena follower camera which tracks the arena opponent. Destroys itself when
 // the trailed player dies or is respawned or when the last viewer is gone.
@@ -79,6 +79,9 @@ auto state Active
   {
     Global.Tick(TimeDelta);
   
+    if (TagPlayerFollowed.GetPawn() != None)
+      TagPlayerFollowed.GetPawn().bNoTeamBeacon = True;
+
     if (Role == ROLE_Authority &&
         (TagPlayerFollowed == None || !TagPlayerFollowed.IsInArena()) &&
         (TagPlayerOpponent == None || !TagPlayerOpponent.IsInArena()))
