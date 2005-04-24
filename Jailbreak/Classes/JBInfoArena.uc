@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.47 2004/06/03 00:27:39 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.48 2004/07/25 16:36:48 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -49,6 +49,7 @@ struct TDisplayPlayer
   var protected float TimeUpdate;
   var protected float Health;
   var protected float HealthDisplayed;
+  var protected float HealthMax;
   var protected string PlayerName;
 
   var Color ColorName;
@@ -1006,6 +1007,7 @@ simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplay
 {
   local float HealthDelta;
   local float TimeDelta;
+  local Pawn PawnPlayer;
 
   if (DisplayPlayer.TagPlayer == None)
     return;
@@ -1013,13 +1015,22 @@ simulated function ShowPlayerHealth(Canvas Canvas, HudBase HudBase, out TDisplay
   TimeDelta = Level.TimeSeconds - DisplayPlayer.TimeUpdate;
 
   if (DisplayPlayer.TagPlayer != None &&
-      DisplayPlayer.TagPlayer.GetArena() == Self)
+      DisplayPlayer.TagPlayer.GetArena() == Self) {
+
     DisplayPlayer.Health = DisplayPlayer.TagPlayer.GetHealth(True);
+
+    PawnPlayer = DisplayPlayer.TagPlayer.GetPawn();
+    if (PawnPlayer != None)
+      DisplayPlayer.HealthMax = PawnPlayer.HealthMax;
+
+    if (DisplayPlayer.HealthMax == 0.0)
+      DisplayPlayer.HealthMax = 100.0;
+  }
 
   HealthDelta = DisplayPlayer.Health - DisplayPlayer.HealthDisplayed;
 
   DisplayPlayer.HealthDisplayed += HealthDelta * FMin(1.0, TimeDelta * 2.0);
-  DisplayPlayer.SpriteWidgetHealthBar.Scale = FClamp(DisplayPlayer.HealthDisplayed, 0.0, 100.0) / 100.0;
+  DisplayPlayer.SpriteWidgetHealthBar.Scale = FClamp(DisplayPlayer.HealthDisplayed / DisplayPlayer.HealthMax, 0.0, 1.0);
 
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthBack);
   HudBase.DrawSpriteWidget(Canvas, DisplayPlayer.SpriteWidgetHealthBar);
