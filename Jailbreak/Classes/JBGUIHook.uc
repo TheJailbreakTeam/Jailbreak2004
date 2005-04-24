@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIHook
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIHook.uc,v 1.2 2004/04/15 20:28:37 mychaeel Exp $
+// $Id: JBGUIHook.uc,v 1.3 2004/05/30 10:33:48 mychaeel Exp $
 //
 // Hidden actor which hooks into the menu system in order to make the
 // Jailbreak theme music and the add-ons tab work.
@@ -32,6 +32,7 @@ var string SongPrev;         // name of the previously played song
 
 var private UT2K4GamePageBase UT2K4GamePageBase;
 var private GUITabPanel GUITabPanelAddons;
+var private GUITabPanel GUITabPanelMaps;
 
 
 // ============================================================================
@@ -142,6 +143,7 @@ event Destroyed()
 function NotifyEntered()
 {
   local int iTabInserted;
+  local moCheckBox moCheckBoxOfficialMapsOnly;
 
   SongPrev = PlaySong(SongJailbreak, 2.0, 0.0);
   if (SongPrev == "")
@@ -156,6 +158,12 @@ function NotifyEntered()
   UT2K4GamePageBase.c_Tabs.TabStack.Remove(UT2K4GamePageBase.c_Tabs.TabStack.Length - 1, 1);
   UT2K4GamePageBase.c_Tabs.TabStack.Insert(iTabInserted, 1);
   UT2K4GamePageBase.c_Tabs.TabStack[iTabInserted] = GUITabPanelAddons.MyButton;
+
+  GUITabPanelMaps = UT2K4GamePageBase.c_Tabs.TabStack[1].MyPanel;
+
+  moCheckBoxOfficialMapsOnly = UT2K4Tab_MainBase(GUITabPanelMaps).ch_OfficialMapsOnly;
+  moCheckBoxOfficialMapsOnly.DisableMe();
+  moCheckBoxOfficialMapsOnly.Checked(False);
 }
 
 
@@ -168,10 +176,15 @@ function NotifyEntered()
 
 function NotifyLeft()
 {
+  local moCheckBox moCheckBoxOfficialMapsOnly;
+
   PlaySong(SongPrev, 1.0, 2.0);
 
   if (GUITabPanelAddons != None)
     UT2K4GamePageBase.c_Tabs.RemoveTab(TextCaptionAddons);
+
+  moCheckBoxOfficialMapsOnly = UT2K4Tab_MainBase(GUITabPanelMaps).ch_OfficialMapsOnly;
+  moCheckBoxOfficialMapsOnly.EnableMe();
 }
 
 
