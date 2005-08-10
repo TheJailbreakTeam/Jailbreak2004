@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.8 2004/06/09 16:50:04 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.9 2004/08/02 12:56:23 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -130,15 +130,14 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
 //=============================================================================
 // CanSendToJail
 //
-// Makes sure players killed by the Llama aren't send to jail unless they were
-// killed in jail.
+// Makes sure free players killed by the Llama aren't send to jail.
 //=============================================================================
 
 function bool CanSendToJail(JBTagPlayer TagPlayer)
 {
   //log(Level.TimeSeconds@"CanSendToJail"@TagPlayer@TagPlayer.GetController());
-  return Super.CanSendToJail(TagPlayer) && !WasKilledByLlama(TagPlayer)
-      && !IsLlamaPending(TagPlayer);
+  return Super.CanSendToJail(TagPlayer) && (!TagPlayer.IsFree()
+      || !WasKilledByLlama(TagPlayer) && !IsLlamaPending(TagPlayer));
 }
 
 
