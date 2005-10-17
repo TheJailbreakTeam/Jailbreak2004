@@ -1,18 +1,21 @@
 // ============================================================================
 // JBExecution
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecution.uc,v 1.4 2003/06/30 06:54:02 crokx Exp $
+// $Id: JBExecution.uc,v 1.5 2003/07/26 05:55:18 crokx Exp $
 //
 // Base of all triggered execution.
 // ============================================================================
+
+
 class JBExecution extends Triggers abstract;
 
 
 // ============================================================================
 // Variables
 // ============================================================================
-var private JBInfoJail TargetJail;
+
 var private JBTagPlayer DispatchedPlayer;
+var private array<JBInfoJail> AttachedJails;
 
 struct _DispatchExecution {
     var() bool bUseDispatch;
@@ -21,30 +24,50 @@ struct _DispatchExecution {
     var bool bInstantKill;
     var class<DamageType> InstantKillType; };
 var() _DispatchExecution DispatchExecution;
+var() name TagAttachJail; // tag to match to one or more Jails
+                          // if 'Auto' use value of the Tag property
 
 
 // ============================================================================
 // PostBeginPlay
 //
-// Seek the jail targeted.
+// Seek JBInfoJails that target this actor (with their EventExecutionCommit) 
+// TagAttachJail is used, unless it is 'Auto', in which case Tag is used.
+// If no jails are found, attach to the jail this actor is in. 
+// If this actor is not in a jail, log an error and go to sleep.
 // ============================================================================
+
 function PostBeginPlay()
 {
     local JBInfoJail Jail;
-
-    for(Jail=GetFirstJail(); Jail!=None; Jail=Jail.NextJail)
-    {
-        if((Jail.EventExecutionCommit == Tag)
-        || (Jail.EventExecutionEnd == Tag)
-        || (Jail.EventExecutionInit == Tag))
-        {
-            TargetJail = Jail;
-            break;
+    local name MatchTag;
+    
+    if(TagAttachJail == 'Auto')
+      MatchTag = Tag;
+    else
+      MatchTag = TagAttachJail;
+    
+    if(MatchTag != '' ) {
+        for(Jail=GetFirstJail(); Jail!=None; Jail=Jail.NextJail) {
+            if((Jail.EventExecutionCommit == MatchTag)
+            || (Jail.EventExecutionEnd == MatchTag)
+            || (Jail.EventExecutionInit == MatchTag))
+            {
+                AttachedJails[AttachedJails.length] = Jail;
+            }
         }
     }
-
-    if(TargetJail == None)
-    {
+    
+    if(AttachedJails.length == 0 ) {
+        for(Jail=GetFirstJail(); Jail!=None; Jail=Jail.NextJail)
+        {
+            if( Jail.ContainsActor(Self) ) {
+                AttachedJails[0] = Jail;
+                break;
+            }
+        }
+    }
+    if(AttachedJails.length == 0 ) {
         LOG("!!!!!"@name$".PostBeginPlay() : target jail not found !!!!!");
         Disable('Trigger');
     }
@@ -73,9 +96,7 @@ event ExecuteAllJailedPlayers(optional bool bInstantKill, optional class<DamageT
 
     for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
-        if((JailedPlayer.GetJail() == TargetJail)
-        && (JailedPlayer.GetPawn() != None))
-        {
+        if( PlayerIsInAttachedJail(JailedPlayer) && (JailedPlayer.GetPawn() != None)) {
             if(bInstantKill) JailedPlayer.GetPawn().Died(None, KillType, vect(0,0,0));
             else ExecuteJailedPlayer(JailedPlayer.GetPawn());
         }
@@ -96,8 +117,7 @@ state ExecutionDispatching
     Begin:
     for(DispatchedPlayer=GetFirstTagPlayer(); DispatchedPlayer!=None; DispatchedPlayer=DispatchedPlayer.NextTag)
     {
-        if((DispatchedPlayer.GetJail() == TargetJail)
-        && (DispatchedPlayer.GetPawn() != None))
+        if( PlayerIsInAttachedJail(DispatchedPlayer) && (DispatchedPlayer.GetPawn() != None))
         {
             if(DispatchExecution.bInstantKill) DispatchedPlayer.GetPawn().Died(None, DispatchExecution.InstantKillType, vect(0,0,0));
             else ExecuteJailedPlayer(DispatchedPlayer.GetPawn());
@@ -153,14 +173,31 @@ final function DestroyAllDamagers()
 // ============================================================================
 // Accessors
 // ============================================================================
+
 final function JBInfoJail GetFirstJail() {
     return (JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstJail); }
 final function JBTagPlayer GetFirstTagPlayer() {
     return (JBGameReplicationInfo(Level.Game.GameReplicationInfo).FirstTagPlayer); }
-final function JBInfoJail GetTargetJail() {
-    return (TargetJail); }
 final function bool HasSkelete(Pawn P) {
     return ((P.IsA('xPawn')) && (xPawn(P).SkeletonMesh != None)); }
+final function JBInfoJail GetTargetJail()
+{
+    // THIS FUNCTION IS DEPRECATED! 
+    // code must be adapted to use PlayerIsInAttachedJail instead
+    log("!!!!!"@name$": function GetTargetJail() is deprecated! Do not use!");
+    return (AttachedJails[0]);
+}
+
+final function bool PlayerIsInAttachedJail(JBTagPlayer Player)
+{
+    local int i;
+    for( i=0; i<AttachedJails.length; i++) {
+        if(Player.GetJail() == AttachedJails[i] ) {
+            return true;
+        }
+    }
+    return false; 
+}
 
 
 // ============================================================================
@@ -170,4 +207,5 @@ defaultproperties
 {
     Texture=Texture'S_SpecialEvent'
     DispatchExecution=(MaxExecutionInterval=0.750000,MinExecutionInterval=0.250000)
+    TagAttachJail=Auto
 }

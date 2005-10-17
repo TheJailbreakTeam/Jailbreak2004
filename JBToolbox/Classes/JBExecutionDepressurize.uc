@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionDepressurize
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurize.uc,v 1.2 2003/06/30 06:54:37 crokx Exp $
+// $Id: JBExecutionDepressurize.uc,v 1.3 2004/03/19 19:18:53 tarquin Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
@@ -85,7 +85,7 @@ function Tick(float DeltaTime)
   if(ratio > 1.0) ratio = 1.0;
 
   for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag) {
-    if((JailedPlayer.GetJail() == GetTargetJail()) 
+    if( PlayerIsInAttachedJail(JailedPlayer) 
       && (JailedPlayer.GetPawn() != None))
     {
       DepressurizePawn = JailedPlayer.GetPawn();
