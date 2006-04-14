@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.119 2005/04/24 16:09:09 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.120 2005-04-24 19:36:11 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -280,7 +280,7 @@ function GetServerDetails(out ServerResponseLine ServerState)
     if (Right(WebScoreboardAddress, 3) == ":80")
       WebScoreboardAddress = Left(WebScoreboardAddress, Len(WebScoreboardAddress) - 3);
     WebScoreboardAddress = WebScoreboardAddress $ WebScoreboardPath;
-  
+
     iServerInfo = ServerState.ServerInfo.Length;
     ServerState.ServerInfo.Insert(iServerInfo, 1);
     ServerState.ServerInfo[iServerInfo].Key = "WebScoreboard";
@@ -513,7 +513,7 @@ function UnregisterPlayer(Controller Controller)
 
   if (PlayerController(Controller) != None) {
     TagPlayerUnregistering = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
-    
+
     if (TagPlayerUnregistering != None) {
       TagPlayerUnregistering.Unregister();
       TagPlayerUnregistering.nextTag = firstTagPlayerInactive;
@@ -537,7 +537,7 @@ function bool NeedPlayers()
 {
   if (Super.NeedPlayers())
     return True;
-  
+
   if (!bBalanceTeams || NumBots > 0 || NumPlayers <= 1 || NumPlayers % 2 == 0)
     return False;
 
@@ -618,7 +618,7 @@ function bool AllowBecomeActivePlayer(PlayerController PlayerController)
   if (!IsInState('PendingMatch') &&
       !IsInState('MatchInProgress'))
     return False;
-  
+
   return Super.AllowBecomeActivePlayer(PlayerController);
 }
 
@@ -640,7 +640,7 @@ function bool BecomeSpectator(PlayerController PlayerController)
 
   if (!Super.BecomeSpectator(PlayerController))
     return False;
-  
+
   UnregisterPlayer(PlayerController);
   return True;
 }
@@ -780,7 +780,7 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
     if (TagPlayerRestart.IsStartPreferred(NavigationPoint))
            return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + 10000000;
       else return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
-  
+
   return -20000000;  // prefer spawn-fragging over inappropriate start spots
 }
 
@@ -826,7 +826,7 @@ function bool PickupQuery(Pawn PawnPlayer, Pickup Pickup)
         TagPlayer.IsInArena())
       return False;
   }
-  
+
   return Super.PickupQuery(PawnPlayer, Pickup);
 }
 
@@ -901,7 +901,7 @@ function bool PreventDeath(Pawn PawnVictim, Controller ControllerKiller, Class<D
   if (TagPlayerVictim != None &&
      !TagPlayerVictim.IsFree())
     PawnVictim.Weapon = None;
-  
+
   return False;
 }
 
@@ -1394,7 +1394,7 @@ function RestartTeam(TeamInfo Team)
 function Class<Pawn> GetDefaultPlayerClass(Controller Controller)
 {
   local Class<Pawn> ClassPawn;
-  
+
   ClassPawn = Super.GetDefaultPlayerClass(Controller);
 
   if (ClassPawn == Class'Pawn' && Controller.PawnClass != None)
@@ -1520,6 +1520,13 @@ function ExecutionCommit(TeamInfo TeamExecuted)
     firstJBGameRules = GetFirstJBGameRules();
     if (firstJBGameRules != None)
       firstJBGameRules.NotifyExecutionCommit(TeamExecuted);
+
+    if (GameStats != None){
+      if (TeamExecuted.TeamIndex == 0)
+        GameStats.TeamScoreEvent(1,1,"round_win");
+      else if (TeamExecuted.TeamIndex == 1)
+        GameStats.TeamScoreEvent(0,1,"round_win");
+    }
   }
 
   else {
@@ -1628,7 +1635,7 @@ function PlayStartupMessage()
     case 5:  BroadcastLocalizedMessage(MessageClass, 900);  return;
     case 7:  BroadcastLocalizedMessage(MessageClass, 910);  break;
   }
-  
+
   Super.PlayStartupMessage();
 }
 
@@ -1642,7 +1649,7 @@ function PlayStartupMessage()
 function PlayEndOfMatchMessage()
 {
   local TeamInfo TeamWinner;
-  
+
   if (Teams[0].Score > Teams[1].Score)
          TeamWinner = Teams[0];
     else TeamWinner = Teams[1];
@@ -1680,7 +1687,7 @@ function ParseVoiceCommand(PlayerController PlayerControllerSender, string Comma
 
   if (Tactics != "") {
     TagClientSender = Class'JBTagClient'.Static.FindFor(PlayerControllerSender);
-    
+
     switch (Tactics) {
       case "AUTO":        TagClientSender.ExecTeamTactics('auto');        break;
       case "UP":          TagClientSender.ExecTeamTactics('up');          break;
@@ -1692,7 +1699,7 @@ function ParseVoiceCommand(PlayerController PlayerControllerSender, string Comma
       case "EVASIVE":     TagClientSender.ExecTeamTactics('evasive');     break;
     }
   }
-  
+
   else {
     Super.ParseVoiceCommand(PlayerControllerSender, Command);
   }
@@ -1742,7 +1749,7 @@ state MatchInProgress {
 
     InfoGame.StartMatchTimer();
     InfoGame.SynchronizeMatchTimer(ElapsedTime);
-    
+
     RespawnPickups();
   }
 
@@ -1753,14 +1760,14 @@ state MatchInProgress {
   // Respawns all pickups and resets the initial spawning delay for
   // super pickups. Respawns vehicles and powers up turrets.
   // ================================================================
-  
+
   function RespawnPickups()
   {
     local Pickup thisPickup;
     local xPickupBase thisPickupBase;
     local SVehicleFactory thisSVehicleFactory;
     local ONSStationaryWeaponPawn thisStationaryWeaponPawn;
-  
+
     foreach DynamicActors(Class'Pickup', thisPickup)
       thisPickup.Reset();
 
@@ -1773,8 +1780,8 @@ state MatchInProgress {
     foreach DynamicActors(Class'ONSStationaryWeaponPawn', thisStationaryWeaponPawn)
       thisStationaryWeaponPawn.bPowered = True;
   }
-  
-  
+
+
   // ================================================================
   // Timer
   //
@@ -1971,9 +1978,9 @@ state MatchOver
   event Timer()
   {
     local Controller thisController;
-  
+
     Super.Timer();
-    
+
     if (EndGameFocus != None)
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (PlayerController(thisController) != None)
