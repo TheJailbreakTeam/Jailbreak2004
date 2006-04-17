@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.120 2005-04-24 19:36:11 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.121 2006-04-14 11:21:09 lynx Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1148,6 +1148,26 @@ function BroadcastDeathMessage(Controller ControllerKiller, Controller Controlle
   else {
     Super.BroadcastDeathMessage(ControllerKiller, ControllerVictim, DamageType);
   }
+}
+
+
+// ============================================================================
+// BroadcastLocalizedMessage
+//
+// Broadcasts a localized message to all players. makes a check in addons to
+// see if they have any objections against particular message being displayed
+// ============================================================================
+
+event BroadcastLocalizedMessage( class<LocalMessage> MessageClass, optional int Switch, optional PlayerReplicationInfo RelatedPRI_1, optional PlayerReplicationInfo RelatedPRI_2, optional Object OptionalObject )
+{
+  local JBGameRules firstJBGameRules;
+
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None &&
+     !firstJBGameRules.CanBroadcast(MessageClass, switch, RelatedPRI_1, RelatedPRI_2, OptionalObject))
+    return;
+
+  Level.Game.BroadcastLocalized( self, MessageClass, Switch, RelatedPRI_1, RelatedPRI_2, OptionalObject );
 }
 
 

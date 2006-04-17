@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.8 2004/04/14 15:21:16 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.9 2004-05-04 15:15:37 mychaeel Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -159,6 +159,24 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
   nextJBGameRules = GetNextJBGameRules();
   if (nextJBGameRules != None)
     return nextJBGameRules.CanRelease(Team, PawnInstigator, Objective);
+
+  return True;
+}
+
+
+// ============================================================================
+// CanBrodcast
+//
+// Called when a game attempts to broadcast a localised message to players.
+// ============================================================================
+
+function bool CanBroadcast( class<LocalMessage> MessageClass, optional int Switch, optional PlayerReplicationInfo RelatedPRI_1, optional PlayerReplicationInfo RelatedPRI_2, optional Object OptionalObject )
+{
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
+  if (nextJBGameRules != None)
+    return nextJBGameRules.CanBroadcast(MessageClass, switch, RelatedPRI_1, RelatedPRI_2, OptionalObject);
 
   return True;
 }
