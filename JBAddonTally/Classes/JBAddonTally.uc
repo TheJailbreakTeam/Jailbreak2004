@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBAddonTally.uc,v 1.1 2006-04-24 01:32:10 mychaeel Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -49,7 +49,7 @@ var() const editconst string Build;
 var PlayerController PlayerControllerLocal;
 var JBTagPlayer TagPlayerLocal;
 
-var TEntry Entries[16];           // tally entries
+var TEntry Entries[32];           // tally entries
 var int nEntries;                 // current number of entries
 
 var HudBase.SpriteWidget SpriteWidgetEntry;
