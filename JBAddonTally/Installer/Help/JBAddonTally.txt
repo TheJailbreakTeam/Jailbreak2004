@@ -1,0 +1,62 @@
+===============================================================================
+JBAddonTally
+Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
+===============================================================================
+
+This add-on only works with the Jailbreak game type. To download Jailbreak, and
+for feedback, suggestions and bug reports, visit
+
+  PlanetJailbreak               http://www.planetjailbreak.com
+  PlanetJailbreak Forums        http://www.planetjailbreak.com/forums/
+
+
+===============================================================================
+What's this?
+===============================================================================
+
+Jail Fight Tally maintains and displays a score tally for jail fights. Players
+are ranked by the difference between kills and deaths.
+
+
+===============================================================================
+Installation
+===============================================================================
+
+Zip Installation
+================
+
+Extract the archive into your game base directory. As the archive contains
+subdirectories, all files will be placed in the right locations. In case that
+doesn't work out, here is where the files should be placed:
+ 
+  JBAddonTally.u    ->  System\
+  JBAddonTally.int  ->  System\
+  JBAddonTally.txt  ->  Help\
+
+
+===============================================================================
+Uninstall
+===============================================================================
+
+Delete the following files relative to your game base directory:
+
+  System\JBAddonTally.u
+  System\JBAddonTally.int
+  Help\JBAddonTally.txt
+
+
+===============================================================================
+Copyright
+===============================================================================
+
+JBAddonTally
+
+Copyright (c) 2006 by Mychaeel <mychaeel@planetjailbreak.com>
+Contact <mychaeel@planetjailbreak.com> for feedback.
+
+This add-on is freely available for noncommercial use. For commercial use and
+distribution, please contact Mychaeel <mychaeel@planetjailbreak.com> in advance
+for permission.
+
+
+===============================================================================
