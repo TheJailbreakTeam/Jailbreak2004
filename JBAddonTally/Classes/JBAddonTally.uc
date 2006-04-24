@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.1 2006-04-24 01:32:10 mychaeel Exp $
+// $Id: JBAddonTally.uc,v 1.2 2006-04-24 02:23:13 mychaeel Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -275,7 +275,7 @@ defaultproperties
 {
   Build                  = "%%%%-%%-%% %%:%%"
 
-  FriendlyName           = "Jail Score Tally"
+  FriendlyName           = "Jail Fight Tally"
   Description            = "Maintains and displays a score tally for jail fights."
 
   SpriteWidgetEntry      = (PosX=0.970,PosY=0.105,Tints[0]=(R=255,G=255,B=255,A=192),Tints[1]=(R=255,G=255,B=255,A=192));
