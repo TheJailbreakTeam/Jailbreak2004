@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.4 2006-04-30 20:49:10 mychaeel Exp $
+// $Id: JBAddonTally.uc,v 1.5 2006-04-30 20:52:00 mychaeel Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -201,6 +201,11 @@ simulated function RenderOverlays(Canvas Canvas)
     iTeam = PlayerControllerLocal.PlayerReplicationInfo.Team.TeamIndex;
   
     for (iEntry = 0; iEntry < nEntries; ++iEntry) {
+      EntryCurrent = Entries[iEntry];
+      if (EntryCurrent.TagPlayer                            == None ||
+          EntryCurrent.TagPlayer.GetPlayerReplicationInfo() == None)
+        continue;
+
       Canvas.DrawColor = SpriteWidgetBackground.Tints[iTeam];
   
       Canvas.SetPos(
@@ -217,10 +222,9 @@ simulated function RenderOverlays(Canvas Canvas)
         SpriteWidgetBackground.TextureCoords.Y2 - SpriteWidgetBackground.TextureCoords.Y2);
   
       Canvas.DrawColor = SpriteWidgetEntry.Tints[iTeam];
-  
-      EntryCurrent = Entries[iEntry];
+
       PlayerNameCurrent = EntryCurrent.TagPlayer.GetPlayerReplicationInfo().PlayerName;
-  
+
       LocationCurrentText = LocationCurrentEntry;
                                               DrawTextRightAligned(Canvas, EntryCurrent.nDeaths, LocationCurrentText.X, LocationCurrentText.Y);
       LocationCurrentText.X -= SizeScores.X;  DrawTextRightAligned(Canvas, EntryCurrent.nKills,  LocationCurrentText.X, LocationCurrentText.Y);
