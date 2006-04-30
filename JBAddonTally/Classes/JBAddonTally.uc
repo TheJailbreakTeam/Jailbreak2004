@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.2 2006-04-24 02:23:13 mychaeel Exp $
+// $Id: JBAddonTally.uc,v 1.3 2006-04-24 02:30:50 mychaeel Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -152,10 +152,7 @@ function SwapEntries(int iEntry1, int iEntry2)
 
 function TouchEntry(int iEntry)
 {
-  local TEntry EntryTemp;
-  
-  EntryTemp = Entries[iEntry];
-  Entries[iEntry] = EntryTemp;
+  Entries[iEntry] = Entries[iEntry];
 }
 
 
