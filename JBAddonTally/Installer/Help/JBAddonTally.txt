@@ -1,5 +1,5 @@
 ===============================================================================
-JBAddonTally
+JBAddonTally (Version 110)
 Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
 ===============================================================================
 
@@ -43,6 +43,18 @@ Delete the following files relative to your game base directory:
   System\JBAddonTally.u
   System\JBAddonTally.int
   Help\JBAddonTally.txt
+
+
+===============================================================================
+Version History
+===============================================================================
+
+Version 110 (2006-04-30)
+* Fixed: Incorrect ranking of players who lost their first fight.
+* Fixed: Incorrect display (and Accessed None warnings) after player leaves.
+
+Version 100 (2006-04-24)
+* Initial release.
 
 
 ===============================================================================
