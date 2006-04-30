@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.3 2006-04-24 02:30:50 mychaeel Exp $
+// $Id: JBAddonTally.uc,v 1.4 2006-04-30 20:49:10 mychaeel Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -122,6 +122,10 @@ function int FindOrCreateEntryFor(JBTagPlayer TagPlayer)
   
   iEntry = nEntries++;
   Entries[iEntry].TagPlayer = TagPlayer;
+
+  while (iEntry > 0 &&
+         Entries[iEntry - 1].nKills - Entries[iEntry - 1].nDeaths < 0)
+    SwapEntries(iEntry, --iEntry);
 
   return iEntry;
 }
