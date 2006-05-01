@@ -1,5 +1,5 @@
 // ============================================================================
-// JBAddonKeepWeapons
+// JBAddonPersistence
 // Copyright 2006 by Mitchell "mdavis" Davis <mitchelld02@yahoo.com>
 //
 // This addon will allow winning players to keep their weapons for the next
@@ -16,12 +16,6 @@ class JBAddonPersistence extends JBAddon;
 function PostBeginPlay()
 {
   local JBGameRulesPersistence PersistentRules;
-
-  if(MutatorIsAllowed() == False) {
-    Log("***Mutators not allowed***");
-    Destroy();
-    return;
-  }
 
   Super.PostBeginPlay();
 

@@ -1,5 +1,5 @@
 // ============================================================================
-// JBGameRulesKeepWeapons
+// JBGameRulesPersistence
 // Copyright 2006 by Mitchell Davis <mitchelld02@yahoo.com>
 //
 // The game rules to allow weapons and other attributes to transfer over
@@ -130,7 +130,6 @@ function ExtractCapturingPlayers(TeamInfo Team)
     if((thisController.PlayerReplicationInfo != None) &&
        (thisController.PlayerReplicationInfo.Team != Team))
     {
-      Log("Adding to list " $ thisController.Pawn.GetHumanReadableName());
       AddToList(thisController);
     }
   }
@@ -208,11 +207,11 @@ function bool PersistWeapon(Pawn P, TPersistWeapons Weapon)
 
   //if the weapon is the assault rifle, consume all ammo first, then add
   //ammunition from the Weapon structure.
-  if(W.GetHumanReadableName() ~= "Assault Rifle")// || W.GetHumanReadableName() ~= "Shield Gun")
+  if(W.Class == class'XWeapons.AssaultRifle')
   {
     for(Inv = P.Inventory; Inv != None; Inv = Inv.Inventory)
     {
-      if(Weapon(Inv).GetHumanReadableName() ~= "Assault Rifle")
+      if(Inv.Class == class'XWeapons.AssaultRifle')
       {
         Weapon(Inv).ConsumeAmmo(0, 100);
         Weapon(Inv).ConsumeAmmo(1, 4);
@@ -223,15 +222,14 @@ function bool PersistWeapon(Pawn P, TPersistWeapons Weapon)
   }
   //If the weapon is the shield gun or the translocator,
   //don't add it to the inventory
-  else if((W.GetHumanReadableName() ~= "Shield Gun") ||
-          (W.GetHumanReadableName() ~= "Translocator"))
+  else if((W.Class == class'XWeapons.ShieldGun') ||
+          (W.Class == class'XWeapons.TransLauncher'))
   {
     return true;
   }
   else
   {
     W.AddAmmo(Weapon.PrimaryAmmo, 0);
-    Log("Adding " $ W.GetHumanReadableName() $ " to " $ P.GetHumanReadableName());
     W.ClientWeaponSet(true);    //Prevent weapons to appear funky on next round
     P.AddInventory(W);
   }
@@ -269,7 +267,6 @@ function AddToList(Controller Capturer)
       CapturerList[NumCapturers].WeaponList[i].PersistentWeapon = Weapon(Inv).Class;
       CapturerList[NumCapturers].WeaponList[i].PrimaryAmmo = Weapon(Inv).AmmoAmount(0);
       CapturerList[NumCapturers].WeaponList[i].SecondaryAmmo = Weapon(Inv).AmmoAmount(1);
-      Log("Adding " $ Inv.Class $ " to the structure");
     }
     i++;
   }
