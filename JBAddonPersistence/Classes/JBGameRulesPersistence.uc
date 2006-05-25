@@ -6,7 +6,9 @@
 // into the next round.
 // ============================================================================
 
-class JBGameRulesPersistence extends JBGameRules;
+class JBGameRulesPersistence extends JBGameRules
+      config
+      CacheExempt;
 
 // ============================================================================
 // Structures
@@ -22,18 +24,24 @@ struct TPersistence
 {
   var string Owner;
   var int Adrenaline;
-  var TPersistWeapons WeaponList[16];
+  var int Score;
+  var int Rank;      //This will be used when carrying over weapons
+  var bool bWasJailed;
+  var array<TPersistWeapons> WeaponList;
 };
 
 // ============================================================================
 // Variables
 // ============================================================================
-var private array<TPersistence> CapturerList;
-var private int NumCapturers;
-var private bool bNewRound;
+var private array<TPersistence> CapturerList, CapturedList;
+var private TeamInfo CapturedTeam;
+var private int NumCapturers, NumCaptured;
+var private bool bNewRound;   //When a new round starts, set to true
+var private bool bUprising;   //Give the losing team the winner's weapons
+var private int nHealth;      //The ammount of health to transfer
 
 // ============================================================================
-// Functoins
+// Functions
 // ============================================================================
 
 // ============================================================================
@@ -45,8 +53,11 @@ var private bool bNewRound;
 function PreBeginPlay()
 {
   NumCapturers = 0;
+  NumCaptured = 0;
   bNewRound = false;
-  SetTimer(1.0, true);
+  bUprising = class'JBAddonPersistence'.default.bUprising;
+  nHealth = class'JBAddonPersistence'.default.nHealth;
+  SetTimer(0.5, true);
   Super.PreBeginPlay();
 }
 
@@ -63,14 +74,16 @@ function Timer()
 {
   local Controller t;
 
-  if(bNewRound && NumCapturers > 0)
+  if(bNewRound && (NumCapturers > 0 || NumCaptured > 0))
   {
+    SortListByScore(CapturerList, 0, NumCapturers);
+    SortListByScore(CapturedList, 0, NumCaptured);
     for(t = Level.ControllerList; t != None; t = t.nextController)
     {
       //loop through each controller's pawn and find one that is a player
       if(t.Pawn != None && t.Pawn.GetHumanReadableName() ~= CapturerList[0].Owner)
       {
-        //once we find a player, carry over all weapons for that player.
+        //once we find a pawn, carry over all weapons for that player.
         CarryOverWeapons();
         CleanUpArray();
         bNewRound = false;
@@ -78,6 +91,8 @@ function Timer()
       }
     }
   }
+
+  Super.Timer();
 }
 
 // ============================================================================
@@ -88,9 +103,9 @@ function Timer()
 // ============================================================================
 function NotifyExecutionEnd()
 {
-  Super.NotifyExecutionEnd();
-
   bNewRound = true;
+
+  Super.NotifyExecutionEnd();
 }
 
 // ============================================================================
@@ -108,29 +123,40 @@ function NotifyPlayerJailed(JBTagPlayer TagPlayer)
 
   if(thisTeam.CountPlayersJailed() == thisTeam.CountPlayersTotal())
   {
-    ExtractCapturingPlayers(thisTeam.GetTeam());
+    ExtractPlayers(thisTeam.GetTeam());
   }
 
   Super.NotifyPlayerJailed(TagPlayer);
 }
 
 // ============================================================================
-// ExtractCapturingPlayers
+// ExtractPlayers
 //
 // This function will extract the pawns associated with the capturing team and
 // retrieve their inventory. This information will be recorded into a
 // structure to easily handle moving over inventory to the next round.
+//
+// The new version now extracts not only the capturing players, but also the
+// captured players.
 // ============================================================================
-function ExtractCapturingPlayers(TeamInfo Team)
+function ExtractPlayers(TeamInfo Team)
 {
   local Controller thisController;
+
+  CapturedTeam = Team;  //Keep track of which team was the captured team for
+                        //health transfer.
 
   for(thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
   {
     if((thisController.PlayerReplicationInfo != None) &&
        (thisController.PlayerReplicationInfo.Team != Team))
     {
-      AddToList(thisController);
+      AddToCapturingList(thisController);
+    }
+    else if((thisController.PlayerReplicationInfo != None) &&
+            (thisController.PlayerReplicationInfo.Team == Team))
+    {
+      AddToCapturedList(thisController);
     }
   }
 }
@@ -145,24 +171,52 @@ function ExtractCapturingPlayers(TeamInfo Team)
 function CarryOverWeapons()
 {
   local int i, j;
+  local int Count;  //Use this to keep track of which capturing players' weapons
+                    //we are handing over to the captured players.
   local Controller thisController;
 
-
-  for(i = 0; i < CapturerList.Length; i++)
+  Count = 0;
+  //Make sure a new round has started.
+  if(bNewRound)
   {
-    Log(CapturerList[i].Owner $ " is the current Capturer.");
-    for(thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+    for(thisController = Level.ControllerList; thisController != None; thisController = thisController.nextController)
     {
-      if((thisController.Pawn != None) &&
-         (thisController.Pawn.GetHumanReadableName() ~= CapturerList[i].Owner))
+      TransferHealth(thisController);
+      //if not bUprising, then don't transfer weapons to opposing team
+      if(!bUprising)
       {
-        //We will set the adrenaline first
-        SetAdrenaline(thisController, CapturerList[i].Adrenaline);
-        //Loop through all the weapons in the structure array and add them
-        //to the Pawn.
-        for(j = 0; j < 16; j++)
+        for(i = 0; i < CapturerList.Length; i++)
         {
-          PersistWeapon(thisController.Pawn, CapturerList[i].WeaponList[j]);
+          if((thisController.Pawn != None) &&
+             (thisController.Pawn.GetHumanReadableName() ~= CapturerList[i].Owner))
+          {
+            //We will set the adrenaline first
+            SetAdrenaline(thisController, CapturerList[i].Adrenaline);
+            //Loop through all the weapons in the structure array and add them
+            //to the Pawn.
+            for(j = 0; j < CapturerList[i].WeaponList.Length - 1; j++)
+            {
+              PersistWeapon(thisController.Pawn, CapturerList[i].WeaponList[j]);
+            }
+          }
+        }
+      }
+      else //if bUprising is set to true, then transfer weapons over
+      {
+        for(i = CapturedList.Length - 1; i >= 0; i--)
+        {
+          if((thisController.Pawn != None) &&
+             (thisController.Pawn.GetHumanReadableName() ~= CapturedList[i].Owner))
+          {
+            //this is used in case teams are unbalanced.
+            if(Count >= CapturerList.Length - 1)
+              Count = 0;
+            for(j = 0; j < CapturerList[Count].WeaponList.Length - 1; j++)
+            {
+              PersistWeapon(thisController.Pawn, CapturerList[Count].WeaponList[j]);
+            }
+            Count++;
+          }
         }
       }
     }
@@ -238,24 +292,62 @@ function bool PersistWeapon(Pawn P, TPersistWeapons Weapon)
 }
 
 // ============================================================================
-// AddToList
+// TransferHealth
+//
+// Adds health to the captured players and takes away health from the
+// capturing players.
+// Param:    C - The current controller to add or subtract health from.
+// ============================================================================
+function TransferHealth(Controller C)
+{
+  //Check for replication info
+  if(C.PlayerReplicationInfo == None)
+    return;
+
+  //If the current controller was not on the captured team,
+  //take away health
+  if((C.Pawn != None) && (C.PlayerReplicationInfo.Team != CapturedTeam))
+  {
+    C.Pawn.Health -= nHealth;
+  }
+  //If the current controller was on the captured team, add health
+  else if((C.Pawn != None) && (C.PlayerReplicationInfo.Team == CapturedTeam))
+  {
+    C.Pawn.Health += nHealth;
+  }
+}
+
+// ============================================================================
+// AddToCapturingList
 //
 // Adds information about the capturing pawns into the TPersistance structure
 // to carry over into the next round.
 // Param:    Capturer - The controller that is on the capturing team.
 //                      Used to extract adrenaline.
 // ============================================================================
-function AddToList(Controller Capturer)
+function AddToCapturingList(Controller Capturer)
 {
   local int i;
   local Pawn P;
   local Inventory Inv;
+  local JBTagPlayer TagPlayer; //Used to determine if capturer was in jail
+                               //at time of winning
+
+  if(Capturer == None || Capturer.Pawn == None)
+    return;
 
   P = Capturer.Pawn;
+
+  TagPlayer = class'JBTagPlayer'.static.FindFor(Capturer.PlayerReplicationInfo);
+  //If tag player is in jail, then do not add that player to the list.
+  //The player won't have any weapons of use for the losing team.
+  if(TagPlayer.IsInJail())
+    return;
 
   CapturerList.Insert(NumCapturers, 1);
   CapturerList[NumCapturers].Owner = P.GetHumanReadableName();
   CapturerList[NumCapturers].Adrenaline = Capturer.Adrenaline;
+  CapturerList[NumCapturers].Score = Capturer.PlayerReplicationInfo.Score;
 
   //Loop through the inventory list and extract all inventory that are weapons
   i = 0;
@@ -264,6 +356,11 @@ function AddToList(Controller Capturer)
     if((Inv != None) &&
        (Inv.IsA('Weapon')))
     {
+      //If we insert one element at i and try to access that element, we get
+      //Accessed None warnings.
+      //For some odd reason, if we insert two elements at i, everything is fine.
+      //Need to investigate furthur.
+      CapturerList[NumCapturers].WeaponList.Insert(i, 2);
       CapturerList[NumCapturers].WeaponList[i].PersistentWeapon = Weapon(Inv).Class;
       CapturerList[NumCapturers].WeaponList[i].PrimaryAmmo = Weapon(Inv).AmmoAmount(0);
       CapturerList[NumCapturers].WeaponList[i].SecondaryAmmo = Weapon(Inv).AmmoAmount(1);
@@ -272,6 +369,60 @@ function AddToList(Controller Capturer)
   }
 
   NumCapturers++;     //Increment array
+}
+
+// ============================================================================
+// AddToCapturedList
+//
+// Adds information about the captured pawn to the list.
+// Param:    Captured - The controller that is on the captured team.
+// ============================================================================
+function AddToCapturedList(Controller Captured)
+{
+  local Pawn P;
+
+  if(Captured == None || Captured.Pawn == None)
+    return;
+
+  P = Captured.Pawn;
+
+  CapturedList.Insert(NumCaptured, 1);
+  CapturedList[NumCaptured].Owner = P.GetHumanReadableName();
+  CapturedList[NumCaptured].Score = Captured.PlayerReplicationInfo.Score;
+
+  NumCaptured++;
+}
+
+// ============================================================================
+// SortListByScore
+//
+// Sort the list in ascending order based on the score. The algorithm used is
+// insertion sort.
+// Param:    Team - The current list to sort.
+//           LowerBound - The lower bound of the sort
+//           UpperBound - The upper bound of the sort
+// ============================================================================
+function SortListByScore(out array<TPersistence> Team, int LowerBound, int UpperBound)
+{
+  local int i, j, Index;
+  local TPersistence Temp;
+
+  for(i = LowerBound + 1; i < UpperBound; ++i)
+  {
+    Index = i;
+    j = i;
+    while(j > 0)
+    {
+      if(Team[j - 1].Score < Team[Index].Score)
+      {
+        Temp = Team[j - 1];
+        Team[j - 1] = Team[Index];
+        Team[Index] = Temp;
+        Index = j - 1;
+      }
+      --j;
+    }
+  }
 }
 
 // ============================================================================
@@ -285,6 +436,11 @@ function CleanUpArray()
   {
     CapturerList.Remove(0, CapturerList.Length);
     NumCapturers = 0;
+  }
+  if(CapturedList.Length > 0)
+  {
+    CapturedList.Remove(0, CapturedList.Length);
+    NumCaptured = 0;
   }
 }
 
