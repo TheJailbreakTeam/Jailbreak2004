@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamControllerSweeping
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBCamControllerSweeping.uc,v 1.1 2004-03-28 13:52:14 mychaeel Exp $
 //
 // Sweeps a camera between two LookTarget actors.
 // ============================================================================
@@ -56,7 +56,7 @@ function Init()
   else {
     foreach Camera.DynamicActors(Class'LookTarget', LookTargetLeft,  TagLookTargetLeft)  break;
     foreach Camera.DynamicActors(Class'LookTarget', LookTargetRight, TagLookTargetRight) break;
-  
+
     if (LookTargetLeft  == None ||
         LookTargetRight == None) {
       Error = "No matching LookTarget actor found for TagLookTargetLeft and/or TagLookTargetRight";
@@ -67,20 +67,20 @@ function Init()
 
       if (YawSweepRight < YawSweepLeft)
         YawSweepRight += 65536;
-    
+
       YawSweepDelta = YawSweepRight - YawSweepLeft;
-      
+
       Rotation = Camera.Rotation;
       Rotation.Yaw = (YawSweepLeft + YawSweepRight) / 2;
       Camera.SetRotation(Rotation);
-      
+
       TimeCountdownSweep = TimeSweep / 2.0;
     }
   }
 
   if (Error != "") {
     Log("Unable to initialize" @ Self @ "of" @ Camera $ ":" @ Error);
-    
+
     Camera.Caption.Text = "Error:" @ Error;
     Camera.Caption.Position = 0.5;
     Camera.Caption.Color.R  = 255;
@@ -101,30 +101,32 @@ function UpdateMovement(float TimeDelta)
 {
   local rotator Rotation;
 
-  if (TimeCountdownSweep == 0.0 &&
-      TimeCountdownWait  == 0.0)
-    return;  // error
+  //Jr.-- sweep when TimeWait is set to 0
+  //if (TimeCountdownSweep == 0.0 &&
+  //    TimeCountdownWait  == 0.0)
+  //  return;  // error
+  //--Jr.
 
   if (TimeCountdownSweep > 0.0) {
     TimeCountdownSweep -= TimeDelta;
-    
+
     if (TimeCountdownSweep <= 0.0) {
       TimeCountdownSweep = 0.0;
       TimeCountdownWait  = TimeWait;
     }
-  
+
     Rotation = Camera.Rotation;
-    
+
     if (YawSweepDelta > 0)
            Rotation.Yaw = YawSweepRight - YawSweepDelta * TimeCountdownSweep / TimeSweep;
       else Rotation.Yaw = YawSweepLeft  - YawSweepDelta * TimeCountdownSweep / TimeSweep;
 
     Camera.SetRotation(Rotation);
   }
-  
+
   else {
     TimeCountdownWait -= TimeDelta;
-  
+
     if (TimeCountdownWait <= 0.0) {
       TimeCountdownWait  = 0.0;
       TimeCountdownSweep = TimeSweep;

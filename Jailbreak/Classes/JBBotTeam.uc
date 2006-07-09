@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.37 2004/08/19 11:03:37 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.38 2004-08-19 11:54:20 mychaeel Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -458,7 +458,7 @@ function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, o
     if (Bot != None &&
         thisTagPlayer.GetTeam() == Team &&
         thisTagPlayer.IsInJail()) {
-      
+
       PlayerReplicationInfoBot = thisTagPlayer.GetPlayerReplicationInfo();
       EfficiencyBot = CalcEfficiency(PlayerReplicationInfoBot.Kills,
                                      PlayerReplicationInfoBot.Deaths);
@@ -584,6 +584,11 @@ function int CountPlayersReleasable(GameObjective GameObjective)
 
 static function float CalcDistance(Controller Controller, Actor ActorTarget)
 {
+  //Jr.-- no accessed none
+  if(Controller == None)
+    return 0.0;
+  //--Jr.
+
   if (Default.CacheCalcDistance.Time == Controller.Level.TimeSeconds &&
       Default.CacheCalcDistance.LocationController  == Controller .Location &&
       Default.CacheCalcDistance.LocationActorTarget == ActorTarget.Location)
@@ -893,7 +898,7 @@ function ReAssessStrategy()
 
     if (ScoreLead > 0) { TagTeamWinning = TagTeamSelf;   TagTeamLosing = TagTeamEnemy; }
                   else { TagTeamWinning = TagTeamEnemy;  TagTeamLosing = TagTeamSelf;  }
-  
+
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.IsFree() &&
@@ -1130,7 +1135,7 @@ protected function DeployToObjective(GameObjective GameObjective, int nPlayers)
       if (TagObjective.nPlayersDeployed == 0)
              Explain("deploying" @ nPlayers @            "player(s) to" @ GetExplanationObjective(GameObjective));
         else Explain("deploying" @ nPlayers @ "additional player(s) to" @ GetExplanationObjective(GameObjective));
-      
+
       TagObjective.nPlayersDeployed += nPlayers;
     }
   }
@@ -1318,7 +1323,7 @@ protected function DeployExecute()
         TagObjectiveBot = Class'JBTagObjective'.Static.FindFor(Bot(thisController).Squad.SquadObjective);
         if (TagObjectiveBot != None)
           TagObjectiveBot.nPlayersCurrent -= 1;
-  
+
         PutOnFreelance(Bot(thisController));
       }
     }
@@ -1503,7 +1508,7 @@ function NotifySpawn(Controller ControllerSpawned)
       for (thisSquad = Squads; thisSquad != None; thisSquad = thisSquad.NextSquad)
         thisSquad.RemoveEnemy(ControllerSpawned.Pawn);
     }
-  
+
     TagPlayer.RecordLocation(None);
   }
 }
@@ -1651,7 +1656,7 @@ state TacticsEvasive {
   {
     return None;
   }
-  
+
 
   // ================================================================
   // EndState
@@ -1742,7 +1747,7 @@ state TacticsDefensive {
   {
     return Global.FindBotForArena(Arena, ControllerOpponent, 2.0);
   }
-  
+
 } // state TacticsDefensive
 
 
@@ -1811,7 +1816,7 @@ auto state TacticsNormal {
               "but only" @ nPlayersFree     @ "player(s) are free - concentrating defense");
 
       nPlayersDefending = Max(0, nPlayersFree - Abs(nPlayersDefendingMin - nPlayersAttacking) / 2.0 - 0.5);
-      
+
       if (nPlayersDefending > 0 && nPlayersDefending <= nPlayersDefendingMin / 2) {
         Explain("require"  @ nPlayersDefendingMin @ "player(s) minimally for defense," @
                 "but only" @ nPlayersDefending    @ "player(s) available - abandoning defense");
@@ -1862,7 +1867,7 @@ auto state TacticsNormal {
   {
     return Global.FindBotForArena(Arena, ControllerOpponent, 1.0);
   }
-  
+
 } // state TacticsNormal
 
 
@@ -1926,7 +1931,7 @@ state TacticsAggressive {
 
     if (nPlayersAttacking + nPlayersDefendingMax <= nPlayersFree) {
       Explain("enough free players to fulfull all orders");
-      
+
       DeployToObjective(ObjectiveAttack, nPlayersAttacking);
       DeployToDefense(nPlayersDefendingMax);
       DeployExecute();  // rest go on freelance
@@ -1935,7 +1940,7 @@ state TacticsAggressive {
     else if (nPlayersAttacking + nPlayersDefendingMin / 2 <= nPlayersFree) {
       Explain("require"  @ nPlayersDefendingMin             @ "player(s) for defense," @
               "but only" @ nPlayersFree - nPlayersAttacking @ "player(s) available - concentrating defense");
-    
+
       nPlayersDefending = nPlayersFree - nPlayersAttacking;
 
       for (thisObjective = Objectives; thisObjective != None; thisObjective = thisObjective.NextObjective)
@@ -1959,7 +1964,7 @@ state TacticsAggressive {
     else {
       Explain("require"  @ nPlayersDefendingMin             @ "player(s) minimally for defense," @
               "but only" @ nPlayersFree - nPlayersAttacking @ "player(s) available - abandoning defense");
-    
+
       DeployToObjective(ObjectiveAttack, nPlayersFree);
       DeployExecute();
     }
@@ -1977,7 +1982,7 @@ state TacticsAggressive {
   {
     return Global.FindBotForArena(Arena, ControllerOpponent, 0.5);
   }
-  
+
 } // state TacticsAggressive
 
 
@@ -2060,10 +2065,10 @@ function Explain(string Text)
       JBInterfaceHud(Level.GetLocalPlayerController().myHUD).RegisterOverlay(Self);
       bIsExplanationInitialized = True;
     }
-  
+
     if (ListExplanation.Length > 100)
       ListExplanation.Remove(1, ListExplanation.Length - 100);
-  
+
     iExplanation = ListExplanation.Length;
     ListExplanation.Insert(iExplanation, 1);
     ListExplanation[iExplanation].Text = IndentExplanation $ Text;
@@ -2098,12 +2103,12 @@ function RenderOverlays(Canvas Canvas)
   local vector LocationTextMin;
   local Color ColorBase;
   local Color ColorShaded;
-  
+
   if (!bExplainToScreen)
     return;
-  
+
   ClipXPrev = Canvas.ClipX;
-  
+
   switch (Team.TeamIndex) {
     case 0:  ColorBase = Canvas.MakeColor(255, 0, 0);  LocationText.X = 0;  Canvas.ClipX /= 2;   break;
     case 1:  ColorBase = Canvas.MakeColor(0, 0, 255);  LocationText.X = int(Canvas.ClipX /  2);  break;
@@ -2127,7 +2132,7 @@ function RenderOverlays(Canvas Canvas)
     if (ListExplanation[iExplanation].bIsShaded)
            ColorShaded = ColorBase * 0.75;
       else ColorShaded = ColorBase;
-  
+
     Canvas.DrawColor = ColorShaded;
     Canvas.SetPos(LocationText.X, LocationText.Y);
     Canvas.DrawTextClipped(ListExplanation[iExplanation].Text);
@@ -2167,7 +2172,7 @@ function ExplainHeader()
       else if (thisTagPlayer.IsInJail())  Explain("jailed:" @ ExplanationPlayer @ "in" @ thisTagPlayer.GetJail() .Tag);
       else                                Explain("free:  " @ ExplanationPlayer @ GetExplanationOrders(thisTagPlayer.GetController()));
     }
-  
+
   ExplainBlockEnd();
 }
 
@@ -2217,10 +2222,10 @@ function string GetExplanationObjective(GameObjective GameObjective)
   if (GameObjective.ObjectiveName != GameObjective.Default.ObjectiveName)
          Result = GameObjective.ObjectiveName;
     else Result = "switch";
-  
+
   if (GameObjective.Region.Zone.LocationName != GameObjective.Region.Zone.Default.LocationName)
     Result = Result @ "in" @ GameObjective.Region.Zone.LocationName;
-  
+
   if (GameObjective.DefenderTeamIndex == Team.TeamIndex)
          Result = Result @ "(own base)";
     else Result = Result @ "(enemy base)";
@@ -2244,7 +2249,7 @@ function string GetExplanationPlayer(Controller Controller)
   if (Controller.PlayerReplicationInfo != None)
          if (PlayerController(Controller) != None) return Controller.PlayerReplicationInfo.PlayerName @ "(human)";
     else if (Bot             (Controller) != None) return Controller.PlayerReplicationInfo.PlayerName @ "(bot)";
-  
+
   return "unnamed" @ Controller.Class.Name;
 }
 

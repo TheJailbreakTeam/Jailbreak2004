@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.40 2004/05/31 00:01:45 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.41 2004-07-25 15:40:10 mychaeel Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -41,7 +41,6 @@ var() name TagAttachZones;              // tag of attached zones
 
 struct TInfoRelease
 {
-  var bool bIsActive;                   // release is currently active
   var bool bIsOpening;                  // release doors are opening
   var float TimeActivation;             // time of release activation
   var float TimeReset;                  // time of release switch reset
@@ -59,6 +58,17 @@ var JBInfoJail nextJail;
 var private TInfoRelease InfoReleaseByTeam[2];  // release state for each team
 var private array<Volume> ListVolume;           // volumes attached to jail
 var private array<NavigationPoint> ListNavigationPointExit;  // exit points
+
+//Jr.-- no last man message when team is being released
+var private bool bIsRedActive;
+var private bool bIsBlueActive;
+
+replication
+{
+  reliable if(Role == ROLE_Authority)
+    bIsRedActive, bIsBlueActive;
+}
+//--Jr.
 
 
 // ============================================================================
@@ -373,7 +383,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
   local JBTagPlayer TagPlayer;
 
   if (IsInState('Waiting')) {
-    if (InfoReleaseByTeam[Team.TeamIndex].bIsActive)
+    if (GetReleaseActive(Team.TeamIndex))
       return;
 
     if (ControllerInstigator != None &&
@@ -410,7 +420,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
           else TriggerEventRelease(GetEventRelease(Team), Self, None);
       }
 
-      InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
+      SetReleaseActive(Team.TeamIndex, True);
       InfoReleaseByTeam[Team.TeamIndex].bIsOpening     = True;
       InfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
       InfoReleaseByTeam[Team.TeamIndex].TimeReset      = 0.0;  // disabled
@@ -471,11 +481,11 @@ function TriggerEventRelease(name Event, Actor ActorSender, Pawn PawnInstigator)
 
 function CancelRelease(TeamInfo Team)
 {
-  if (InfoReleaseByTeam[Team.TeamIndex].bIsActive) {
+  if (GetReleaseActive(Team.TeamIndex)) {
     if (InfoReleaseByTeam[Team.TeamIndex].bIsOpening)
       NotifyJailOpened(Team);
 
-    InfoReleaseByTeam[Team.TeamIndex].bIsActive  = False;
+    SetReleaseActive(Team.TeamIndex, False);
     InfoReleaseByTeam[Team.TeamIndex].bIsOpening = False;
     InfoReleaseByTeam[Team.TeamIndex].TimeReset  = 0.0;  // disable
 
@@ -484,7 +494,7 @@ function CancelRelease(TeamInfo Team)
   }
 
   else {
-    InfoReleaseByTeam[Team.TeamIndex].bIsActive      = True;
+    SetReleaseActive(Team.TeamIndex, True);
     InfoReleaseByTeam[Team.TeamIndex].bIsOpening     = False;
     InfoReleaseByTeam[Team.TeamIndex].TimeActivation = Level.TimeSeconds;
     InfoReleaseByTeam[Team.TeamIndex].TimeReset      = Level.TimeSeconds + 2.0;
@@ -567,7 +577,7 @@ function NotifyJailEntered(JBTagPlayer TagPlayer)
 
   iTeam = TagPlayer.GetTeam().TeamIndex;
 
-  if (InfoReleaseByTeam[iTeam].bIsActive &&
+  if (GetReleaseActive(iTeam) &&
       InfoReleaseByTeam[iTeam].TimeReset == 0.0) {
 
     TagPlayer.NotifyJailOpening();
@@ -661,7 +671,7 @@ function ResetObjectives(TeamInfo Team)
 function ActivateCameraFor(Controller Controller)
 {
   local JBCamera thisCamera;
-  
+
   if (PlayerController(Controller) != None)
     foreach DynamicActors(Class'JBCamera', thisCamera, Event)
       thisCamera.TriggerForController(Self, Controller);
@@ -728,6 +738,31 @@ function ExecutionEnd()
     Log("Warning: Called ExecutionEnd for" @ Self @ "in state" @ GetStateName());
   }
 }
+
+
+//Jr.-- no last man message when team is being released
+// ============================================================================
+// GetReleaseActive
+// SetReleaseActive
+// ============================================================================
+simulated protected function bool GetReleaseActive(int TeamIndex)
+{
+  if (TeamIndex == 0)
+    return bIsRedActive;
+  else if (TeamIndex == 1)
+    return bIsBlueActive;
+
+  return false;
+}
+
+simulated protected function SetReleaseActive(int TeamIndex, bool Value)
+{
+  if (TeamIndex == 0)
+    bIsRedActive = Value;
+  else if (TeamIndex == 1)
+    bIsBlueActive = Value;
+}
+//--Jr.
 
 
 // ============================================================================
@@ -818,7 +853,7 @@ auto state Waiting {
     for (iTeam = 0; iTeam < ArrayCount(InfoReleaseByTeam); iTeam++) {
       Team = TeamGame(Level.Game).Teams[iTeam];
 
-      if (!InfoReleaseByTeam[iTeam].bIsActive)
+      if (!GetReleaseActive(iTeam))
         continue;
 
       if (InfoReleaseByTeam[iTeam].bIsOpening) {
@@ -835,7 +870,7 @@ auto state Waiting {
         }
 
         else if (InfoReleaseByTeam[iTeam].TimeReset < Level.TimeSeconds) {
-          InfoReleaseByTeam[iTeam].bIsActive  = False;
+          SetReleaseActive(Team.TeamIndex, False);
           InfoReleaseByTeam[iTeam].bIsOpening = False;
           InfoReleaseByTeam[iTeam].TimeActivation = 0.0;
           InfoReleaseByTeam[iTeam].TimeReset      = 0.0;
@@ -858,7 +893,7 @@ auto state Waiting {
     local int iTeam;
 
     for (iTeam = 0; iTeam < ArrayCount(InfoReleaseByTeam); iTeam++)
-      if (InfoReleaseByTeam[iTeam].bIsActive)
+      if (GetReleaseActive(iTeam))
         CancelRelease(TeamGame(Level.Game).Teams[iTeam]);
 
     SetTimer(0.0, False);
@@ -962,14 +997,14 @@ state ExecutionFallback {
 // Accessors
 // ============================================================================
 
-function bool IsReleaseActive(TeamInfo Team) {
-  return InfoReleaseByTeam[Team.TeamIndex].bIsActive; }
+simulated function bool IsReleaseActive(TeamInfo Team) {
+  return GetReleaseActive(Team.TeamIndex); }
 
 function bool IsReleaseOpening(TeamInfo Team) {
-  return InfoReleaseByTeam[Team.TeamIndex].bIsActive &&
+  return GetReleaseActive(Team.TeamIndex) &&
          InfoReleaseByTeam[Team.TeamIndex].bIsOpening; }
 function bool IsReleaseOpen(TeamInfo Team) {
-  return InfoReleaseByTeam[Team.TeamIndex].bIsActive &&
+  return GetReleaseActive(Team.TeamIndex) &&
         !InfoReleaseByTeam[Team.TeamIndex].bIsOpening &&
          InfoReleaseByTeam[Team.TeamIndex].TimeReset == 0.0; }
 

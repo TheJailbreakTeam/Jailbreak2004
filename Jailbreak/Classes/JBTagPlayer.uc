@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.53 2004/05/30 23:29:51 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.54 2004-08-23 08:33:16 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -107,6 +107,10 @@ var private Pawn Pawn;                    // pawn used by this player
 var private Controller Controller;        // controller used by this player
 var private int Health;                   // current health and armor
 var private bool bCanBeBaseForPawns;      // can be base for other players
+//Jr.--
+var private int spree;                    // used to carry sprees over rounds
+var private bool bRecoverSpree;           // recover spree after a round
+//--Jr.
 
 var private float TimeUpdateLocation;     // client-side location update time
 var private float VelocityPawn;           // replicated velocity of pawn
@@ -318,6 +322,9 @@ event Tick(float TimeDelta)
 
       Pawn.bCanBeBaseForPawns = Pawn.bIsCrouched;
       bCanBeBaseForPawns = Pawn.bCanBeBaseForPawns;
+
+      if(bRecoverSpree)
+        RecoverSpree();
     }
 
     // hack to fix the hack that fixes a hack
@@ -330,7 +337,7 @@ event Tick(float TimeDelta)
 
     // As the player has now restarted, make sure that the next game-induced
     // restart sends him to a random starting spot in jail.
-  
+
     Restart    = Default.Restart;
     TagRestart = Default.TagRestart;
   }
@@ -564,12 +571,17 @@ simulated function bool IsInJail()
 // ============================================================================
 // NotifyRound
 //
-// Called when a new round starts. Resets the player's llama state.
+// Called when a new round starts. Resets the player's llama state and allow a
+// previously saved spree to be recovered.
 // ============================================================================
 
 function NotifyRound()
 {
   bIsLlama = False;
+  //Jr.--
+  if (spree > 0)
+    bRecoverSpree = true;
+  //--Jr.
 }
 
 
@@ -818,7 +830,7 @@ private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferr
 // RestartInJail
 //
 // Restarts the player in freedom or in jail, respectively. Prefers starting
-// spots with a given tag, if specified. 
+// spots with a given tag, if specified.
 // ============================================================================
 
 function RestartInFreedom(optional name TagPreferred) { RestartPlayer(Restart_Freedom, TagPreferred); }
@@ -1001,6 +1013,39 @@ simulated function int GetHealth(optional bool bCached)
 
   return Health;
 }
+
+
+//Jr.--
+// ============================================================================
+// SaveSpree
+//
+// Saves the current killing spree. Called from Jailbreak.ExecutionCommit
+// ============================================================================
+function SaveSpree()
+{
+  if(Pawn != None)
+    spree = Pawn.GetSpree();
+}
+
+
+// ============================================================================
+// RecoverSpree
+//
+// Recovers a previously saved killing spree.
+// ============================================================================
+function RecoverSpree()
+{
+  if(Pawn != None)
+    while(spree > 0) {
+      Pawn.IncrementSpree(); //deals with custom Pawns/Vehicles
+      spree--;
+    }
+  else
+    spree = 0;
+
+  bRecoverSpree = False;
+}
+//--Jr.
 
 
 // ============================================================================
@@ -1241,7 +1286,7 @@ simulated function float RateViewOnPlayer(vector LocationViewpoint)
   if (CacheRateViewOnPlayer.Time == Level.TimeSeconds &&
       CacheRateViewOnPlayer.LocationViewpoint == LocationViewpoint)
     return CacheRateViewOnPlayer.Result;
-  
+
   CacheRateViewOnPlayer.Time = Level.TimeSeconds;
   CacheRateViewOnPlayer.Result = 0.0;
   CacheRateViewOnPlayer.LocationViewpoint = LocationViewpoint;

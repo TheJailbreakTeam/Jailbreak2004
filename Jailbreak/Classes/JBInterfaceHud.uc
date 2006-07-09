@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.58 2004/08/19 14:22:18 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.59 2005-04-24 20:24:50 mychaeel Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -317,27 +317,30 @@ simulated function CheckLastMan()
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer TagPlayerOwner;
-  
+
   if (PlayerOwner                       == None ||
       PlayerOwner.PlayerReplicationInfo == None)
     return;
-  
+
   TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PlayerOwner.PlayerReplicationInfo);
   if (TagPlayerOwner == None)
     return;
-  
+
   if (!TagPlayerOwner.IsFree()) {
     bIsLastMan = False;
   }
   else {
     if (Level.TimeSeconds - TimeUpdateLastMan < 1.0)
       return;
-  
+
     firstTagPlayer = JBGameReplicationInfo(PlayerOwner.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetTeam() == PlayerOwner.PlayerReplicationInfo.Team) {
-             if (thisTagPlayer.IsFree())   nPlayersFree   += 1;
-        else if (thisTagPlayer.IsInJail()) nPlayersJailed += 1;
+             if (thisTagPlayer.IsFree()) nPlayersFree += 1;
+        else if (thisTagPlayer.IsInJail()) { //Jr.-- no last man message when team is being released
+                if (thisTagPlayer.GetJail().IsReleaseActive(thisTagPlayer.GetTeam())) nPlayersFree   += 1;
+                else                                                                  nPlayersJailed += 1;
+             }//--Jr.
       }
 
     if (nPlayersFree == 1 && nPlayersJailed > 0) {
@@ -520,18 +523,18 @@ simulated function Blackout()
 simulated function ShowBlackout(Canvas Canvas)
 {
   local float TimeDelta;
-  
+
   if (RatioBlackout <= 0.0)
     return;
-  
+
   TimeDelta = Level.TimeSeconds - TimeUpdateBlackout;
   TimeUpdateBlackout = Level.TimeSeconds;
-  
+
   RatioBlackout = FMax(0.0, RatioBlackout - TimeDelta * 4.0);
-  
+
   Canvas.Style = ERenderStyle.STY_Alpha;
   Canvas.DrawColor.A = 255 * RatioBlackout;
-  
+
   Canvas.SetPos(0, 0);
   Canvas.DrawRect(Texture'BlackTexture', Canvas.ClipX, Canvas.ClipY);
 }
@@ -675,7 +678,7 @@ simulated function ShowDisposition(Canvas Canvas)
     if (TimeUpdateDisposition > 0.0)
       TimeDelta = Level.TimeSeconds - TimeUpdateDisposition;
     TimeUpdateDisposition = Level.TimeSeconds;
-  
+
     DispositionTeamRed .Update(TimeDelta);
     DispositionTeamBlue.Update(TimeDelta);
   }
@@ -794,24 +797,24 @@ simulated function ShowArenaNotifier(Canvas Canvas)
   if (AlphaArenaNotifier > 0) {
     SpriteWidgetArenaNotifier.Tints[TeamIndex].A = FClamp(Default.SpriteWidgetArenaNotifier.Tints[TeamIndex].A * AlphaArenaNotifier, 0, 255);
     DrawSpriteWidget(Canvas, SpriteWidgetArenaNotifier);
-  
+
     if (FontObjectArenaNotifier == None)
       FontObjectArenaNotifier = Font(DynamicLoadObject(FontArenaNotifier, Class'Font'));
-  
+
     Canvas.DrawColor = ColorTextArenaNotifier;
     Canvas.DrawColor.A = FClamp(255 * AlphaArenaNotifier, 0, 255);
-  
+
     if (Canvas.DrawColor.A > 0) {
       Canvas.Font = FontObjectArenaNotifier;
       Canvas.FontScaleX = SizeTextArenaNotifier.X * HudScale * HudCanvasScale * Canvas.ClipX / 640;
       Canvas.FontScaleY = SizeTextArenaNotifier.Y * HudScale * HudCanvasScale * Canvas.ClipY / 480;
-    
+
       Canvas.DrawScreenText(
         TextArenaNotifier,
         HudCanvasScale * (LocationTextArenaNotifier.X - 0.5) + 0.5,
         HudCanvasScale * (LocationTextArenaNotifier.Y - 0.5) + 0.5,
         DP_UpperMiddle);
-    
+
       Canvas.FontScaleX = Canvas.Default.FontScaleX;
       Canvas.FontScaleY = Canvas.Default.FontScaleY;
     }
@@ -953,7 +956,7 @@ simulated function LayoutMessage(out HudLocalizedMessage Message, Canvas Canvas)
 simulated function ClearMessageByClass(Class<LocalMessage> ClassLocalMessage, optional int Switch)
 {
   local int iLocalMessage;
-  
+
   for (iLocalMessage = 0; iLocalMessage < ArrayCount(LocalMessages); iLocalMessage++)
     if (LocalMessages[iLocalMessage].Message == ClassLocalMessage &&
        (LocalMessages[iLocalMessage].Switch == Switch || Switch == 0))
@@ -1234,7 +1237,7 @@ exec function BotThoughts(optional string Param1, optional string Param2)
 
   if (Param2 != "" || Param1 ~= "log" || Param1 ~= "screen")
          { Flag = Param2; Place = Param1; }
-    else { Flag = Param1; Place = "both"; } 
+    else { Flag = Param1; Place = "both"; }
 
        if (Flag == "1" || Flag ~= "true"  || Flag ~= "on"  || Flag ~= "yes") bFlag = True;
   else if (Flag == "0" || Flag ~= "false" || Flag ~= "off" || Flag ~= "no")  bFlag = False;
@@ -1247,7 +1250,7 @@ exec function BotThoughts(optional string Param1, optional string Param2)
 
   if (Place ~= "log"    || Place ~= "both") { if (Flag == "") bExplainToLog    = !bExplainToLog;    else bExplainToLog    = bFlag; }
   if (Place ~= "screen" || Place ~= "both") { if (Flag == "") bExplainToScreen = !bExplainToScreen; else bExplainToScreen = bFlag; }
-  
+
   JBBotTeam[0].bExplainToLog = bExplainToLog;  JBBotTeam[0].bExplainToScreen = bExplainToScreen;
   JBBotTeam[1].bExplainToLog = bExplainToLog;  JBBotTeam[1].bExplainToScreen = bExplainToScreen;
 
@@ -1283,7 +1286,7 @@ defaultproperties
 
   LocationCompass            = (X=0.056,Y=0.043);
   SizeCompass                = (X=0.023,Y=0.031);
-  
+
   LocationTextTactics        = (X=0.049,Y=0.096);
   SizeIconTactics            = (Y=0.040);
   SizeTextTactics            = (X=0.400,Y=0.450);

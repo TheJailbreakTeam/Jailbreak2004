@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.121 2006-04-14 11:21:09 lynx Exp $
+// $Id: Jailbreak.uc,v 1.122 2006-04-17 20:57:47 lynx Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -785,6 +785,27 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
 }
 
 
+//Jr.--
+// ============================================================================
+// SetPlayerDefaults
+//
+// Removes spawn protection for arena players.
+// ============================================================================
+function SetPlayerDefaults(Pawn PawnPlayer)
+{
+  local JBTagPlayer TagPlayer;
+
+  TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
+
+  if (TagPlayer != None &&
+      TagPlayer.GetArenaPending() != None)
+    PawnPlayer.DeactivateSpawnProtection();
+
+  Super.SetPlayerDefaults(PawnPlayer);
+}
+//--Jr.
+
+
 // ============================================================================
 // AddGameSpecificInventory
 //
@@ -800,6 +821,7 @@ function AddGameSpecificInventory(Pawn PawnPlayer)
   bAllowTransPrev = bAllowTrans;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
+
   if (TagPlayer != None &&
       TagPlayer.IsInJail())
     bAllowTrans = False;
@@ -1011,12 +1033,16 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
              ScorePlayer(ControllerKiller, 'Defense');
         else ScorePlayer(ControllerKiller, 'Attack');
 
-      if (DistanceReleaseMin < 512.0 && CountPlayersFree(TeamVictim) == 1 && !IsReleaseActive(TeamVictim))
+      if (DistanceReleaseMin < 512.0 &&
+          CountPlayersFree(TeamVictim) == 1 &&
+          !IsReleaseActive(TeamVictim))
         BroadcastLocalizedMessage(MessageClass, 700);
     }
 
-    ControllerKiller.PlayerReplicationInfo.Kills  += 1;
-    ControllerVictim.PlayerReplicationInfo.Deaths += 1;
+    ControllerKiller.PlayerReplicationInfo.Kills += 1;
+    //Jr.-- No two deaths for one
+    //ControllerVictim.PlayerReplicationInfo.Deaths += 1;
+    //--Jr.
   }
 }
 
@@ -1051,6 +1077,7 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
   if (bAllowTaunts &&
       ControllerKiller != None &&
       ControllerKiller != ControllerVictim &&
+      SameTeam(ControllerKiller, ControllerVictim) && //Jr.- Dont taunt after killing teammm8s
       ControllerKiller.AutoTaunt() &&
       ControllerKiller.PlayerReplicationInfo.VoiceType != None) {
 
@@ -1505,9 +1532,21 @@ function ExecutionCommit(TeamInfo TeamExecuted)
   local JBInfoJail thisJail;
   local JBGameRules firstJBGameRules;
   local TeamInfo TeamCapturer;
+  //Jr.--
+  local JBTagPlayer firstTagPlayer;
+  local JBTagPlayer thisTagPlayer;
+  //--Jr.
+
 
   if (IsInState('MatchInProgress')) {
     GotoState('Executing');
+
+    //Jr.-- Save sprees
+    firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
+    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
+      if (thisTagPlayer.GetTeam() != TeamExecuted)
+        thisTagPlayer.SaveSpree();
+    //--Jr.
 
     BroadcastLocalizedMessage(MessageClass, 100, , , TeamExecuted);
     JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, TeamExecuted);
@@ -1762,6 +1801,7 @@ state MatchInProgress {
     InfoGame = JBGameReplicationInfo(Level.Game.GameReplicationInfo);
 
     firstTagPlayer = InfoGame.firstTagPlayer;
+
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       thisTagPlayer.NotifyRound();
     for (thisTagPlayer = firstTagPlayerInactive; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
