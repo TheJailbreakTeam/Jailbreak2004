@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamControllerSweeping
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamControllerSweeping.uc,v 1.1 2004-03-28 13:52:14 mychaeel Exp $
+// $Id: JBCamControllerSweeping.uc,v 1.2 2006-07-09 21:45:03 jrubzjeknf Exp $
 //
 // Sweeps a camera between two LookTarget actors.
 // ============================================================================
@@ -100,12 +100,6 @@ function Init()
 function UpdateMovement(float TimeDelta)
 {
   local rotator Rotation;
-
-  //Jr.-- sweep when TimeWait is set to 0
-  //if (TimeCountdownSweep == 0.0 &&
-  //    TimeCountdownWait  == 0.0)
-  //  return;  // error
-  //--Jr.
 
   if (TimeCountdownSweep > 0.0) {
     TimeCountdownSweep -= TimeDelta;

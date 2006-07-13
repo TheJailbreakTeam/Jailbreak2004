@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.18 2004-08-20 09:36:36 mychaeel Exp $
+// $Id: JBBotSquad.uc,v 1.19 2006-07-09 21:45:02 jrubzjeknf Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -337,10 +337,8 @@ function bool MustKeepEnemy(Pawn PawnEnemy)
       if (Enemies[iEnemy] == PawnEnemy)
         break;
 
-    //Jr.-- no array out of bound
     if(iEnemy == ArrayCount(Enemies))
       return False;
-    //--Jr.
 
     if (ListInfoEnemy[iEnemy].TimeUpdate < Level.TimeSeconds + 0.5) {
       DistanceObjective = Class'JBBotTeam'.Static.CalcDistance(PawnEnemy.Controller, SquadObjective);

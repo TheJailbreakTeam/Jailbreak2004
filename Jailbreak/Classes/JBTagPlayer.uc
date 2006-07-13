@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.54 2004-08-23 08:33:16 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.55 2006-07-09 21:45:03 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -107,10 +107,8 @@ var private Pawn Pawn;                    // pawn used by this player
 var private Controller Controller;        // controller used by this player
 var private int Health;                   // current health and armor
 var private bool bCanBeBaseForPawns;      // can be base for other players
-//Jr.--
 var private int spree;                    // used to carry sprees over rounds
 var private bool bRecoverSpree;           // recover spree after a round
-//--Jr.
 
 var private float TimeUpdateLocation;     // client-side location update time
 var private float VelocityPawn;           // replicated velocity of pawn
@@ -578,10 +576,8 @@ simulated function bool IsInJail()
 function NotifyRound()
 {
   bIsLlama = False;
-  //Jr.--
   if (spree > 0)
     bRecoverSpree = true;
-  //--Jr.
 }
 
 
@@ -1015,7 +1011,6 @@ simulated function int GetHealth(optional bool bCached)
 }
 
 
-//Jr.--
 // ============================================================================
 // SaveSpree
 //
@@ -1045,7 +1040,6 @@ function RecoverSpree()
 
   bRecoverSpree = False;
 }
-//--Jr.
 
 
 // ============================================================================

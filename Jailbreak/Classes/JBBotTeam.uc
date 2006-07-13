@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.38 2004-08-19 11:54:20 mychaeel Exp $
+// $Id: JBBotTeam.uc,v 1.39 2006-07-09 21:45:03 jrubzjeknf Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -584,10 +584,8 @@ function int CountPlayersReleasable(GameObjective GameObjective)
 
 static function float CalcDistance(Controller Controller, Actor ActorTarget)
 {
-  //Jr.-- no accessed none
   if(Controller == None)
     return 0.0;
-  //--Jr.
 
   if (Default.CacheCalcDistance.Time == Controller.Level.TimeSeconds &&
       Default.CacheCalcDistance.LocationController  == Controller .Location &&

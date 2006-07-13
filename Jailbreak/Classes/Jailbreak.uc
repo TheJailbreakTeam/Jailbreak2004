@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.122 2006-04-17 20:57:47 lynx Exp $
+// $Id: Jailbreak.uc,v 1.123 2006-07-09 21:45:03 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -785,7 +785,6 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
 }
 
 
-//Jr.--
 // ============================================================================
 // SetPlayerDefaults
 //
@@ -803,7 +802,6 @@ function SetPlayerDefaults(Pawn PawnPlayer)
 
   Super.SetPlayerDefaults(PawnPlayer);
 }
-//--Jr.
 
 
 // ============================================================================
@@ -1040,9 +1038,6 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
     }
 
     ControllerKiller.PlayerReplicationInfo.Kills += 1;
-    //Jr.-- No two deaths for one
-    //ControllerVictim.PlayerReplicationInfo.Deaths += 1;
-    //--Jr.
   }
 }
 
@@ -1077,7 +1072,7 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
   if (bAllowTaunts &&
       ControllerKiller != None &&
       ControllerKiller != ControllerVictim &&
-      SameTeam(ControllerKiller, ControllerVictim) && //Jr.- Dont taunt after killing teammm8s
+      SameTeam(ControllerKiller, ControllerVictim) &&
       ControllerKiller.AutoTaunt() &&
       ControllerKiller.PlayerReplicationInfo.VoiceType != None) {
 
@@ -1532,21 +1527,17 @@ function ExecutionCommit(TeamInfo TeamExecuted)
   local JBInfoJail thisJail;
   local JBGameRules firstJBGameRules;
   local TeamInfo TeamCapturer;
-  //Jr.--
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  //--Jr.
 
 
   if (IsInState('MatchInProgress')) {
     GotoState('Executing');
 
-    //Jr.-- Save sprees
     firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetTeam() != TeamExecuted)
         thisTagPlayer.SaveSpree();
-    //--Jr.
 
     BroadcastLocalizedMessage(MessageClass, 100, , , TeamExecuted);
     JBGameReplicationInfo(GameReplicationInfo).AddCapture(ElapsedTime, TeamExecuted);

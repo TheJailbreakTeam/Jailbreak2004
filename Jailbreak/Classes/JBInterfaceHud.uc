@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.59 2005-04-24 20:24:50 mychaeel Exp $
+// $Id: JBInterfaceHud.uc,v 1.60 2006-07-09 21:45:03 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -337,10 +337,10 @@ simulated function CheckLastMan()
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetTeam() == PlayerOwner.PlayerReplicationInfo.Team) {
              if (thisTagPlayer.IsFree()) nPlayersFree += 1;
-        else if (thisTagPlayer.IsInJail()) { //Jr.-- no last man message when team is being released
+        else if (thisTagPlayer.IsInJail()) {
                 if (thisTagPlayer.GetJail().IsReleaseActive(thisTagPlayer.GetTeam())) nPlayersFree   += 1;
                 else                                                                  nPlayersJailed += 1;
-             }//--Jr.
+             }
       }
 
     if (nPlayersFree == 1 && nPlayersJailed > 0) {

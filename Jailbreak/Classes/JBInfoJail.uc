@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.41 2004-07-25 15:40:10 mychaeel Exp $
+// $Id: JBInfoJail.uc,v 1.42 2006-07-09 21:45:03 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -59,7 +59,6 @@ var private TInfoRelease InfoReleaseByTeam[2];  // release state for each team
 var private array<Volume> ListVolume;           // volumes attached to jail
 var private array<NavigationPoint> ListNavigationPointExit;  // exit points
 
-//Jr.-- no last man message when team is being released
 var private bool bIsRedActive;
 var private bool bIsBlueActive;
 
@@ -68,7 +67,6 @@ replication
   reliable if(Role == ROLE_Authority)
     bIsRedActive, bIsBlueActive;
 }
-//--Jr.
 
 
 // ============================================================================
@@ -740,7 +738,6 @@ function ExecutionEnd()
 }
 
 
-//Jr.-- no last man message when team is being released
 // ============================================================================
 // GetReleaseActive
 // SetReleaseActive
@@ -762,7 +759,6 @@ simulated protected function SetReleaseActive(int TeamIndex, bool Value)
   else if (TeamIndex == 1)
     bIsBlueActive = Value;
 }
-//--Jr.
 
 
 // ============================================================================
