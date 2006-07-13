@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.15 2004/05/30 15:54:06 mychaeel Exp $
+// $Id: JBTagClient.uc,v 1.16 2004-08-18 08:38:38 mychaeel Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained and not
@@ -182,8 +182,10 @@ function ExecArenaCam()
   local JBTagPlayer TagPlayerOwner;
 
   TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PlayerController(Owner).PlayerReplicationInfo);
-  if (TagPlayerOwner            != None &&
-      TagPlayerOwner.GetArena() != None)
+  if ((TagPlayerOwner            != None &&
+       TagPlayerOwner.GetArena() != None) ||
+      (TagPlayerOwner.IsInJail() &&
+      TagPlayerOwner.GetJail().IsReleaseActive(TagPlayerOwner.GetTeam())))
     return;
 
   firstArena = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstArena;
@@ -223,10 +225,14 @@ function ExecViewTeam(optional name Whom)
   local Pawn PawnViewTarget;
   local TeamInfo Team;
   local Controller ControllerViewTarget;
+  local JBTagPlayer TagPlayerOwner;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
-  if (!Level.Game.IsInState('MatchInProgress'))
+
+  TagPlayerOwner = Class'JBTagPlayer'.Static.FindFor(PlayerController(Owner).PlayerReplicationInfo);
+  if (!Level.Game.IsInState('MatchInProgress') ||
+      (TagPlayerOwner.IsInJail() &&
+       TagPlayerOwner.GetJail().IsReleaseActive(TagPlayerOwner.GetTeam())))
     return;
 
   PawnViewTarget = Pawn(PlayerController(Keeper).ViewTarget);
@@ -254,11 +260,11 @@ function ExecViewTeam(optional name Whom)
   }
   else {
     ControllerViewTarget = thisTagPlayer.GetController();
-  
+
     PlayerController(Keeper).SetViewTarget(ControllerViewTarget);
     PlayerController(Keeper).bBehindView = True;
     PlayerController(Keeper).ViewTarget.BecomeViewTarget();
-    
+
     PlayerController(Keeper).ClientSetViewTarget(ControllerViewTarget);
     PlayerController(Keeper).ClientSetBehindView(True);
   }
