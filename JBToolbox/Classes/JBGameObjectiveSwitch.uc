@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.10 2004/07/25 15:43:57 mychaeel Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.11 2004-07-25 16:20:40 mychaeel Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -9,8 +9,8 @@
 
 class JBGameObjectiveSwitch extends GameObjective
   placeable;
-  
-  
+
+
 // ============================================================================
 // Imports
 // ============================================================================
@@ -43,6 +43,7 @@ var() array<Class<Decoration> > ListClassDecoration;
 
 var bool bDisabledRep;                  // replicated flag
 var bool bDisabledPrev;                 // previous state of flag
+var bool bReverseSwitchColors;          // Nostalgia mode
 
 var array<Decoration> ListDecoration;   // references to the decoration actors
 
@@ -75,13 +76,13 @@ simulated function PostBeginPlay()
 // team. If no players will be released by this action, plays a message.
 // ============================================================================
 
-function DisableObjective(Pawn PawnInstigator) 
+function DisableObjective(Pawn PawnInstigator)
 {
   local int nPlayersReleasable;
   local PlayerController PlayerControllerInstigator;
   local JBGameObjectiveSwitch ObjectiveSwitch;
   local JBInfoJail thisJail;
-  
+
   if (bDisabled                                         ||
       PawnInstigator                            == None ||
       PawnInstigator.PlayerReplicationInfo      == None ||
@@ -101,7 +102,7 @@ function DisableObjective(Pawn PawnInstigator)
   if (PlayerControllerInstigator != None) {
     foreach DynamicActors(Class'JBInfoJail', thisJail, Event)
       nPlayersReleasable += thisJail.CountPlayers(PawnInstigator.PlayerReplicationInfo.Team);
-  
+
     if (nPlayersReleasable == 0)
       Level.Game.BroadcastHandler.BroadcastLocalized(
         Self,
@@ -119,10 +120,10 @@ function DisableObjective(Pawn PawnInstigator)
 // Resets this actor to its default state. Restores its collision properties.
 // ============================================================================
 
-function Reset() 
+function Reset()
 {
   local JBGameObjectiveSwitch ObjectiveSwitch;
-  
+
   Super.Reset();
 
   foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch)
@@ -143,8 +144,25 @@ function Reset()
 
 simulated event Tick(float TimeDelta)
 {
+  local int i;
+  local int TeamIndex;
+
   if (Role == ROLE_Authority && bDisabledRep != bDisabled)
     bDisabledRep = bDisabled;
+
+  if(Class'Jailbreak'.Default.bReverseSwitchColors != bReverseSwitchColors)
+  {
+    bReverseSwitchColors = Class'Jailbreak'.Default.bReverseSwitchColors;
+
+    TeamIndex = DefenderTeamIndex;
+    if(bReverseSwitchColors)
+      TeamIndex = abs(TeamIndex-1);
+
+    for(i=0; i<ListDecoration.Length; i++)
+      if(JBDecoSwitchBasket(ListDecoration[i]) != None)
+        if(JBDecoSwitchBasket(ListDecoration[i]).Emitter != None)
+          JBDecoSwitchBasket(ListDecoration[i]).Emitter.SetDefendingTeam(TeamIndex);
+  }
 
   if (Level.NetMode != NM_DedicatedServer && bDisabledRep != bDisabledPrev) {
     bDisabledPrev = bDisabledRep;
@@ -164,7 +182,7 @@ simulated event Tick(float TimeDelta)
 simulated function DoEffectDisabled()
 {
   local int iDecoration;
-  
+
   for (iDecoration = 0; iDecoration < ListDecoration.Length; iDecoration++)
     ListDecoration[iDecoration].Trigger(Self, Instigator);
 }
@@ -179,7 +197,7 @@ simulated function DoEffectDisabled()
 simulated function DoEffectReset()
 {
   local int iDecoration;
-  
+
   for (iDecoration = 0; iDecoration < ListDecoration.Length; iDecoration++)
     ListDecoration[iDecoration].UnTrigger(Self, Instigator);
 }
@@ -191,7 +209,7 @@ simulated function DoEffectReset()
 // Disables this objective when touched by a player.
 // ============================================================================
 
-event Touch(Actor ActorOther) 
+event Touch(Actor ActorOther)
 {
   if (Pawn(ActorOther) != None)
     DisableObjective(Pawn(ActorOther));
@@ -202,7 +220,7 @@ event Touch(Actor ActorOther)
 // Defaults
 // ============================================================================
 
-defaultproperties 
+defaultproperties
 {
   /* touchability */
   bCollideActors         = True;
@@ -211,7 +229,7 @@ defaultproperties
   bUseCylinderCollision  = True;
   CollisionRadius        = 60.0;
   CollisionHeight        = 40.0;
-  
+
   /* mapper convenience */
   bEdShouldSnap          = True;
   PrePivot               = (Z=44.0);
@@ -221,13 +239,13 @@ defaultproperties
 
   /* set score to zero */
   Score                  = 0;
-  
+
   /* base */
   bHidden                = False;
   DrawType               = DT_StaticMesh;
   StaticMesh             = StaticMesh'JBReleaseBase';
   Skins[0]               = Texture'JBReleaseBaseNeutral';
-  
+
   /* visible animated parts */
   ListClassDecoration[0] = Class'JBDecoSwitchBasket';
   ListClassDecoration[1] = Class'JBDecoSwitchPadlock';
@@ -238,7 +256,7 @@ defaultproperties
   bNoDelete              = True;
   bAlwaysRelevant        = True;
   bReplicateInstigator   = True;
-  
+
   /* messages */
   MessageClass           = Class'Jailbreak.JBLocalMessage';
 }

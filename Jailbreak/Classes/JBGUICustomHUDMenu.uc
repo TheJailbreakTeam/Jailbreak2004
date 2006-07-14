@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUICustomHUDMenu
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUICustomHUDMenu.uc,v 1.4 2004/05/26 11:21:50 mychaeel Exp $
+// $Id: JBGUICustomHUDMenu.uc,v 1.5 2005-04-24 19:36:11 mychaeel Exp $
 //
 // custom HUD configuration menu for Jailbreak's clientside settings.
 // ============================================================================
@@ -22,7 +22,7 @@ var automated moCheckbox ch_ReverseSwitchColors;
 var private string VoicePackPrev;
 
 
-// ============================================================================ 
+// ============================================================================
 // InitializeGameClass
 //
 // Loads the voice pack list and returns true so the LoadSettings function is
@@ -101,6 +101,7 @@ function SaveSettings()
 {
   Class'JBSpeechManager'.Static.SetVoicePack(co_VoicePack.GetExtra());
   SetEnableScreens(ch_EnableScreens.IsChecked());
+  SetReverseSwitchColors(ch_ReverseSwitchColors.IsChecked()); //////////////////////////
 }
 
 
@@ -237,7 +238,7 @@ function SetEnableScreens(bool bEnableScreens)
 
 function SetReverseSwitchColors(bool bReverseSwitchColors)
 {
-  local GameObjective thisGameObjective;
+//  local GameObjective thisGameObjective;
   local Jailbreak thisJailbreak;
 
   Class'Jailbreak'.Default.bReverseSwitchColors = bReverseSwitchColors;
@@ -246,8 +247,8 @@ function SetReverseSwitchColors(bool bReverseSwitchColors)
   foreach PlayerOwner().DynamicActors(Class'Jailbreak', thisJailbreak)
     thisJailbreak.bReverseSwitchColors = bReverseSwitchColors;
 
-  foreach PlayerOwner().AllActors(Class'GameObjective', thisGameObjective)
-    thisGameObjective.SetTeam(thisGameObjective.DefenderTeamIndex);
+//  foreach PlayerOwner().AllActors(Class'GameObjective', thisGameObjective)
+//    thisGameObjective.SetTeam(thisGameObjective.DefenderTeamIndex);
 }
 
 
@@ -274,7 +275,7 @@ defaultproperties
     Hint = "The voice pack to use in Jailbreak.";
   End Object
   co_VoicePack=VoicePack
-  
+
   Begin Object Class=GUIButton Name=TestVoicePackButton
     Caption                = "Test";
     WinTop                 = 0.395;
@@ -286,7 +287,7 @@ defaultproperties
     Hint = "Click to play a random test sample from the selected voice pack.";
   End Object
   b_TestVoicePack=TestVoicePackButton
-  
+
   Begin Object Class=moCheckBox Name=EnableScreens
     Caption                = "Enable Dynamic Screen Textures";
     CaptionWidth           = 0.10;
@@ -298,7 +299,7 @@ defaultproperties
     Hint = "Whether you want to see the dynamic screens placed in some Jailbreak maps. Disabling this setting may increase your framerate."
   End Object
   ch_EnableScreens=EnableScreens
-  
+
   Begin Object Class=moCheckBox Name=ReverseSwitchColors
     Caption                = "Reverse Switch Colors";
     CaptionWidth           = 0.10;
@@ -310,7 +311,7 @@ defaultproperties
     Hint = "Whether you want to reverse release switch colors so that the switch attacked by the red team is blue, and vice-versa."
   End Object
   ch_ReverseSwitchColors=ReverseSwitchColors
-  
+
   Begin Object Class=GUIButton Name=ResetButton
     Caption                = "Defaults";
     WinTop                 = 0.60;
@@ -322,7 +323,7 @@ defaultproperties
     Hint = "Restore all settings to their default value.";
   End Object
   b_Reset=ResetButton
-  
+
   Begin Object Class=GUIButton Name=CancelButton
     Caption                = "Cancel";
     WinTop                 = 0.60;
@@ -334,7 +335,7 @@ defaultproperties
     Hint = "Click to close this menu, discarding changes.";
   End Object
   b_Cancel=CancelButton
-  
+
   Begin Object Class=GUIButton Name=OkButton
     Caption                = "OK";
     WinTop                 = 0.60;

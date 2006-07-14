@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDecoSwitchBasket
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBDecoSwitchBasket.uc,v 1.2 2004/05/10 14:53:05 mychaeel Exp $
+// $Id: JBDecoSwitchBasket.uc,v 1.3 2004-07-25 14:03:59 mychaeel Exp $
 //
 // Holder for emitter resembling a basket for the standard release switch.
 // ============================================================================
