@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.55 2006-07-09 21:45:03 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.56 2006-07-13 20:55:02 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -713,7 +713,8 @@ function NotifyJailLeft(JBInfoJail JailPrev)
 
   if (JailPrev.GetReleaseTime(GetTeam()) != TimeRelease) {
     ControllerInstigator = JailPrev.GetReleaseInstigator(GetTeam());
-    if (ControllerInstigator != None)
+    if (ControllerInstigator != None &&
+        ControllerInstigator != Controller)
       Jailbreak(Level.Game).ScorePlayer(ControllerInstigator, 'Release');
 
     TimeRelease = JailPrev.GetReleaseTime(GetTeam());
