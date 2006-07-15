@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.7 2006-07-15 20:22:56 mychaeel Exp $
+// $Id: JBAddonTally.uc,v 1.9 2006-07-15 21:36:45 mychaeel Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -59,6 +59,9 @@ var JBTagPlayer TagPlayerLocal;
 var int nEntries;                 // current number of entries
 var TEntry  Entries[32];          // tally entries
 var TPlayer Players[32];          // non-movable player data
+
+var float nEntriesFade;           // fade-in ratio of entire tally
+var float TimeFade;               // last fade-in update
 
 var HudBase.SpriteWidget SpriteWidgetEntry;
 var HudBase.SpriteWidget SpriteWidgetBackground;
@@ -129,6 +132,11 @@ function int FindOrCreateEntryFor(JBTagPlayer TagPlayer)
       return iEntry;
   
   iEntry = nEntries++;
+
+  if (nEntriesFade > 0.0 &&
+      nEntriesFade == nEntries - 1)
+    nEntriesFade = nEntries;
+
   Players[iEntry].TagPlayer = TagPlayer;
   Entries[iEntry].iPlayer   = iEntry;
 
@@ -179,6 +187,7 @@ simulated function RenderOverlays(Canvas Canvas)
 {
   local int iEntry;
   local int iTeam;
+  local int Offset;
   local String ScoreDelta;
   local String ScoreEfficiency;
   local Vector LocationCurrentEntry;
@@ -195,7 +204,13 @@ simulated function RenderOverlays(Canvas Canvas)
   if (TagPlayerLocal == None)
     TagPlayerLocal = Class'JBTagPlayer'.Static.FindFor(PlayerControllerLocal.PlayerReplicationInfo);
 
-  if (TagPlayerLocal.IsInJail()) {
+  if (TagPlayerLocal.IsInJail())
+         nEntriesFade = FMin(nEntries, nEntriesFade + (Level.TimeSeconds - TimeFade) * 4.0);
+    else nEntriesFade = FMax(0.0,      nEntriesFade - (Level.TimeSeconds - TimeFade) * 4.0);
+
+  TimeFade = Level.TimeSeconds;
+  
+  if (nEntriesFade > 0.0) {
     Canvas.Style = ERenderStyle.STY_Alpha;
     Canvas.Font = PlayerControllerLocal.myHUD.ScoreBoard.GetSmallFontFor(Canvas.ClipX, 0);
 
@@ -228,10 +243,14 @@ simulated function RenderOverlays(Canvas Canvas)
       if (Players[EntryCurrent.iPlayer] != PlayerCurrent)
         Players[EntryCurrent.iPlayer] = PlayerCurrent;
 
+      if (iEntry <= nEntriesFade - 1.0)
+             Offset = 0;
+        else Offset = Canvas.ClipX * 0.5 * (1.0 - FMax(0.0, nEntriesFade - iEntry));
+
       Canvas.DrawColor = SpriteWidgetBackground.Tints[iTeam];
   
       Canvas.SetPos(
-        LocationCurrentBackground.X - SizeBackground.X,
+        LocationCurrentBackground.X - SizeBackground.X + Offset,
         LocationCurrentBackground.Y);
   
       Canvas.DrawTile(
@@ -251,7 +270,10 @@ simulated function RenderOverlays(Canvas Canvas)
 
       ScoreEfficiency = (EntryCurrent.nKills * 100 / (EntryCurrent.nKills + EntryCurrent.nDeaths)) $ "%";
 
-      LocationCurrentText = LocationCurrentEntry;      DrawTextRightAligned(Canvas, ScoreEfficiency,    LocationCurrentText.X, LocationCurrentText.Y);
+      LocationCurrentText.X = LocationCurrentEntry.X + Offset;
+      LocationCurrentText.Y = LocationCurrentEntry.Y;
+
+                                                       DrawTextRightAligned(Canvas, ScoreEfficiency,    LocationCurrentText.X, LocationCurrentText.Y);
       LocationCurrentText.X -= SizeScoreEfficiency.X;  DrawTextRightAligned(Canvas, ScoreDelta,         LocationCurrentText.X, LocationCurrentText.Y);
       LocationCurrentText.X -= SizeScoreDelta     .X;  DrawTextRightAligned(Canvas, PlayerCurrent.Name, LocationCurrentText.X, LocationCurrentText.Y);
   
