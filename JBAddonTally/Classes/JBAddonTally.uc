@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.5 2006-04-30 20:52:00 mychaeel Exp $
+// $Id: JBAddonTally.uc,v 1.6 2006-04-30 21:07:00 mychaeel Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -171,12 +171,15 @@ simulated function RenderOverlays(Canvas Canvas)
   local int iEntry;
   local int iTeam;
   local String PlayerNameCurrent;
+  local String ScoreDelta;
+  local String ScoreEfficiency;
   local Vector LocationCurrentEntry;
   local Vector LocationCurrentText;
   local Vector LocationCurrentBackground;
   local Vector SizeEntry;
   local Vector SizeBackground;
-  local Vector SizeScores;
+  local Vector SizeScoreDelta;
+  local Vector SizeScoreEfficiency;
   local TEntry EntryCurrent;
 
   if (TagPlayerLocal == None)
@@ -185,12 +188,14 @@ simulated function RenderOverlays(Canvas Canvas)
   if (TagPlayerLocal.IsInJail()) {
     Canvas.Style = ERenderStyle.STY_Alpha;
     Canvas.Font = PlayerControllerLocal.myHUD.ScoreBoard.GetSmallFontFor(Canvas.ClipX, 0);
-    Canvas.TextSize("999", SizeScores.X, SizeScores.Y);
+
+    Canvas.TextSize(" +00",  SizeScoreDelta     .X, SizeScoreDelta     .Y);
+    Canvas.TextSize(" 100%", SizeScoreEfficiency.X, SizeScoreEfficiency.Y);
   
     SizeBackground.X = SpriteWidgetBackground.TextureScale * (SpriteWidgetBackground.TextureCoords.X2 - SpriteWidgetBackground.TextureCoords.X1) * (Canvas.SizeX / 640);
-    SizeBackground.Y = SizeScores.Y * 1.2;
+    SizeBackground.Y = SizeScoreDelta.Y * 1.2;
   
-    SizeEntry.Y = SizeScores.Y * 1.4;
+    SizeEntry.Y = SizeScoreDelta.Y * 1.4;
   
     LocationCurrentEntry.X = SpriteWidgetEntry.PosX * Canvas.SizeX;
     LocationCurrentEntry.Y = SpriteWidgetEntry.PosY * Canvas.SizeY;
@@ -225,10 +230,15 @@ simulated function RenderOverlays(Canvas Canvas)
 
       PlayerNameCurrent = EntryCurrent.TagPlayer.GetPlayerReplicationInfo().PlayerName;
 
-      LocationCurrentText = LocationCurrentEntry;
-                                              DrawTextRightAligned(Canvas, EntryCurrent.nDeaths, LocationCurrentText.X, LocationCurrentText.Y);
-      LocationCurrentText.X -= SizeScores.X;  DrawTextRightAligned(Canvas, EntryCurrent.nKills,  LocationCurrentText.X, LocationCurrentText.Y);
-      LocationCurrentText.X -= SizeScores.X;  DrawTextRightAligned(Canvas, PlayerNameCurrent,    LocationCurrentText.X, LocationCurrentText.Y);
+           if (EntryCurrent.nDeaths < EntryCurrent.nKills) ScoreDelta = "+" $ (EntryCurrent.nKills  - EntryCurrent.nDeaths);
+      else if (EntryCurrent.nDeaths > EntryCurrent.nKills) ScoreDelta = "-" $ (EntryCurrent.nDeaths - EntryCurrent.nKills);
+      else                                                 ScoreDelta = "0";
+
+      ScoreEfficiency = (EntryCurrent.nKills * 100 / (EntryCurrent.nKills + EntryCurrent.nDeaths)) $ "%";
+
+      LocationCurrentText = LocationCurrentEntry;      DrawTextRightAligned(Canvas, ScoreEfficiency,   LocationCurrentText.X, LocationCurrentText.Y);
+      LocationCurrentText.X -= SizeScoreEfficiency.X;  DrawTextRightAligned(Canvas, ScoreDelta,        LocationCurrentText.X, LocationCurrentText.Y);
+      LocationCurrentText.X -= SizeScoreDelta     .X;  DrawTextRightAligned(Canvas, PlayerNameCurrent, LocationCurrentText.X, LocationCurrentText.Y);
   
       LocationCurrentEntry     .Y += SizeEntry.Y;
       LocationCurrentBackground.Y += SizeEntry.Y;
