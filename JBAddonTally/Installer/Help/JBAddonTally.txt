@@ -1,5 +1,5 @@
 ===============================================================================
-JBAddonTally (Version 110)
+JBAddonTally (Version 120)
 Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
 ===============================================================================
 
