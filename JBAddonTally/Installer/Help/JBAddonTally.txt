@@ -49,6 +49,12 @@ Delete the following files relative to your game base directory:
 Version History
 ===============================================================================
 
+Version 120 (2006-07-16)
+* Players who have left the game remain in the tally.
+* Tally now shows score difference and effectivity instead of kills and deaths.
+* Added semi-spiffy roll-in effect for the tally.
+* Network compatibility with the previous release broken.
+
 Version 110 (2006-04-30)
 * Fixed: Incorrect ranking of players who lost their first fight.
 * Fixed: Incorrect display (and Accessed None warnings) after player leaves.
