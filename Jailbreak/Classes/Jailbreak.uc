@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.123 2006-07-09 21:45:03 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.124 2006-07-13 20:55:02 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -801,32 +801,6 @@ function SetPlayerDefaults(Pawn PawnPlayer)
     PawnPlayer.DeactivateSpawnProtection();
 
   Super.SetPlayerDefaults(PawnPlayer);
-}
-
-
-// ============================================================================
-// AddGameSpecificInventory
-//
-// Adds game-specific inventory. Skips the translocator if the player has
-// restarted in jail.
-// ============================================================================
-
-function AddGameSpecificInventory(Pawn PawnPlayer)
-{
-  local bool bAllowTransPrev;
-  local JBTagPlayer TagPlayer;
-
-  bAllowTransPrev = bAllowTrans;
-
-  TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
-
-  if (TagPlayer != None &&
-      TagPlayer.IsInJail())
-    bAllowTrans = False;
-
-  Super.AddGameSpecificInventory(PawnPlayer);
-
-  bAllowTrans = bAllowTransPrev;
 }
 
 

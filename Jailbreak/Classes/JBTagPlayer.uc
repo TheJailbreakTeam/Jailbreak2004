@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.56 2006-07-13 20:55:02 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.57 2006-07-14 17:57:41 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -673,7 +673,7 @@ function NotifyJailEntered()
   for (thisInventory = Controller.Pawn.Inventory; thisInventory != None; thisInventory = nextInventory) {
     nextInventory = thisInventory.Inventory;
     if (TransLauncher(thisInventory) != None)
-      Controller.Pawn.DeleteInventory(thisInventory);
+      thisInventory.Destroy();
   }
 
   if  (Controller.Pawn.Weapon == None)
