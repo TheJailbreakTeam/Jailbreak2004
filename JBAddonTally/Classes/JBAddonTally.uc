@@ -18,7 +18,7 @@ class JBAddonTally extends JBAddon
 replication
 {
   reliable if (Role == ROLE_Authority)
-    Entries, nEntries;
+    nEntries, Entries, Players;
 }
 
 
