@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDamagerBurning
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBDamagerBurning.uc,v 1.1.1.1 2003/03/12 23:53:20 mychaeel Exp $
+// $Id: JBDamagerBurning.uc,v 1.1 2003-06-27 11:14:25 crokx Exp $
 //
 // Damage of Burning execution.
 // ============================================================================
@@ -9,28 +9,11 @@ class JBDamagerBurning extends JBDamager NotPlaceable;
 
 
 // ============================================================================
-// Tick
-//
-// If the Victim are dead before execution, remove all flames effects attached.
+// Imports
 // ============================================================================
-function Tick(float DeltaTime)
-{
-    local int i;
 
-    if(Victim == None) return;
-    if(Victim.Health <= 0)
-    {
-        for(i=0; i<Victim.Attached.length; i++)
-        {
-            if(Victim.Attached[i].IsA('HitFlameBig'))
-            {
-                HitFlameBig(Victim.Attached[i]).mLifeRange[0] = 0;
-                HitFlameBig(Victim.Attached[i]).mLifeRange[1] = 0;
-                HitFlameBig(Victim.Attached[i]).mRegen = FALSE;
-            }
-        }
-    }
-}
+#exec obj load file=..\Sounds\WeaponSounds.uax
+
 
 // ============================================================================
 // Damage functions
@@ -39,44 +22,63 @@ function Tick(float DeltaTime)
 // ============================================================================
 function int GetDamageAmount()
 {
-    return (2+Rand(3));
-}
-
-function vector GetDamageMomentum()
-{
-    local vector v;
-
-    v = VRand() * 600;
-    v.Z = 0;
-
-    return v;
+  return 7 + Rand(6);
 }
 
 
 // ============================================================================
-// Destroyed
+// DamageVictim
 //
-// Just before destroy this actor, remove all flames of victim.
+// Check, whether the victim is still alive and if not, spawn a LavaDeath-style
+// explosion that also shows up in low detail mode.
 // ============================================================================
-function Destroyed()
+
+function DamageVictim()
 {
-    local int i;
+  Super.DamageVictim();
 
-    if(Victim != None)
-    {
-        for(i=0; i<Victim.Attached.length; i++)
-        {
-            if(Victim.Attached[i].IsA('HitFlameBig'))
-            {
-                HitFlameBig(Victim.Attached[i]).mLifeRange[0] = 0.125;
-                HitFlameBig(Victim.Attached[i]).mLifeRange[1] = 0.125;
-                HitFlameBig(Victim.Attached[i]).mRegen = FALSE;
-            }
-        }
-    }
-
-    Super.Destroyed();
+  if (Victim != None && Victim.Health <= 0)
+    SpawnEffects();
 }
+
+
+// ============================================================================
+// Timer
+//
+// Kill the victim after he's "done".
+// ============================================================================
+
+function Timer()
+{
+  if (VictimIsAlive()) {
+    SpawnEffects();
+    Victim.Died(None, DamageType, vect(0,0,0));
+  }
+}
+
+
+// ============================================================================
+// SpawnEffects
+//
+// Spawns a flame explosion effect and play an appropriate sound effect.
+// ============================================================================
+
+function SpawnEffects()
+{
+  local Emitter DeathExplosion;
+
+  DeathExplosion = Spawn(class'JBEmitterKillLaserFlame', Victim,, Victim.Location);
+  DeathExplosion.RemoteRole = ROLE_SimulatedProxy;
+  Victim.PlaySound(Sound'WeaponSounds.BExplosion5', SLOT_None, 1.5 * Victim.TransientSoundVolume);
+}
+
+
+// ============================================================================
+// Unused functions and state
+// ============================================================================
+function Tick(float DeltaTime)      {}
+function vector GetDamageMomentum() { return Super.GetDamageMomentum(); }
+function Destroyed()                { Super.Destroyed(); }
 
 
 // ============================================================================
@@ -84,7 +86,7 @@ function Destroyed()
 // ============================================================================
 defaultproperties
 {
-    DamageType=class'Burned'
-    MaxDelay=0.625000
-    MinDelay=0.375000
+    DamageType=class'JBToolbox.JBDamageTypeIncinerated'
+    MaxDelay=0.400000
+    MinDelay=0.200000
 }
