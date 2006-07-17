@@ -1,9 +1,9 @@
 // ============================================================================
 // JBExecutionBurning
-// Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionBurning.uc,v 1.7 2004-08-23 09:26:05 mychaeel Exp $
+// Copyright 2006 by Wormbo <wormbo@onlinehome.de>
+// $Id: JBExecutionBurning.uc,v 1.8 2006-07-17 14:18:27 jrubzjeknf Exp $
 //
-// An burning execution.
+// A burning execution.
 // ============================================================================
 
 class JBExecutionBurning extends JBExecution;
@@ -24,8 +24,9 @@ var() float         BurningTime;
 
 
 // ============================================================================
-// Unused Variables
+// Left-over Variables (only for binary compatibility)
 // ============================================================================
+
 const DESTROY_FLAME_DELAY = 0.15;
 var   deprecated HitFlameBig   Flame[5];
 var   deprecated private name  AttachFlamePart[5];
@@ -40,25 +41,25 @@ var   deprecated private float RealBurningTime;
 
 function ExecuteJailedPlayer(Pawn Victim)
 {
-  local JBDamager Damager;
+  local JBDamagerBurning Damager;
 
-  Spawn(class'JBEmitterBurningPlayer', Victim,, Victim.Location);
   Damager = Spawn(class'JBDamagerBurning');
 
   if (Damager != None) {
     Damager.Victim = Victim;
     Damager.SetTimer(BurningTime, False);
+    Damager.FlameEmitter = Spawn(class'JBEmitterBurningPlayer', Victim,, Victim.Location);
   }
 }
 
 
 // ============================================================================
-// Unused functions and state
+// Left-over functions and state (only for binary compatibility)
 // ============================================================================
 
 function Trigger(Actor A, Pawn P) { Super.Trigger(A, P); }
 function PostBeginPlay()          { Super.PostBeginPlay(); }
-state WaitAndKill{}
+state WaitAndKill                 {}
 
 
 // ============================================================================

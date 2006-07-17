@@ -1,9 +1,9 @@
 // ============================================================================
 // JBDamagerBurning
-// Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBDamagerBurning.uc,v 1.1 2003-06-27 11:14:25 crokx Exp $
+// Copyright (c) 2006 by Wormbo <wormbo@onlinehome.de>
+// $Id: JBDamagerBurning.uc,v 1.2 2006-07-17 14:18:27 jrubzjeknf Exp $
 //
-// Damage of Burning execution.
+// Damager for burning execution.
 // ============================================================================
 class JBDamagerBurning extends JBDamager NotPlaceable;
 
@@ -15,10 +15,17 @@ class JBDamagerBurning extends JBDamager NotPlaceable;
 #exec obj load file=..\Sounds\WeaponSounds.uax
 
 
+//=============================================================================
+// Variables
+//=============================================================================
+
+var JBEmitterBurningPlayer FlameEmitter;
+
+
 // ============================================================================
-// Damage functions
+// GetDamageAmount
 //
-// Some functions for change the damage.
+// Return the damage amount for the next TakeDamage() call.
 // ============================================================================
 function int GetDamageAmount()
 {
@@ -52,7 +59,7 @@ function Timer()
 {
   if (VictimIsAlive()) {
     SpawnEffects();
-    Victim.Died(None, DamageType, vect(0,0,0));
+    Victim.Died(None, DamageType, Victim.Location);
   }
 }
 
@@ -67,6 +74,13 @@ function SpawnEffects()
 {
   local Emitter DeathExplosion;
 
+  // kill the flame emitter
+  if (FlameEmitter != None) {
+    FlameEmitter.bTearOff = True;
+    FlameEmitter.TornOff();
+    FlameEmitter = None;
+  }
+  
   DeathExplosion = Spawn(class'JBEmitterKillLaserFlame', Victim,, Victim.Location);
   DeathExplosion.RemoteRole = ROLE_SimulatedProxy;
   Victim.PlaySound(Sound'WeaponSounds.BExplosion5', SLOT_None, 1.5 * Victim.TransientSoundVolume);
@@ -74,9 +88,10 @@ function SpawnEffects()
 
 
 // ============================================================================
-// Unused functions and state
+// Left-over functions (only for binary compatibility)
 // ============================================================================
-function Tick(float DeltaTime)      {}
+
+function Tick(float DeltaTime)      { Super.Tick(DeltaTime); }
 function vector GetDamageMomentum() { return Super.GetDamageMomentum(); }
 function Destroyed()                { Super.Destroyed(); }
 
@@ -84,9 +99,10 @@ function Destroyed()                { Super.Destroyed(); }
 // ============================================================================
 // Default properties
 // ============================================================================
+
 defaultproperties
 {
-    DamageType=class'JBToolbox.JBDamageTypeIncinerated'
-    MaxDelay=0.400000
-    MinDelay=0.200000
+  DamageType  = class'JBDamageTypeIncinerated'
+  MaxDelay    = 0.4
+  MinDelay    = 0.2
 }

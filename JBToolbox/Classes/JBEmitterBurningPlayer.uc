@@ -1,7 +1,7 @@
 // ============================================================================
 // JBEmitterBurningPlayer
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBEmitterBurningPlayer.uc,v 1.1 2006-07-17 14:18:28 jrubzjeknf Exp $
 //
 // An emitter that sets a player on fire.
 // ============================================================================
@@ -17,17 +17,69 @@ class JBEmitterBurningPlayer extends Emitter;
 
 
 // ============================================================================
-// PostNetBeginPlay
+// Variables
+// ============================================================================
+
+/** The victim these flames are attached to. (Owner doesn't replicate to all clients!) */
+var Pawn Victim;
+
+
+// ============================================================================
+// Replication
+// ============================================================================
+
+replication
+{
+  reliable if (Role == ROLE_Authority)
+    Victim;
+}
+
+
+// ============================================================================
+// PostBeginPlay
 //
-// Set the mesh actor and proper scale. Make sure the emitter moved with the
+// Set the owner as the victim (for replication) and set up the emitter on the
+// serverside or offline.
+// ============================================================================
+
+function PostBeginPlay()
+{
+  Victim = Pawn(Owner);
+  PostNetReceive();
+}
+
+
+// ============================================================================
+// PostNetReceive
+//
+// Set the mesh actor and proper scale. Make sure the emitter moves with the
 // player.
 // ============================================================================
 
-simulated function PostNetBeginPlay()
+simulated function PostNetReceive()
 {
-  Emitters[0].SkeletalScale = Emitters[0].SkeletalScale * Owner.DrawScale3D * Owner.DrawScale;
-  Emitters[0].SkeletalMeshActor = Owner;
-  SetBase(Owner);
+  if (Victim == None)
+    return;
+  
+  Emitters[0].SkeletalScale = Emitters[0].SkeletalScale * Victim.DrawScale3D * Victim.DrawScale;
+  Emitters[0].SkeletalMeshActor = Victim;
+  SetLocation(Victim.Location);
+  SetBase(Victim);
+  bNetNotify = False;
+}
+
+
+// ============================================================================
+// TornOff
+//
+// Make sure the emitter goes away when the player died.
+// ============================================================================
+
+simulated function TornOff()
+{
+  Kill();
+  LifeSpan = 0.6;
+  Disable('Tick');
 }
 
 
@@ -35,18 +87,12 @@ simulated function PostNetBeginPlay()
 // Tick
 //
 // Update the emitter rotation offset (neccessary for actors that are not
-// ragdolls) and make sure the emitter goes away when the player died.
+// ragdolls).
 // ============================================================================
 
 simulated function Tick(float DeltaTime)
 {
-  if (Pawn(Owner) == None || Pawn(Owner).Health <= 0) {
-    Kill();
-    LifeSpan = 0.6;
-    Disable('Tick');
-    return;
-  }
-  Emitters[0].RotationOffset = Owner.Rotation - rot(0,16384,0);
+  if (Victim != None) Emitters[0].RotationOffset = Victim.Rotation - rot(0,16384,0);
 }
 
 
@@ -92,9 +138,9 @@ defaultproperties
   End Object
   Emitters(0)=SpriteEmitter'JBToolbox.JBEmitterBurningPlayer.SpriteEmitter0'
 
-  bNoDelete=False
-  bNetTemporary=True
-  RemoteRole=ROLE_SimulatedProxy
-  bOwnerNoSee=False
-  bHardAttach=True
+  bNoDelete   = False
+  bHardAttach = True
+  RemoteRole  = ROLE_SimulatedProxy
+  bNetNotify  = True
+  bReplicateMovement = False
 }
