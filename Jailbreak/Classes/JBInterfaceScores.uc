@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.13 2004/05/31 02:09:32 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.14 2004/07/25 14:11:51 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -395,6 +395,8 @@ simulated function DrawGradient(Canvas Canvas, int HeightTables)
 
 simulated function DrawHeader(Canvas Canvas)
 {
+  local FloatBox OldClipArea;
+  
   if (TextTitle == "")
     TextTitle = GetGameTitle(Level);
 
@@ -407,7 +409,22 @@ simulated function DrawHeader(Canvas Canvas)
 
   Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
   Canvas.SetDrawColor(255, 255, 255);
-  Canvas.DrawScreenText(TextSubtitle, 0.050, 0.110, DP_UpperLeft);
+  
+  // remember current clipping area
+  OldClipArea.X1 = Canvas.OrgX;
+  OldClipArea.Y1 = Canvas.OrgY;
+  OldClipArea.X2 = Canvas.ClipX;
+  OldClipArea.Y2 = Canvas.ClipY;
+  
+  // limit drawing area so server name and match info doesn't disappear behind the clock
+  Canvas.SetOrigin(0.050 * Canvas.SizeX, 0.110 * Canvas.SizeY);
+  Canvas.SetClip(0.8 * Canvas.SizeX, 0.2 * Canvas.SizeY);
+  Canvas.SetPos(0, 0);
+  Canvas.DrawText(TextSubtitle);
+  
+  // restore previous clipping area
+  Canvas.SetOrigin(OldClipArea.X1, OldClipArea.Y1);
+  Canvas.SetClip(OldClipArea.X2, OldClipArea.Y2);
 }
 
 
