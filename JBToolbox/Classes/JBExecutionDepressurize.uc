@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionDepressurize
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurize.uc,v 1.3 2004/03/19 19:18:53 tarquin Exp $
+// $Id: JBExecutionDepressurize.uc,v 1.4 2005-10-17 12:53:02 tarquin Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
@@ -85,7 +85,7 @@ function Tick(float DeltaTime)
   if(ratio > 1.0) ratio = 1.0;
 
   for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag) {
-    if( PlayerIsInAttachedJail(JailedPlayer) 
+    if( PlayerIsInAttachedJail(JailedPlayer)
       && (JailedPlayer.GetPawn() != None))
     {
       DepressurizePawn = JailedPlayer.GetPawn();
@@ -128,7 +128,7 @@ function Tick(float DeltaTime)
 function ExecuteJailedPlayer(Pawn Victim)
 {
   MakeNormal(Victim); // before dead for make sure to spawn normal gib
-  Victim.Died(None, class'Depressurized', vect(0,0,0));
+  InstantKillPawn(Victim, class'Depressurized'); //Kill with gibs
 }
 
 
@@ -155,7 +155,7 @@ function Trigger(Actor A, Pawn P)
 
 defaultproperties
 {
-  Texture = Texture'JBToolbox.icons.JBExecutionDepressurize';  
+  Texture = Texture'JBToolbox.icons.JBExecutionDepressurize';
   DepressurizeTime=2.500000
   DepressurizeToHeadScale=2.500000
   DepressurizeStartFogScale=2.000000
