@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecution
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecution.uc,v 1.5 2003/07/26 05:55:18 crokx Exp $
+// $Id: JBExecution.uc,v 1.6 2005-10-17 12:53:02 tarquin Exp $
 //
 // Base of all triggered execution.
 // ============================================================================
@@ -31,9 +31,9 @@ var() name TagAttachJail; // tag to match to one or more Jails
 // ============================================================================
 // PostBeginPlay
 //
-// Seek JBInfoJails that target this actor (with their EventExecutionCommit) 
+// Seek JBInfoJails that target this actor (with their EventExecutionCommit)
 // TagAttachJail is used, unless it is 'Auto', in which case Tag is used.
-// If no jails are found, attach to the jail this actor is in. 
+// If no jails are found, attach to the jail this actor is in.
 // If this actor is not in a jail, log an error and go to sleep.
 // ============================================================================
 
@@ -41,12 +41,12 @@ function PostBeginPlay()
 {
     local JBInfoJail Jail;
     local name MatchTag;
-    
+
     if(TagAttachJail == 'Auto')
       MatchTag = Tag;
     else
       MatchTag = TagAttachJail;
-    
+
     if(MatchTag != '' ) {
         for(Jail=GetFirstJail(); Jail!=None; Jail=Jail.NextJail) {
             if((Jail.EventExecutionCommit == MatchTag)
@@ -57,7 +57,7 @@ function PostBeginPlay()
             }
         }
     }
-    
+
     if(AttachedJails.length == 0 ) {
         for(Jail=GetFirstJail(); Jail!=None; Jail=Jail.NextJail)
         {
@@ -97,13 +97,14 @@ event ExecuteAllJailedPlayers(optional bool bInstantKill, optional class<DamageT
     for(JailedPlayer=GetFirstTagPlayer(); JailedPlayer!=None; JailedPlayer=JailedPlayer.NextTag)
     {
         if( PlayerIsInAttachedJail(JailedPlayer) && (JailedPlayer.GetPawn() != None)) {
-            if(bInstantKill) JailedPlayer.GetPawn().Died(None, KillType, vect(0,0,0));
+            if(bInstantKill) { InstantKillPawn(JailedPlayer.GetPawn(), KillType); }
             else ExecuteJailedPlayer(JailedPlayer.GetPawn());
         }
     }
 
     Enable('Trigger');
 }
+
 
 // ============================================================================
 // ExecutionDispatching
@@ -119,13 +120,26 @@ state ExecutionDispatching
     {
         if( PlayerIsInAttachedJail(DispatchedPlayer) && (DispatchedPlayer.GetPawn() != None))
         {
-            if(DispatchExecution.bInstantKill) DispatchedPlayer.GetPawn().Died(None, DispatchExecution.InstantKillType, vect(0,0,0));
+            if(DispatchExecution.bInstantKill) { InstantKillPawn(DispatchedPlayer.GetPawn(), DispatchExecution.InstantKillType); }
             else ExecuteJailedPlayer(DispatchedPlayer.GetPawn());
             Sleep(FMax(RandRange(DispatchExecution.MinExecutionInterval, DispatchExecution.MaxExecutionInterval), 0.10));
         }
     }
 
     GoToState('');
+}
+
+
+// ============================================================================
+// KillPawn
+//
+// Instant kills the pawn, with giblets if the Damagetype allows it.
+// ============================================================================
+function InstantKillPawn(Pawn P, class<DamageType> DamageType)
+{
+    P.Health = 0;
+    P.PlayHit(DamageType.default.DamageThreshold+P.SuperHealthMax, None, vect(0,0,0), DamageType, vect(0,0,0));
+    P.Died(None, DamageType, vect(0,0,0));
 }
 
 
@@ -182,7 +196,7 @@ final function bool HasSkelete(Pawn P) {
     return ((P.IsA('xPawn')) && (xPawn(P).SkeletonMesh != None)); }
 final function JBInfoJail GetTargetJail()
 {
-    // THIS FUNCTION IS DEPRECATED! 
+    // THIS FUNCTION IS DEPRECATED!
     // code must be adapted to use PlayerIsInAttachedJail instead
     log("!!!!!"@name$": function GetTargetJail() is deprecated! Do not use!");
     return (AttachedJails[0]);
@@ -196,7 +210,7 @@ final function bool PlayerIsInAttachedJail(JBTagPlayer Player)
             return true;
         }
     }
-    return false; 
+    return false;
 }
 
 
