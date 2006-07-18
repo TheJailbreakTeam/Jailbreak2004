@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.48 2004/07/25 16:36:48 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.49 2005-04-24 16:56:31 mychaeel Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -627,7 +627,7 @@ function Prepare()
 // ============================================================================
 // MatchTie
 //
-// Cancels an ongoing arena match, notifies both players about it and sends
+// Cancels an ongoing arena match, notifies both players about it and gibs
 // them back to jail. Can only be called in state MatchRunning.
 // ============================================================================
 
@@ -636,12 +636,17 @@ function MatchTie()
   local JBGameRules firstJBGameRules;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
+  local Pawn P;
 
   if (IsInState('MatchRunning')) {
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetArena() == Self)
-        thisTagPlayer.RestartInJail();
+      if (thisTagPlayer.GetArena() == Self) {
+        P = thisTagPlayer.GetPawn();
+        P.Health = 0;
+        P.PlayHit(P.SuperHealthMax, None, vect(0,0,0), class'Gibbed', vect(0,0,0));
+        P.Died(None, class'Gibbed', vect(0,0,0));
+      }
 
     firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
     if (firstJBGameRules != None)
@@ -790,7 +795,7 @@ function UnTriggerCamera(Actor ActorOther, Pawn PawnInstigator)
   PlayerController = PlayerController(PawnInstigator.Controller);
   if (PlayerController == None)
     return;
-  
+
   CameraCurrent = JBCamera(PlayerController.ViewTarget);
   if (CameraCurrent != None && ContainsActor(CameraCurrent))
     CameraCurrent.DeactivateFor(PlayerController);
@@ -805,43 +810,43 @@ function UnTriggerCamera(Actor ActorOther, Pawn PawnInstigator)
 // ============================================================================
 
 function ActivateCameraFor(Controller Controller)
-{ 
+{
   local bool bFoundCamera;
   local JBCamera thisCamera;
   local JBCameraArena CameraArena;
   local JBTagPlayer TagPlayerCombatantByTeam[2];
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-  
+
   if (IsInState('MatchRunning')) {
     if (PlayerController(Controller)     == None ||
         Controller.PlayerReplicationInfo == None)
       return;
-  
+
     foreach DynamicActors(Class'JBCamera', thisCamera)
       if (JBCameraArena(thisCamera) == None && ContainsActor(thisCamera)) {
         bFoundCamera = True;
         thisCamera.Trigger(Self, Controller.Pawn);
       }
-  
+
     if (bFoundCamera)
       return;
-  
+
     foreach DynamicActors(Class'JBCameraArena', CameraArena)
       if (ContainsActor(CameraArena) && CameraArena.IsViewerAllowed(Controller))
         break;
-    
+
     if (CameraArena == None) {
       CameraArena = Spawn(Class'JBCameraArena', Self);
-      
+
       CameraArena.Arena         = Self;
       CameraArena.Overlay.Actor = Self;
-      
+
       firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
       for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
         if (thisTagPlayer.GetArena() == Self)
           TagPlayerCombatantByTeam[thisTagPlayer.GetTeam().TeamIndex] = thisTagPlayer;
-      
+
       if (Controller.PlayerReplicationInfo.Team == None ||
           Controller.PlayerReplicationInfo.Team == TagPlayerCombatantByTeam[0].GetTeam()) {
         CameraArena.TagPlayerFollowed = TagPlayerCombatantByTeam[0];
@@ -851,13 +856,13 @@ function ActivateCameraFor(Controller Controller)
         CameraArena.TagPlayerOpponent = TagPlayerCombatantByTeam[0];
       }
     }
-    
-    CameraArena.ActivateFor(Controller);  
+
+    CameraArena.ActivateFor(Controller);
   }
 
   else {
     Log("Warning: Can't activate arena camera in" @ Self @ "because arena is in state" @ GetStateName());
-  }  
+  }
 }
 
 
@@ -1187,7 +1192,7 @@ auto state Waiting {
           JBBotTeam(TeamGame(Level.Game).Teams[iTeam].AI).FindBotForArena(Self, ControllerCandidateByTeam[1 - iTeam]);
         if (ControllerCandidateByTeam[iTeam] == None)
           return False;
-      } 
+      }
 
     return MatchInit(ControllerCandidateByTeam[0],
                      ControllerCandidateByTeam[1]);
