@@ -1,7 +1,7 @@
 // ============================================================================
 // JBEmitterBurningPlayer
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBEmitterBurningPlayer.uc,v 1.1 2006-07-17 14:18:28 jrubzjeknf Exp $
+// $Id: JBEmitterBurningPlayer.uc,v 1.2 2006-07-17 15:07:13 wormbo Exp $
 //
 // An emitter that sets a player on fire.
 // ============================================================================
@@ -14,6 +14,7 @@ class JBEmitterBurningPlayer extends Emitter;
 // ============================================================================
 
 #exec obj load file=..\Textures\EmitterTextures.utx
+#exec obj load file=..\Sounds\GeneralAmbience.uax
 
 
 // ============================================================================
@@ -45,27 +46,24 @@ replication
 function PostBeginPlay()
 {
   Victim = Pawn(Owner);
-  PostNetReceive();
 }
 
 
 // ============================================================================
-// PostNetReceive
+// PostNetBeginPlay
 //
 // Set the mesh actor and proper scale. Make sure the emitter moves with the
 // player.
 // ============================================================================
 
-simulated function PostNetReceive()
+simulated function PostNetBeginPlay()
 {
-  if (Victim == None)
-    return;
-  
-  Emitters[0].SkeletalScale = Emitters[0].SkeletalScale * Victim.DrawScale3D * Victim.DrawScale;
-  Emitters[0].SkeletalMeshActor = Victim;
-  SetLocation(Victim.Location);
-  SetBase(Victim);
-  bNetNotify = False;
+  if (Victim != None) {
+    Emitters[0].SkeletalScale = Emitters[0].SkeletalScale * Victim.DrawScale3D * Victim.DrawScale;
+    Emitters[0].SkeletalMeshActor = Victim;
+    SetLocation(Victim.Location);
+    SetBase(Victim);
+  }
 }
 
 
@@ -79,6 +77,7 @@ simulated function TornOff()
 {
   Kill();
   LifeSpan = 0.6;
+  AmbientSound = None;
   Disable('Tick');
 }
 
@@ -102,7 +101,7 @@ simulated function Tick(float DeltaTime)
 
 defaultproperties
 {
-  Begin Object Class=SpriteEmitter Name=SpriteEmitter0
+  Begin Object Class=SpriteEmitter Name=PlayerFlames
     FadeOut=True
     FadeIn=True
     SpinParticles=True
@@ -136,11 +135,11 @@ defaultproperties
     StartVelocityRange=(Z=(Min=10.000000,Max=20.000000))
     VelocityLossRange=(X=(Min=5.000000,Max=5.000000),Y=(Min=5.000000,Max=5.000000),Z=(Min=5.000000,Max=5.000000))
   End Object
-  Emitters(0)=SpriteEmitter'JBToolbox.JBEmitterBurningPlayer.SpriteEmitter0'
+  Emitters(0)=SpriteEmitter'PlayerFlames'
 
   bNoDelete   = False
   bHardAttach = True
   RemoteRole  = ROLE_SimulatedProxy
-  bNetNotify  = True
   bReplicateMovement = False
+  AmbientSound  = Sound'GeneralAmbience.firefx9'
 }
