@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.16 2004/05/31 14:15:57 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.17 2004-07-25 15:40:10 mychaeel Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -13,7 +13,7 @@
 //   100 (B)   Team captured                                          TeamInfo
 //   200 (B)   Release, jail full   Releaser                          TeamInfo
 //   210       Release, jail empty  Releaser                          TeamInfo
-//   300 (B)   Stalemate     
+//   300 (B)   Stalemate
 //   403       Arena countdown 3                                      Arena
 //   402       Arena countdown 2                                      Arena
 //   401       Arena countdown 1                                      Arena
@@ -110,7 +110,7 @@ static function bool PlaySpeech(PlayerController PlayerController,
     case 0:  return Class'JBSpeechManager'.Static.PlayFor(PlayerController.Level, Definition0, Tags);
     case 1:  return Class'JBSpeechManager'.Static.PlayFor(PlayerController.Level, Definition1, Tags);
   }
-  
+
   return False;
 }
 
@@ -136,10 +136,12 @@ static function ClientReceive(PlayerController PlayerController,
 
   if (Default.Class == Class'JBLocalMessage') {
     ClassLocalMessageReplacement = Default.ClassLocalMessageScreen;
-    
+
     if (Switch >= 400 && Switch <= 499 &&
-       !IsLocalPlayer(PlayerReplicationInfo1) &&
-       !IsLocalPlayer(PlayerReplicationInfo2))
+       !IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2) &&
+        class'JBTagPlayer'.static.FindFor(PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo).IsFree())
+       //!IsLocalPlayer(PlayerReplicationInfo1) &&
+       //!IsLocalPlayer(PlayerReplicationInfo2))
       ClassLocalMessageReplacement = Default.ClassLocalMessageConsole;
 
     PlayerController.ReceiveLocalizedMessage(
@@ -156,11 +158,11 @@ static function ClientReceive(PlayerController PlayerController,
     case 200:  PlaySpeech(PlayerController, "$TeamReleasedRed", "$TeamReleasedBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
     case 210:  PlaySpeech(PlayerController, "$TeamReleasedNobody");  break;
     case 300:  PlaySpeech(PlayerController, "$TeamCapturedBoth");    break;
-    
+
     case 403:  PlayerController.PlayBeepSound();  PlaySpeech(PlayerController, "$ArenaWarning");  break;
     case 402:  PlayerController.PlayBeepSound();  break;
     case 401:  PlayerController.PlayBeepSound();  break;
-   
+
     case 400:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaStart");       break;
     case 410:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaCancelled");   break;
     case 420:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaEndTimeout");  break;
@@ -373,7 +375,7 @@ static function string GetString(optional int Switch,
 
     case 500:  return Default.TextKeyboardArena;
     case 510:  return Default.TextKeyboardCamera;
-    
+
     case 600:  return Default.TextLastMan;
     case 610:  return Default.TextLastMan;
   }
