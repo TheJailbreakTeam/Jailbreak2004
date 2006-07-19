@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.9 2004/08/02 12:56:23 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.10 2005-08-10 14:55:52 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -63,18 +63,18 @@ function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsL
   //log("Disconnect:"@ControllerPlayer@ControllerPlayer.Pawn);
   if ( !class'JBAddonLlama'.default.bLlamaizeOnJailDisconnect && bIsLlama != 0 )
     bIsLlama = 0;
-  
+
   if ( bIsLlama == 0 && ControllerPlayer == LlamaSuicidedLast ) {
     bIsLlama = 1;
     BroadcastLocalizedMessage(class'JBLlamaMessage', 4, ControllerPlayer.PlayerReplicationInfo);
   }
-  
+
   if ( bIsLlama == 0 && ControllerPlayer.Pawn == None
       && IsLlamaPending(class'JBTagPlayer'.static.FindFor(ControllerPlayer.PlayerReplicationInfo)) ) {
     bIsLlama = 1;
     BroadcastLocalizedMessage(class'JBLlamaMessage', 4, ControllerPlayer.PlayerReplicationInfo);
   }
-  
+
   //log(Level.TimeSeconds@"NotifyPlayerDisconnect"@ControllerPlayer@bIsLlama);
   Super.NotifyPlayerDisconnect(ControllerPlayer, bIsLlama);
 }
@@ -91,7 +91,7 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 {
   if ( bIsLlama && MyLlamaAddon != None )
     MyLlamaAddon.Llamaize(ControllerPlayer);
-  
+
   Super.NotifyPlayerReconnect(ControllerPlayer, bIsLlama);
 }
 
@@ -109,7 +109,7 @@ function bool OverridePickupQuery(Pawn Other, Pickup Item, out byte bAllowPickup
 	  bAllowPickup = 0;
 	  return true;
 	}
-	
+
 	return Super.OverridePickupQuery(Other, Item, bAllowPickup);
 }
 
@@ -145,19 +145,20 @@ function bool CanSendToJail(JBTagPlayer TagPlayer)
 // ScoreKill
 //
 // Checks whether a player was killed by a llama so that player doesn't restart
-// in jail.
+// in jail, if he's not on the same team as the llama.
 //=============================================================================
 
 function ScoreKill(Controller Killer, Controller Killed)
 {
   local bool bKillerIsLlama, bKilledIsLlama;
-  
+
   //log(Level.TimeSeconds@"ScoreKill"@Killer@Killed);
-  
+
   bKilledIsLlama = Killed.Pawn != None && Killed.Pawn.FindInventoryType(class'JBLlamaTag') != None;
   bKillerIsLlama = Killer != None && Killer.Pawn != None && Killer.Pawn.FindInventoryType(class'JBLlamaTag') != None;
-  
-  if ( bKillerIsLlama && !bKilledIsLlama )
+
+  if ( bKillerIsLlama && !bKilledIsLlama &&
+       Killer.GetTeamNum() != Killed.GetTeamNum())
     KilledByLlama(Killed);
   else if ( bKilledIsLlama ) {
     if ( !bKillerIsLlama && Killer != None )
@@ -165,7 +166,7 @@ function ScoreKill(Controller Killer, Controller Killed)
     else
       LlamaSuicided(Killed);
   }
-  
+
   Super.ScoreKill(Killer, Killed);
 }
 
@@ -196,7 +197,7 @@ protected function ScoreLlamaKill(Controller Killer, Controller Killed)
     Killer.Pawn.GiveHealth(class'JBAddonLlama'.default.RewardHealth, Min(199, Killer.Pawn.HealthMax * 2.0));
     Killer.Pawn.AddShieldStrength(class'JBAddonLlama'.default.RewardShield);
   }
-  
+
   BroadcastLocalizedMessage(class'JBLlamaMessage', 2, Killed.PlayerReplicationInfo, Killer.PlayerReplicationInfo);
 }
 
@@ -239,7 +240,7 @@ protected function bool WasKilledByLlama(JBTagPlayer TagPlayer)
   local int i;
 
   //log(Level.TimeSeconds@"WasKilledByLlama"@TagPlayer@TagPlayer.GetController());
-  
+
   for (i = 0; i < PlayersKilledByLlama.Length; i++) {
     //log(PlayersKilledByLlama[i]);
     if ( PlayersKilledByLlama[i] == TagPlayer ) {
@@ -247,7 +248,7 @@ protected function bool WasKilledByLlama(JBTagPlayer TagPlayer)
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -262,15 +263,15 @@ protected function bool IsLlamaPending(JBTagPlayer TagPlayer)
 {
   local JBLlamaPendingTag thisLlamaPendingTag;
   local Controller ControllerPlayer;
-  
+
   ControllerPlayer = TagPlayer.GetController();
-  
+
   if ( ControllerPlayer == None )
     return false;
-  
+
   foreach ControllerPlayer.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
     return true;
-  
+
   return false;
 }
 
@@ -285,32 +286,32 @@ protected function bool IsLlamaPending(JBTagPlayer TagPlayer)
 static function JBGameRulesLlamaHunt FindLlamaHuntRules(Actor Requester)
 {
   local JBGameRules thisJBGameRules;
-  
+
   if ( Requester == None ) {
     // can't work without an actor reference
     Warn("No requesting actor specified.");
     return None;
   }
-  
+
   if ( JailBreak(Requester.Level.Game) == None ) {
     // doesn't work without Jailbreak
     log("Not a Jailbreak game.", 'LlamaHunt');
     return None;
   }
-  
+
   for (thisJBGameRules = JailBreak(Requester.Level.Game).GetFirstJBGameRules();
        thisJBGameRules != None;
        thisJBGameRules = thisJBGameRules.GetNextJBGameRules()) {
     if ( JBGameRulesLlamaHunt(thisJBGameRules) != None )
       return JBGameRulesLlamaHunt(thisJBGameRules);
   }
-  
+
   // no JBGameRulesLlamaHunt found, spawn a new one and register it
   thisJBGameRules = Requester.Spawn(Default.Class);
   if ( Requester.Level.Game.GameRulesModifiers == None )
     Requester.Level.Game.GameRulesModifiers = thisJBGameRules;
   else
     Requester.Level.Game.GameRulesModifiers.AddGameRules(thisJBGameRules);
-  
+
   return JBGameRulesLlamaHunt(thisJBGameRules);
 }
