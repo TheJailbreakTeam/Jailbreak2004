@@ -41,6 +41,7 @@ function LoadINISettings()
   bInitialized = false;
   UprisingChk.Checked(class'JBAddonPersistence'.default.bUprising);
   HealthTransfer.SetValue(class'JBAddonPersistence'.default.nHealth);
+
   bInitialized = true;
 }
 
@@ -80,7 +81,7 @@ defaultproperties
   Begin Object Class=moCheckBox Name=chkUprising
     Caption="The Uprising"
     OnCreateComponent=chkUprising.InternalOnCreateComponent
-    Hint="Capturing team loses weapons to the captured team."
+    Hint="Capturing team loses weapons to the captured team. Weapons throwing is disabled with this option selected."
     WinTop=0.000000
     WinLeft=0.000000
     WinWidth=1.000000

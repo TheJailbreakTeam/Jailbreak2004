@@ -41,7 +41,7 @@ function PostBeginPlay()
   }
   else
   {
-    Log("***Failed to add JBGameRulesKeepWeapons***");
+    Log("***Failed to add JBGameRulesPersistence***");
     Destroy();
   }
 }

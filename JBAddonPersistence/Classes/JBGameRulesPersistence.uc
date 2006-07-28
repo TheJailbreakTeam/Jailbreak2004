@@ -58,6 +58,8 @@ function PreBeginPlay()
   bUprising = class'JBAddonPersistence'.default.bUprising;
   nHealth = class'JBAddonPersistence'.default.nHealth;
   SetTimer(0.5, true);
+  if(bUprising == true)
+    Level.Game.bAllowWeaponThrowing = false;           //disable weapon throwing
   Super.PreBeginPlay();
 }
 
@@ -86,11 +88,12 @@ function Timer()
         //once we find a pawn, carry over all weapons for that player.
         CarryOverWeapons();
         CleanUpArray();
-        bNewRound = false;
         break;
       }
     }
   }
+
+  bNewRound = false;
 
   Super.Timer();
 }
@@ -101,11 +104,10 @@ function Timer()
 // Called when the execution sequence has been completed, directly before the
 // next round starts.
 // ============================================================================
-function NotifyExecutionEnd()
+function NotifyRound()
 {
+  Super.NotifyRound();
   bNewRound = true;
-
-  Super.NotifyExecutionEnd();
 }
 
 // ============================================================================
@@ -181,10 +183,10 @@ function CarryOverWeapons()
   {
     for(thisController = Level.ControllerList; thisController != None; thisController = thisController.nextController)
     {
-      TransferHealth(thisController);
       //if not bUprising, then don't transfer weapons to opposing team
       if(!bUprising)
       {
+        TransferHealth(thisController);
         for(i = 0; i < CapturerList.Length; i++)
         {
           if((thisController.Pawn != None) &&
@@ -203,11 +205,13 @@ function CarryOverWeapons()
       }
       else //if bUprising is set to true, then transfer weapons over
       {
+        TransferHealth(thisController);
         for(i = CapturedList.Length - 1; i >= 0; i--)
         {
           if((thisController.Pawn != None) &&
              (thisController.Pawn.GetHumanReadableName() ~= CapturedList[i].Owner))
           {
+            SetAdrenaline(this Controller, CapturerList[i].Adrenaline);
             //this is used in case teams are unbalanced.
             if(Count >= CapturerList.Length - 1)
               Count = 0;
@@ -221,8 +225,6 @@ function CarryOverWeapons()
       }
     }
   }
-
-  bNewRound = false;
 }
 
 // ============================================================================
@@ -254,7 +256,8 @@ function bool PersistWeapon(Pawn P, TPersistWeapons Weapon)
   if(Weapon.PersistentWeapon == None)
     return false;
 
-  W = P.Spawn(Weapon.PersistentWeapon);
+  //Need to spawn the weapon from the player, and give to the player.
+  W = P.Spawn(Weapon.PersistentWeapon, P);
 
   if(W == None)
     return false;
