@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.11 2004-07-25 16:20:40 mychaeel Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.12 2006-07-14 12:11:39 jrubzjeknf Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -87,7 +87,9 @@ function DisableObjective(Pawn PawnInstigator)
       PawnInstigator                            == None ||
       PawnInstigator.PlayerReplicationInfo      == None ||
       PawnInstigator.PlayerReplicationInfo.Team == None ||
-      PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex)
+      PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex ||
+      Vehicle(PawnInstigator) != None ||
+      RedeemerWarhead(PawnInstigator) != None)
     return;
 
   Super.DisableObjective(PawnInstigator);
