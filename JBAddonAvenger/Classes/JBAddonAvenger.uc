@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonAvenger.uc,v 1.5 2004/05/20 14:47:56 wormbo Exp $
+// $Id: JBAddonAvenger.uc,v 1.6 2004-05-23 12:43:57 tarquin Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
@@ -28,7 +28,7 @@ var() config int PowerTimeMultiplier; // multiply the arena time remaining
 var() config int PowerTimeMaximum;    // subject to this maximum
 var() config int PowerComboIndex;     // type of combo awarded
 
-var class<Combo> ComboClasses[4]; 
+var class<Combo> ComboClasses[4];
 
 
 //=============================================================================
@@ -78,7 +78,7 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 {
   // add current class to stack
   PlayInfo.AddClass(default.Class);
-  
+
   // now register any mutator settings
   PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMultiplier", default.PowerTimeMultiplierText, 0, 0, "Text", "3;1:200");
   PlayInfo.AddSetting(PlayInfoGroup(), "PowerTimeMaximum",    default.PowerTimeMaximumText,    0, 0, "Text", "3;10:60");
@@ -120,6 +120,26 @@ static function ResetConfiguration()
 }
 
 
+//=============================================================================
+// DriverEnteredVehicle
+//
+// Kills the JBInventoryAvenger of the Pawn if he has it.
+//=============================================================================
+function DriverEnteredVehicle(Vehicle V, Pawn P)
+{
+  local Inventory Inv;
+
+  for (Inv = P.Inventory; Inv != None; Inv = Inv.Inventory)
+    if (JBInventoryAvenger(Inv) != None)
+    {
+      Inv.Destroy();
+      break;
+    }
+
+  Super.DriverEnteredVehicle(V, P);
+}
+
+
 // ============================================================================
 // Default properties
 // ============================================================================
@@ -145,13 +165,13 @@ defaultproperties
   PowerTimeMultiplierText = "Avenger time multiplier";
   PowerTimeMaximumText    = "Maximum avenger time";
   PowerComboIndexText     = "Avenger power";
-  
+
   PowerTimeMultiplierDesc = "Percentage to multiply arena remaining time by to give avenger time.";
   PowerTimeMaximumDesc    = "Maximum avenger time allowable.";
   PowerComboIndexDesc     = "Combo awarded to the avenger.";
-  
+
   PowerComboIndexOptions = "0;Speed;1;Berserk;2;Booster;3;Invisible;4;Random";
-    
+
   ComboClasses(0)=class'XGame.ComboSpeed'
   ComboClasses(1)=class'XGame.ComboBerserk'
   ComboClasses(2)=class'XGame.ComboDefensive'
