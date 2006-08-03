@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.9 2004/05/30 21:44:27 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.10 2004-05-31 20:23:42 mychaeel Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -19,7 +19,7 @@ struct TBinding
 {
   var string Alias;                          // alias to auto-bind if necessary
   var byte iKeyPreferred;                    // preferred key to auto-bind
-  
+
   var private bool bIsBoundAuto;             // alias has been auto-bound
   var private bool bIsBoundConfig;           // alias bound by configuration
   var private int iKeyAuto;                  // index of auto-bound key
@@ -30,12 +30,12 @@ struct TDialog
 {
   var Material MaterialFrame;                // dialog box frame and background
   var vector Margins;                        // margins within dialog box frame
-  
+
   var string FontTitle;                      // font for dialog box title
   var string FontText;                       // font for text in dialog box
   var string FontKey;                        // font for key names
   var string FontClose;                      // font for closing hint
-  
+
   var Color ColorTextTitle;                  // color for dialog box title
   var Color ColorTextKey;                    // color for key names
   var Color ColorText;                       // color for text in dialog box
@@ -106,10 +106,10 @@ event Initialized()
 
   for (iKey = 0; iKey < EInputKey.EnumCount; iKey++) {
     iBindingByKey[iKey] = -1;
-    
+
     Key   = ViewportOwner.Actor.ConsoleCommand("KeyName"    @ iKey);
     Alias = ViewportOwner.Actor.ConsoleCommand("KeyBinding" @  Key);
-        
+
     bIsKeyUnknown[iKey] = byte(Left(Key, 7) ~= "Unknown");
 
     if (Alias != "") {
@@ -117,7 +117,7 @@ event Initialized()
       for (iBinding = 0; iBinding < Bindings.Length; iBinding++)
         if (InStr(Caps(Alias), Caps(Bindings[iBinding].Alias)) >= 0)
           Bindings[iBinding].bIsBoundConfig = True;
-    
+
       if (InStr(Caps(Alias), Caps("PrevWeapon")) >= 0) bIsBoundToPrevWeapon[iKey] = byte(True);
       if (InStr(Caps(Alias), Caps("NextWeapon")) >= 0) bIsBoundToNextWeapon[iKey] = byte(True);
     }
@@ -133,7 +133,7 @@ event Initialized()
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++) {
     if (Bindings[iBinding].bIsBoundConfig)
       continue;
-    
+
     iKeyAuto = Bindings[iBinding].iKeyPreferred;
     if (bool(bIsKeyBound[iKeyAuto]))
       for (iKeyAuto = EInputKey.IK_Escape; iKeyAuto <= EInputKey.IK_F12; iKeyAuto++)
@@ -143,7 +143,7 @@ event Initialized()
 
     if (iKeyAuto >= EInputKey.EnumCount)
       continue;  // no unbound key found
-    
+
     bAutoBoundKeys = True;
     iBindingByKey[iKeyAuto] = iBinding;
     Bindings[iBinding].bIsBoundAuto = True;
@@ -202,10 +202,10 @@ event bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float 
   local string Key;
   local PlayerController PlayerController;
   local JBCamera Camera;
-  
+
   if (InputAction != IST_Press)
     return False;
-    
+
   PlayerController = ViewportOwner.Actor;
 
   iBinding = iBindingByKey[InputKey];
@@ -225,7 +225,7 @@ event bool KeyEvent(out EInputKey InputKey, out EInputAction InputAction, float 
       if (bool(bIsBoundToNextWeapon[InputKey])) { GetTagClientLocal().ServerSwitchToNextCamera(Camera, True);  return True; }
     }
   }
-  
+
   if (bVisible && TimeFadeoutDialog == 0.0) {
     Key   =      PlayerController.ConsoleCommand("KeyName"    @ InputKey);
     Alias = Caps(PlayerController.ConsoleCommand("KeyBinding" @      Key));
@@ -300,7 +300,7 @@ event PostRender(Canvas Canvas)
   if (TimeFadeoutDialog == 0.0)
          Alpha =           1.0;
     else Alpha = FMax(0.0, 1.0 - (TimeCurrent - TimeFadeoutDialog) * 2.0);
-    
+
   if (Alpha == 0.0) {
     bVisible = False;
     return;
@@ -319,9 +319,9 @@ event PostRender(Canvas Canvas)
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++) {
     if (!Bindings[iBinding].bIsBoundAuto)
       continue;
-  
-    Key[iBinding] = PlayerController.ConsoleCommand("LocalizedKeyName" @ Bindings[iBinding].iKeyAuto); 
-  
+
+    Key[iBinding] = PlayerController.ConsoleCommand("LocalizedKeyName" @ Bindings[iBinding].iKeyAuto);
+
     Canvas.Font = FontText;  Canvas.TextSize(TextDescription[iBinding], SizeText   .X, SizeText   .Y);
     Canvas.Font = FontKey;   Canvas.TextSize(Key            [iBinding], SizeTextKey.X, SizeTextKey.Y);
 
@@ -362,14 +362,14 @@ event PostRender(Canvas Canvas)
     Dialog.MaterialFrame,
     SizeDialog.X,
     SizeDialog.Y);
-  
+
   LocationText = LocationDialog + Dialog.Margins;
-  
+
   Dialog.ColorText     .A = Canvas.DrawColor.A;
   Dialog.ColorTextTitle.A = Canvas.DrawColor.A;
   Dialog.ColorTextKey  .A = Canvas.DrawColor.A;
   Dialog.ColorTextClose.A = Canvas.DrawColor.A;
-  
+
   Canvas.SetClip(
     LocationDialog.X + SizeDialog.X - Dialog.Margins.X,
     LocationDialog.Y + SizeDialog.Y - Dialog.Margins.Y);
@@ -381,34 +381,34 @@ event PostRender(Canvas Canvas)
     (LocationDialog.X + SizeDialog.X / 2.0 + Dialog.OffsetTextTitle.X) / Canvas.SizeX,
     (LocationDialog.Y                      + Dialog.OffsetTextTitle.Y) / Canvas.SizeY,
     DP_MiddleMiddle);
-  
+
   Canvas.Font = FontText;
   Canvas.DrawColor = Dialog.ColorText;
   Canvas.SetPos(
     LocationText.X,
     LocationText.Y);
   Canvas.DrawTextClipped(TextDialogTop);
-  
+
   LocationText.Y += SizeText.Y + Spacing.Y;
-  
+
   for (iBinding = 0; iBinding < Bindings.Length; iBinding++) {
     if (!Bindings[iBinding].bIsBoundAuto)
       continue;
-  
+
     Canvas.Font = FontKey;
     Canvas.DrawColor = Dialog.ColorTextKey;
     Canvas.SetPos(
       LocationText.X + Spacing.X,
       LocationText.Y);
     Canvas.DrawTextClipped(Key[iBinding]);
-    
+
     Canvas.Font = FontText;
     Canvas.DrawColor = Dialog.ColorText;
     Canvas.SetPos(
       LocationText.X + Spacing.X + SizeTextKeyMax.X + Spacing.X,
       LocationText.Y);
     Canvas.DrawTextClipped(TextDescription[iBinding]);
-  
+
     LocationText.Y += SizeText.Y;
   }
 
@@ -443,7 +443,7 @@ event NotifyLevelChange()
   local JBAddon thisAddon;
 
   Master.RemoveInteraction(Self);
-  
+
   foreach ViewportOwner.Actor.DynamicActors(Class'JBAddon', thisAddon)
     thisAddon.NotifyLevelChange();
 }
@@ -468,15 +468,15 @@ static function string GetKeyForCommand(string Command, optional string Fallback
   local string KeyBest;
   local PlayerController PlayerController;
   local JBInteractionKeys InteractionKeys;
-  
+
   foreach Default.Class.AllObjects(Class'JBInteractionKeys', InteractionKeys)
     break;
-    
+
   if (InteractionKeys == None)
     return Fallback;
-  
+
   PlayerController = InteractionKeys.ViewportOwner.Actor;
-  
+
   for (iBinding = 0; iBinding < InteractionKeys.Bindings.Length; iBinding++)
     if (InteractionKeys.Bindings[iBinding].Alias ~= Command &&
         InteractionKeys.Bindings[iBinding].bIsBoundAuto)
@@ -488,11 +488,11 @@ static function string GetKeyForCommand(string Command, optional string Fallback
 
     if (InStr(Caps(Alias), Caps(Command)) < 0)
       continue;
-    
+
          if (Left(Key, 3) ~= "Joy")   RatingKey = 1;
     else if (Left(Key, 5) ~= "Mouse") RatingKey = 2;
     else                              RatingKey = 3;
-    
+
     if (RatingKey > RatingKeyBest) {
       KeyBest = PlayerController.ConsoleCommand("LocalizedKeyName" @ iKey);
       RatingKeyBest = RatingKey;
@@ -501,7 +501,7 @@ static function string GetKeyForCommand(string Command, optional string Fallback
 
   if (KeyBest != "")
     return KeyBest;
-  
+
   return Fallback;
 }
 
@@ -516,6 +516,7 @@ defaultproperties
   Bindings[1] = (Alias="TeamTactics Down",iKeyPreferred=109);  // GreyMinus
   Bindings[2] = (Alias="TeamTactics Auto",iKeyPreferred=111);  // GreySlash
   Bindings[3] = (Alias="ArenaCam",iKeyPreferred=106);          // GreyStar
+  Bindings[4] = (Alias="ViewTeamFree",iKeyPreferred=110);      // GreyPeriod
 
   Dialog = (MaterialFrame=Texture'2K4Menus.Display99',Margins=(X=30,Y=44),FontTitle="UT2DefaultFont",FontText="UT2SmallFont",FontKey="UT2SmallFont",FontClose="UT2SmallFont",ColorTextTitle=(R=255,G=210,B=0),ColorText=(R=255,G=255,B=255),ColorTextKey=(R=255,G=210,B=0),ColorTextClose=(R=255,G=210,B=0),OffsetTextTitle=(Y=16),OffsetTextClose=(Y=-16));
 
@@ -525,9 +526,10 @@ defaultproperties
   TextDialogBottomS = "Use the key binder to permanently bind a key to this function.";
   TextDialogBottomP = "Use the key binder to permanently bind keys to these functions.";
   TextDialogClose   = "Press FIRE to close, ALT-FIRE to close permanently";
-  
+
   TextDescription[0] = "Sets team tactics to a more aggressive stance.";
   TextDescription[1] = "Sets team tactics to a more defensive stance.";
   TextDescription[2] = "Returns to auto-selection of team tactics.";
   TextDescription[3] = "Activates the Arena Live Feed.";
+  TextDescription[4] = "View your teammates who battle in freedom.";
 }
