@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.39 2006-07-09 21:45:03 jrubzjeknf Exp $
+// $Id: JBBotTeam.uc,v 1.40 2006-07-13 20:55:02 jrubzjeknf Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -478,26 +478,30 @@ function Bot FindBotForArena(JBInfoArena Arena, Controller ControllerOpponent, o
 // ============================================================================
 // IsObjectiveAttack
 //
-// Returns whether the given objective is to be attacked by this team.
+// Returns whether the given objective is to be attacked by this team. Returns
+// false if all the jails this objective can trigger are jammed.
 // ============================================================================
 
 function bool IsObjectiveAttack(GameObjective GameObjective)
 {
   return (GameObjective != None &&
-          GameObjective.DefenderTeamIndex != Team.TeamIndex);
+          GameObjective.DefenderTeamIndex != Team.TeamIndex &&
+         !class'JBInfoJail'.static.ObjectiveIsJammed(GameObjective, Team.TeamIndex)); //can release own team
 }
 
 
 // ============================================================================
 // IsObjectiveDefense
 //
-// Returns whether the given objective is to be defended by this team.
+// Returns whether the given objective is to be defended by this team. Returns
+// false if all the jails this objective can trigger are jammed.
 // ============================================================================
 
 function bool IsObjectiveDefense(GameObjective GameObjective)
 {
-  return (GameObjective != None &&
-          GameObjective.DefenderTeamIndex == Team.TeamIndex);
+  return (GameObjective != none &&
+          GameObjective.DefenderTeamIndex == Team.TeamIndex &&
+         !class'JBInfoJail'.static.ObjectiveIsJammed(GameObjective, abs(Team.TeamIndex-1))); //can release enemy team
 }
 
 

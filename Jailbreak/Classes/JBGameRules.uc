@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRules
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRules.uc,v 1.9 2004-05-04 15:15:37 mychaeel Exp $
+// $Id: JBGameRules.uc,v 1.10 2006-04-17 20:57:47 lynx Exp $
 //
 // Allows mod authors to hook into and alter the Jailbreak game rules.
 //
@@ -165,7 +165,26 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
 
 
 // ============================================================================
-// CanBrodcast
+// AllowForcedRelease
+//
+// Called when a jail is jammed, but something/someone wants to force a
+// release anyway. The function allows mutators to block that behaviour.
+// ============================================================================
+
+function bool AllowForcedRelease(JBInfoJail Jail, TeamInfo Team, optional Controller ControllerInstigator)
+{
+  local JBGameRules nextJBGameRules;
+
+  nextJBGameRules = GetNextJBGameRules();
+  if (nextJBGameRules != None)
+    return nextJBGameRules.AllowForcedRelease(Jail, Team, ControllerInstigator);
+
+  return True;
+}
+
+
+// ============================================================================
+// CanBroadcast
 //
 // Called when a game attempts to broadcast a localised message to players.
 // ============================================================================

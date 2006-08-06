@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.12 2006-07-14 12:11:39 jrubzjeknf Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.13 2006-08-02 10:28:56 jrubzjeknf Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -26,7 +26,7 @@ class JBGameObjectiveSwitch extends GameObjective
 replication
 {
   reliable if (Role == ROLE_Authority)
-    bDisabledRep;
+    bDisabledRep, bJammedRep;
 }
 
 
@@ -43,6 +43,8 @@ var() array<Class<Decoration> > ListClassDecoration;
 
 var bool bDisabledRep;                  // replicated flag
 var bool bDisabledPrev;                 // previous state of flag
+var bool bJammedRep;                    // Jammed, replicated flag
+var bool bJammedPrev;                   // Jammed, previous state of flag
 var bool bReverseSwitchColors;          // Nostalgia mode
 
 var array<Decoration> ListDecoration;   // references to the decoration actors
@@ -88,7 +90,7 @@ function DisableObjective(Pawn PawnInstigator)
       PawnInstigator.PlayerReplicationInfo      == None ||
       PawnInstigator.PlayerReplicationInfo.Team == None ||
       PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex ||
-      Vehicle(PawnInstigator) != None ||
+      Vehicle(PawnInstigator) != none ||
       RedeemerWarhead(PawnInstigator) != None)
     return;
 
@@ -120,6 +122,7 @@ function DisableObjective(Pawn PawnInstigator)
 // Reset
 //
 // Resets this actor to its default state. Restores its collision properties.
+// Updates whether or not this GameObjective is jammed.
 // ============================================================================
 
 function Reset()
@@ -134,6 +137,51 @@ function Reset()
         Default.bCollideActors,  // resetting the collision will
         Default.bBlockActors,    // implicitly call Touch again if a
         Default.bBlockPlayers);  // player is still touching this actor
+
+  bJammedRep = class'JBInfoJail'.static.ObjectiveIsJammed(Self, abs(DefenderTeamIndex-1));
+}
+
+
+// ============================================================================
+// JamObjective
+//
+// Freezes the lock.
+// ============================================================================
+
+private simulated function JamObjective()
+{
+  if (JBDecoSwitchBasket(ListDecoration[0]) != None &&
+      JBDecoSwitchBasket(ListDecoration[0]).Emitter != None)
+    JBDecoSwitchBasket(ListDecoration[0]).Emitter.GotoState('Disabled'); // Hide emitter.
+
+  if (JBDecoSwitchPadlock(ListDecoration[1]) != None) {
+    JBDecoSwitchPadlock(ListDecoration[1]).Disable('Tick'); // Stops pulsing and swaying.
+    JBDecoSwitchPadlock(ListDecoration[1]).RotationRate.Yaw = 0; // Stops rotating.
+  }
+
+  // Prevent triggering
+  SetCollision(False, False, False);
+}
+
+// ============================================================================
+// UnJamObjective
+//
+// Unfreezes the lock.
+// ============================================================================
+
+private simulated function UnJamObjective()
+{
+  if (JBDecoSwitchBasket(ListDecoration[0]) != None &&
+      JBDecoSwitchBasket(ListDecoration[0]).Emitter != None)
+    JBDecoSwitchBasket(ListDecoration[0]).Emitter.GotoState('Enabled'); // Show emitter.
+
+  if (JBDecoSwitchPadlock(ListDecoration[1]) != None) {
+    JBDecoSwitchPadlock(ListDecoration[1]).Enable('Tick'); // Starts movement.
+    JBDecoSwitchPadlock(ListDecoration[1]).RotationRate.Yaw = 4800; // Starts rotating.
+  }
+
+  // Allow triggering again
+  SetCollision(Default.bCollideActors, Default.bBlockActors, Default.bBlockPlayers);
 }
 
 
@@ -166,11 +214,20 @@ simulated event Tick(float TimeDelta)
           JBDecoSwitchBasket(ListDecoration[i]).Emitter.SetDefendingTeam(TeamIndex);
   }
 
+  if (Level.NetMode != NM_DedicatedServer && bJammedRep != bJammedPrev) {
+    bJammedPrev = bJammedRep;
+    if (bJammedRep)
+      JamObjective();
+    else
+      UnJamObjective();
+  }
+
   if (Level.NetMode != NM_DedicatedServer && bDisabledRep != bDisabledPrev) {
     bDisabledPrev = bDisabledRep;
     if (bDisabledRep)
-           DoEffectDisabled();
-      else DoEffectReset();
+      DoEffectDisabled();
+    else
+      DoEffectReset();
   }
 }
 

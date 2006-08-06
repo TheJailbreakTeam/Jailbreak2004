@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.42 2006-07-09 21:45:03 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.43 2006-07-13 20:55:02 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -61,6 +61,15 @@ var private array<NavigationPoint> ListNavigationPointExit;  // exit points
 
 var private bool bIsRedActive;
 var private bool bIsBlueActive;
+var private bool bRedJammed;                   // red can't be released
+var private bool bBlueJammed;                  // blue can't be released
+var private bool bForcedReleaseRed;            // red can be released even if it's jammed
+var private bool bForcedReleaseBlue;           // blue can be released even if it's jammed
+
+
+// ============================================================================
+// Replication
+// ============================================================================
 
 replication
 {
@@ -226,7 +235,8 @@ function bool CanReleaseBy(Controller Controller, TeamInfo Team)
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
   return (TagPlayer != None &&
-          TagPlayer.IsFree());
+          TagPlayer.IsFree() &&
+         !IsJammed(Team.TeamIndex));
 }
 
 
@@ -370,8 +380,8 @@ function int CountPlayersTotal()
 // ============================================================================
 // Release
 //
-// Releases the given team unless the release is already active. Can be called
-// only in state Waiting and logs a warning otherwise.
+// Releases the given team unless the release is already active or has been
+// jammed. Can be called only in state Waiting and logs a warning otherwise.
 // ============================================================================
 
 function Release(TeamInfo Team, optional Controller ControllerInstigator)
@@ -381,7 +391,9 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
   local JBTagPlayer TagPlayer;
 
   if (IsInState('Waiting')) {
-    if (GetReleaseActive(Team.TeamIndex))
+    if (GetReleaseActive(Team.TeamIndex) ||
+        (IsJammed(Team.TeamIndex) &&
+        !IsForcedRelease(Team.TeamIndex)))
       return;
 
     if (ControllerInstigator != None &&
@@ -518,11 +530,14 @@ function NotifyJailOpening(TeamInfo Team)
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
 
-  firstObjective = UnrealTeamInfo(Team).AI.Objectives;
-  for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
-    if (thisObjective.Event == Tag &&
-        thisObjective.DefenderTeamIndex != Team.TeamIndex)
-      thisObjective.bDisabled = True;
+  if (!IsJammed(Team.TeamIndex)) //dont play animation if the jail is jammed.
+  {
+    firstObjective = UnrealTeamInfo(Team).AI.Objectives;
+    for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
+      if (thisObjective.Event == Tag &&
+          thisObjective.DefenderTeamIndex != Team.TeamIndex)
+        thisObjective.bDisabled = True;
+  }
 
   firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
@@ -740,24 +755,184 @@ function ExecutionEnd()
 
 // ============================================================================
 // GetReleaseActive
+//
+// Returns whether or not the specified team is currently being released.
+// ============================================================================
+
+simulated function bool GetReleaseActive(int TeamIndex)
+{
+  switch (TeamIndex) {
+    case 0: return bIsRedActive;
+    case 1: return bIsBlueActive;
+    default: return false;
+  }
+}
+
+// ============================================================================
 // SetReleaseActive
 // ============================================================================
-simulated protected function bool GetReleaseActive(int TeamIndex)
-{
-  if (TeamIndex == 0)
-    return bIsRedActive;
-  else if (TeamIndex == 1)
-    return bIsBlueActive;
-
-  return false;
-}
 
 simulated protected function SetReleaseActive(int TeamIndex, bool Value)
 {
-  if (TeamIndex == 0)
-    bIsRedActive = Value;
-  else if (TeamIndex == 1)
-    bIsBlueActive = Value;
+  switch (TeamIndex) {
+    case 0: bIsRedActive = Value; break;
+    case 1: bIsBlueActive = Value; break;
+  }
+}
+
+
+// ============================================================================
+// Jam
+//
+// Jams the jail for the given team. A regular release isn't possible any more.
+// ============================================================================
+
+function Jam(int TeamIndex)
+{
+  if (GetReleaseActive(TeamIndex))
+    CancelRelease(Jailbreak(Level.Game).Teams[TeamIndex]); // Cancel any ongoing release
+
+  switch (TeamIndex) {
+    case 0: bRedJammed = True; break;
+    case 1: bBlueJammed = True; break;
+  }
+
+  JamResetObjectives(TeamIndex);
+}
+
+
+// ============================================================================
+// UnJam
+//
+// UnJams the jail for the given team. A regular release is possible again.
+// ============================================================================
+
+function UnJam(int TeamIndex)
+{
+  switch (TeamIndex) {
+    case 0: bRedJammed = False; break;
+    case 1: bBlueJammed = False; break;
+  }
+
+  JamResetObjectives(TeamIndex);
+}
+
+
+// ============================================================================
+// JamResetObjectives
+//
+// Resets the GameObjectives that trigger this JBInfoJail.
+// ============================================================================
+
+protected function JamResetObjectives(int TeamIndex)
+{
+  local GameObjective firstObjective;
+  local GameObjective thisObjective;
+
+  firstObjective = Jailbreak(Level.Game).Teams[TeamIndex].AI.Objectives;
+
+  // Find all objectives that trigger this JBInfoJail, then reset them
+  for (thisObjective = firstObjective; thisObjective != None; thisObjective = thisObjective.NextObjective)
+    if (thisObjective.Event == Tag &&
+        thisObjective.DefenderTeamIndex != TeamIndex)
+      thisObjective.Reset();
+}
+
+
+// ============================================================================
+// IsJammed
+//
+// Returns if this jail is jammed for the given team.
+// ============================================================================
+
+function bool IsJammed(int TeamIndex)
+{
+  switch (TeamIndex) {
+    case 0: return bRedJammed;
+    case 1: return bBlueJammed;
+    default: return False;
+  }
+}
+
+
+// ============================================================================
+// IsForcedRelease
+//
+// Returns if the release was forced for the given team.
+// ============================================================================
+
+function bool IsForcedRelease(int TeamIndex)
+{
+  switch (TeamIndex) {
+    case 0: return bForcedReleaseRed;
+    case 1: return bForcedReleaseBlue;
+    default: return False;
+  }
+}
+
+
+// ============================================================================
+// ForceRelease
+//
+// Releases even though the jails are jammed. JBGameRules is first consulted
+// before actually releasing. Returns if the team was actually released.
+// ============================================================================
+
+function bool ForceRelease(TeamInfo Team, optional Controller ControllerInstigator)
+{
+  local JBGameRules firstJBGameRules;
+  local bool        bAllowForcedRelease;
+
+  if (!IsInState('Waiting') ||
+       GetReleaseActive(Team.TeamIndex))
+    return False;
+
+  if(!IsJammed(Team.TeamIndex)) {
+    Release(Team, ControllerInstigator);
+    return True;
+  }
+
+  firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
+  if (firstJBGameRules != None)
+    bAllowForcedRelease = firstJBGameRules.AllowForcedRelease(Self, Team, ControllerInstigator);
+
+  if (bAllowForcedRelease) {
+    switch (Team.TeamIndex) {
+      case 0: bForcedReleaseRed  = True; Release(Team, ControllerInstigator); bForcedReleaseRed  = False; break;
+      case 1: bForcedReleaseBlue = True; Release(Team, ControllerInstigator); bForcedReleaseBlue = False; break;
+    }
+  }
+
+  return bAllowForcedRelease;
+}
+
+
+// ============================================================================
+// ObjectiveIsJammed
+//
+// Checks if all the JBInfoJails, that can be triggered by the given
+// GameObjective, are jammed. If so, the GameObjective cannot be used and
+// is therefore ignored.
+// ============================================================================
+
+static function bool ObjectiveIsJammed(GameObjective GameObjective, int TeamIndex)
+{
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+  local bool       bConnected; // At least one jail can be triggered by the GameObjective.
+
+  if (GameObjective != None &&
+      JBGameReplicationInfo(GameObjective.Level.Game.GameReplicationInfo) != None)
+    firstJail = JBGameReplicationInfo(GameObjective.Level.Game.GameReplicationInfo).firstJail;
+
+  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+    if (GameObjective.Event == thisJail.Tag) {
+      bConnected = True;
+      if (!thisJail.IsJammed(TeamIndex))
+        return False;
+    }
+
+  return bConnected;
 }
 
 
