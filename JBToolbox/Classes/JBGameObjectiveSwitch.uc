@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.13 2006-08-02 10:28:56 jrubzjeknf Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.14 2006-08-06 14:52:47 jrubzjeknf Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -131,14 +131,14 @@ function Reset()
 
   Super.Reset();
 
+  bJammedRep = class'JBInfoJail'.static.ObjectiveIsJammed(Self, abs(DefenderTeamIndex-1));
+
   foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch)
     if(ObjectiveSwitch.Event == Event)
       ObjectiveSwitch.SetCollision(
         Default.bCollideActors,  // resetting the collision will
         Default.bBlockActors,    // implicitly call Touch again if a
         Default.bBlockPlayers);  // player is still touching this actor
-
-  bJammedRep = class'JBInfoJail'.static.ObjectiveIsJammed(Self, abs(DefenderTeamIndex-1));
 }
 
 
@@ -214,20 +214,22 @@ simulated event Tick(float TimeDelta)
           JBDecoSwitchBasket(ListDecoration[i]).Emitter.SetDefendingTeam(TeamIndex);
   }
 
-  if (Level.NetMode != NM_DedicatedServer && bJammedRep != bJammedPrev) {
-    bJammedPrev = bJammedRep;
-    if (bJammedRep)
-      JamObjective();
-    else
-      UnJamObjective();
-  }
-
   if (Level.NetMode != NM_DedicatedServer && bDisabledRep != bDisabledPrev) {
     bDisabledPrev = bDisabledRep;
     if (bDisabledRep)
       DoEffectDisabled();
     else
       DoEffectReset();
+  }
+
+  if (Level.NetMode != NM_DedicatedServer &&
+     !bDisabledRep &&                         //jam when active again
+      bJammedRep != bJammedPrev) {
+    bJammedPrev = bJammedRep;
+    if (bJammedRep)
+      JamObjective();
+    else
+      UnJamObjective();
   }
 }
 
