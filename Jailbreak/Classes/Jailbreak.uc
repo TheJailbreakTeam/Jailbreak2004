@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.126 2006-07-15 20:24:04 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.127 2006-07-19 14:26:40 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -69,6 +69,8 @@ var private JBInfoJail JailExecution;    // jail viewed during execution
 
 var private float TimeEventFired;        // time of last fired singular event
 var private array<name> ListEventFired;  // singular events fired this tick
+
+var private float TimeReleaseMessagePlayed[2]; // time of last played release message
 
 var private float DilationTimePrev;      // last synchronized time dilation
 
@@ -1286,6 +1288,31 @@ function bool CanFireEvent(name EventFire, optional bool bFire)
   }
 
   return True;
+}
+
+
+// ============================================================================
+// CanPlayReleaseMessage
+//
+// Returns true if the release message for the specified team has already been
+// played within this tick.
+// ============================================================================
+
+function bool CanPlayReleaseMessage(int TeamIndex)
+{
+    return TimeReleaseMessagePlayed[TeamIndex] < Level.TimeSeconds;
+}
+
+
+// ============================================================================
+// PlayingReleaseMessage
+//
+// Sets the tick in which the release message for the specified team was played
+// ============================================================================
+
+function PlayingReleaseMessage(int TeamIndex)
+{
+  TimeReleaseMessagePlayed[TeamIndex] = Level.TimeSeconds;
 }
 
 
