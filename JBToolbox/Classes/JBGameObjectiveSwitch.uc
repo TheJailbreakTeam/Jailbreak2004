@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.14 2006-08-06 14:52:47 jrubzjeknf Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.15 2006-08-08 22:23:09 jrubzjeknf Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -158,9 +158,6 @@ private simulated function JamObjective()
     JBDecoSwitchPadlock(ListDecoration[1]).Disable('Tick'); // Stops pulsing and swaying.
     JBDecoSwitchPadlock(ListDecoration[1]).RotationRate.Yaw = 0; // Stops rotating.
   }
-
-  // Prevent triggering
-  SetCollision(False, False, False);
 }
 
 // ============================================================================
@@ -179,9 +176,6 @@ private simulated function UnJamObjective()
     JBDecoSwitchPadlock(ListDecoration[1]).Enable('Tick'); // Starts movement.
     JBDecoSwitchPadlock(ListDecoration[1]).RotationRate.Yaw = 4800; // Starts rotating.
   }
-
-  // Allow triggering again
-  SetCollision(Default.bCollideActors, Default.bBlockActors, Default.bBlockPlayers);
 }
 
 
@@ -272,7 +266,8 @@ simulated function DoEffectReset()
 
 event Touch(Actor ActorOther)
 {
-  if (Pawn(ActorOther) != None)
+  if (Pawn(ActorOther) != None &&
+     !bJammedRep)                  //no releasing when jammed
     DisableObjective(Pawn(ActorOther));
 }
 
