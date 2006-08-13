@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.60 2006-07-09 21:45:03 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.61 2006-07-13 20:55:02 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -704,6 +704,7 @@ simulated function ShowCompass(Canvas Canvas)
   local GameObjective Objective;
   local JBTagObjective firstTagObjective;
   local JBTagObjective thisTagObjective;
+  local int DefenderTeamIndex;
 
   TimeDelta = Level.TimeSeconds - TimeUpdateCompass;
   TimeUpdateCompass = Level.TimeSeconds;
@@ -731,10 +732,14 @@ simulated function ShowCompass(Canvas Canvas)
   for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
     Objective = thisTagObjective.GetObjective();
 
-    SpriteWidgetCompassDot.Tints[TeamIndex] = TeamSymbols[Objective.DefenderTeamIndex].Tints[TeamIndex];
+    DefenderTeamIndex = Objective.DefenderTeamIndex;
+    if (Class'Jailbreak'.Default.bReverseSwitchColors)
+      DefenderTeamIndex = abs(DefenderTeamIndex-1);
+
+    SpriteWidgetCompassDot.Tints[TeamIndex] = TeamSymbols[DefenderTeamIndex].Tints[TeamIndex];
     SpriteWidgetCompassDot.PosY = LocationCompass.Y;
 
-    switch (Objective.DefenderTeamIndex) {
+    switch (DefenderTeamIndex) {
       case 0:  SpriteWidgetCompassDot.PosX = -LocationCompass.X;  break;
       case 1:  SpriteWidgetCompassDot.PosX =  LocationCompass.X;  break;
     }

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.127 2006-07-19 14:26:40 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.128 2006-08-08 19:59:41 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -2155,6 +2155,9 @@ defaultproperties
   GameReplicationInfoClass = Class'JBGameReplicationInfo';
   TeamAIType[0]            = Class'JBBotTeam';
   TeamAIType[1]            = Class'JBBotTeam';
+
+  PathWhisps[0]="Jailbreak.JBRedWhisp"
+  PathWhisps[1]="Jailbreak.JBBlueWhisp"
 
   bSpawnInTeamArea = True;
   bScoreTeamKills  = False;
