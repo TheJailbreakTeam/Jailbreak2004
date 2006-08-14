@@ -1,7 +1,7 @@
 // ============================================================================
 // JBPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBPanorama.uc,v 1.4 2004/05/17 19:23:46 mychaeel Exp $
+// $Id: JBPanorama.uc,v 1.5 2004-05-30 10:38:01 mychaeel Exp $
 //
 // Marks the viewpoint for the panoramic map overview in the scoreboard.
 // ============================================================================
@@ -18,7 +18,9 @@ class JBPanorama extends Keypoint
 replication
 {
   reliable if (Role == ROLE_Authority)
-    RepLocation, RepRotation, TexturePanorama, FieldOfView;
+    RepLocation, RepLocationX, RepLocationY, RepLocationZ,
+    RepRotation, RepRotationPitch, RepRotationYaw, RepRotationRoll,
+    TexturePanorama, FieldOfView;
 }
 
 
@@ -42,8 +44,16 @@ var localized string TextPreview;  // dynamically rendered preview warning
 // Variables
 // ============================================================================
 
-var private vector RepLocation;              // replicated actor location
-var private rotator RepRotation;             // replicated actor rotation
+var private vector RepLocation;              // ends up off on the client,
+var private rotator RepRotation;             // keep for network compatibility
+
+var private float RepLocationX;              // replicated actor location
+var private float RepLocationY;              // replicated actor location
+var private float RepLocationZ;              // replicated actor location.
+
+var private int RepRotationPitch;            // replicated actor rotation
+var private int RepRotationYaw;              // replicated actor rotation
+var private int RepRotationRoll;             // replicated actor rotation
 
 var private float TimeRenderFirst;           // time of first panorama render
 
@@ -77,8 +87,16 @@ simulated function UpdatePrecacheMaterials()
 
 event PostBeginPlay()
 {
-  RepLocation = Location;
-  RepRotation = Rotation;
+  RepLocationX = Location.X;
+  RepLocationY = Location.Y;
+  RepLocationZ = Location.Z;
+
+  RepRotationPitch = Rotation.Pitch;
+  RepRotationYaw   = Rotation.Yaw;
+  RepRotationRoll  = Rotation.Roll;
+
+  RepLocation = Location; //network compatibility
+  RepRotation = Rotation; //network compatibility
 }
 
 
@@ -93,6 +111,8 @@ event PostBeginPlay()
 simulated event PostNetBeginPlay()
 {
   local PlayerController PlayerControllerLocal;
+  local vector NewLocation;
+  local rotator NewRotation;
 
   TexturePanoramaInitial = TexturePanorama;
 
@@ -101,8 +121,21 @@ simulated event PostNetBeginPlay()
       JBInterfaceScores(PlayerControllerLocal.myHUD.ScoreBoard) != None)
     JBInterfaceScores(PlayerControllerLocal.myHUD.ScoreBoard).Panorama = Self;
 
-  SetLocation(RepLocation);
-  SetRotation(RepRotation);
+  NewLocation.X = RepLocationX;
+  NewLocation.Y = RepLocationY;
+  NewLocation.Z = RepLocationZ;
+  if (NewLocation != vect(0,0,0))
+    SetLocation(NewLocation);
+  else
+    SetLocation(RepLocation); //network compatibility
+
+  NewRotation.Pitch = RepRotationPitch;
+  NewRotation.Yaw   = RepRotationYaw;
+  NewRotation.Roll  = RepRotationRoll;
+  if (NewRotation != rot(0,0,0))
+    SetRotation(NewRotation);
+  else
+    SetRotation(RepRotation); //network compatibility
 
   Prepare();
 }
