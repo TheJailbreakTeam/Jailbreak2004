@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.58 2006-07-15 12:25:11 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.59 2006-08-14 20:53:15 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -212,7 +212,9 @@ function Register()
 
   if (PlayerController(Controller) != None)
     HashIdPlayer = PlayerController(Controller).GetPlayerIDHash();
-  else
+
+  if (PlayerController(Controller) == None || // Bots dont have ping
+      Level.NetMode != NM_DedicatedServer)
     bPlayerCanPlay = True; // Bots dont need initial spawn delay
 
   Enable('Tick');
