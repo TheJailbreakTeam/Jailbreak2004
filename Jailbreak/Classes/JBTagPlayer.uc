@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.57 2006-07-14 17:57:41 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.58 2006-07-15 12:25:11 mychaeel Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -109,6 +109,7 @@ var private int Health;                   // current health and armor
 var private bool bCanBeBaseForPawns;      // can be base for other players
 var private int spree;                    // used to carry sprees over rounds
 var private bool bRecoverSpree;           // recover spree after a round
+var private bool bPlayerCanPlay;          // initial spawn delay
 
 var private float TimeUpdateLocation;     // client-side location update time
 var private float VelocityPawn;           // replicated velocity of pawn
@@ -211,6 +212,8 @@ function Register()
 
   if (PlayerController(Controller) != None)
     HashIdPlayer = PlayerController(Controller).GetPlayerIDHash();
+  else
+    bPlayerCanPlay = True; // Bots dont need initial spawn delay
 
   Enable('Tick');
   SetTimer(RandRange(0.18, 0.22), True);
@@ -270,6 +273,7 @@ function Unregister()
   TimeElapsedDisconnect = Level.Game.GameReplicationInfo.ElapsedTime;
 
   Disable('Tick');
+  bPlayerCanPlay = False; // for future initial spawn delay
   SetTimer(0.0, False);  // stop timer
 
   Super.Unregister();
@@ -294,6 +298,7 @@ event Timer()
 // ============================================================================
 // Tick
 //
+// Disallows the player spawning a pawn if he's not able to control it yet.
 // Updates the Pawn and LocationPawnLast variables. Configures the Pawn to be
 // a base for a human ladder if the player is crouching and replicates this
 // information to all clients.
@@ -304,6 +309,17 @@ event Tick(float TimeDelta)
   local xPawn thisPawn;
 
   Pawn = Controller.Pawn;
+
+  //
+  if (!bPlayerCanPlay) {
+    Controller.PlayerReplicationInfo.bReadyToPlay = False;
+    PlayerController(Controller).WaitDelay = Level.TimeSeconds + 1.0;
+
+    if (Controller.PlayerReplicationInfo.bReceivedPing) { // if he's got ping, he can control his player
+      bPlayerCanPlay = True;
+      PlayerController(Controller).WaitDelay = Level.TimeSeconds; // clear delay
+    }
+  }
 
   // fixes replicating over and over when referenced actor has been destroyed
   if (PawnObjectiveGuessed == None)
