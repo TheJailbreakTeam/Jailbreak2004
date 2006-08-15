@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.15 2006-07-18 22:37:43 wormbo Exp $
+// $Id: JBInterfaceScores.uc,v 1.16 2006-08-15 16:35:49 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -583,7 +583,10 @@ static function string GetGameLimits(LevelInfo Level)
     TextLimits = TextLimits $ GetGameReplicationInfo(Level).GoalScore @ Default.TextLimitScore;
   }
 
-  return Default.TextLimitPrefix $ TextLimits $ Default.TextLimitSuffix;
+  if (TextLimits == "")
+    return "";
+  else
+    return Default.TextLimitPrefix $ TextLimits $ Default.TextLimitSuffix;
 }
 
 
