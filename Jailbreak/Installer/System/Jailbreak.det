@@ -106,6 +106,8 @@ TextScoresRelease="Befreiung"
 TextRelationElapsed="gespielt"
 TextRelationRemaining="zu spielen"
 TextRelationOvertime="Nachspiel"
+TextReady="Bereit"
+TextNotReady="Nicht Bereit"
 
 [JBLocalMessage]
 TextTeamCaptured[0]="Team Rot ist eingefangen."
