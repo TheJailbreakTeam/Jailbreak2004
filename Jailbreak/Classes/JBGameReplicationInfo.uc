@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameReplicationInfo
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBGameReplicationInfo.uc,v 1.15 2004-05-23 12:55:53 mychaeel Exp $
 //
 // Replicated information for the entire game.
 // ============================================================================
@@ -18,7 +18,8 @@ class JBGameReplicationInfo extends GameReplicationInfo
 replication
 {
   reliable if (Role == ROLE_Authority && bNetInitial)
-    OrderNameTactics;     // updated during initialization
+    OrderNameTactics,     // updated during initialization
+    bPlayersMustBeReady;  // updated during initialization
 
   reliable if (Role == ROLE_Authority)
     bIsExecuting,         // updated at beginning and end of execution sequence
@@ -72,6 +73,8 @@ var private int nInfoCaptures;           // number of used list entries
 
 var private JBTagClient TagClientLocal;  // used for synchronized server time
 
+var bool bPlayersMustBeReady;            // used for scoreboard
+
 
 // ============================================================================
 // PostBeginPlay
@@ -81,8 +84,10 @@ var private JBTagClient TagClientLocal;  // used for synchronized server time
 
 simulated event PostBeginPlay()
 {
-  if (Role == ROLE_Authority)
+  if (Role == ROLE_Authority) {
     RegisterOrderNames();
+    bPlayersMustBeReady = DeathMatch(Level.Game).bPlayersMustBeReady;
+  }
 
   Super.PostBeginPlay();
 }

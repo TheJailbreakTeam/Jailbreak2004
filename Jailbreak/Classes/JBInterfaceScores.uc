@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.14 2004/07/25 14:11:51 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.15 2006-07-18 22:37:43 wormbo Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -227,6 +227,9 @@ var localized string TextRelationElapsed;    // displaying elapsed time
 var localized string TextRelationRemaining;  // displaying remaining time
 var localized string TextRelationOvertime;   // displaying overtime
 
+var localized string TextReady;              // player is ready
+var localized string TextNotReady;           // player is not ready
+
 
 // ============================================================================
 // Variables
@@ -360,6 +363,8 @@ simulated event UpdateScoreBoard(Canvas Canvas)
     DrawEntry(Canvas, ListEntry[iEntry]);
   }
 
+  DrawSpectators(Canvas);
+
   DrawCrosshair(Canvas);
 }
 
@@ -396,7 +401,7 @@ simulated function DrawGradient(Canvas Canvas, int HeightTables)
 simulated function DrawHeader(Canvas Canvas)
 {
   local FloatBox OldClipArea;
-  
+
   if (TextTitle == "")
     TextTitle = GetGameTitle(Level);
 
@@ -409,22 +414,77 @@ simulated function DrawHeader(Canvas Canvas)
 
   Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
   Canvas.SetDrawColor(255, 255, 255);
-  
+
   // remember current clipping area
   OldClipArea.X1 = Canvas.OrgX;
   OldClipArea.Y1 = Canvas.OrgY;
   OldClipArea.X2 = Canvas.ClipX;
   OldClipArea.Y2 = Canvas.ClipY;
-  
+
   // limit drawing area so server name and match info doesn't disappear behind the clock
   Canvas.SetOrigin(0.050 * Canvas.SizeX, 0.110 * Canvas.SizeY);
   Canvas.SetClip(0.8 * Canvas.SizeX, 0.2 * Canvas.SizeY);
   Canvas.SetPos(0, 0);
   Canvas.DrawText(TextSubtitle);
-  
+
   // restore previous clipping area
   Canvas.SetOrigin(OldClipArea.X1, OldClipArea.Y1);
   Canvas.SetClip(OldClipArea.X2, OldClipArea.Y2);
+}
+
+
+// ============================================================================
+// DrawSpectators
+//
+// Draws the players spectating the game.
+// ============================================================================
+
+simulated function DrawSpectators(Canvas Canvas)
+{
+  local int i;
+  local string SpectatorString;
+  local PlayerReplicationInfo PRI;
+  local array<string> TextArray;
+  local array<string> SpectatorArray;
+
+  Canvas.Font = GetSmallerFontFor(Canvas, 4);
+  Canvas.SetDrawColor(255, 255, 0);
+
+  for (i = 0; i < GRI.PRIArray.Length; i++) {
+    PRI = GRI.PRIArray[i];
+    if (PRI != None &&
+        PRI.bOnlySpectator)
+      SpectatorArray[SpectatorArray.Length] = PRI.GetHumanReadableName();
+  }
+
+  if (SpectatorArray.Length > 0) { // At least one spectator
+    while (SpectatorArray.Length > 0) {
+      TextArray.Length = 0;
+
+      if (SpectatorString == "")
+        Canvas.WrapStringToArray("Spectators:" @ SpectatorArray[0],                         TextArray, 0.700 * Canvas.ClipX, "|");
+      else
+        Canvas.WrapStringToArray("Spectators:" @ SpectatorString $ "," @ SpectatorArray[0], TextArray, 0.700 * Canvas.ClipX, "|");
+
+
+      if (TextArray.Length == 1) { // fits the screen
+        if (SpectatorString == "")
+          SpectatorString = SpectatorArray[0];
+        else
+          SpectatorString $= "," @ SpectatorArray[0];
+        SpectatorArray.Remove(0, 1);
+      } else
+        break; // No more names of spectators can be added
+    }
+
+    SpectatorString = "Spectators:" @ SpectatorString;
+
+    if (SpectatorArray.Length > 0) // add how many spectators couldn't be added to the list
+      SpectatorString @= "and" @ SpectatorArray.Length @ "others";
+  } else
+    SpectatorString = "No spectators";
+
+  Canvas.DrawScreenText(SpectatorString, 0.500, 1.000, DP_LowerMiddle);
 }
 
 
@@ -938,24 +998,36 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
 {
   local int iTeamPlayer;
   local string CallSign;
+  local string IsAdmin;
   local GameObjective GameObjective;
   local TeamPlayerReplicationInfo TeamPlayerReplicationInfo;
 
   TeamPlayerReplicationInfo = TeamPlayerReplicationInfo(TagPlayer.GetPlayerReplicationInfo());
 
-  if (TeamPlayerReplicationInfo.bWaitingPlayer)
-    return TextInfoWaiting;
+  if (TeamPlayerReplicationInfo.bAdmin)
+    IsAdmin = "[Admin] ";
+
+  if (TeamPlayerReplicationInfo.bWaitingPlayer) {
+    if (!GRI.bMatchHasBegun &&
+         JBGameReplicationInfo(GRI).bPlayersMustBeReady) {
+      if (TeamPlayerReplicationInfo.bReadyToPlay)
+        return IsAdmin $ TextReady;
+      else
+        return IsAdmin $ TextNotReady;
+    }
+    return IsAdmin $ TextInfoWaiting;
+  }
 
   if (TagPlayer.GetHealth(True) <= 0)
-    return TextInfoDead;
+    return IsAdmin $ TextInfoDead;
 
-  if (TagPlayer.IsInArena()) return TextInfoArena;
-  if (TagPlayer.IsInJail())  return TextInfoJail;
+  if (TagPlayer.IsInArena()) return IsAdmin $ TextInfoArena;
+  if (TagPlayer.IsInJail())  return IsAdmin $ TextInfoJail;
 
   iTeamPlayer = TeamPlayerReplicationInfo.Team.TeamIndex;
 
   if (iEntryOwner >= 0 && ListEntry[iEntryOwner].iTeam != iTeamPlayer)
-    return TextOrdersUndisclosed;
+    return IsAdmin $ TextOrdersUndisclosed;
 
   if (TeamPlayerReplicationInfo.bBot) {
     CallSign = TeamPlayerReplicationInfo.GetCallSign();
@@ -964,15 +1036,15 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
   }
 
   if (TeamPlayerReplicationInfo.Squad != None)
-    return CallSign $ TeamPlayerReplicationInfo.Squad.GetOrderStringFor(TeamPlayerReplicationInfo);
+    return IsAdmin $ CallSign $ TeamPlayerReplicationInfo.Squad.GetOrderStringFor(TeamPlayerReplicationInfo);
 
   GameObjective = TagPlayer.GetObjectiveGuessed();
   if (GameObjective == None)
-    return CallSign $ TextOrdersFreelance;
+    return IsAdmin $ CallSign $ TextOrdersFreelance;
 
   if (GameObjective.DefenderTeamIndex == iTeamPlayer)
-         return CallSign $ TextOrdersDefense @ GameObjective.ObjectiveName;
-    else return CallSign $ TextOrdersAttack  @ GameObjective.ObjectiveName;
+         return IsAdmin $ CallSign $ TextOrdersDefense @ GameObjective.ObjectiveName;
+    else return IsAdmin $ CallSign $ TextOrdersAttack  @ GameObjective.ObjectiveName;
 }
 
 
@@ -1842,6 +1914,9 @@ defaultproperties
   TextRelationElapsed   = "played";
   TextRelationRemaining = "to play";
   TextRelationOvertime  = "overtime";
+
+  TextReady    = "Ready";
+  TextNotReady = "Not Ready";
 
   Table[0] = (iTable=0,ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
   Table[1] = (iTable=1,ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
