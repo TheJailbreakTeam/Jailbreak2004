@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.17 2004-07-25 15:40:10 mychaeel Exp $
+// $Id: JBLocalMessage.uc,v 1.18 2006-07-19 09:22:53 jrubzjeknf Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -139,9 +139,8 @@ static function ClientReceive(PlayerController PlayerController,
 
     if (Switch >= 400 && Switch <= 499 &&
        !IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2) &&
+        class'JBTagPlayer'.static.FindFor(PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo) != None &&
         class'JBTagPlayer'.static.FindFor(PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo).IsFree())
-       //!IsLocalPlayer(PlayerReplicationInfo1) &&
-       //!IsLocalPlayer(PlayerReplicationInfo2))
       ClassLocalMessageReplacement = Default.ClassLocalMessageConsole;
 
     PlayerController.ReceiveLocalizedMessage(
@@ -422,4 +421,6 @@ defaultproperties
 
   ClassLocalMessageScreen   = Class'JBLocalMessageScreen';
   ClassLocalMessageConsole  = Class'JBLocalMessageConsole';
+
+  Role = ROLE_None // Fixes Accessed None error on client
 }

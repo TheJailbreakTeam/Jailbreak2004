@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.49 2005-04-24 16:56:31 mychaeel Exp $
+// $Id: JBInfoArena.uc,v 1.50 2006-07-18 23:56:14 jrubzjeknf Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -643,9 +643,12 @@ function MatchTie()
     for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
       if (thisTagPlayer.GetArena() == Self) {
         P = thisTagPlayer.GetPawn();
-        P.Health = 0;
-        P.PlayHit(P.SuperHealthMax, None, vect(0,0,0), class'Gibbed', vect(0,0,0));
-        P.Died(None, class'Gibbed', vect(0,0,0));
+
+        if (P != None) {
+          P.Health = 0;
+          P.PlayHit(P.SuperHealthMax, None, vect(0,0,0), class'Gibbed', vect(0,0,0));
+          P.Died(None, class'Gibbed', vect(0,0,0));
+        }
       }
 
     firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
