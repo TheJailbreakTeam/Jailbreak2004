@@ -3,8 +3,9 @@ body                  { color: white; background: black; font-family: Arial,sans
 .game-title           { font-size: 24px; font-weight: bold; padding-bottom: 14px; padding-top: 40px; }
 .game-description     { font-size: 12px; font-weight: bold; padding-bottom:  1px; }
 .game-mutators        { font-size: 12px; font-weight: bold; padding-bottom:  1px; }
-.teamscore-red        { text-align: left;  padding-top: 40px; }
-.teamscore-blue       { text-align: right; padding-top: 40px; }
+.game-time            { text-align: center; font-size: 12px; font-weight: bold; padding-top: 20px;}
+.teamscore-red        { text-align: left;  padding-top: 0px; }
+.teamscore-blue       { text-align: right; padding-top: 0px; }
 .teamscore-score-red  { font-size: 24px; font-weight: bold; color: red;  padding-left:  12px; padding-bottom: 2px; }
 .teamscore-score-blue { font-size: 24px; font-weight: bold; color: blue; padding-right: 12px; padding-bottom: 2px; }
 .info-red             { text-align: left;  padding-left:  10px; padding-bottom: 10px; padding-right: 50px; }

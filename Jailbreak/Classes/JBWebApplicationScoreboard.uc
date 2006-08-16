@@ -1,7 +1,7 @@
 // ============================================================================
 // JBWebApplicationScoreboard
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBWebApplicationScoreboard.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBWebApplicationScoreboard.uc,v 1.3 2004-05-27 21:14:16 tarquin Exp $
 //
 // Serves the Jailbreak Web Scoreboard to web browsers.
 // ============================================================================
@@ -213,6 +213,7 @@ function QueryScoreboard(WebRequest WebRequest, WebResponse WebResponse)
   WebResponse.Subst("GameTitle",       EscapeHTML(Class'JBInterfaceScores'.Static.GetGameTitle      (Level)));
   WebResponse.Subst("GameDescription", EscapeHTML(Class'JBInterfaceScores'.Static.GetGameDescription(Level)) @
                                        EscapeHTML(Class'JBInterfaceScores'.Static.GetGameLimits     (Level)));
+  WebResponse.Subst("GameTime",        GetTime());
 
   WebResponse.IncludeUHTM(GetFileTemplate(FileTemplateScoreboard));
 }
@@ -269,6 +270,46 @@ function string GetMutators()
     }
 
   return Mutators;
+}
+
+
+// ============================================================================
+// GetTime
+//
+// Returns the ingame time.
+// ============================================================================
+
+function string GetTime()
+{
+  local int TotalTime, Minutes, Seconds;
+  local string Head, Tail;
+
+  if (!Level.Game.GameReplicationInfo.bMatchHasBegun) // Match hasnt started yet
+    return "The game hasn't started yet";
+
+  TotalTime = Level.Game.GameReplicationInfo.ElapsedTime;
+
+  if (Level.Game.bGameEnded) { // Match has ended
+    Head = "After";
+    Tail = "the game has ended";
+  } else {
+    if (Level.Game.TimeLimit > 0) { // There's a time limit, count down instead
+      Tail = "to go";
+      TotalTime = Level.Game.TimeLimit*60 - TotalTime;
+
+      if (TotalTime < 0) { // Overtime
+        Tail = "in overtime";
+        TotalTime = -TotalTime;
+      }
+    }
+    else
+      Tail = "passed";
+  }
+
+  Minutes = TotalTime / 60;
+  Seconds = TotalTime % 60;
+
+  return Head @ Minutes @ "minutes and" @ Seconds @ "seconds" @ Tail;
 }
 
 
