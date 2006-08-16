@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.44 2006-08-06 14:52:47 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.45 2006-08-08 19:59:41 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -27,9 +27,14 @@ var(Events) name EventExecutionCommit;  // event fired when execution starts
 var(Events) name EventExecutionEnd;     // event fired when execution finished
 var(Events) name EventReleaseRed;       // event fired to release red team
 var(Events) name EventReleaseBlue;      // event fired to release blue team
+var(Events) name EventFinalExecutionInit;   // only fired when it's the final execution
+var(Events) name EventFinalExecutionCommit; // only fired when it's the final execution
+var(Events) name EventFinalExecutionEnd;    // only fired when it's the final execution
 
 var() float ExecutionDelayCommit;       // delay between camera and execution
 var() float ExecutionDelayFallback;     // delay between execution and gibbing
+var() float FinalExecutionDelayCommit;   // delay between camera and execution
+var() float FinalExecutionDelayFallback; // delay between execution and gibbing
 
 var() name TagAttachVolumes;            // tag of attached volumes
 var() name TagAttachZones;              // tag of attached zones
@@ -65,6 +70,7 @@ var private bool bRedJammed;                   // red can't be released
 var private bool bBlueJammed;                  // blue can't be released
 var private bool bForcedReleaseRed;            // red can be released even if it's jammed
 var private bool bForcedReleaseBlue;           // blue can be released even if it's jammed
+var private bool bIsFinalExecution;            // final execution is running
 
 
 // ============================================================================
@@ -745,8 +751,15 @@ function ExecutionEnd()
       if (thisTagPlayer.GetJail() == Self)
         ExecutePlayer(thisTagPlayer.GetController());
 
-    if (Jailbreak(Level.Game).CanFireEvent(EventExecutionEnd, True))
-      TriggerEvent(EventExecutionEnd, Self, None);
+    if (bIsFinalExecution && EventFinalExecutionEnd != '') {
+      if (Jailbreak(Level.Game).CanFireEvent(EventFinalExecutionEnd, True))
+        TriggerEvent(EventFinalExecutionEnd, Self, None);
+    } else {
+     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionEnd, True))
+        TriggerEvent(EventExecutionEnd, Self, None);
+    }
+
+    bIsFinalExecution = False; //
 
     GotoState('Waiting');
   }
@@ -1087,10 +1100,23 @@ auto state Waiting {
 state ExecutionStarting {
 
   Begin:
-    if (Jailbreak(Level.Game).CanFireEvent(EventExecutionInit, True))
-      TriggerEvent(EventExecutionInit, Self, None);
+    if (Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[0].Score) ||
+        Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[1].Score)) {
+      bIsFinalExecution = True;
+    }
 
-    Sleep(ExecutionDelayCommit);
+    if (bIsFinalExecution && EventFinalExecutionInit != '') {
+      if (Jailbreak(Level.Game).CanFireEvent(EventFinalExecutionInit, True))
+        TriggerEvent(EventFinalExecutionInit, Self, None);
+
+      Sleep(FinalExecutionDelayCommit);
+    } else {
+     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionInit, True))
+        TriggerEvent(EventExecutionInit, Self, None);
+
+      Sleep(ExecutionDelayCommit);
+    }
+
     GotoState('ExecutionRunning');
 
 } // state ExecutionStarting
@@ -1106,10 +1132,18 @@ state ExecutionStarting {
 state ExecutionRunning {
 
   Begin:
-    if (Jailbreak(Level.Game).CanFireEvent(EventExecutionCommit, True))
-      TriggerEvent(EventExecutionCommit, Self, None);
+    if (bIsFinalExecution && EventFinalExecutionCommit != '') {
+      if (Jailbreak(Level.Game).CanFireEvent(EventFinalExecutionCommit, True))
+        TriggerEvent(EventFinalExecutionCommit, Self, None);
 
-    Sleep(ExecutionDelayFallback);
+      Sleep(FinalExecutionDelayFallback);
+    } else {
+     if (Jailbreak(Level.Game).CanFireEvent(EventExecutionCommit, True))
+        TriggerEvent(EventExecutionCommit, Self, None);
+
+      Sleep(ExecutionDelayFallback);
+    }
+
     GotoState('ExecutionFallback');
 
 } // state ExecutionRunning
