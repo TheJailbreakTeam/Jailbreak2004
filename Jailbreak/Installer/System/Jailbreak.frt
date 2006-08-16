@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=XInterface.GUIUserKeyBinding,Name=Jailbreak.JBGUIUserKeyBinding)
+
 [JBBotSquadArena]
 TextArena="combat dans l'arène"
 

@@ -1,2 +1,159 @@
 [Public]
 Object=(Class=Class,MetaClass=XInterface.GUIUserKeyBinding,Name=Jailbreak.JBGUIUserKeyBinding)
+
+[JBBotSquadArena]
+TextArena="fighting in arena"
+
+[JBBotSquadJail]
+TextJailed="jailed"
+
+[JBGUICustomHUDMenu]
+WindowName="Jailbreak Client Options"
+CancelButton.Caption="Cancel"
+CancelButton.Hint="Click to close this menu, discarding changes."
+EnableScreens.Caption="Enable Dynamic Screen Textures"
+EnableScreens.Hint="Whether you want to see the dynamic screens placed in some Jailbreak maps. Disabling this setting may increase your framerate."
+OkButton.Caption="OK"
+OkButton.Hint="Click to close this menu, saving changes."
+ResetButton.Caption="Defaults"
+ResetButton.Hint="Restore all settings to their default value."
+ReverseSwitchColors.Caption="Reverse Switch Colors"
+ReverseSwitchColors.Hint="Whether you want to reverse release switch colors so that the switch attacked by the red team is blue, and vice-versa."
+TestVoicePackButton.Caption="Test"
+TestVoicePackButton.Hint="Click to play a random test sample from the selected voice pack."
+VoicePack.Caption="Voice Pack"
+VoicePack.Hint="The voice pack to use in Jailbreak."
+
+[JBGUIHook]
+TextCaptionGoalScore="Capture Limit"
+TextCaptionAddons="Add-Ons"
+TextHintAddons="Select and configure any Jailbreak add-ons to use..."
+
+[JBGUITabPanelAddons]
+TextHintReset="Reset options for %addon%."
+GUIButtonConfigResetDef.Caption="Reset Options"
+GUIButtonConfigResetDef.Hint="Reset this add-on's options."
+GUIButtonDownloadAddonsDef.Caption="Download More Add-Ons!"
+GUIButtonDownloadAddonsDef.Hint="Opens the add-on download page on PlanetJailbreak in a web browser."
+GUILabelConfigDefaultDef.Caption="This add-on has no user options."
+
+[JBInteractionKeys]
+TextDialogTitle="Temporary Key Bindings"
+TextDialogTopS="Jailbreak has temporarily bound the following key for you:"
+TextDialogTopP="Jailbreak has temporarily bound the following keys for you:"
+TextDialogBottomS="Use the key binder to permanently bind a key to this function."
+TextDialogBottomP="Use the key binder to permanently bind keys to these functions."
+TextDialogClose="Press FIRE to close, ALT-FIRE to close permanently"
+TextDescription=("Sets team tactics to a more aggressive stance.","Sets team tactics to a more defensive stance.","Returns to auto-selection of team tactics.","Activates the Arena Live Feed.","View your teammates who battle in freedom.")
+
+[JBInteractionPanorama]
+TextInstructionsHidden="Press Shift+H to show instructions."
+TextInstructions[0]="SCOREBOARD MAP PANORAMA ADJUSTMENT MODE"
+TextInstructions[3]="STEP 1: Move the camera to a position where you have a nice view of the entire map."
+TextInstructions[4]="        Press Shift+GreyPlus and Shift+GreyMinus to zoom in or out, Shift+GreyStar to reset."
+TextInstructions[6]="STEP 2: Press Shift+S to take a screenshot of the map."
+TextInstructions[7]="        Press Shift+C to copy a pre-setup JBPanorama actor to the clipboard."
+TextInstructions[9]="STEP 3: Use the screenshot to make a texture showing a panorama of your map."
+TextInstructions[10]="        Import it into your map's MyLevel package."
+TextInstructions[11]="        Reload Jailbreak.u and paste the JBPanorama actor from the clipboard into your map."
+TextInstructions[12]="        Set its TexturePanorama property to the imported panorama texture."
+TextInstructions[15]="Press Shift+H to hide these instructions."
+TextInstructions[16]="Press Shift+X to exit adjustment mode."
+TextStatusCopy="JBPanorama actor copied to the clipboard."
+TextStatusScreenshot="Screenshot saved to the last Shot?????.bmp file in your ScreenShots directory."
+
+[JBInterfaceHud]
+TextPlayerKilled="You were killed."
+TextPlayerExecuted="You have been executed."
+TextMenuEntryTactics="Team tactics"
+TextMenuTitleTactics="Team Tactics"
+TextOrderName[0]="[AUTO]"
+TextOrderName[1]="Suicidal"
+TextOrderName[2]="Aggressive"
+TextOrderName[3]="Normal"
+TextOrderName[4]="Defensive"
+TextOrderName[5]="Evasive"
+TextTactics[0]="evasive"
+TextTactics[1]="defensive"
+TextTactics[2]="normal"
+TextTactics[3]="aggressive"
+TextTactics[4]="suicidal"
+TextArenaNotifier="arena match"
+
+[JBInterfaceScores]
+TextGameBotmatch="Botmatch"
+TextGameOnline="Online Match on"
+TextSkill[0]="Novice"
+TextSkill[1]="Average"
+TextSkill[2]="Experienced"
+TextSkill[3]="Skilled"
+TextSkill[4]="Adept"
+TextSkill[5]="Masterful"
+TextSkill[6]="Inhuman"
+TextSkill[7]="Godlike"
+TextLimitPrefix=" ["
+TextLimitTime="minutes"
+TextLimitScore="captures"
+TextLimitSuffix=" max]"
+TextInfoWaiting="waiting"
+TextInfoDead="dead"
+TextInfoArena="arena"
+TextInfoJail="jailed"
+TextOrdersUndisclosed="undisclosed"
+TextOrdersAttack="attacking"
+TextOrdersDefense="defending"
+TextOrdersFreelance="Sweeper"
+TextScoresAttack="attack"
+TextScoresDefense="defense"
+TextScoresRelease="release"
+TextRelationElapsed="played"
+TextRelationRemaining="to play"
+TextRelationOvertime="overtime"
+TextReady="Ready"
+TextNotReady="Not Ready"
+
+[JBLocalMessage]
+TextTeamCaptured[0]="The red team has been captured."
+TextTeamCaptured[1]="The blue team has been captured."
+TextTeamReleased[0]="The red team has been released."
+TextTeamReleased[1]="The blue team has been released."
+TextTeamReleasedBy[0]="The red team has been released by %player%."
+TextTeamReleasedBy[1]="The blue team has been released by %player%."
+TextTeamReleasedNobody="This jail is empty."
+TextTeamStalemate="Both teams captured, no score."
+TextArenaCountdown[0]="Arena match is about to begin...1"
+TextArenaCountdown[1]="Arena match is about to begin...2"
+TextArenaCountdown[2]="Arena match is about to begin...3"
+TextArenaStartCombatant="Arena match has begun!"
+TextArenaStartOther="%teammate% is fighting %enemy% in the arena."
+TextArenaCancelCombatant="Arena match between %teammate% and %enemy% cancelled."
+TextArenaCancelOther="Arena match has been cancelled."
+TextArenaTieCombatant="Arena match tied."
+TextArenaTieOther="Arena match between %teammate% and %enemy% tied."
+TextArenaEndWinner="You have won your freedom!"
+TextArenaEndLoser="You have lost the arena match."
+TextArenaEndOther="%winner% has defeated %loser% in the arena."
+TextKeyboardArenaBound="Press [%key%] to watch this arena fight!"
+TextKeyboardArenaUnbound="Enter 'ArenaCam' at the console to watch this arena fight!"
+TextKeyboardCameraBound="Press [%keyprev%] and [%keynext%] to switch cameras"
+TextKeyboardCameraUnbound="Enter 'PrevWeapon' and 'NextWeapon' at the console to switch cameras"
+TextLastMan="You are the last free player. Release your team!"
+
+[JBMutatorDebug]
+FriendlyName="Jailbreak Debug"
+Description="Provides helper functions for debugging Jailbreak maps and code."
+
+[JBPanorama]
+TextSetup="enter SetupPanorama at the console"
+TextPreview="preview only, assign TexturePanorama"
+
+[Jailbreak]
+TextHintJailbreak=("Watch the compass dots: The faster they pulse, the more players can be released by the corresponding switch.","Use %PREVWEAPON% and %NEXTWEAPON% to switch view points when watching through a surveillance camera.","You can stand on teammates while they're crouching. Look out for jail escape routes requiring this cooperation!","Some jails have hidden escape routes. You may have to stand on a crouching teammate to reach them.","There may be more than one release switch for your team. The faster a compass dot pulses, the more players can be released through the corresponding switch.","Sometimes it is better to hide away from the enemy team than to give them an easy capture.","If you killed the last free enemy, you can taunt the enemy team on the celebration screen during the execution sequence.","Bored in jail? You can fight your teammates for fun with the Shield Gun without any penalties.","Some jails contain monitors for surveillance cameras showing important spots in the map. Approach one of them to activate the camera.","When you're jailed, you may be chosen for an arena match with a jailed enemy. Win the match to gain your freedom!","When an arena match is going on, press %ARENACAM% to watch a live feed!","Use %TEAMTACTICS UP% to increase and %TEAMTACTICS DOWN% to decrease the overall aggressiveness of the bots on your team.","The Jailbreak scoreboard shows the whereabouts of you and your teammates on a panorama minimap.","You can see what your human teammates are up to on the Jailbreak scoreboard: It shows whether they are attacking, defending or roaming the map.","The red, yellow and green bars next to each player name in the Jailbreak scoreboard show that player's attack kills, defense kills and released teammates.","The markers on the clock in the upper right corner of the Jailbreak scoreboard indicate team captures.","Don't try to cheat by reconnecting to the server while you're in jail! The game will turn you into a llama (quite literally) and give other players bonus points for hunting you down.","Don't attack protected players who were just released from jail. You might get llamaized for it!")
+TextDescriptionEnableJailFights="Allows jail inmates to fight each other with their Shield Guns for fun."
+TextDescriptionFavorHumansForArena="Always selects human players over bots for arena fights."
+TextWebAdminEnableJailFights="Allow Jail Fights"
+TextWebAdminFavorHumansForArena="Favor Humans For Arena"
+TextWebAdminPrefixAddon="Jailbreak:"
+GameName="Jailbreak"
+Description="Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
+
