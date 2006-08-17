@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.45 2006-08-08 19:59:41 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.46 2006-08-16 22:08:22 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -1233,6 +1233,9 @@ defaultproperties
 
   ExecutionDelayCommit   = 1.0;
   ExecutionDelayFallback = 2.0;
+
+  FinalExecutionDelayCommit   = 1.0;
+  FinalExecutionDelayFallback = 2.0;
 
   TagAttachZones   = Auto;
   TagAttachVolumes = None;
