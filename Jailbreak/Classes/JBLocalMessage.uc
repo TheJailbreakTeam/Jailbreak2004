@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.18 2006-07-19 09:22:53 jrubzjeknf Exp $
+// $Id: JBLocalMessage.uc,v 1.19 2006-08-15 19:27:15 jrubzjeknf Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -13,6 +13,7 @@
 //   100 (B)   Team captured                                          TeamInfo
 //   200 (B)   Release, jail full   Releaser                          TeamInfo
 //   210       Release, jail empty  Releaser                          TeamInfo
+//   220       Release, jail jammed Releaser                          TeamInfo
 //   300 (B)   Stalemate
 //   403       Arena countdown 3                                      Arena
 //   402       Arena countdown 2                                      Arena
@@ -24,7 +25,9 @@
 //   500 (L)   Keyboard arena
 //   510 (L)   Keyboard cameras
 //   600 (L)   Last man (initial)
+//   601 (L)   Last man (initial, cant release)
 //   610 (L)   Last man (repeat)
+//   611 (L)   Last man (repeat, canr release)
 //   700 (B)   Last second save
 //   900 (B)   Game started
 //   910 (B)   Game overtime
@@ -48,6 +51,7 @@ var localized string TextTeamCaptured[2];
 var localized string TextTeamReleased[2];
 var localized string TextTeamReleasedBy[2];
 var localized string TextTeamReleasedNobody;
+var localized string TextTeamReleaseJammed;
 var localized string TextTeamStalemate;
 
 
@@ -78,6 +82,7 @@ var localized string TextKeyboardCameraUnbound;
 
 
 var localized string TextLastMan;
+var localized string TextLastManCantRelease;
 
 
 // ============================================================================
@@ -156,6 +161,7 @@ static function ClientReceive(PlayerController PlayerController,
     case 100:  PlaySpeech(PlayerController, "$TeamCapturedRed", "$TeamCapturedBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
     case 200:  PlaySpeech(PlayerController, "$TeamReleasedRed", "$TeamReleasedBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
     case 210:  PlaySpeech(PlayerController, "$TeamReleasedNobody");  break;
+    case 220:  PlayerController.PlayBeepSound();                     break;
     case 300:  PlaySpeech(PlayerController, "$TeamCapturedBoth");    break;
 
     case 403:  PlayerController.PlayBeepSound();  PlaySpeech(PlayerController, "$ArenaWarning");  break;
@@ -172,6 +178,7 @@ static function ClientReceive(PlayerController PlayerController,
       break;
 
     case 600:  PlaySpeech(PlayerController, "$LastMan");          break;
+    case 601:  PlaySpeech(PlayerController, "$LastMan");          break;
     case 700:  PlaySpeech(PlayerController, "$LastSecondSave");   break;
     case 900:  PlaySpeech(PlayerController, "$GameStart");        break;
     case 910:  PlaySpeech(PlayerController, "$GameOvertime");     break;
@@ -342,6 +349,8 @@ static function string GetString(optional int Switch,
 
     case 210:
       return Default.TextTeamReleasedNobody;
+    case 220:
+      return Default.TextTeamReleaseJammed;
 
     case 403:  return ReplaceTextArena(Default.TextArenaCountdown[2], PlayerReplicationInfo1, PlayerReplicationInfo2);
     case 402:  return ReplaceTextArena(Default.TextArenaCountdown[1], PlayerReplicationInfo1, PlayerReplicationInfo2);
@@ -376,7 +385,9 @@ static function string GetString(optional int Switch,
     case 510:  return Default.TextKeyboardCamera;
 
     case 600:  return Default.TextLastMan;
+    case 601:  return Default.TextLastManCantRelease;
     case 610:  return Default.TextLastMan;
+    case 611:  return Default.TextLastManCantRelease;
   }
 }
 
@@ -397,6 +408,7 @@ defaultproperties
   TextTeamReleasedBy[0]     = "The red team has been released by %player%.";
   TextTeamReleasedBy[1]     = "The blue team has been released by %player%.";
   TextTeamReleasedNobody    = "This jail is empty."
+  TextTeamReleaseJammed     = "This jail is jammed."
   TextTeamStalemate         = "Both teams captured, no score.";
 
   TextArenaCountdown[2]     = "Arena match is about to begin...3";
@@ -418,6 +430,7 @@ defaultproperties
   TextKeyboardCameraUnbound = "Enter 'PrevWeapon' and 'NextWeapon' at the console to switch cameras";
 
   TextLastMan               = "You are the last free player. Release your team!";
+  TextLastManCantRelease    = "You are the last free player. Stay alive!";
 
   ClassLocalMessageScreen   = Class'JBLocalMessageScreen';
   ClassLocalMessageConsole  = Class'JBLocalMessageConsole';

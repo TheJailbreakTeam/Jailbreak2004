@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.61 2006-07-13 20:55:02 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.62 2006-08-13 21:50:20 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -314,6 +314,7 @@ simulated function CheckLastMan()
 {
   local int nPlayersFree;
   local int nPlayersJailed;
+  local int nPlayersJailedJailIsJammed;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
   local JBTagPlayer TagPlayerOwner;
@@ -338,15 +339,20 @@ simulated function CheckLastMan()
       if (thisTagPlayer.GetTeam() == PlayerOwner.PlayerReplicationInfo.Team) {
              if (thisTagPlayer.IsFree()) nPlayersFree += 1;
         else if (thisTagPlayer.IsInJail()) {
-                if (thisTagPlayer.GetJail().IsReleaseActive(thisTagPlayer.GetTeam())) nPlayersFree   += 1;
-                else                                                                  nPlayersJailed += 1;
+                if (thisTagPlayer.GetJail().IsReleaseActive(thisTagPlayer.GetTeam()))
+                  nPlayersFree   += 1;
+                else {
+                  nPlayersJailed += 1;
+                  if (thisTagPlayer.GetJail().IsJammed(thisTagPlayer.GetTeam().TeamIndex))
+                    nPlayersJailedJailIsJammed += 1;
+                }
              }
       }
 
     if (nPlayersFree == 1 && nPlayersJailed > 0) {
       if (!bIsLastMan)
-             PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 600);
-        else PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 610);
+             PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 600 + Min(1, nPlayersJailedJailIsJammed));
+        else PlayerOwner.ReceiveLocalizedMessage(Class'JBLocalMessage', 610 + Min(1, nPlayersJailedJailIsJammed));
 
       bIsLastMan = True;
       TimeUpdateLastMan = Level.TimeSeconds;

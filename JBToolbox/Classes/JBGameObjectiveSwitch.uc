@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.15 2006-08-08 22:23:09 jrubzjeknf Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.16 2006-08-09 22:34:11 jrubzjeknf Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -85,13 +85,7 @@ function DisableObjective(Pawn PawnInstigator)
   local JBGameObjectiveSwitch ObjectiveSwitch;
   local JBInfoJail thisJail;
 
-  if (bDisabled                                         ||
-      PawnInstigator                            == None ||
-      PawnInstigator.PlayerReplicationInfo      == None ||
-      PawnInstigator.PlayerReplicationInfo.Team == None ||
-      PawnInstigator.PlayerReplicationInfo.Team.TeamIndex == DefenderTeamIndex ||
-      Vehicle(PawnInstigator) != none ||
-      RedeemerWarhead(PawnInstigator) != None)
+  if (!CanDisableObjective(PawnInstigator))
     return;
 
   Super.DisableObjective(PawnInstigator);
@@ -115,6 +109,24 @@ function DisableObjective(Pawn PawnInstigator)
         PawnInstigator.PlayerReplicationInfo, ,
         PawnInstigator.PlayerReplicationInfo.Team);
   }
+}
+
+
+// ============================================================================
+// CanDisableObjective
+//
+// Returns whether this Pawn can trigger this switch.
+// ============================================================================
+
+function bool CanDisableObjective(Pawn PawnInstigator)
+{
+  return (!bDisabled                                                               &&
+          PawnInstigator                            != None                        &&
+          PawnInstigator.PlayerReplicationInfo      != None                        &&
+          PawnInstigator.PlayerReplicationInfo.Team != None                        &&
+          PawnInstigator.PlayerReplicationInfo.Team.TeamIndex != DefenderTeamIndex &&
+          Vehicle(PawnInstigator) == None                                          &&
+          RedeemerWarhead(PawnInstigator) == None);
 }
 
 
@@ -266,9 +278,24 @@ simulated function DoEffectReset()
 
 event Touch(Actor ActorOther)
 {
-  if (Pawn(ActorOther) != None &&
-     !bJammedRep)                  //no releasing when jammed
-    DisableObjective(Pawn(ActorOther));
+  local Pawn P;
+
+  P = Pawn(ActorOther);
+
+  if (P != None) {
+    if (bJammedRep) {               // don't release if jammed
+      if (P.Controller != None &&
+          PlayerController(P.Controller) != None &&
+          CanDisableObjective(P))
+        Level.Game.BroadcastHandler.BroadcastLocalized(
+          Self,
+          PlayerController(P.Controller),
+          MessageClass, 220,
+          P.PlayerReplicationInfo, ,
+          P.PlayerReplicationInfo.Team);
+    } else
+      DisableObjective(P);
+  }
 }
 
 

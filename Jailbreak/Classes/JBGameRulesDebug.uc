@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRulesDebug.uc,v 1.3 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBGameRulesDebug.uc,v 1.4 2004-04-11 16:37:15 mychaeel Exp $
 //
 // Implements game rules for Jailbreak for debugging purposes.
 // ============================================================================
@@ -142,13 +142,13 @@ function ExecRelease(string Whom)
 
        if (Whom ~= "Red")  TeamWhom = TeamGame(Level.Game).Teams[0];
   else if (Whom ~= "Blue") TeamWhom = TeamGame(Level.Game).Teams[1];
-  
+
   if (TeamWhom != None) {
     firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
       thisJail.Release(TeamWhom);
   }
-  
+
   else {
     firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail) {
@@ -156,9 +156,48 @@ function ExecRelease(string Whom)
         thisJail.Release(TeamGame(Level.Game).Teams[0]);
         thisJail.Release(TeamGame(Level.Game).Teams[1]);
       }
-    
+
       if (string(thisJail.EventReleaseRed)  ~= Whom) thisJail.Release(TeamGame(Level.Game).Teams[0]);
       if (string(thisJail.EventReleaseBlue) ~= Whom) thisJail.Release(TeamGame(Level.Game).Teams[1]);
+    }
+  }
+}
+
+
+// ============================================================================
+// ExecForceRelease
+//
+// ForceReleases either the red or blue team from all jails, or all jailed
+// players from the jail with the given Tag, or causes the given release event.
+// ============================================================================
+
+function ExecForceRelease(string Whom)
+{
+  local TeamInfo TeamWhom;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+
+  Log("Jailbreak Debugging: ForceReleasing '" $ Whom $ "'");
+
+       if (Whom ~= "Red")  TeamWhom = TeamGame(Level.Game).Teams[0];
+  else if (Whom ~= "Blue") TeamWhom = TeamGame(Level.Game).Teams[1];
+
+  if (TeamWhom != None) {
+    firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+      thisJail.ForceRelease(TeamWhom);
+  }
+
+  else {
+    firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail) {
+      if (string(thisJail.Tag) ~= Whom) {
+        thisJail.ForceRelease(TeamGame(Level.Game).Teams[0]);
+        thisJail.ForceRelease(TeamGame(Level.Game).Teams[1]);
+      }
+
+      if (string(thisJail.EventReleaseRed)  ~= Whom) thisJail.ForceRelease(TeamGame(Level.Game).Teams[0]);
+      if (string(thisJail.EventReleaseBlue) ~= Whom) thisJail.ForceRelease(TeamGame(Level.Game).Teams[1]);
     }
   }
 }
