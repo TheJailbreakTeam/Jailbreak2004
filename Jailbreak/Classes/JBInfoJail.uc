@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.46 2006-08-16 22:08:22 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.47 2006-08-17 09:04:54 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -80,7 +80,7 @@ var private bool bIsFinalExecution;            // final execution is running
 replication
 {
   reliable if(Role == ROLE_Authority)
-    bIsRedActive, bIsBlueActive;
+    bIsRedActive, bIsBlueActive, bRedJammed, bBlueJammed;
 }
 
 
@@ -862,7 +862,7 @@ protected function JamResetObjectives(int TeamIndex)
 // Returns if this jail is jammed for the given team.
 // ============================================================================
 
-function bool IsJammed(int TeamIndex)
+simulated function bool IsJammed(int TeamIndex)
 {
   switch (TeamIndex) {
     case 0: return bRedJammed;
