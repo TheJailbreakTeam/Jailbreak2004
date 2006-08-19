@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.47 2006-08-17 09:04:54 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.48 2006-08-18 11:51:08 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -1101,7 +1101,8 @@ state ExecutionStarting {
 
   Begin:
     if (Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[0].Score) ||
-        Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[1].Score)) {
+        Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[1].Score) ||
+        Level.Game.bOverTime) {
       bIsFinalExecution = True;
     }
 
