@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.14 2004/06/02 21:44:28 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.15 2004-07-25 18:46:35 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -65,15 +65,15 @@ replication
 simulated event PostBeginPlay()
 {
   local PlayerController PlayerControllerLocal;
-  
+
   Super.PostBeginPlay();
-  
+
   LlamaStartTime = Level.TimeSeconds;
   if ( Role == ROLE_Authority )
     LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
   HUDOverlay = class'JBInterfaceLlamaHUDOverlay'.static.FindLlamaHUDOverlay(Self);
   LlamaArrow = Spawn(class'JBLlamaArrow', Self,,,rot(0,0,0));
-  
+
   PlayerControllerLocal = Level.GetLocalPlayerController();
   if ( PlayerControllerLocal != None && PlayerControllerLocal.MyHud != None )
     LocalScoreboard = JBInterfaceScores(PlayerControllerLocal.MyHud.ScoreBoard);
@@ -89,7 +89,7 @@ simulated event PostBeginPlay()
 simulated event PostNetBeginPlay()
 {
   Super.PostNetBeginPlay();
-  
+
   if ( Role < ROLE_Authority )
     InitLlamaTag();
 }
@@ -106,18 +106,18 @@ function GiveTo(Pawn Other, optional Pickup Pickup)
 {
   if ( Vehicle(Other) != None && Vehicle(Other).Driver != None )
     Other = Vehicle(Other).Driver;
-  
+
   Super.GiveTo(Other, Pickup);
-  
+
   Trail = Spawn(class'JBLlamaTrailer', Owner);
-  
+
   //log("Tagged"@Owner@"as llama.", Name);
-  
+
   InitLlamaTag();
-  
+
   if ( Other != None )
     Other.RemovePowerups();
-  
+
   Timer();
   BroadcastLocalizedMessage(class'JBLlamaMessage', 1, Other.PlayerReplicationInfo);
 }
@@ -132,19 +132,19 @@ function GiveTo(Pawn Other, optional Pickup Pickup)
 simulated function InitLlamaTag()
 {
   local PlayerController PlayerControllerLocal;
-  
+
   //log("InitLlamaTag()", Name);
-  
+
   // find local playercontroller
   PlayerControllerLocal = Level.GetLocalPlayerController();
-  
+
   if ( TagPlayer == None && Pawn(Owner) != None ) {
     if ( Vehicle(Owner.Owner) != None )
       TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner.Owner).PlayerReplicationInfo);
     else
       TagPlayer = class'JBTagPlayer'.static.FindFor(Pawn(Owner).PlayerReplicationInfo);
   }
-  
+
   if ( TagPlayer == None ) {
     //warn("Owner ="@Owner);
     bNotYetRegistered = True;
@@ -152,13 +152,13 @@ simulated function InitLlamaTag()
   }
   else
     bNotYetRegistered = False;
-  
+
   // make sure that the local player owns the llama tag
   if ( TagPlayer != None && PlayerControllerLocal == TagPlayer.GetController() ) {
     HUDOverlay.SetLocalLlamaTag(Self);
     LocalHUD = JBInterfaceHUD(PlayerControllerLocal.myHUD);
   }
-  
+
   // attach the llama head
   AttachToPawn(Pawn(Owner));
 }
@@ -177,7 +177,7 @@ function AttachToPawn(Pawn P)
     InventoryAttachment(ThirdPersonActor).InitFor(self);
   }
   P.AttachToBone(ThirdPersonActor, Pawn(Owner).HeadBone);
-  
+
   ThirdPersonActor.SetRelativeRotation(rot(16384,16384,-18000));
 }
 
@@ -205,20 +205,22 @@ simulated event Destroyed()
 {
   if ( LocalHUD != None )
     ResetCrosshairLocations();
-  
-  if ( LocalScoreboard != None && TagPlayer != None )
+
+  if ( LocalScoreboard != None && TagPlayer != None ) {
     LocalScoreboard.ResetEntryColor(TagPlayer);
-  
+    LocalScoreboard.BroadcastPlayer(TagPlayer, False);
+  }
+
   if ( Trail != None ) {
     Trail.Destroy();
   }
-  
+
   if ( LlamaArrow != None ) {
     LlamaArrow.LlamaDied();
   }
-  
+
   DetachFromPawn(Pawn(Owner));
-  
+
   Super.Destroyed();
 }
 
@@ -232,7 +234,7 @@ simulated event Destroyed()
 simulated function ResetCrosshairLocations()
 {
   local int i;
-  
+
   for (i = 0; i < LocalHUD.Crosshairs.Length; i++) {
     LocalHUD.Crosshairs[i].PosX = 0.5;
     LocalHUD.Crosshairs[i].PosY = 0.5;
@@ -251,21 +253,23 @@ simulated function Tick(float DeltaTime)
 {
   local int CurrentCrosshair;
   local PlayerController MyController;
-  
-  if ( LocalScoreboard != None && TagPlayer != None )
+
+  if ( LocalScoreboard != None && TagPlayer != None ) {
     LocalScoreboard.OverrideEntryColor(TagPlayer,
         class'JBInterfaceLlamaHUDOverlay'.static.HueToRGB(int(Level.TimeSeconds * 150.0) % 256));
-  
+    LocalScoreboard.BroadcastPlayer(TagPlayer, True);
+  }
+
   if ( bNotYetRegistered && Owner != None )
     InitLlamaTag();
   if ( bNotYetRegistered || Owner == None )
     return;
-  
+
   if ( Pawn(Owner) != None )
     MyController = PlayerController(Pawn(Owner).Controller);
   if ( MyController == None && TagPlayer != None )
     MyController = PlayerController(TagPlayer.GetController());
-  
+
   if ( MyController != None && (MyController.ViewTarget == MyController
       || MyController.ViewTarget == Self || MyController.ViewTarget == Owner
       || Vehicle(MyController.Pawn) != None && Vehicle(MyController.Pawn).Driver == Owner) ) {
@@ -281,9 +285,9 @@ simulated function Tick(float DeltaTime)
       Pawn(Owner).Controller.SetRotation(MyController.Rotation - ViewRotationOffset);
     bShiftedView = False;
   }
-  
+
   Pawn(Owner).SetHeadScale(0.01);
-  
+
   if ( LocalHUD != None ) {
     CurrentCrosshair = Clamp(LocalHUD.CrosshairStyle, 0, LocalHUD.Crosshairs.Length - 1);
     LocalHUD.Crosshairs[CurrentCrosshair].PosX
@@ -291,11 +295,11 @@ simulated function Tick(float DeltaTime)
     LocalHUD.Crosshairs[CurrentCrosshair].PosY
         = 0.5 + 0.05 * Cos(Level.TimeSeconds * 4.0);
   }
-  
+
   if ( MyController != None && MyController.Pawn != None
       && Trail != None && Trail.Owner != MyController.Pawn )
     Trail.SetOwner(MyController.Pawn);
-  
+
   if ( Role == ROLE_Authority
       && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration ) {
     if ( MyController != None )
@@ -315,7 +319,7 @@ simulated function Tick(float DeltaTime)
 function Timer()
 {
   local int RandSound;
-  
+
   RandSound = Rand(LlamaSounds.Length);
   Trail.PlaySound(LlamaSounds[RandSound],, 255,, 1000, RandRange(0.9, 1.1));
   SetTimer((GetSoundDuration(LlamaSounds[RandSound]) + FRand() + 1.0) * 2.0 * Level.TimeDilation, False);

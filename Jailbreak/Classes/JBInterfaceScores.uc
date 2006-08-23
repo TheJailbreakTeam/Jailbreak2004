@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.16 2006-08-15 16:35:49 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.17 2006-08-15 16:41:40 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -99,6 +99,8 @@ struct TEntry
 
   var bool bOverrideColor;              // override main color
   var Color ColorOverride;              // color to override main color with
+
+  var bool bBroadcastPlayer;            // show player to everybody
 
   var JBTagPlayer TagPlayer;            // reference to player game info
 };
@@ -1411,7 +1413,7 @@ simulated function DrawTable(Canvas Canvas, out TTable Table)
 // color override is effective until ResetEntryColor is called.
 // ============================================================================
 
-simulated function OverrideEntryColor(JBTagPlayer TagPlayerEntry, Color ColorOverride)
+simulated function OverrideEntryColor(JBTagPlayer TagPlayerEntry, color ColorOverride)
 {
   local int iEntry;
 
@@ -1437,6 +1439,24 @@ simulated function ResetEntryColor(JBTagPlayer TagPlayerEntry)
   for (iEntry = 0; iEntry < ListEntry.Length; iEntry++)
     if (ListEntry[iEntry].TagPlayer == TagPlayerEntry) {
       ListEntry[iEntry].bOverrideColor = False;
+      break;
+    }
+}
+
+
+// ============================================================================
+// BroadcastPlayer
+//
+// Enables or disables broadcasts the player's location to all players.
+// ============================================================================
+
+simulated function BroadcastPlayer(JBTagPlayer TagPlayerEntry, bool bValue)
+{
+  local int iEntry;
+
+  for (iEntry = 0; iEntry < ListEntry.Length; iEntry++)
+    if (ListEntry[iEntry].TagPlayer == TagPlayerEntry) {
+      ListEntry[iEntry].bBroadcastPlayer = bValue;
       break;
     }
 }
@@ -1549,7 +1569,10 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
       iTableEntry = Entry     .PositionCurrent .iTable *        Entry     .AlphaPosition +
                     Entry     .PositionPrevious.iTable * (1.0 - Entry     .AlphaPosition);
 
-      Canvas.DrawColor.A = FClamp(Canvas.DrawColor.A * (1.0 - Abs(iTableEntry - iTableOwner)), 0, 255);
+      if (Entry.bBroadcastPlayer)
+        Canvas.DrawColor.A = FClamp(Canvas.DrawColor.A * (          iTableOwner               ), 0, 255);
+      else
+        Canvas.DrawColor.A = FClamp(Canvas.DrawColor.A * (1.0 - Abs(iTableEntry - iTableOwner)), 0, 255);
     }
 
     if (Canvas.DrawColor.A > 0) {
