@@ -120,7 +120,7 @@ TextTeamReleased[1]="L'équipe bleue est libérée."
 TextTeamReleasedBy[0]="L'équipe rouge est libérée par %player%."
 TextTeamReleasedBy[1]="L'équipe bleue est libérée par %player%."
 TextTeamReleasedNobody="Cette prison est vide."
-TextTeamReleaseJammed="This jail is jammed."
+TextTeamReleaseJammed=""Cette prison est blockée.""
 TextTeamStalemate="Les deux équipes ont été capturées. Aucune ne marque."
 TextArenaCountdown[0]="Un combat dans l'arène va commencer...1"
 TextArenaCountdown[1]="Un combat dans l'arène va commencer...2"
@@ -139,7 +139,7 @@ TextKeyboardArenaUnbound="Tapez 'ArenaCam' dans la console pour assister au comb
 TextKeyboardCameraBound="Appuyez sur [%keyprev%] et [%keynext%] pour passer d'une caméra à l'autre"
 TextKeyboardCameraUnbound="Tapez 'PrevWeapon' et 'NextWeapon' dans la console pour passer d'une caméra à l'autre"
 TextLastMan="Vous êtes le dernier. Libérez votre équipe!"
-TextLastManCantRelease="You are the last free player. Stay alive!"
+TextLastManCantRelease=""Vous êtes le dernier. Restez en vie!""
 
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"
