@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.129 2006-08-13 21:50:21 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.130 2006-08-19 15:51:51 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1458,10 +1458,10 @@ function RestartTeam(TeamInfo Team)
 // ============================================================================
 // RestartPlayers
 //
-// Restarts only jailed or non-jail players in freedom.
+// Restarts only free or non-free players in freedom.
 // ============================================================================
 
-function RestartPlayers(bool bJailed)
+function RestartPlayers(bool bFree)
 {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
@@ -1470,7 +1470,7 @@ function RestartPlayers(bool bJailed)
   firstTagPlayer = JBGameReplicationInfo(GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = nextTagPlayer) {
     nextTagPlayer = thisTagPlayer.nextTag;
-    if (bJailed == thisTagPlayer.IsInJail())
+    if (bFree == thisTagPlayer.IsFree())
       thisTagPlayer.RestartInFreedom();
   }
 }
