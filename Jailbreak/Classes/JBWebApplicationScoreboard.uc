@@ -1,7 +1,7 @@
 // ============================================================================
 // JBWebApplicationScoreboard
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBWebApplicationScoreboard.uc,v 1.3 2004-05-27 21:14:16 tarquin Exp $
+// $Id: JBWebApplicationScoreboard.uc,v 1.4 2006-08-16 13:54:37 jrubzjeknf Exp $
 //
 // Serves the Jailbreak Web Scoreboard to web browsers.
 // ============================================================================
@@ -282,7 +282,7 @@ function string GetMutators()
 function string GetTime()
 {
   local int TotalTime, Minutes, Seconds;
-  local string Head, Tail;
+  local string Head, MinutesText, SecondsText, Tail;
 
   if (!Level.Game.GameReplicationInfo.bMatchHasBegun) // Match hasnt started yet
     return "The game hasn't started yet";
@@ -309,7 +309,17 @@ function string GetTime()
   Minutes = TotalTime / 60;
   Seconds = TotalTime % 60;
 
-  return Head @ Minutes @ "minutes and" @ Seconds @ "seconds" @ Tail;
+  if (Minutes == 1)
+    MinutesText = "minute and";
+  else
+    MinutesText = "minutes and";
+
+  if (Seconds == 1)
+    SecondsText = "second";
+  else
+    SecondsText = "seconds";
+
+  return Head @ Minutes @ MinutesText @ Seconds @ SecondsText @ Tail;
 }
 
 
