@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.10 2004-05-28 16:46:25 mychaeel Exp $
+// $Id: JBMutatorDebug.uc,v 1.11 2006-08-18 11:08:10 jrubzjeknf Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -186,6 +186,10 @@ function Mutate(string TextMutate, PlayerController Sender)
     if ( thisArena != None ) {
       thisArena.Trigger(Self, None);
     }
+  }
+
+  else if (TextCommand ~= "ToggleShowLocation") {
+    JBGameRulesDebug.ShowLocation(Sender);
   }
 }
 

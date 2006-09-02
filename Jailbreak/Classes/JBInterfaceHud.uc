@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.62 2006-08-13 21:50:20 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.63 2006-08-18 11:08:10 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -48,6 +48,7 @@ var private transient JBTagPlayer TagPlayerOwner;  // player state for owner
 
 var private bool bHasGameEnded;               // previously detected game end
 var private bool bIsLastMan;                  // previously detected last man
+var private bool bShowLocation;               // Show player's current location
 
 var private float TimeUpdateLocationChat;     // last chat area movement
 var private float TimeUpdateCompass;          // last compass rendering
@@ -922,6 +923,8 @@ simulated function ShowTeamScorePassA(Canvas Canvas)
     }
   }
 
+  if(bShowLocation)
+    ShowLocation(Canvas);
   // ShowBuild(Canvas);
 }
 
@@ -1268,6 +1271,28 @@ exec function BotThoughts(optional string Param1, optional string Param2)
   PlayerOwner.ClientMessage("BotThoughts written to log:" @ bExplainToLog $ ", to screen:" @ bExplainToScreen);
 }
 
+// ============================================================================
+// Get and Set functions for bShowLocation
+// ============================================================================
+
+function SetDebugShowLoc(bool bShow)  {  bShowLocation = bShow;  }
+function bool GetDebugShowLoc()       {  return bShowLocation;   }
+
+// ============================================================================
+// ShowLocation
+//
+// This will show the HUD owner's current location. Used for debugging.
+// ============================================================================
+
+function ShowLocation(Canvas Canvas)
+{
+  local String strLocName;
+
+  strLocName = PlayerOwner.PlayerReplicationInfo.GetLocationName();
+
+  Canvas.SetPos(0.0, 75.0);
+  Canvas.DrawText(strLocName);
+}
 
 // ============================================================================
 // Defaults
@@ -1341,4 +1366,6 @@ defaultproperties
   TeamSymbols[0]             = (PosX=0.442000);
   TeamSymbols[1]             = (PosX=0.558000);
   TimerIcon                  = (TextureScale=0.54,OffsetY=11);
+
+  bShowLocation = false;
 }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRulesDebug.uc,v 1.4 2004-04-11 16:37:15 mychaeel Exp $
+// $Id: JBGameRulesDebug.uc,v 1.5 2006-08-18 11:08:09 jrubzjeknf Exp $
 //
 // Implements game rules for Jailbreak for debugging purposes.
 // ============================================================================
@@ -236,6 +236,25 @@ function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objec
   return Super.CanRelease(Team, PawnInstigator, Objective);
 }
 
+// ============================================================================
+// ShowLocation
+//
+// Will show the players current location on the map. Used to debug.
+// ============================================================================
+
+function ShowLocation(PlayerController Sender)
+{
+  local bool bShowingLoc;
+
+  bShowingLoc = JBInterfaceHud(Sender.myHUD).GetDebugShowLoc();
+
+  // Determine if we are already showing the location, so we can toggle
+  // it on or off.
+  if(bShowingLoc)
+    JBInterfaceHud(Sender.myHUD).SetDebugShowLoc(false);
+  else
+    JBInterfaceHud(Sender.myHUD).SetDebugShowLoc(true);
+}
 
 // ============================================================================
 // Defaults
