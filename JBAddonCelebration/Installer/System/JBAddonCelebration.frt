@@ -33,6 +33,6 @@ CapturedSelfMessage[5]="Euh %p, tu es censé tirer sur les types de l'équipe %o, 
 NumCapturedSelfMessages=6
 TeamString[0]="rouge"
 TeamString[1]="bleue"
-FriendlyName="Ecran Célébration"
+FriendlyName="Ecran de Célébration"
 Description="Active l'écran de célébration pendant les exécutions."
 

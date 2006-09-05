@@ -32,5 +32,5 @@ Caption=Jailbreak Maps
 Description=Une série de bonnes maps Jailbreak pour votre plus grande joie ludique. (Recommandé.)
 
 [GroupKeys]
-Caption=Configuration des touches par défaut pour Jailbreak
-Description=Configure les touches pour Jailbreak: EtoileNum pour activer la Vue depuis l'Arène; PlusNum/MoinsNum pour augmenter/diminuer l'agressivité de son équipe; SlashNum pour remettre les ordres de l'équipe sur auto.
+Caption=Configuration des touches Jailbreak par défaut
+Description=Configure les touches pour Jailbreak: EtoileNum active la Vue depuis l'Arène; PlusNum/MoinsNum augmente/diminue l'agressivité de l'équipe; SlashNum remet les ordres de l'équipe sur auto.
