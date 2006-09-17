@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.48 2006-08-18 11:51:08 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.49 2006-08-19 15:52:55 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -759,7 +759,7 @@ function ExecutionEnd()
         TriggerEvent(EventExecutionEnd, Self, None);
     }
 
-    bIsFinalExecution = False; //
+    bIsFinalExecution = False;
 
     GotoState('Waiting');
   }

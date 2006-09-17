@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.130 2006-08-19 15:51:51 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.131 2006-08-30 10:09:26 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1652,8 +1652,11 @@ function ExecutionEnd()
 
   if (IsInState('Executing')) {
     firstJail = JBGameReplicationInfo(GameReplicationInfo).firstJail;
-    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+    for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail) {
+      if (thisJail.IsInState('ExecutionStarting'))
+        thisJail.GotoState('ExecutionFallback');
       thisJail.ExecutionEnd();
+    }
 
     firstJBGameRules = GetFirstJBGameRules();
     if (firstJBGameRules != None)
