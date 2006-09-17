@@ -22,7 +22,7 @@ ResetButton.Hint="Restaurer les valeurs par défaut."
 VoicePack.Caption="Annonceur"
 VoicePack.Hint="L'annonceur à utiliser dans Jailbreak."
 TestVoicePackButton.Caption="Test"
-TestVoicePackButton.Hint="Cliquez pour jouer un son au hasard du voice pack selectionné"
+TestVoicePackButton.Hint="Cliquez pour jouer un son au hazard du voice pack selectionné"
 
 [JBGUIHook]
 TextCaptionGoalScore="Limite de Captures"
@@ -109,6 +109,7 @@ TextScoresRelease="libération(s)"
 TextRelationElapsed="jouées"
 TextRelationRemaining="à jouer"
 TextRelationOvertime="prolongation"
+TextConnecting="Connexion"
 TextReady="Prêt"
 TextNotReady="Pas Prêt"
 
@@ -120,7 +121,7 @@ TextTeamReleased[1]="L'équipe bleue est libérée."
 TextTeamReleasedBy[0]="L'équipe rouge est libérée par %player%."
 TextTeamReleasedBy[1]="L'équipe bleue est libérée par %player%."
 TextTeamReleasedNobody="Cette prison est vide."
-TextTeamReleaseJammed="Cet interrupteur est bloqué."
+TextTeamReleaseJammed=""Ces interrupteurs est blockée.""
 TextTeamStalemate="Les deux équipes ont été capturées. Aucune ne marque."
 TextArenaCountdown[0]="Un combat dans l'arène va commencer...1"
 TextArenaCountdown[1]="Un combat dans l'arène va commencer...2"
@@ -139,7 +140,7 @@ TextKeyboardArenaUnbound="Tapez 'ArenaCam' dans la console pour assister au comb
 TextKeyboardCameraBound="Appuyez sur [%keyprev%] et [%keynext%] pour passer d'une caméra à l'autre"
 TextKeyboardCameraUnbound="Tapez 'PrevWeapon' et 'NextWeapon' dans la console pour passer d'une caméra à l'autre"
 TextLastMan="Vous êtes le dernier. Libérez votre équipe!"
-TextLastManCantRelease="Vous êtes le dernier. Restez en vie!"
+TextLastManCantRelease=""Vous êtes le dernier. Restez en vie!""
 
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"
@@ -150,11 +151,11 @@ TextSetup="Tapez SetupPanorama dans la console"
 TextPreview="prévisualisation uniquement, assignez une TexturePanorama"
 
 [Jailbreak]
-TextHintJailbreak=("Observez bien les marqueurs sur les boussoles: ils clignotent de plus en plus vite en fonction du nombre de joueurs pouvant être libérés.","Utilisez %PREVWEAPON% et %NEXTWEAPON% pour changer de vue lorsque vous vous servez d'une caméra de surveillance.","Vous pouvez sauter sur la tête de vos équipiers lorsqu'ils sont à genoux. Soyez attentif à tout chemin d'évasion requérant cette coopération!","Certaines prisons ont des chemins d'évasion cachés. Vous pourriez avoir besoin de vous tenir sur la tête d'un équipier agenouillé pour les atteindre.","Il peut y avoir plus d'un interrupteur pour libérer votre équipe. Plus un marqueur de boussole clignote, plus grand sera le nombre de joueurs qui seront libérés par l'interrupteur correspondant.","Parfois il vaut mieux se cacher de l'ennemi que lui accorder une capture facile.","Si vous tuez le dernier ennemi en liberté, vous pouvez railler son équipe dans l'écran de célébration pendant leur exécution.","On s'ennuie ferme en taule? Vous pouvez combattre vos équipiers pour le plaisir avec le Marteau Bouclier sans pénalité.","Certaines prisons ont des moniteurs reliés à des caméras de surveillance montrant les points stratégiques de la map. Approchez l'un d'eux pour activer la caméra.","Lorsque vous êtes en prison, vous pouvez être choisi pour vous battre dans l'arène avec un prisonnier ennemi. Remportez ce duel pour gagner votre liberté!","Lorsque quelqu'un se bat dans l'arène, appuyez sur %ARENACAM% pour y assister en direct!","Utilisez %TEAMTACTICS UP% pour augmenter et %TEAMTACTICS DOWN% pour diminuer l'agressivité globale de vos équipiers bots.","L'écran de scores Jailbreak montre où vous et vos équipiers vous trouvez sur une minicarte en panorama.","Vous pouvez voir les intentions de vos équipiers humains sur l'écran de scores Jailbreak: il montre s'ils attaquent, défendent ou vont et viennent.","Les barres rouge, jaune et verte près du nom de chaque joueur dans l'écran de scores Jailbreak montrent le nombre de frags en attaque, en défense et le nombre d'équipiers libérés.","Les marqueurs sur l'horloge dans le coin supérieur droit de l'écran de scores Jailbreak indiquent les captures des équipes.","N'essayez pas de tricher en vous reconnectant au serveur si vous êtes en prison! Vous deviendriez un lama (au sens propre) et les autres joueurs gagneraient des points bonus en vous faisant la peau.","N'attaquez pas des joueurs protégés sortant de prison. Vous pourriez virer lama!")
-TextDescriptionEnableJailFights="Permet aux coéquipiers emprisonnés de se battre entre eux au Marteau Bouclier pour le plaisir."
-TextDescriptionFavorHumansForArena="Préfère les humains aux bots pour les combats dans l'arène."
-TextWebAdminEnableJailFights="Activer les combats en prison"
-TextWebAdminFavorHumansForArena="Préférer les humains pour l'arène"
+TextHintJailbreak=("Observez bien les marqueurs sur les boussoles: ils clignotent de plus en plus vite en fonction du nombre de joueurs pouvant être libérés.","Utilisez %PREVWEAPON% et %NEXTWEAPON% pour changer de vue lorsque vous vous servez d'une caméra de surveillance.","Vous pouvez sauter sur la tête de vos équipiers lorsqu'ils sont à genoux. Soyez attentif à tout chemin d'évasion requérant cette coopération!","Certaines prisons ont des chemins d'évasion cachés. Vous pourriez avoir besoin de vous tenir sur la tête d'un équipier agenouillé pour les atteindre.","Il peut y avoir plus d'un interrupteur pour libérer votre équipe. Plus un marqueur de boussole clignote, plus grand sera le nombre de joueurs qui seront libérés par l'interrupteur correspondant.","Parfois il vaut mieux se cacher de l'ennemi que lui accorder une capture facile.","Si vous tuez le dernier ennemi en liberté, vous pouvez railler son équipe dans l'écran de célébration pendant leur exécution.","On s'ennuie ferme en taule? Vous pouvez combattre vos équipiers pour le plaisir avec le Marteau Bouclier sans pénalité.","Certaines prisons ont des moniteurs reliés à des caméras de surveillance montrant les points stratégiques de la map. Approchez l'un d'eux pour activer la caméra.","Lorsque vous êtes en prison, vous pouvez être choisi pour vous battre dans l'arène avec un prisonnier ennemi. Remportez ce duel pour gagner votre liberté!","Lorsque quelqu'un se bat dans l'arène, appuyez sur %ARENACAM% pour y assister en direct!","Utilisez %TEAMTACTICS UP% pour augmenter et %TEAMTACTICS DOWN% pour diminuer l'agressivité globale de vos équipiers bots.","L'écran de scores Jailbreak montre où vous et vos équipiers vous trouvez sur une minicarte en panorama.","Vous pouvez voir les intentions de vos équipiers humains sur l'écran de scores Jailbreak: il montre s'ils attaquent, défendent ou tout simplement se promènent.","Les barres rouge, jaune et verte près du nom de chaque joueur dans l'écran de scores Jailbreak montrent le nombre de frags en attaque, en défense et le nombre d'équipiers libérés.","Les marqueurs sur l'horloge dans le coin supérieur droit de l'écran de scores Jailbreak indiquent les captures des équipes.","N'essayez pas de tricher en vous reconnectant au serveur si vous êtes en prison! Vous deviendriez un lama (au sens propre) et les autres joueurs gagneraient des points bonus en vous faisant la peau.","N'attaquez pas des joueurs protégés sortant de prison. Vous pourriez virer lama!")
+TextDescriptionEnableJailFights="Permet aux coéquipiers emprisonnés de se battre entre eux avec leur Marteau Bouclier par pur plaisir."
+TextDescriptionFavorHumansForArena="Les humains sont preferrés aux robots pour les combats d'arène."
+TextWebAdminEnableJailFights="Activer Combats en Prison"
+TextWebAdminFavorHumansForArena="L'arène preferre les humains"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Deux équipes s'affrontent pour fragger les joueurs adverses et ainsi les envoyer dans une prison. Lorsque tous les membres d'une équipe sont emprisonnés, l'équipe adverse marque un point. Frayez-vous un passage à travers la base ennemie pour libérer vos équipiers!"

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.17 2006-08-15 16:41:40 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.18 2006-08-23 23:09:11 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -229,6 +229,7 @@ var localized string TextRelationElapsed;    // displaying elapsed time
 var localized string TextRelationRemaining;  // displaying remaining time
 var localized string TextRelationOvertime;   // displaying overtime
 
+var localized string TextConnecting;         // player is connecting
 var localized string TextReady;              // player is ready
 var localized string TextNotReady;           // player is not ready
 
@@ -1010,9 +1011,12 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
   TeamPlayerReplicationInfo = TeamPlayerReplicationInfo(TagPlayer.GetPlayerReplicationInfo());
 
   if (TeamPlayerReplicationInfo.bAdmin)
-    IsAdmin = "[Admin] ";
+    IsAdmin = "[" $ AdminText $ "] ";
 
   if (TeamPlayerReplicationInfo.bWaitingPlayer) {
+    if (!TagPlayer.bPlayerCanPlay)
+      return IsAdmin $ TextConnecting;
+
     if (!GRI.bMatchHasBegun &&
          JBGameReplicationInfo(GRI).bPlayersMustBeReady) {
       if (TeamPlayerReplicationInfo.bReadyToPlay)
@@ -1020,6 +1024,7 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
       else
         return IsAdmin $ TextNotReady;
     }
+
     return IsAdmin $ TextInfoWaiting;
   }
 
@@ -1941,8 +1946,9 @@ defaultproperties
   TextRelationRemaining = "to play";
   TextRelationOvertime  = "overtime";
 
-  TextReady    = "Ready";
-  TextNotReady = "Not Ready";
+  TextConnecting = "connecting";
+  TextReady      = "ready";
+  TextNotReady   = "not ready";
 
   Table[0] = (iTable=0,ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
   Table[1] = (iTable=1,ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));

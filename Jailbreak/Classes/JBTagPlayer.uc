@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.59 2006-08-14 20:53:15 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.60 2006-08-14 21:30:21 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -25,6 +25,7 @@ replication
     Controller,
     Health,
     bCanBeBaseForPawns,
+    bPlayerCanPlay,
     ScorePartialAttack,
     ScorePartialDefense,
     ScorePartialRelease,
@@ -109,7 +110,7 @@ var private int Health;                   // current health and armor
 var private bool bCanBeBaseForPawns;      // can be base for other players
 var private int spree;                    // used to carry sprees over rounds
 var private bool bRecoverSpree;           // recover spree after a round
-var private bool bPlayerCanPlay;          // initial spawn delay
+var bool bPlayerCanPlay;                  // initial spawn delay
 
 var private float TimeUpdateLocation;     // client-side location update time
 var private float VelocityPawn;           // replicated velocity of pawn
@@ -312,7 +313,7 @@ event Tick(float TimeDelta)
 
   Pawn = Controller.Pawn;
 
-  //
+  // Prevents the player from spawning if he's not able to control his pawn yet.
   if (!bPlayerCanPlay) {
     Controller.PlayerReplicationInfo.bReadyToPlay = False;
     PlayerController(Controller).WaitDelay = Level.TimeSeconds + 1.0;

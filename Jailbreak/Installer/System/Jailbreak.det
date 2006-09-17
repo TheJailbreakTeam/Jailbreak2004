@@ -109,6 +109,7 @@ TextScoresRelease="Befreiung"
 TextRelationElapsed="gespielt"
 TextRelationRemaining="zu spielen"
 TextRelationOvertime="Nachspiel"
+TextConnecting="Verbinden"
 TextReady="Bereit"
 TextNotReady="Nicht Bereit"
 
