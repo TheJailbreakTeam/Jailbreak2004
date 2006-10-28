@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.12 2006-09-02 03:03:27 mdavis Exp $
+// $Id: JBMutatorDebug.uc,v 1.13 2006-09-05 22:56:20 jrubzjeknf Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -129,7 +129,10 @@ function Mutate(string TextMutate, PlayerController Sender)
   else if (TextCommand ~= "Jam") {
     TextTeam = GetParam(TextMutate);
 
-    Log("Jailbreak Debugging: Jamming all jails of team" @ TextTeam);
+    if (TextTeam == "")
+      Log("Jailbreak Debugging: Jamming all jails of both teams");
+    else
+      Log("Jailbreak Debugging: Jamming all jails of team" @ TextTeam);
 
     for (thisJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail; thisJail != none; thisJail = thisJail.nextJail) {
       if (TextTeam ~= "Red"  || TextTeam == "") thisJail.Jam(0);
@@ -140,7 +143,10 @@ function Mutate(string TextMutate, PlayerController Sender)
   else if (TextCommand ~= "UnJam") {
     TextTeam = GetParam(TextMutate);
 
-    Log("Jailbreak Debugging: Unjamming all jails of team" @ TextTeam);
+    if (TextTeam == "")
+      Log("Jailbreak Debugging: Jamming all jails of both teams");
+    else
+      Log("Jailbreak Debugging: Jamming all jails of team" @ TextTeam);
 
     for (thisJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail; thisJail != none; thisJail = thisJail.nextJail) {
       if (TextTeam ~= "Red"  || TextTeam == "") thisJail.UnJam(0);

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.15 2004/05/25 12:30:05 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.16 2004-06-02 01:27:07 mychaeel Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -125,6 +125,18 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
     StopFighting(Bot, True);
 
   return False;
+}
+
+
+// ============================================================================
+// AssignCombo
+//
+// Does nothing, combos in jail aren't useful to a bot.
+// ============================================================================
+
+function AssignCombo(Bot Bot)
+{
+  // do nothing
 }
 
 

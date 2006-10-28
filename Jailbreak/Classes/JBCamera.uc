@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.35 2004/08/17 16:52:23 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.36 2004-08-19 12:05:22 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -25,7 +25,7 @@ class JBCamera extends Keypoint
 replication
 {
   reliable if (Role == ROLE_Authority)
-    Caption, Overlay, Switching, bWidescreen, FieldOfView, MotionBlur; 
+    Caption, Overlay, Switching, bWidescreen, FieldOfView, MotionBlur;
 
   reliable if (Role == ROLE_Authority)
     bHasCamManager;
@@ -72,7 +72,7 @@ struct TInfoSwitching
   var() bool bAllowManual;          // manual switching by Prev/NextWeapon
   var() bool bAllowTriggered;       // another camera triggered by TagSwitch
   var() bool bAllowTimed;           // auto-switching when view time runs out
-  
+
   var() int CamOrder;               // camera order for manual switching
   var() float Time;                 // viewing time for timed switching
   var() editconst string Tag;       // dummy pointing to the TagSwitch property
@@ -179,7 +179,7 @@ function InitCameraArray()
 simulated event SetInitialState()
 {
   Super.SetInitialState();
-  
+
   if (Role == ROLE_Authority)
     Disable('Tick');
 }
@@ -225,7 +225,7 @@ function TriggerForController(Actor ActorOther, Controller ControllerInstigator)
   if (CamManager == None) {
     CameraActivate = Self;
   }
-  
+
   else if (CamManager.FindCameraFirst() == Self) {
     if (Switching.bAllowAuto)
       CameraActivate = CamManager.FindCameraBest();
@@ -260,7 +260,7 @@ event UnTrigger(Actor ActorOther, Pawn PawnInstigator)
 function TriggerSwitch(Actor ActorOther, Pawn PawnInstigator)
 {
   local JBCamera thisCamera;
-  
+
   foreach DynamicActors(Class'JBCamera', thisCamera, Tag)
     if (thisCamera != Self &&
         thisCamera.Switching.bAllowTriggered)
@@ -279,7 +279,7 @@ function TriggerSwitch(Actor ActorOther, Pawn PawnInstigator)
 function SwitchTo(JBCamera Camera, optional bool bOverrideManual)
 {
   local int iInfoViewer;
-  
+
   for (iInfoViewer = ListInfoViewer.Length - 1; iInfoViewer >= 0; iInfoViewer--)
     if (bOverrideManual || !ListInfoViewer[iInfoViewer].bManual)
       Camera.ActivateFor(ListInfoViewer[iInfoViewer].Controller);
@@ -315,10 +315,10 @@ function SwitchToPrev(Controller Controller, optional bool bManual)
 function SwitchToNext(Controller Controller, optional bool bManual)
 {
   local JBCamera CameraNext;
-  
+
   if (CamManager == None)
     return;
-  
+
   CameraNext = CamManager.FindCameraNext(Self);
   CameraNext.ActivateFor(Controller, bManual);
 }
@@ -429,9 +429,17 @@ function bool IsViewer(Controller Controller)
 
 function bool IsViewerAllowed(Controller Controller)
 {
+  local JBTagPlayer TagPlayer;
+
   if (PlayerController(Controller) == None)
     return False;
-  
+
+  TagPlayer = class'JBTagPlayer'.static.FindFor(Controller.PlayerReplicationInfo);
+
+  if (TagPlayer != None && TagPlayer.GetJail().IsReleaseActive(Controller.PlayerReplicationInfo.Team))
+    return False;
+
+
   return True;
 }
 
@@ -470,7 +478,7 @@ function ActivateFor(Controller Controller, optional bool bManual)
 
     ListInfoViewer[iInfoViewer].Controller = ControllerPlayer;
     ListInfoViewer[iInfoViewer].bManual    = bManual;
-    
+
     ListInfoViewer[iInfoViewer].bBehindViewPrev = ControllerPlayer.bBehindView;
     ListInfoViewer[iInfoViewer].FieldOfViewPrev = ControllerPlayer.FOVAngle;
     ListInfoViewer[iInfoViewer].ViewTargetPrev  = ViewTargetPrev;
@@ -528,7 +536,7 @@ function DeactivateFor(Controller Controller)
     ControllerPlayer.SetViewTarget(ViewTargetPrev);
     ControllerPlayer.SetFOVAngle  (ListInfoViewer[iInfoViewer].FieldOfViewPrev);
     ControllerPlayer.bBehindView = ListInfoViewer[iInfoViewer].bBehindViewPrev;
-    
+
     ControllerPlayer.ClientSetViewTarget(ControllerPlayer.ViewTarget);
     ControllerPlayer.ClientSetBehindView(ControllerPlayer.bBehindView);
   }
@@ -651,14 +659,14 @@ protected simulated function UpdateLocal()
 simulated function UpdateMovement()
 {
   local float TimeDelta;
-  
+
   if (CamController == None || TimeUpdateMovement == Level.TimeSeconds)
     return;
-    
+
   if (TimeUpdateMovement > 0.0)
     TimeDelta = Level.TimeSeconds - TimeUpdateMovement;
   TimeUpdateMovement = Level.TimeSeconds;
-  
+
   CamController.UpdateMovement(TimeDelta);
 }
 
@@ -690,13 +698,13 @@ simulated event Tick(float TimeDelta)
 
   if (Level.NetMode != NM_DedicatedServer) {
     bIsActiveLocalNew = (Level.GetLocalPlayerController().ViewTarget == Self);
-  
+
     if (bIsActiveLocalNew != bIsActiveLocal)
       if (bIsActiveLocalNew)
         ActivateForLocal();
       else
         DeactivateForLocal();
-  
+
     if (bIsActiveLocal)
       UpdateLocal();
   }
@@ -845,7 +853,7 @@ simulated function CameraEffect FindCameraEffect(Class<CameraEffect> ClassCamera
 {
   local int iCameraEffect;
   local PlayerController PlayerControllerLocal;
-  
+
   PlayerControllerLocal = Level.GetLocalPlayerController();
   if (PlayerControllerLocal == None)
     return None;
@@ -871,17 +879,17 @@ simulated function RemoveCameraEffect(CameraEffect CameraEffect)
 {
   local int iCameraEffect;
   local PlayerController PlayerControllerLocal;
-  
+
   PlayerControllerLocal = Level.GetLocalPlayerController();
   if (PlayerControllerLocal == None)
     return;
 
   PlayerControllerLocal.RemoveCameraEffect(CameraEffect);
-  
+
   for (iCameraEffect = 0; iCameraEffect < PlayerControllerLocal.CameraEffects.Length; iCameraEffect++)
     if (PlayerControllerLocal.CameraEffects[iCameraEffect] == CameraEffect)
       return;
-  
+
   Level.ObjectPool.FreeObject(CameraEffect);
 }
 
