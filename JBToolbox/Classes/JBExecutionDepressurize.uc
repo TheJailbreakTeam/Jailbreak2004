@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionDepressurize
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurize.uc,v 1.4 2005-10-17 12:53:02 tarquin Exp $
+// $Id: JBExecutionDepressurize.uc,v 1.5 2006-07-18 23:01:04 jrubzjeknf Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
@@ -97,7 +97,7 @@ function Tick(float DeltaTime)
         && (FRand() < 0.03))
         DepressurizePawn.PlayDyingSound();
 
-      if(DepressurizePawn.Controller.IsA('PlayerController')) {
+      if(DepressurizePawn.Controller != None && DepressurizePawn.Controller.IsA('PlayerController')) {
         DepressurizePlayer = PlayerController(DepressurizePawn.Controller);
         FogScale = (DepressurizeToFogScale-DepressurizeStartFogScale)*ratio + DepressurizeStartFogScale;
         Fog = (DepressurizeToFog*ratio)*1000;

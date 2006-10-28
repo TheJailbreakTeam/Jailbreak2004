@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.36 2004-08-19 12:05:22 mychaeel Exp $
+// $Id: JBCamera.uc,v 1.37 2006-10-28 11:01:48 jrubzjeknf Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -436,7 +436,9 @@ function bool IsViewerAllowed(Controller Controller)
 
   TagPlayer = class'JBTagPlayer'.static.FindFor(Controller.PlayerReplicationInfo);
 
-  if (TagPlayer != None && TagPlayer.GetJail().IsReleaseActive(Controller.PlayerReplicationInfo.Team))
+  if (TagPlayer != None &&
+      TagPlayer.GetJail() != None &&
+      TagPlayer.GetJail().IsReleaseActive(Controller.PlayerReplicationInfo.Team))
     return False;
 
 
