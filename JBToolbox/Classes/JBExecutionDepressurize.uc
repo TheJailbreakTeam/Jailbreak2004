@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionDepressurize
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionDepressurize.uc,v 1.5 2006-07-18 23:01:04 jrubzjeknf Exp $
+// $Id: JBExecutionDepressurize.uc,v 1.6 2006-10-28 11:51:17 jrubzjeknf Exp $
 //
 // An depressurization execution.
 // Based on <GamePlay.PressureVolume>.
@@ -26,7 +26,7 @@ var() float DepressurizeTime;
 var() float DepressurizeToHeadScale;
 var() float DepressurizeStartFogScale;
 var() float DepressurizeToFogScale;
-var() sound DepressurizeAmbientSound;
+var() Sound DepressurizeAmbientSound;
 var() vector DepressurizeToFog;
 var float DepressurizeToFOV;
 var float TimePassed;
@@ -114,6 +114,7 @@ function Tick(float DeltaTime)
 
   if(TimePassed >= DepressurizeTime) {
     Disable('Tick');
+    AmbientSound = None;
     Enable('Trigger');
   }
 }
