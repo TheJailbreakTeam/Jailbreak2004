@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.9 2004/05/20 21:47:13 mychaeel Exp $
+// $Id: JBGameRulesProtection.uc,v 1.10 2004-05-22 22:00:49 tarquin Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -22,7 +22,7 @@ var private sound ProtectionHitSound;
 // ============================================================================
 // NotifyPlayerJailed
 //
-// give protection to a newly-jailed player, if the jail is in the process of 
+// give protection to a newly-jailed player, if the jail is in the process of
 // releasing his team
 // ============================================================================
 
@@ -229,12 +229,12 @@ function HitShieldEffect(Pawn ProtectedPawn)
 // NetDamage
 //
 // Called when a player receives damage.
-// If the damaged player is protected, the damage is nullified, but the 
-// Protection item keeps a running total of *theoretical* damage. 
-// If this passes a threshold (the default full health) then the last damager 
+// If the damaged player is protected, the damage is nullified, but the
+// Protection item keeps a running total of *theoretical* damage.
+// If this passes a threshold (the default full health) then the last damager
 // is made a llama (not totally fair, but the way it was done in JBIII).
 //
-// If the attacking player is protected, he either does no damage 
+// If the attacking player is protected, he either does no damage
 // or has protection removed, depending on config.
 // ============================================================================
 
@@ -245,16 +245,16 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
   if( IsProtected(Injured) )
   {
     MyProtection = GetMyProtection(Injured.PlayerReplicationInfo);
-      
+
     if( class'JBAddonProtection'.default.bLlamaizeCampers == True
-        && InstigatedBy != None 
+        && InstigatedBy != None
         && InstigatedBy != Injured
         && InstigatedBy.Controller != None ) {
       if( MyProtection.KeepDamageScore(Damage, Injured) ) {
         Llamaize(InstigatedBy.Controller);
       }
     }
-    
+
     HitShieldEffect(Injured);
     Momentum = vect(0,0,0);
     return 0;
@@ -289,7 +289,7 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
 function Llamaize(Controller ControllerPlayer)
 {
   local class<Actor> LlamaPendingTagClass;
-  
+
   LlamaPendingTagClass = class<Actor>(DynamicLoadObject("JBAddonLlama.JBLlamaPendingTag", class'Class'));
   if ( LlamaPendingTagClass != None )
     Spawn(LlamaPendingTagClass, ControllerPlayer);
@@ -300,26 +300,24 @@ function Llamaize(Controller ControllerPlayer)
 // CanBotAttackEnemy
 //
 // Called when a bot looks for a new enemy. Return false if: a) the enemy is
-// protected, b) the bot is protected and protection prevents damage, 
-// c) the bot is protected and protection is droppable, but the bot has 
+// protected, b) the bot is protected and protection prevents damage,
+// c) the bot is protected and protection is droppable, but the bot has
 // an inferior weapon.
 // ============================================================================
 
 function bool CanBotAttackEnemy(Bot Bot, Pawn PawnEnemy)
 {
-  local JBGameRules nextJBGameRules;
-  
-  if( IsProtected(PawnEnemy) )
+  if( PawnEnemy != None && IsProtected(PawnEnemy) )
     return False;
-  
+
   if( IsProtected(Bot.Pawn) && class'JBAddonProtection'.default.ProtectionType == 0 )
     return False;
-    
-  if( IsProtected(Bot.Pawn) 
-    && class'JBAddonProtection'.default.ProtectionType == 1 
+
+  if( IsProtected(Bot.Pawn)
+    && class'JBAddonProtection'.default.ProtectionType == 1
     && Bot.RateWeapon(Bot.Pawn.Weapon) <= Bot.RateWeapon(PawnEnemy.Weapon) )
     return False;
-  
+
   return super.CanBotAttackEnemy(Bot, PawnEnemy);
 }
 

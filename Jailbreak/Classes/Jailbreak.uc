@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.131 2006-08-30 10:09:26 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.132 2006-09-17 15:33:59 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1076,6 +1076,7 @@ function ScoreKillTaunt(Controller ControllerKiller, Controller ControllerVictim
 
   if (bAllowTaunts &&
       ControllerKiller != None &&
+      ControllerKiller.PlayerReplicationInfo != None && // don't try to taunt for sentinels.
       ControllerKiller != ControllerVictim &&
       SameTeam(ControllerKiller, ControllerVictim) &&
       ControllerKiller.AutoTaunt() &&
