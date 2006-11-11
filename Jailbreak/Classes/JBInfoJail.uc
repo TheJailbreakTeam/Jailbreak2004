@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.49 2006-08-19 15:52:55 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.50 2006-09-17 15:33:59 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -22,22 +22,25 @@ class JBInfoJail extends Info
 // Properties
 // ============================================================================
 
-var(Events) name EventExecutionInit;    // event fired when camera activated
-var(Events) name EventExecutionCommit;  // event fired when execution starts
-var(Events) name EventExecutionEnd;     // event fired when execution finished
-var(Events) name EventReleaseRed;       // event fired to release red team
-var(Events) name EventReleaseBlue;      // event fired to release blue team
+var(Events) name EventExecutionInit;     // event fired when camera activated
+var(Events) name EventExecutionCommit;   // event fired when execution starts
+var(Events) name EventExecutionEnd;      // event fired when execution finished
+var(Events) name EventReleaseRed;        // event fired to release red team
+var(Events) name EventReleaseBlue;       // event fired to release blue team
 var(Events) name EventFinalExecutionInit;   // only fired when it's the final execution
 var(Events) name EventFinalExecutionCommit; // only fired when it's the final execution
 var(Events) name EventFinalExecutionEnd;    // only fired when it's the final execution
 
-var() float ExecutionDelayCommit;       // delay between camera and execution
-var() float ExecutionDelayFallback;     // delay between execution and gibbing
+var() float ExecutionDelayCommit;        // delay between camera and execution
+var() float ExecutionDelayFallback;      // delay between execution and gibbing
 var() float FinalExecutionDelayCommit;   // delay between camera and execution
 var() float FinalExecutionDelayFallback; // delay between execution and gibbing
 
-var() name TagAttachVolumes;            // tag of attached volumes
-var() name TagAttachZones;              // tag of attached zones
+var() byte Priority;                     // prisoners will spawn in the jail with the lowest priority
+var() byte PrisonerLimit;                // prisoners won't be spawned in jails where the limit is reached
+
+var() name TagAttachVolumes;             // tag of attached volumes
+var() name TagAttachZones;               // tag of attached zones
 
 
 // ============================================================================
@@ -323,7 +326,7 @@ function bool ContainsActor(Actor Actor)
   if (Actor == None)
     return False;
 
-  if (TagAttachZones == 'Auto') {
+  if (TagAttachZones == 'auto') {
     if (Actor.Region.ZoneNumber == Region.ZoneNumber)
       return True;
   }
@@ -337,6 +340,22 @@ function bool ContainsActor(Actor Actor)
       return True;
 
   return False;
+}
+
+
+// ============================================================================
+// RateJail
+//
+// Called by Jailbreak.RatePlayerStart() to determine which playerstart in what
+// jail should be used to spawn the player. Jails with a lower priority are
+// preferred over those with a higher one.
+// ============================================================================
+
+function int RateJail() {
+  if (PrisonerLimit > 0 && PrisonerLimit <= CountPlayersTotal()) // full!
+    return -30000000;
+
+  return 10000000/(Priority+1);
 }
 
 
@@ -467,7 +486,7 @@ function Release(TeamInfo Team, optional Controller ControllerInstigator)
 // getting team kills when a jail door crushes a teammate.
 // ============================================================================
 
-function TriggerEventRelease(name Event, Actor ActorSender, Pawn PawnInstigator)
+function TriggerEventRelease(name event, Actor ActorSender, Pawn PawnInstigator)
 {
   local Actor thisActor;
   local NavigationPoint thisNavigationPoint;

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.132 2006-09-17 15:33:59 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.133 2006-11-04 09:55:10 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -767,21 +767,32 @@ function NavigationPoint FindPlayerStart(Controller Controller, optional byte iT
 // RatePlayerStart
 //
 // Returns a negative value for all starts that are inappropriate for the
-// given player's scheduled respawn area.
+// given player's scheduled respawn area. Take Priority in account for jails.
 // ============================================================================
 
 function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Controller Controller)
 {
-  if (TagPlayerRestart == None)
-    if (ContainsActorJail (NavigationPoint) ||
-        ContainsActorArena(NavigationPoint))
-           return -20000000;  // prefer spawn-fragging over jail or arena
-      else return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+  local JBInfoJail Jail;
+  local bool bContainedInJail;
 
-  if (TagPlayerRestart.IsStartValid(NavigationPoint))
+  bContainedInJail = ContainsActorJail(NavigationPoint, Jail);
+
+  if (TagPlayerRestart == None)
+    if (bContainedInJail || ContainsActorArena(NavigationPoint))
+      return -20000000;  // prefer spawn-fragging over jail or arena
+  else
+    return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+
+  if (TagPlayerRestart.IsStartValid(NavigationPoint)) {
     if (TagPlayerRestart.IsStartPreferred(NavigationPoint))
-           return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + 10000000;
-      else return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+      return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + 10000000;
+
+    // Prefer jails with a lower priority above those with a higher one.
+    if (Jail != None)
+      return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + Jail.RateJail();
+
+    return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+  }
 
   return -20000000;  // prefer spawn-fragging over inappropriate start spots
 }
