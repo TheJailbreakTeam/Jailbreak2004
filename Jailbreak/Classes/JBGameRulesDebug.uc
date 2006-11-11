@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGameRulesDebug.uc,v 1.5 2006-08-18 11:08:09 jrubzjeknf Exp $
+// $Id: JBGameRulesDebug.uc,v 1.6 2006-09-02 03:03:27 mdavis Exp $
 //
 // Implements game rules for Jailbreak for debugging purposes.
 // ============================================================================
@@ -75,19 +75,18 @@ function ExecSetSwitch(int iTeam, bool bIsReleaseEnabled)
 // given, all players are affected.
 // ============================================================================
 
-function ExecCanBeJailed(string TextName, bool bCanBeJailed)
+function ExecCanBeJailed(string TextName, bool bCanBeJailed, optional string TextTeam)
 {
   local int iController;
+  local int TeamIndex;
   local Controller thisController;
   local Controller ControllerPlayer;
 
   if (TextName == "") {
     ListControllerDisabledJail.Length = 0;
 
-    if (bCanBeJailed) {
+    if (bCanBeJailed)
       Log("Jailbreak Debugging: All players can be jailed");
-    }
-
     else {
       for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
         if (thisController.bIsPlayer)
@@ -95,33 +94,58 @@ function ExecCanBeJailed(string TextName, bool bCanBeJailed)
 
       Log("Jailbreak Debugging: No players can be jailed");
     }
+
+    return;
   }
 
-  else {
+  if (TextName ~= "Team" && (TextTeam ~= "Red" || TextTeam ~= "Blue")) {
+    if (TextTeam ~= "Red")  TeamIndex = 0;
+    if (TextTeam ~= "Blue") TeamIndex = 1;
+
+    if (bCanBeJailed) {
+      for (iController = 0; iController < ListControllerDisabledJail.Length; iController++)
+        if (ListControllerDisabledJail[iController] != None &&
+            ListControllerDisabledJail[iController].GetTeamNum() == TeamIndex)
+          ListControllerDisabledJail.Remove(iController, 1);
+
+      Log("Jailbreak Debugging: Team '" $ TextTeam $ "' can be jailed");
+    } else {
+      for (thisController = Level.ControllerList; thisController != None; thisController = thisController.NextController)
+        if (thisController.GetTeamNum() == TeamIndex)
+          ListControllerDisabledJail[ListControllerDisabledJail.Length] = thisController;
+
+      Log("Jailbreak Debugging: Team '" $ TextTeam $ "' cannot be jailed");
+    }
+
+    return;
+  } else
     ControllerPlayer = FindPlayer(TextName);
 
-    if (ControllerPlayer == None) {
-      Log("Jailbreak Debugging: Unable to find player named '" $ TextName $ "'");
-    }
+  if (ControllerPlayer == None) {
+    Log("Jailbreak Debugging: Unable to find player named '" $ TextName $ "'");
 
-    else {
-      for (iController = 0; iController < ListControllerDisabledJail.Length; iController++)
-        if (ListControllerDisabledJail[iController] == ControllerPlayer)
-          break;
-
-      if (bCanBeJailed) {
-        Log("Jailbreak Debugging: Player '" $ ControllerPlayer.PlayerReplicationInfo.PlayerName $ "' can be jailed");
-        if (iController < ListControllerDisabledJail.Length)
-          ListControllerDisabledJail.Remove(iController, 1);
-      }
-
-      else {
-        Log("Jailbreak Debugging: Player '" $ ControllerPlayer.PlayerReplicationInfo.PlayerName $ "' cannot be jailed");
-        if (iController >= ListControllerDisabledJail.Length)
-          ListControllerDisabledJail[ListControllerDisabledJail.Length] = ControllerPlayer;
-      }
-    }
+    return;
   }
+
+
+  for (iController = 0; iController < ListControllerDisabledJail.Length; iController++)
+    if (ListControllerDisabledJail[iController] == ControllerPlayer)
+      break;
+
+  if (bCanBeJailed) {
+    Log("Jailbreak Debugging: Player '" $ ControllerPlayer.PlayerReplicationInfo.PlayerName $ "' can be jailed");
+
+    if (iController < ListControllerDisabledJail.Length)
+      ListControllerDisabledJail.Remove(iController, 1);
+
+    return;
+  }
+
+  Log("Jailbreak Debugging: Player '" $ ControllerPlayer.PlayerReplicationInfo.PlayerName $ "' cannot be jailed");
+
+  if (iController >= ListControllerDisabledJail.Length)
+    ListControllerDisabledJail[ListControllerDisabledJail.Length] = ControllerPlayer;
+
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutatorDebug
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBMutatorDebug.uc,v 1.13 2006-09-05 22:56:20 jrubzjeknf Exp $
+// $Id: JBMutatorDebug.uc,v 1.14 2006-10-28 11:01:48 jrubzjeknf Exp $
 //
 // Provides helper functions for debugging Jailbreak maps and code.
 // ============================================================================
@@ -66,7 +66,7 @@ event PostBeginPlay()
 //
 //   UnJam Red|Blue                UnJams the jails of the given team.
 //
-//   CanBeJailed On|Off [<name>|Me]
+//   CanBeJailed On|Off [<name>|Me|Team Red|Team Blue]
 //                                 Sets whether the given player will be sent
 //                                 to jail after being killed or not. If no
 //                                 name is specified, affects all players.
@@ -158,10 +158,14 @@ function Mutate(string TextMutate, PlayerController Sender)
     TextFlag = GetParam(TextMutate);
     TextName = GetParam(TextMutate);
 
-    if( TextName ~= "Me" )
+    if (TextName ~= "Me")
       TextName = Sender.PlayerReplicationInfo.PlayerName;
 
-    JBGameRulesDebug.ExecCanBeJailed(TextName, TextFlag ~= "On");
+    if (TextName ~= "Team") {
+      TextTeam = GetParam(TextMutate);
+    }
+
+    JBGameRulesDebug.ExecCanBeJailed(TextName, TextFlag ~= "On", TextTeam);
   }
 
   else if (TextCommand ~= "Release") {
