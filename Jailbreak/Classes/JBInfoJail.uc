@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.50 2006-09-17 15:33:59 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.51 2006-11-11 16:27:52 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -1119,9 +1119,10 @@ auto state Waiting {
 state ExecutionStarting {
 
   Begin:
-    if (Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[0].Score) ||
-        Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[1].Score) ||
-        Level.Game.bOverTime) {
+    if (Level.Game.bOverTime ||
+        Level.Game.GameReplicationInfo.GoalScore > 0 &&
+         (Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[0].Score) ||
+          Level.Game.GameReplicationInfo.GoalScore == int(Level.Game.GameReplicationInfo.Teams[1].Score))) {
       bIsFinalExecution = True;
     }
 
