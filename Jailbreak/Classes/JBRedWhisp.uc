@@ -1,10 +1,12 @@
 // ============================================================================
 // JBRedWhisp
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id
+// $Id$
 //
 // Supports nostalgia mode.
 // ============================================================================
+
+
 class JBRedWhisp extends RedWhisp;
 
 
@@ -13,6 +15,7 @@ class JBRedWhisp extends RedWhisp;
 //
 // Determines the color of the whisp, depending on the defenderindex and
 // ============================================================================
+
 simulated function PostNetBeginPlay()
 {
   if (Class'Jailbreak'.Default.bReverseSwitchColors) {
