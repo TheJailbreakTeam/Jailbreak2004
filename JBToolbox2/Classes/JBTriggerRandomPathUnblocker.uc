@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTriggerRandomPathUnblocker
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id
+// $Id$
 //
 // When triggered, it makes all BlockedPaths in the given array block, except
 // for one, which is picked randomly.
