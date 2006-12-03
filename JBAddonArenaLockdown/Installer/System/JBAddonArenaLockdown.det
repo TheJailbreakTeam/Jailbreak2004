@@ -1,0 +1,20 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonArenaLockdown.JBAddonArenaLockdown)
+
+[JBAddonArenaLockdown]
+CrossBaseSpawningText="Zufälliges Starten in einer Basis"
+CrossBaseSpawningDesc="Spieler können zufällig in der gegnerischen Basis starten, um das Campen in einer Basis zu verhindern."
+SelectionMethodText="Auswahlmethode"
+SelectionMethodDesc="Wähle wie die Arenakämpfer aus dem Gefängniss gewählt werden."
+SelectionMethodOptions="0;Der Reihe nach;1;Zufällig"
+FriendlyName="Arena vor Inhaftierung"
+Description="Deine Teammitglieder können nur durch das Gewinnen eines Arenakampfes befreit werden!"
+
+[JBGUIPanelConfigArenaLockdown]
+str_FIFO="Der Reihe nach"
+str_Random="Zufällig"
+CrossBaseSpawningCheckBox.Caption="Zufälliges Starten in einer Basis"
+CrossBaseSpawningCheckBox.Hint="Spieler können zufällig in der gegnerischen Basis starten, um das Campen in einer Basis zu verhindern."
+SelectionMethodComboBox.Caption="Auswahlmethode"
+SelectionMethodComboBox.Hint="Wähle wie die Arenakämpfer aus dem Gefängniss gewählt werden."
+
