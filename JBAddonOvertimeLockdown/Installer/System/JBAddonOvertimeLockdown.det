@@ -1,0 +1,38 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonOvertimeLockdown.JBAddonOvertimeLockdown)
+
+[JBAddonOvertimeLockdown]
+NoArenaInOvertimeText="Keine Arenakämpfe während der Verlängerung"
+NoArenaInOvertimeDesc="Es gibt keine Arenakämpfe mehr während der Verlängerung. Beginnende Kämpfe werden abgebrochen."
+NoEscapeInOvertimeText="Keine Flucht während der Verlängerung"
+NoEscapeInOvertimeDesc="Jeder Spieler, der während der Inhaftierung eine Flucht versucht, wird getötet."
+RestartPlayersText="Erneutes Starten der Spieler bei Verlängerung"
+RestartPlayersDesc="Setzt alle Spieler, ob frei oder gefangen, neu ins Spiel bei Verlängerung."
+RestartPlayersOptions="0;Niemand;1;Freie Spieler;2;Alle Spieler"
+LockdownDelayText="Zeitspanne vor Inhaftierung"
+LockdownDelayDesc="Dauer der Verlängerung, bevor die Inhaftierung beginnt."
+FriendlyName="Verlängerung vor Inhaftierung"
+Description="Wenn das Spiel in Verlängerung geht, können die Schlösser deaktiviert werden und niemand kann mehr frei gelassen werden. Letzte Chance für den Sieg!"
+
+[JBGUIPanelConfigOvertimeLockdown]
+str_RestartAllPlayers="Alle Spieler"
+str_RestartOnlyFreePlayers="Freie Spieler"
+str_DoNotRestart="Niemand"
+LockdownDelayTrackBar.Caption="Zeitspanne vor Inhaftierung"
+LockdownDelayTrackBar.Hint="Dauer der Verlängerung, bevor die Inhaftierung beginnt."
+NoArenaInOvertimeCheckBox.Caption="Keine Arenakämpfe während der Verlängerung"
+NoArenaInOvertimeCheckBox.Hint="Es gibt keine Arenakämpfe mehr während der Verlängerung. Beginnende Kämpfe werden abgebrochen."
+NoEscapeInOvertimeCheckBox.Caption="Keine Flucht während der Verlängerung"
+NoEscapeInOvertimeCheckBox.Hint="Jeder Spieler, der während der Inhaftierung eine Flucht versucht, wird getötet."
+RestartPlayersComboBox.Caption="Erneutes Starten der Spieler bei Verlängerung"
+RestartPlayersComboBox.Hint="Setzt alle Spieler, ob frei oder gefangen, neu ins Spiel bei Verlängerung."
+
+[JBLocalMessageOvertimeLockdown]
+TextOvertimeLockdown="Schlösser deaktiviert - Letzte Chance für den Sieg!"
+TextLockdownCountdown="Inhaftierung in %time%."
+TextTeleport="Bereite dich vor, teleportiert zu werden!"
+TextLockdownStarts="Inhaftierung beginnt in %time% %minute%."
+TextNoEscaping="Keine Flucht während der Inhaftierung!"
+TextMinute="Minute"
+TextMinutes="Minuten"
+
