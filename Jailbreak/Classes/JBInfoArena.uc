@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.50 2006-07-18 23:56:14 jrubzjeknf Exp $
+// $Id: JBInfoArena.uc,v 1.51 2006-08-15 19:27:15 jrubzjeknf Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -551,7 +551,7 @@ function MatchCancel()
     TriggerEvent(EventTied, Self, None);
 
     if (Level.Game.IsInState('MatchInProgress'))
-      BroadcastLocalizedMessage(MessageClass, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+      Jailbreak(Level.Game).BroadcastLocalizedMessage(MessageClass, 410, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
 
     GotoState('Waiting');
   }
@@ -584,7 +584,7 @@ function bool MatchStart()
       Prepare();
 
       TriggerEvent(EventStart, Self, None);
-      BroadcastLocalizedMessage(MessageClass, 400, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+      Jailbreak(Level.Game).BroadcastLocalizedMessage(MessageClass, 400, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
       GotoState('MatchRunning');
 
       return True;
@@ -656,7 +656,7 @@ function MatchTie()
       firstJBGameRules.NotifyArenaEnd(Self, None);
 
     TriggerEvent(EventTied, Self, None);
-    BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+    Jailbreak(Level.Game).BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, self);
     GotoState('Waiting');
   }
 
@@ -689,12 +689,12 @@ function MatchFinish()
       switch (ControllerWinner.PlayerReplicationInfo.Team.TeamIndex) {
         case 0:
           TriggerEvent(EventWonRed, Self, ControllerWinner.Pawn);
-          BroadcastLocalizedMessage(MessageClass, 430, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+          Jailbreak(Level.Game).BroadcastLocalizedMessage(MessageClass, 430, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
           break;
 
         case 1:
           TriggerEvent(EventWonBlue, Self, ControllerWinner.Pawn);
-          BroadcastLocalizedMessage(MessageClass, 430, PlayerReplicationInfoBlue, PlayerReplicationInfoRed, Self);
+          Jailbreak(Level.Game).BroadcastLocalizedMessage(MessageClass, 430, PlayerReplicationInfoBlue, PlayerReplicationInfoRed, Self);
           break;
       }
 
@@ -709,7 +709,7 @@ function MatchFinish()
     }
     else {
       TriggerEvent(EventTied, Self, None);
-      BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
+      Jailbreak(Level.Game).BroadcastLocalizedMessage(MessageClass, 420, PlayerReplicationInfoRed, PlayerReplicationInfoBlue, Self);
     }
 
     firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;

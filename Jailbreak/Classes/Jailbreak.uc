@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.134 2006-11-11 16:27:52 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.135 2006-12-08 00:59:46 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -2197,7 +2197,7 @@ defaultproperties
   bEnableSpectatorDeathCam = True;
   bFavorHumansForArena     = False;
   bJailNewcomers           = False;
-  bDisallowEscaping        = True;
+  bDisallowEscaping        = False;
 
   bEnableWebScoreboard     = True;
   bEnableWebAdminExtension = True;
