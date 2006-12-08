@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $id$
+// $Id$
 //
 // Used instead of normal overtime announcement.
 // ============================================================================

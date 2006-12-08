@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageArenaLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id
+// $Id$
 //
 // Addon's GUI.
 // ============================================================================

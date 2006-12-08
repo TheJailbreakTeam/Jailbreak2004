@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonArenaLockdown
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id
+// $Id$
 //
 // The only way to release your teammates is by winning the arena match!
 // ============================================================================
