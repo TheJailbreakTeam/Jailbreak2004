@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.133 2006-11-04 09:55:10 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.134 2006-11-11 16:27:52 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -28,6 +28,8 @@ var config bool bEnableJailFights;
 var config bool bEnableScreens;
 var config bool bEnableSpectatorDeathCam;
 var config bool bFavorHumansForArena;
+var config bool bJailNewcomers;
+var config bool bDisallowEscaping;
 var config bool bReverseSwitchColors;
 
 var config bool bEnableWebScoreboard;
@@ -47,6 +49,10 @@ var localized string TextDescriptionEnableJailFights;
 var localized string TextDescriptionFavorHumansForArena;
 var localized string TextWebAdminEnableJailFights;
 var localized string TextWebAdminFavorHumansForArena;
+var localized string TextDescriptionJailNewcomers;
+var localized string TextDescriptionDisallowEscaping;
+var localized string TextWebAdminJailNewcomers;
+var localized string TextWebAdminDisallowEscaping;
 var localized string TextWebAdminPrefixAddon;
 
 
@@ -90,6 +96,8 @@ event InitGame(string Options, out string Error)
   local string OptionAddon;
   local string OptionJailFights;
   local string OptionFavorHumansForArena;
+  local string OptionJailNewcomers;
+  local string OptionDisallowEscaping;
   local string NameAddon;
   local WebServer thisWebServer;
 
@@ -118,6 +126,14 @@ event InitGame(string Options, out string Error)
   OptionFavorHumansForArena = ParseOption(Options, "FavorHumansForArena");
   if (OptionFavorHumansForArena != "")
     bFavorHumansForArena = bool(OptionFavorHumansForArena);
+
+  OptionJailNewcomers = ParseOption(Options, "JailNewcomers");
+  if (OptionJailNewcomers != "")
+    bJailNewcomers = bool(OptionJailNewcomers);
+
+  OptionDisallowEscaping = ParseOption(Options, "DisallowEscaping");
+  if (OptionDisallowEscaping != "")
+    bDisallowEscaping = bool(OptionDisallowEscaping);
 
   bForceRespawn    = True;
   bTeamScoreRounds = False;
@@ -232,7 +248,9 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   Super.FillPlayInfo(PlayInfo);
 
   PlayInfo.AddSetting(Default.GameGroup, "bEnableJailFights",    Default.TextWebAdminEnableJailFights,    0, 60, "Check");
-  PlayInfo.AddSetting(Default.GameGroup, "bFavorHumansForArena", Default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
+  PlayInfo.AddSetting(default.GameGroup, "bFavorHumansForArena", default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
+  PlayInfo.AddSetting(default.GameGroup, "bJailNewcomers",       default.TextWebAdminJailNewcomers,       0, 60, "Check");
+  PlayInfo.AddSetting(default.GameGroup, "bDisallowEscaping",    default.TextWebAdminDisallowEscaping,       0, 60, "Check");
 }
 
 
@@ -249,6 +267,8 @@ static event string GetDescriptionText(string Property)
 
   if (Property ~= "bEnableJailFights")    return Default.TextDescriptionEnableJailFights;
   if (Property ~= "bFavorHumansForArena") return Default.TextDescriptionFavorHumansForArena;
+  if (Property ~= "bJailNewcomers")       return default.TextDescriptionJailNewcomers;
+  if (Property ~= "bDisallowEscaping")    return default.TextDescriptionDisallowEscaping;
 
   return Super.GetDescriptionText(Property);
 }
@@ -756,8 +776,8 @@ function JBGameRules GetFirstJBGameRules()
 function NavigationPoint FindPlayerStart(Controller Controller, optional byte iTeam, optional string Teleporter)
 {
   if (Controller == None)
-         TagPlayerRestart = None;
-    else TagPlayerRestart = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
+       TagPlayerRestart = None;
+  else TagPlayerRestart = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
 
   return Super.FindPlayerStart(Controller, iTeam, Teleporter);
 }
@@ -1956,7 +1976,7 @@ state MatchInProgress {
     if (TagPlayer.TimeRestart > Level.TimeSeconds)
       return;
 
-    Global.RestartPlayer(Controller);
+    global.RestartPlayer(Controller);
 
     if (TagPlayer != None)
       TagPlayer.NotifyRestarted();
@@ -2160,6 +2180,11 @@ defaultproperties
   TextDescriptionFavorHumansForArena = "Always selects human players over bots for arena fights.";
   TextWebAdminEnableJailFights       = "Allow Jail Fights";
   TextWebAdminFavorHumansForArena    = "Favor Humans For Arena";
+  TextDescriptionJailNewcomers       = "New players who join during the game will be jailed.";
+  TextDescriptionDisallowEscaping    = "Disallow players from leaving jail without being released or entering the arena.";
+  TextWebAdminJailNewcomers          = "Jail Newcomers";
+  TextWebAdminDisallowEscaping       = "Disallow Escaping";
+
   TextWebAdminPrefixAddon            = "Jailbreak:";
 
   WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard";
@@ -2171,6 +2196,8 @@ defaultproperties
   bEnableScreens           = True;
   bEnableSpectatorDeathCam = True;
   bFavorHumansForArena     = False;
+  bJailNewcomers           = False;
+  bDisallowEscaping        = True;
 
   bEnableWebScoreboard     = True;
   bEnableWebAdminExtension = True;

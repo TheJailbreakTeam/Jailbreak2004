@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.19 2006-08-15 19:27:15 jrubzjeknf Exp $
+// $Id: JBLocalMessage.uc,v 1.20 2006-08-18 11:08:10 jrubzjeknf Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -29,6 +29,7 @@
 //   610 (L)   Last man (repeat)
 //   611 (L)   Last man (repeat, canr release)
 //   700 (B)   Last second save
+//   800       Disallowed Escape
 //   900 (B)   Game started
 //   910 (B)   Game overtime
 //   920 (B)   Game over                                              TeamInfo
@@ -83,6 +84,8 @@ var localized string TextKeyboardCameraUnbound;
 
 var localized string TextLastMan;
 var localized string TextLastManCantRelease;
+
+var localized string TextDisallowedEscape;
 
 
 // ============================================================================
@@ -180,6 +183,7 @@ static function ClientReceive(PlayerController PlayerController,
     case 600:  PlaySpeech(PlayerController, "$LastMan");          break;
     case 601:  PlaySpeech(PlayerController, "$LastMan");          break;
     case 700:  PlaySpeech(PlayerController, "$LastSecondSave");   break;
+//    case 800:
     case 900:  PlaySpeech(PlayerController, "$GameStart");        break;
     case 910:  PlaySpeech(PlayerController, "$GameOvertime");     break;
     case 920:  PlaySpeech(PlayerController, "$GameOverWinnerRed", "$GameOverWinnerBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
@@ -388,6 +392,7 @@ static function string GetString(optional int Switch,
     case 601:  return Default.TextLastManCantRelease;
     case 610:  return Default.TextLastMan;
     case 611:  return Default.TextLastManCantRelease;
+    case 800:  return Default.TextDisallowedEscape;
   }
 }
 
@@ -431,6 +436,8 @@ defaultproperties
 
   TextLastMan               = "You are the last free player. Release your team!";
   TextLastManCantRelease    = "You are the last free player. Stay alive!";
+
+  TextDisallowedEscape      = "You're not allowed to escape from jail!";
 
   ClassLocalMessageScreen   = Class'JBLocalMessageScreen';
   ClassLocalMessageConsole  = Class'JBLocalMessageConsole';

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.60 2006-08-14 21:30:21 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.61 2006-09-17 15:25:52 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -355,7 +355,7 @@ event Tick(float TimeDelta)
     // As the player has now restarted, make sure that the next game-induced
     // restart sends him to a random starting spot in jail.
 
-    Restart    = Default.Restart;
+    Restart    = default.Restart;
     TagRestart = Default.TagRestart;
   }
 }
@@ -706,8 +706,9 @@ function NotifyJailEntered()
 // NotifyJailLeft
 //
 // Called when the player left the jail for an arena or for freedom. Resets
-// all arena-related information and scores points for the releaser. Gives
-// back a translocator to the player if it is enabled in the game.
+// all arena-related information and scores points for the releaser. Checks if
+// the player is allowed to leave the jail. Gives back a translocator to the
+// player if it is enabled in the game.
 // ============================================================================
 
 function NotifyJailLeft(JBInfoJail JailPrev)
@@ -726,6 +727,16 @@ function NotifyJailLeft(JBInfoJail JailPrev)
   if (IsInArena())
     return;
 
+  // Prevent leaving jail.
+  if (Jailbreak(Level.Game).bDisallowEscaping &&
+     !Jailbreak(Level.Game).IsInState('Executing') &&
+     !JailPrev.IsReleaseMoverOpen(GetTeam()) &&
+      Restart != Restart_Freedom) {
+    Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClass, 800);
+    RestartInJail();
+    return;
+  }
+
   firstArena = JBGameReplicationInfo(GetGameReplicationInfo()).firstArena;
   for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
     thisArena.ExcludeRemove(Controller);
@@ -739,13 +750,13 @@ function NotifyJailLeft(JBInfoJail JailPrev)
     TimeRelease = JailPrev.GetReleaseTime(GetTeam());
   }
 
-  JailPrev.NotifyJailLeft(Self);
-
   if (DeathMatch(Level.Game).bAllowTrans && Controller.Pawn != None)
     Controller.Pawn.CreateInventory("XWeapons.TransLauncher");
 
   JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
   JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
+
+  JailPrev.NotifyJailLeft(Self);
 }
 
 
@@ -895,8 +906,13 @@ private function ERestart GetRestart()
   CacheGetRestart.Result = Restart;
   CacheGetRestart.Time = Level.TimeSeconds;
 
-  if (Controller.PreviousPawnClass == None && !bIsLlama)
-    CacheGetRestart.Result = Restart_Freedom;  // initial world spawn
+  // Initial world spawn.
+  if (Controller.PreviousPawnClass == None &&
+      !bIsLlama &&
+      !(Jailbreak(Level.Game).bJailNewcomers &&
+        Level.Game.GameReplicationInfo.bMatchHasBegun &&
+        PlayerController(Controller) != None))
+    CacheGetRestart.Result = Restart_Freedom;
 
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (Restart == Restart_Jail &&
@@ -1348,6 +1364,7 @@ simulated function GameObjective GetObjectiveGuessed() {
 defaultproperties
 {
   Restart = Restart_Jail;
+  MessageClass = class'JBLocalMessage';
 
   RemoteRole = ROLE_SimulatedProxy;
 }
