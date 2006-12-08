@@ -73,7 +73,7 @@ function LoadINISettings()
 
 function SaveINISettings(GUIComponent Sender)
 {
-  if ( !bInitialized )
+  if (!bInitialized)
     return;
 
   class'JBAddonOvertimeLockdown'.default.bNoArenaInOvertime  = ch_NoArenaInOvertime.IsChecked();
@@ -117,7 +117,7 @@ defaultproperties
       WinLeft  =0.000000
       WinWidth =1.000000
       WinHeight=0.100000
-    TabOrder=2
+    TabOrder=0
     OnChange=SaveINISettings
   End Object
   ch_NoArenaInOvertime=moCheckBox'JBaddonOvertimeLockdown.JBGUIPanelConfigOvertimeLockdown.NoArenaInOvertimeCheckBox'
@@ -130,7 +130,7 @@ defaultproperties
       WinLeft  =0.000000
       WinWidth =1.000000
       WinHeight=0.100000
-    TabOrder=2
+    TabOrder=1
     OnChange=SaveINISettings
   End Object
   ch_NoEscapeInOvertime=moCheckBox'JBaddonOvertimeLockdown.JBGUIPanelConfigOvertimeLockdown.NoEscapeInOvertimeCheckBox'
@@ -144,7 +144,7 @@ defaultproperties
       WinLeft  =0.000000
       WinWidth =1.000000
       WinHeight=0.100000
-    TabOrder=1
+    TabOrder=2
     OnChange=SaveINISettings
   End Object
   co_RestartPlayers=moComboBox'JBaddonOvertimeLockdown.JBGUIPanelConfigOvertimeLockdown.RestartPlayersComboBox'
@@ -157,6 +157,7 @@ defaultproperties
       WinLeft  =0.000000
       WinWidth =1.000000
       WinHeight=0.100000
+    TabOrder=3
     SliderWidth =0.34;
     EditBoxWidth=0.18;
     MinValue=0

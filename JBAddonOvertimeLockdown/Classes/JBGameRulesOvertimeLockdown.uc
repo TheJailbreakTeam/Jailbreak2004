@@ -17,7 +17,7 @@ class JBGameRulesOvertimeLockdown extends JBGameRules;
 
 var bool bNoArenaInOvertime;
 var bool bNoEscapeInOvertime;
-var byte RestartPlayers; // 0=dont, 1=free, 2=everybody
+var byte RestartPlayers; // 0=don't, 1=free, 2=everybody
 var byte LockdownDelay;  // in minutes
 
 var class<JBLocalMessageOvertimeLockdown> MessageClassOvertimeLockdown;
@@ -36,7 +36,7 @@ function bool CanBroadcast(class<LocalMessage> MessageClass, optional int switch
   // When overtime start.
   if (switch == 910) {
     if (LockdownDelay == 0)
-      GotoState('Lockdown');
+      GotoState('InitiateLockdown');
     else
       GotoState('WaitAndCountdown');
   }
@@ -73,7 +73,7 @@ state WaitAndCountdown {
   // ================================================================
   // Timer
   //
-  // Count down the last 10 seconds. Broadcast the countdown.
+  // Broadcast a countdown.
   // ================================================================
 
   function Timer()
@@ -90,7 +90,7 @@ state WaitAndCountdown {
       // Done with countdown.
       if (Countdown == 0) {
         SetTimer(0, False);
-        GotoState('Lockdown');
+        GotoState('InitiateLockdown');
         return;
       }
 
@@ -101,18 +101,18 @@ state WaitAndCountdown {
 
 
 // ============================================================================
-// state Lockdown
+// state InitiateLockdown
 //
-// Lockdown has started.
+// Lockdown has been initiated.
 // ============================================================================
 
-state Lockdown {
+state InitiateLockdown {
 
   // ================================================================
   // BeginState
   //
-  // Jam the locks, cancel any ongoing arena match, restart players
-  // and notify the players of the lockdown.
+  // Jam the locks, cancel any ongoing arena match, restart players,
+  // prevent escapes and notify the players of the lockdown.
   // ================================================================
 
   event BeginState()
@@ -130,10 +130,12 @@ state Lockdown {
     }
 
     // Cancel ongoing arena matches.
-    firstArena = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstArena;
-    for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
-      if (thisArena.IsInState('MatchRunning'))
-        thisArena.MatchTie();
+    if (RestartPlayers == 2 || bNoArenaInOvertime) {
+      firstArena = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstArena;
+      for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
+        if (thisArena.IsInState('MatchRunning'))
+          thisArena.MatchTie();
+    }
 
     // Restart players.
     switch (RestartPlayers) {
@@ -141,7 +143,13 @@ state Lockdown {
       case 2: Jailbreak(Level.Game).RestartAll();         break; // restart all
     }
 
+    // Prevent players from being able to escape jail.
+    if (bNoEscapeInOvertime)
+      Jailbreak(Level.Game).bDisallowEscaping = True;
+
     Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown,,,,Self);
+
+    GotoState('Lockdown');
   }
 
 
@@ -149,17 +157,27 @@ state Lockdown {
   // CanBroadcast
   //
   // Prevent a message from popping up when an arena match is
-  // cancelled during the lockdown.
+  // cancelled when the lockdown kicks in.
   // ================================================================
 
   function bool CanBroadcast(class<LocalMessage> MessageClass, optional int switch, optional PlayerReplicationInfo RelatedPRI_1, optional PlayerReplicationInfo RelatedPRI_2, optional Object OptionalObject)
   {
+    // Arenamatch tie.
     if (switch == 410 || switch == 420)
-      return False; // arenamatch tie - caused by this addon when Lockdown starts
+      return False;
 
     return Super.CanBroadcast(MessageClass, switch, RelatedPRI_1, RelatedPRI_2, OptionalObject);
   }
+} // state InitiateLockdown
 
+
+// ============================================================================
+// state Lockdown
+//
+// Lockdown has started.
+// ============================================================================
+
+state Lockdown {
 
   // ================================================================
   // CanSendToArena
@@ -186,25 +204,6 @@ state Lockdown {
   function bool AllowForcedRelease(JBInfoJail Jail, TeamInfo Team, optional Controller ControllerInstigator)
   {
     return False;
-  }
-
-
-  // ================================================================
-  // NotifyPlayerReleased
-  //
-  // Prevent escaping during Lockdown if the release wasn't already
-  // active when it started.
-  // ================================================================
-
-  function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
-  {
-    if (!Jail.IsReleaseMoverOpen(TagPlayer.GetTeam()) &&
-        !Jailbreak(Level.Game).IsInState('Executing')) {
-      Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown, -2); // play message
-      TagPlayer.RestartInJail();
-    }
-
-    Super.NotifyPlayerReleased(TagPlayer, Jail);
   }
 }
 

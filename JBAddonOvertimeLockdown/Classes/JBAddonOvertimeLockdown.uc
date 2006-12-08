@@ -58,9 +58,11 @@ function PostBeginPlay()
     else
       Level.Game.GameRulesModifiers.AddGameRules(OvertimeLockdownRules);
 
-    OvertimeLockdownRules.bNoArenaInOvertime = bNoArenaInOvertime;
-    OvertimeLockdownRules.RestartPlayers     = RestartPlayers;
-    OvertimeLockdownRules.LockdownDelay      = LockdownDelay;
+    // Copy variables to Gamerules.
+    OvertimeLockdownRules.bNoArenaInOvertime  = bNoArenaInOvertime;
+    OvertimeLockdownRules.bNoEscapeInOvertime = bNoEscapeInOvertime;
+    OvertimeLockdownRules.RestartPlayers      = RestartPlayers;
+    OvertimeLockdownRules.LockdownDelay       = LockdownDelay;
   }
   else {
     LOG("!!!!!"@name$".PostBeginPlay() : Fail to register the JBGameRulesOvertimeLockdown !!!!!");
@@ -127,7 +129,7 @@ defaultproperties
   bNoArenaInOvertime  = True
   bNoEscapeInOvertime = True
   RestartPlayers      = 1
-  LockdownDelay       = 5
+  LockdownDelay       = 3
 
   Build = "%%%%-%%-%% %%:%%";
   FriendlyName = "Overtime Lockdown"
