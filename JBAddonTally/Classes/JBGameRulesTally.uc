@@ -28,14 +28,14 @@ function ScoreKill(Controller ControllerKiller, Controller ControllerVictim)
 {
   local JBTagPlayer TagPlayerKiller;
   local JBTagPlayer TagPlayerVictim;
-  
+
   Super.ScoreKill(ControllerKiller, ControllerVictim);
-  
+
   if (ControllerKiller == None ||
       ControllerVictim == None ||
       ControllerKiller == ControllerVictim)
     return;
-  
+
   TagPlayerKiller = Class'JBTagPlayer'.Static.FindFor(ControllerKiller.PlayerReplicationInfo);
   TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
 

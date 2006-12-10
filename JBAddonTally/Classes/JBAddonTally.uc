@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.9 2006-07-15 21:36:45 mychaeel Exp $
+// $Id$
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBAddonTally extends JBAddon
 replication
 {
   reliable if (Role == ROLE_Authority)
-    nEntries, Entries, Players;
+    nEntries, Entries, Players, bGameEnded;
 }
 
 
@@ -36,7 +36,7 @@ struct TPlayer
 struct TEntry
 {
   var byte iPlayer;               // reference into players array
-  
+
   var int nKills;                 // number of kills  in jail fights
   var int nDeaths;                // number of deaths in jail fights
 };
@@ -66,6 +66,8 @@ var float TimeFade;               // last fade-in update
 var HudBase.SpriteWidget SpriteWidgetEntry;
 var HudBase.SpriteWidget SpriteWidgetBackground;
 
+var bool bGameEnded;
+
 
 // ============================================================================
 // PostBeginPlay
@@ -77,10 +79,25 @@ event PostBeginPlay()
 {
   local JBGameRulesTally GameRulesTally;
 
-  GameRulesTally = Spawn(Class'JBGameRulesTally');
+  GameRulesTally = Spawn(class'JBGameRulesTally');
   GameRulesTally.Addon = Self;
-  
+
   Level.Game.AddGameModifier(GameRulesTally);
+
+  // Get notified when the game ends.
+  Tag = 'EndGame';
+}
+
+
+// ============================================================================
+// Trigger
+//
+// Called when the game ends.
+// ============================================================================
+
+event Trigger(Actor Other, Pawn EventInstigator)
+{
+  bGameEnded = True;
 }
 
 
@@ -94,7 +111,7 @@ function AddToTally(JBTagPlayer TagPlayerKiller, JBTagPlayer TagPlayerVictim)
 {
   local int iEntryKiller;
   local int iEntryVictim;
-  
+
   iEntryKiller = FindOrCreateEntryFor(TagPlayerKiller);
   Entries[iEntryKiller].nKills += 1;
 
@@ -126,11 +143,11 @@ function AddToTally(JBTagPlayer TagPlayerKiller, JBTagPlayer TagPlayerVictim)
 function int FindOrCreateEntryFor(JBTagPlayer TagPlayer)
 {
   local int iEntry;
-  
+
   for (iEntry = 0; iEntry < nEntries; ++iEntry)
     if (Players[Entries[iEntry].iPlayer].TagPlayer == TagPlayer)
       return iEntry;
-  
+
   iEntry = nEntries++;
 
   if (nEntriesFade > 0.0 &&
@@ -157,7 +174,7 @@ function int FindOrCreateEntryFor(JBTagPlayer TagPlayer)
 function SwapEntries(int iEntry1, int iEntry2)
 {
   local TEntry EntryTemp;
-  
+
   EntryTemp        = Entries[iEntry1];
   Entries[iEntry1] = Entries[iEntry2];
   Entries[iEntry2] = EntryTemp;
@@ -204,32 +221,32 @@ simulated function RenderOverlays(Canvas Canvas)
   if (TagPlayerLocal == None)
     TagPlayerLocal = Class'JBTagPlayer'.Static.FindFor(PlayerControllerLocal.PlayerReplicationInfo);
 
-  if (TagPlayerLocal.IsInJail())
-         nEntriesFade = FMin(nEntries, nEntriesFade + (Level.TimeSeconds - TimeFade) * 4.0);
-    else nEntriesFade = FMax(0.0,      nEntriesFade - (Level.TimeSeconds - TimeFade) * 4.0);
+  if (TagPlayerLocal.IsInJail() || bGameEnded)
+       nEntriesFade = FMin(nEntries, nEntriesFade + (Level.TimeSeconds - TimeFade) * 4.0);
+  else nEntriesFade = FMax(0.0,      nEntriesFade - (Level.TimeSeconds - TimeFade) * 4.0);
 
   TimeFade = Level.TimeSeconds;
-  
+
   if (nEntriesFade > 0.0) {
     Canvas.Style = ERenderStyle.STY_Alpha;
     Canvas.Font = PlayerControllerLocal.myHUD.ScoreBoard.GetSmallFontFor(Canvas.ClipX, 0);
 
     Canvas.TextSize(" +00",  SizeScoreDelta     .X, SizeScoreDelta     .Y);
     Canvas.TextSize(" 100%", SizeScoreEfficiency.X, SizeScoreEfficiency.Y);
-  
+
     SizeBackground.X = SpriteWidgetBackground.TextureScale * (SpriteWidgetBackground.TextureCoords.X2 - SpriteWidgetBackground.TextureCoords.X1) * (Canvas.SizeX / 640);
     SizeBackground.Y = SizeScoreDelta.Y * 1.2;
-  
+
     SizeEntry.Y = SizeScoreDelta.Y * 1.4;
-  
+
     LocationCurrentEntry.X = SpriteWidgetEntry.PosX * Canvas.SizeX;
     LocationCurrentEntry.Y = SpriteWidgetEntry.PosY * Canvas.SizeY;
-  
+
     LocationCurrentBackground.X = SpriteWidgetBackground.PosX * Canvas.SizeX;
     LocationCurrentBackground.Y = SpriteWidgetBackground.PosY * Canvas.SizeY;
-  
+
     iTeam = PlayerControllerLocal.PlayerReplicationInfo.Team.TeamIndex;
-  
+
     for (iEntry = 0; iEntry < nEntries; ++iEntry) {
       EntryCurrent  = Entries[iEntry];
       PlayerCurrent = Players[EntryCurrent.iPlayer];
@@ -248,11 +265,11 @@ simulated function RenderOverlays(Canvas Canvas)
         else Offset = Canvas.ClipX * 0.5 * (1.0 - FMax(0.0, nEntriesFade - iEntry));
 
       Canvas.DrawColor = SpriteWidgetBackground.Tints[iTeam];
-  
+
       Canvas.SetPos(
         LocationCurrentBackground.X - SizeBackground.X + Offset,
         LocationCurrentBackground.Y);
-  
+
       Canvas.DrawTile(
         SpriteWidgetBackground.WidgetTexture,
         SizeBackground.X,
@@ -261,7 +278,7 @@ simulated function RenderOverlays(Canvas Canvas)
         SpriteWidgetBackground.TextureCoords.Y1,
         SpriteWidgetBackground.TextureCoords.X2 - SpriteWidgetBackground.TextureCoords.X1,
         SpriteWidgetBackground.TextureCoords.Y2 - SpriteWidgetBackground.TextureCoords.Y2);
-  
+
       Canvas.DrawColor = SpriteWidgetEntry.Tints[iTeam];
 
            if (EntryCurrent.nDeaths < EntryCurrent.nKills) ScoreDelta = "+" $ (EntryCurrent.nKills  - EntryCurrent.nDeaths);
@@ -276,7 +293,7 @@ simulated function RenderOverlays(Canvas Canvas)
                                                        DrawTextRightAligned(Canvas, ScoreEfficiency,    LocationCurrentText.X, LocationCurrentText.Y);
       LocationCurrentText.X -= SizeScoreEfficiency.X;  DrawTextRightAligned(Canvas, ScoreDelta,         LocationCurrentText.X, LocationCurrentText.Y);
       LocationCurrentText.X -= SizeScoreDelta     .X;  DrawTextRightAligned(Canvas, PlayerCurrent.Name, LocationCurrentText.X, LocationCurrentText.Y);
-  
+
       LocationCurrentEntry     .Y += SizeEntry.Y;
       LocationCurrentBackground.Y += SizeEntry.Y;
     }
@@ -293,7 +310,7 @@ simulated function RenderOverlays(Canvas Canvas)
 simulated function DrawTextRightAligned(Canvas Canvas, coerce String Text, float X, float Y)
 {
   local Vector SizeText;
-  
+
   Canvas.TextSize(Text, SizeText.X, SizeText.Y);
   Canvas.SetPos(X - SizeText.X, Y);
   Canvas.DrawTextClipped(Text);
@@ -311,7 +328,7 @@ auto simulated state Startup
 {
   Begin:
     Sleep(0.0001);
-    
+
     PlayerControllerLocal = Level.GetLocalPlayerController();
     if (PlayerControllerLocal != None)
       JBInterfaceHud(PlayerControllerLocal.myHud).RegisterOverlay(Self);
@@ -325,15 +342,14 @@ auto simulated state Startup
 
 defaultproperties
 {
-  Build                  = "%%%%-%%-%% %%:%%"
+  Build="%%%%-%%-%% %%:%%"
 
-  FriendlyName           = "Jail Fight Tally"
-  Description            = "Maintains and displays a score tally for jail fights."
+  SpriteWidgetEntry      = (PosX=0.970000,PosY=0.105000,Tints[0]=(B=255,G=255,R=255,A=192),Tints[1]=(B=255,G=255,R=255,A=192))
+  SpriteWidgetBackground = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.530000,PosX=1.000000,PosY=0.100000,Tints[0]=(A=255),Tints[1]=(A=255))
 
-  SpriteWidgetEntry      = (PosX=0.970,PosY=0.105,Tints[0]=(R=255,G=255,B=255,A=192),Tints[1]=(R=255,G=255,B=255,A=192));
-  SpriteWidgetBackground = (PosX=1.000,PosY=0.100,Tints[0]=(R=000,G=000,B=000,A=255),Tints[1]=(R=000,G=000,B=000,A=255),WidgetTexture=Texture'HudContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.53)
+  FriendlyName = "Jail Fight Tally"
+  Description  = "Maintains and displays a score tally for jail fights."
 
-  RemoteRole             = ROLE_SimulatedProxy
-  bAlwaysRelevant        = True
-  bIsOverlay             = False  // buggy in SP2
+  bAlwaysRelevant = True
+  RemoteRole = ROLE_SimulatedProxy
 }
