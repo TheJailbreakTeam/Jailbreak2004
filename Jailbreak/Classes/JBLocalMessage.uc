@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.20 2006-08-18 11:08:10 jrubzjeknf Exp $
+// $Id: JBLocalMessage.uc,v 1.21 2006-12-08 00:59:46 jrubzjeknf Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -43,6 +43,8 @@
 class JBLocalMessage extends LocalMessage
   notplaceable;
 
+
+#exec OBJ LOAD FILE=MenuSounds.uax
 
 // ============================================================================
 // Localization
@@ -183,7 +185,10 @@ static function ClientReceive(PlayerController PlayerController,
     case 600:  PlaySpeech(PlayerController, "$LastMan");          break;
     case 601:  PlaySpeech(PlayerController, "$LastMan");          break;
     case 700:  PlaySpeech(PlayerController, "$LastSecondSave");   break;
-//    case 800:
+
+    case 800:  PlayerController.ClientPlaySound(Sound'MenuSounds.Denied1');
+               PlayerController.PlayRewardAnnouncement('Denied',1, true); break;
+
     case 900:  PlaySpeech(PlayerController, "$GameStart");        break;
     case 910:  PlaySpeech(PlayerController, "$GameOvertime");     break;
     case 920:  PlaySpeech(PlayerController, "$GameOverWinnerRed", "$GameOverWinnerBlue", TeamInfo(ObjectOptional).TeamIndex);  break;
