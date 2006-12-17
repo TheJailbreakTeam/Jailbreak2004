@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonCelebration.JBAddonCelebration)
+
 [JBAddonCelebration]
 CapturedOtherMessage[0]="%p hat den letzten Verlierer in Team %t geschnappt."
 CapturedOtherMessage[1]="%p hat den Schalter für Team %t umgelegt."

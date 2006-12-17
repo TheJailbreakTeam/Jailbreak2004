@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonCelebration.JBAddonCelebration)
+
 [JBAddonCelebration]
 CapturedOtherMessage[0]="%p a capturé le dernier clampin de l'équipe %t."
 CapturedOtherMessage[1]="%p vient de balancer le jus pour l'équipe %t."

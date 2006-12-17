@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonLlama.JBAddonLlama)
+
 [JBAddonLlama]
 RewardAdrenalineText="Adrenalin-Gewinn beim Töten eines Lamas"
 RewardAdrenalineDesc="Spieler, die ein Lama töten, erhalten diese Menge an Adrenalin."

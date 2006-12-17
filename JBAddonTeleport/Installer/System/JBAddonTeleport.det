@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonTeleport.JBAddonTeleport)
+
 [JBAddonTeleport]
 FriendlyName="Freilasser teleportieren"
 Description="Wenn ein Spieler seine Teamgefährten freilässt, wird er oder sie in die eigene Basis zurückteleportiert."

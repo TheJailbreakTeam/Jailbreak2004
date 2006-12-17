@@ -1,2 +1,32 @@
 [Public]
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonAvenger.JBAddonAvenger)
+
+[JBAddonAvenger]
+PowerTimeMultiplierText="Avenger time multiplier"
+PowerTimeMultiplierDesc="Percentage to multiply arena remaining time by to give avenger time."
+PowerTimeMaximumText="Maximum avenger time"
+PowerTimeMaximumDesc="Maximum avenger time allowable."
+PowerComboIndexText="Avenger power"
+PowerComboIndexDesc="Combo awarded to the avenger."
+PowerComboIndexOptions="0;Speed;1;Berserk;2;Booster;3;Invisible;4;Random"
+FriendlyName="Arena Avenger"
+Description="The arena winner is mad... he's out to get his revenge on those who imprisoned him with the help of a power-up!"
+
+[JBGUIPanelConfigAvenger]
+SecondsText="seconds"
+ComboBoxText[0]="Speed"
+ComboBoxText[1]="Berserk"
+ComboBoxText[2]="Booster"
+ComboBoxText[3]="Invisible"
+ComboBoxText[4]="Random"
+BerserkTimeMaxEditSlider.Caption="Maximum avenger time"
+BerserkTimeMaxEditSlider.Hint="Maximum seconds of avenger time."
+BerserkTimeMultiplierEditSlider.Caption="Avenger time multiplier"
+BerserkTimeMultiplierEditSlider.Hint="Percentage of remaining arena time."
+PowerUpTypeComboBox.Caption="Avenger power"
+PowerUpTypeComboBox.Hint="The power-up the arena winner gets."
+
+[JBLocalMessageAvenger]
+PreAvengerMessage="You are an Avenger for"
+PostAvengerMessage="seconds!"
+

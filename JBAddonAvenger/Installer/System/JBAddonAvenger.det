@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonAvenger.JBAddonAvenger)
+
 [JBAddonAvenger]
 PowerTimeMultiplierText="Rächer-Zeitmultiplikator"
 PowerTimeMultiplierDesc="Prozentsatz der verbleibenden Zeit in der Arena, in der Rache geübt werden kann."
@@ -15,6 +18,7 @@ ComboBoxText[0]="Tempo"
 ComboBoxText[1]="Berserk"
 ComboBoxtText[2]="Booster"
 ComboBoxText[3]="Unsichtbar"
+ComboBoxText[4]="Zufällig"
 BerserkTimeMaxEditSlider.Caption="Maximale Rächer-Zeit"
 BerserkTimeMaxEditSlider.Hint="Maximal erlaubte Zeit für einen Rächer."
 BerserkTimeMultiplierEditSlider.Caption="Rächer-Zeitmultiplikator"

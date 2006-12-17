@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonAvenger.JBAddonAvenger)
+
 [JBAddonAvenger]
 PowerTimeMultiplierText="Multiplicateur temps Vengeur"
 PowerTimeMultiplierDesc="Pourcentage de multiplication du temps restant dans l'arène pour la durée Vengeur."
@@ -15,6 +18,7 @@ ComboBoxText[0]="Vitesse"
 ComboBoxText[1]="Berserk"
 ComboBoxText[2]="Booster"
 ComboBoxText[3]="Invisible"
+ComboBoxText[4]="Au hasard"
 BerserkTimeMaxEditSlider.Caption="Temps maximum Vengeur"
 BerserkTimeMaxEditSlider.Hint="Maximum de secondes en Vengeur."
 BerserkTimeMultiplierEditSlider.Caption="Multiplicateur temps Vengeur"

@@ -1,2 +1,27 @@
 [Public]
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonProtection.JBAddonProtection)
+
+[JBAddonProtection]
+caption_ProtectionType="Protection type"
+caption_ProtectionTime="Protection time"
+caption_ProtectArenaWinner="Protect the arena winner"
+caption_LlamaizeCampers="Make jail campers llamas"
+desc_ProtectionType="Whether your weapons do no damage while you are protected or protection is removed when you hit a player."
+desc_ProtectionTime="Duration of protection in seconds."
+desc_ProtectArenaWinner="When enabled, the arena winner gains protection."
+desc_LlamaizeCampers="When enabled, players causing lethal damage to protected players are made llamas."
+options_ProtectionType="0;You can't inflict damage;1;Drop when you inflict damage"
+FriendlyName="Release Protection"
+Description="Players released from jail are protected from enemy fire."
+
+[JBGUIPanelConfigProtection]
+LlamaizeCampersCheckBox.Caption="Make jail campers llamas"
+LlamaizeCampersCheckBox.Hint="Causing a protectee lethal damage makes you a llama."
+OptionsProtectionType.OptionText=("You can't inflict damage","Drop when you inflict damage")
+OptionsProtectionType.OptionHint=("Your weapons do no damage while protected.","Protection is removed when you hit a player.")
+OptionsProtectionType.GroupCaption="Protection type:"
+ProtectArenaWinnerCheckBox.Caption="Protect the arena winner"
+ProtectArenaWinnerCheckBox.Hint="Players released from arenas get protection."
+TrackbarProtectionTime.Caption="Protection time"
+TrackbarProtectionTime.Hint="Duration of protection in seconds."
+

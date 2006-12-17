@@ -1,2 +1,7 @@
 [Public]
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonTeleport.JBAddonTeleport)
+
+[JBAddonTeleport]
+FriendlyName="Teleport Releaser"
+Description="When a player releases his team, the releaser is teleported back to his or her base."
+

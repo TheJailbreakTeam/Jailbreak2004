@@ -1,3 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonProtection.JBAddonProtection)
+
 [JBAddonProtection]
 caption_ProtectionType="Type de protection"
 caption_ProtectionTime="Durée de la protection"
