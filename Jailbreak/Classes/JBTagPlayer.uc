@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.61 2006-09-17 15:25:52 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.62 2006-12-08 00:59:46 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -730,7 +730,7 @@ function NotifyJailLeft(JBInfoJail JailPrev)
   // Prevent leaving jail.
   if (Jailbreak(Level.Game).bDisallowEscaping &&
      !Jailbreak(Level.Game).IsInState('Executing') &&
-     !JailPrev.IsReleaseMoverOpen(GetTeam()) &&
+      JailPrev.IsReleaseMoverClosed(GetTeam()) &&
       Restart != Restart_Freedom) {
     Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClass, 800);
     RestartInJail();
