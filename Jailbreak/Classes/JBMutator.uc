@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutator
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBMutator.uc,v 1.1 2006-12-20 17:11:24 jrubzjeknf Exp $
 //
 // Jailbreak's base mutator.
 // ============================================================================
@@ -28,28 +28,13 @@ var array<String> VariableNames;
 
 function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
 {
-  if (ASVehicleFactory(Other) != None && ReplaceClass(Other.Class)) {
+  if (ASVehicleFactory(Other) != None &&
+      Mid(Other, InStr(Level, ".")+1, 37) ~= "ASVehicleFactory_SentinelCeiling_Proj") {
     ReplaceSentinelFactory(Other);
     return False;
   }
 
   return True;
-}
-
-
-// ============================================================================
-// ReplaceClass
-//
-// Checks if this is the sentinel factory's class we want to replace.
-// ============================================================================
-
-function bool ReplaceClass(coerce String ClassName)
-{
-  local array<String> Names;
-
-  Split(ClassName, ".", Names);
-
-  return (Names.Length > 0) && (Names[Names.Length-1] ~= "ASVehicleFactory_SentinelCeiling_Proj");
 }
 
 
