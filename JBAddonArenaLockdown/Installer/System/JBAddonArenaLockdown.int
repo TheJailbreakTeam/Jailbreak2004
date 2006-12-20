@@ -13,7 +13,7 @@ Description="The only way to release your teammates is by winning the arena matc
 [JBGUIPanelConfigArenaLockdown]
 str_FIFO="Queue"
 str_Random="Random"
-CrossBaseSpawningCheckBox.Caption="Allow cross-base spawning"
+CrossBaseSpawningCheckBox.Caption="Random base spawning"
 CrossBaseSpawningCheckBox.Hint="Players can be spawned in their enemy's base, so that basecamping is discouraged."
 SelectionMethodComboBox.Caption="Selection method"
 SelectionMethodComboBox.Hint="Choose how the arena players will be picked from their jail."

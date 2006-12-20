@@ -1,2 +1,7 @@
 [Public]
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonTally.JBAddonTally)
+
+[JBAddonTally]
+FriendlyName="Jail Fight Tally"
+Description="Maintains and displays a score tally for jail fights."
+
