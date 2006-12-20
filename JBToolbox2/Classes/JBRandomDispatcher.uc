@@ -1,9 +1,9 @@
 // ============================================================================
 // JBRandomDispatcher
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBRandomDispatcher.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
 //
-// An icy spirit.
+// Triggers a random event.
 // ============================================================================
 
 
