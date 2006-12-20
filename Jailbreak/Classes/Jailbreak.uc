@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.135 2006-12-08 00:59:46 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.136 2006-12-08 11:49:15 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -102,6 +102,8 @@ event InitGame(string Options, out string Error)
   local WebServer thisWebServer;
 
   Super.InitGame(Options, Error);
+
+  AddMutator(MutatorClass);
 
   if (HasOption(Options, "Addon"))
          OptionAddon = ParseOption(Options, "Addon");
@@ -2219,10 +2221,12 @@ defaultproperties
   TeamAIType[0]            = Class'JBBotTeam';
   TeamAIType[1]            = Class'JBBotTeam';
 
-  PathWhisps[0]="Jailbreak.JBRedWhisp"
-  PathWhisps[1]="Jailbreak.JBBlueWhisp"
+  PathWhisps[0] = "Jailbreak.JBRedWhisp"
+  PathWhisps[1] = "Jailbreak.JBBlueWhisp"
 
   bSpawnInTeamArea = True;
   bScoreTeamKills  = False;
   bAllowVehicles   = True;
+
+  MutatorClass = "Jailbreak.JBMutator"
 }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSentinelCeilingFactory
 // Copyright 2004 by Blitz
-// $Id$
+// $Id: JBSentinelCeilingFactory.uc,v 1.1 2006-12-16 19:39:37 jrubzjeknf Exp $
 //
 // The factory that produces the sentinel hanging from the ceiling.
 // ============================================================================
@@ -185,6 +185,7 @@ function Timer()
 
 defaultproperties
 {
+  bNoDelete             = False
   bSleepWhenDisabled    = True
   bEnabled              = False
   ProjectileSpawnOffset = (X=110.000000,Z=-14.000000)
