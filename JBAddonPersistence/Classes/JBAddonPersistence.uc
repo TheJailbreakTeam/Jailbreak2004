@@ -6,26 +6,34 @@
 // round.
 // ============================================================================
 
+
 class JBAddonPersistence extends JBAddon
-      CacheExempt;
+  CacheExempt;
+
 
 // ============================================================================
 // Variables
 // ============================================================================
+
+var() const editconst string Build;
 var() config bool bUprising;
 var() config int nHealth;
+
 
 //=============================================================================
 // Localization
 //=============================================================================
+
 var localized string UprisingText, UprisingDesc;
 var localized string HealthTransferText, HealthTransferDesc;
+
 
 // ============================================================================
 // PostBeginPlay
 //
 // Register the new rules to the current map.
 // ============================================================================
+
 function PostBeginPlay()
 {
   local JBGameRulesPersistence PersistentRules;
@@ -46,11 +54,13 @@ function PostBeginPlay()
   }
 }
 
+
 //=============================================================================
 // FillPlayInfo
 //
 // Adds configurable Avenger properties to the web admin interface.
 //=============================================================================
+
 static function FillPlayInfo(PlayInfo PlayInfo)
 {
   //add current class to stack
@@ -64,11 +74,13 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.PopClass();
 }
 
+
 //=============================================================================
 // GetDescriptionText
 //
 // Returns a description text for the specified property.
 //=============================================================================
+
 static event string GetDescriptionText(string PropName)
 {
   switch(PropName)
@@ -77,6 +89,11 @@ static event string GetDescriptionText(string PropName)
     case "nHealth": return default.HealthTransferDesc;
   }
 }
+
+
+//=============================================================================
+// Default properties
+//=============================================================================
 
 defaultproperties
 {
@@ -90,6 +107,7 @@ defaultproperties
   HealthTransferText="Health Transfer"
   HealthTransferDesc="Give a percentage of health from the capturing players to the captured players."
 
+  Build="%%%%-%%-%% %%:%%"
   FriendlyName="Persistence"
   Description="The winning team will be able to keep their weapons and other attributes upon the start of a new round."
 }
