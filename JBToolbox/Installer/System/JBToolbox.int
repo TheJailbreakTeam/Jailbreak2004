@@ -1,0 +1,10 @@
+[JBDamageTypeIncinerated]
+DeathString="%o was incinerated."
+FemaleSuicide="%o was incinerated."
+MaleSuicide="%o was incinerated."
+
+[JBDamageTypeSkeletize]
+DeathString="%o was skeletized."
+FemaleSuicide="%o was skeletized."
+MaleSuicide="%o was skeletized."
+
