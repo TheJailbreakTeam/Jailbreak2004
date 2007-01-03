@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.18 2006-08-23 23:09:11 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.19 2006-09-17 15:25:52 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -456,7 +456,8 @@ simulated function DrawSpectators(Canvas Canvas)
   for (i = 0; i < GRI.PRIArray.Length; i++) {
     PRI = GRI.PRIArray[i];
     if (PRI != None &&
-        PRI.bOnlySpectator)
+        PRI.bOnlySpectator &&
+        xPlayerReplicationInfo(PRI) != None)
       SpectatorArray[SpectatorArray.Length] = PRI.GetHumanReadableName();
   }
 
