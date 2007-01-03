@@ -1,0 +1,6 @@
+[JBAction_IfMorePrisoners]
+ActionString="If more prisoners"
+
+[JBSentinelWeapon]
+ItemName="Sentinel weapon"
+

@@ -1,0 +1,25 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonSpoils.JBAddonSpoils)
+
+[JBAddonSpoils]
+WeaponComboText="Rächerwaffe"
+WeaponComboDesc="Die Waffe des Rächers."
+MaxAmmoText="Maximale Munition"
+MaxAmmoCheckDesc="Munition der Rächerwaffe erhöhen."
+CanThrowText="Waffe wegwerfen erlauben"
+CanThrowCheckDesc="Erlauben, dass der Rächer die Waffe verliert oder fallen lässt, wenn er stirbt."
+FriendlyName="Arena verfällt"
+Description="Belohnt den Sieger eines Arena-Matches mit einer Waffe, um sie gegen die zu verwenden, die ihn gefangen genommen haben!"haben!"
+French	"Récompense le vainqueur d'un Combat dans l'Arène par une arme à retourner contre ceux qui l'ont emprisonné!"
+
+[JBGUIPanelConfigSpoils]
+CheckBoxCanThrow.Caption="Waffe wegwerfen erlauben"
+CheckBoxCanThrow.Hint="Erlauben, dass der Rächer die Waffe verliert oder fallen lässt, wenn er stirbt."
+CheckBoxMaxAmmo.Caption="Maximale Munition"
+CheckBoxMaxAmmo.Hint="Munition der Rächerwaffe erhöhen."
+WeaponTypeComboBox.Caption="Rächerwaffe"
+WeaponTypeComboBox.Hint="Die Waffe des Rächers."
+
+[JBLocalMessageSpoils]
+PreSpoilsMessage="Sie wurden ausgezeichnet mit"
+

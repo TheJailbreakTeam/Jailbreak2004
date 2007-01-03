@@ -141,6 +141,7 @@ TextKeyboardCameraBound="Drücken Sie [%keyprev%] und [%keynext%], um Kameras zu 
 TextKeyboardCameraUnbound="Geben Sie 'PrevWeapon' und 'NextWeapon' in der Konsole ein, um Kameras zu wechseln"
 TextLastMan="Nur Sie sind noch frei. Befreien Sie Ihr Team!"
 TextLastManCantRelease="Nur Sie sind noch frei. Bleiben Sie am Leben!"
+TextDisallowedEscape="Es ist verboten aus dem Gefängnis zu flüchten!"
 
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"
@@ -156,6 +157,10 @@ TextDescriptionEnableJailFights="Erlaubt Gefangenen, zum Spaß mit ihren Shield G
 TextDescriptionFavorHumansForArena="Zieht menschliche Spieler bei der Auswahl für einen Arena-Kampf vor."
 TextWebAdminEnableJailFights="Gefängniskämpfe erlauben"
 TextWebAdminFavorHumansForArena="Menschen für Arena vorziehen"
+TextDescriptionJailNewcomers="Neue Spieler, die während des Spiels beitreten werden festgenommen."
+TextDescriptionDisallowEscaping="Verbietet Spielern das Gefängnis zu verlassen, ohne dass sie freigelassen wurden oder in der Arena waren."
+TextWebAdminJailNewcomers="Neue Gefangene"
+TextWebAdminDisallowEscaping="Verhindert das Flüchten"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Zwei Teams versuchen, die gegnerischen Spieler ins Gefängnis zu bringen, indem sie sie töten. Wenn alle Spieler eines Teams gefangen sind, erhält das andere Team einen Punkt. Kämpfen Sie ihren Weg in die gegnerische Basis, um Ihre Teamgefährten freizulassen!"

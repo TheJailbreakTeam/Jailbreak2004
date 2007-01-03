@@ -1,3 +1,8 @@
+[JBDamageTypeIncinerated]
+DeathString="%o wurde eingeäschert."
+FemaleSuicide="%o wurde eingeäschert."
+MaleSuicide="%o wurde eingeäschert."
+
 [JBDamageTypeSkeletize]
 DeathString="%o wurde skeletiert."
 FemaleSuicide="%o wurde skeletiert."

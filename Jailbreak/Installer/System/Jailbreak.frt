@@ -141,6 +141,7 @@ TextKeyboardCameraBound="Appuyez sur [%keyprev%] et [%keynext%] pour passer d'un
 TextKeyboardCameraUnbound="Tapez 'PrevWeapon' et 'NextWeapon' dans la console pour passer d'une caméra à l'autre"
 TextLastMan="Vous êtes le dernier. Libérez votre équipe!"
 TextLastManCantRelease=""Vous êtes le dernier. Restez en vie!""
+TextDisallowedEscape="Vous ne pouvez vous échapper de prison!"
 
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"
@@ -156,6 +157,10 @@ TextDescriptionEnableJailFights="Permet aux coéquipiers emprisonnés de se battre
 TextDescriptionFavorHumansForArena="Les humains sont preferrés aux robots pour les combats d'arène."
 TextWebAdminEnableJailFights="Activer Combats en Prison"
 TextWebAdminFavorHumansForArena="L'arène preferre les humains"
+TextDescriptionJailNewcomers="Les joueurs rejoignant la partie en cours seront emprisonnés."
+TextDescriptionDisallowEscaping="Empêche les joueurs de sortir de prison sans avoir été libérés ou sans être envoyés dans l'arène."
+TextWebAdminJailNewcomers="Nouveaux détenus"
+TextWebAdminDisallowEscaping="Empêche les évasions"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Deux équipes s'affrontent pour fragger les joueurs adverses et ainsi les envoyer dans une prison. Lorsque tous les membres d'une équipe sont emprisonnés, l'équipe adverse marque un point. Frayez-vous un passage à travers la base ennemie pour libérer vos équipiers!"

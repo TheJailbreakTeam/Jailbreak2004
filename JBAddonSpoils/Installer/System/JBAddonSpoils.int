@@ -1,0 +1,24 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonSpoils.JBAddonSpoils)
+
+[JBAddonSpoils]
+WeaponComboText="Avenger weapon"
+WeaponComboDesc="The weapon which is awarded to the avenger."
+MaxAmmoText="Max out ammo"
+MaxAmmoCheckDesc="Maximize the ammunition of the Avenger's weapon."
+CanThrowText="Allow weapon drop"
+CanThrowCheckDesc="Allow the weapon to be thrown by the Avenger or dropped when he dies."
+FriendlyName="Arena Spoils"
+Description="Rewards the winner of an Arena Match with a weapon to use against those who imprisioned him!"
+
+[JBGUIPanelConfigSpoils]
+CheckBoxCanThrow.Caption="Allow weapon drop"
+CheckBoxCanThrow.Hint="Allow the weapon to be thrown by the Avenger or dropped when he dies."
+CheckBoxMaxAmmo.Caption="Max out ammo"
+CheckBoxMaxAmmo.Hint="Maximize the ammunition of the Avenger's weapon."
+WeaponTypeComboBox.Caption="Avenger weapon"
+WeaponTypeComboBox.Hint="The weapon which is awarded to the avenger."
+
+[JBLocalMessageSpoils]
+PreSpoilsMessage="You have been awarded a"
+

@@ -1,0 +1,6 @@
+[JBAction_IfMorePrisoners]
+ActionString="Wenn mehr Gefangene"
+
+[JBSentinelWeapon]
+ItemName="Wächterwaffe"
+

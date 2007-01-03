@@ -141,6 +141,7 @@ TextKeyboardCameraBound="Press [%keyprev%] and [%keynext%] to switch cameras"
 TextKeyboardCameraUnbound="Enter 'PrevWeapon' and 'NextWeapon' at the console to switch cameras"
 TextLastMan="You are the last free player. Release your team!"
 TextLastManCantRelease="You are the last free player. Stay alive!"
+TextDisallowedEscape="You're not allowed to escape from jail!"
 
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"
@@ -156,6 +157,10 @@ TextDescriptionEnableJailFights="Allows jail inmates to fight each other with th
 TextDescriptionFavorHumansForArena="Always selects human players over bots for arena fights."
 TextWebAdminEnableJailFights="Allow Jail Fights"
 TextWebAdminFavorHumansForArena="Favor Humans For Arena"
+TextDescriptionJailNewcomers="New players who join during the game will be jailed."
+TextDescriptionDisallowEscaping="Disallow players from leaving jail without being released or entering the arena."
+TextWebAdminJailNewcomers="Jail Newcomers"
+TextWebAdminDisallowEscaping="Disallow Escaping"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
