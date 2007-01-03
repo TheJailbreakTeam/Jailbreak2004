@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDamageTypeIncinerated
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBDamageTypeIncinerated.uc,v 1.1 2006-07-17 14:18:27 jrubzjeknf Exp $
 //
 // Damage type for incineration execution.
 // ============================================================================
@@ -16,9 +16,9 @@ class JBDamageTypeIncinerated extends DamageType
 
 defaultproperties
 {
-  DeathString="%o was incinerated by %k"
-  FemaleSuicide="%o was incinerated"
-  MaleSuicide="%o was incinerated"
+  DeathString="%o was incinerated."
+  FemaleSuicide="%o was incinerated."
+  MaleSuicide="%o was incinerated."
   bArmorStops=False
   bLocationalHit=False
   bSkeletize=True
