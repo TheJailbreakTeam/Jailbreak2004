@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpirit
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBSpirit.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
 //
 // Base class of all spirits.
 // ============================================================================
@@ -45,8 +45,6 @@ var bool bNoTargetsLeft;
 
 simulated function PostBeginPlay()
 {
-  log("==================================================================================================");
-
   Velocity = vector(Rotation);
 
   if (SpawnSound != None)
@@ -64,13 +62,10 @@ simulated function PostBeginPlay()
 function Timer()
 {
   if (CurrentTarget != None) {
-    if (VSize(previousLocation - Location) < 1) {
-      log("False");
+    if (VSize(previousLocation - Location) < 1)
       bCollideWorld = False;
-    } else if (!bCollideWorld) {
+    else if (!bCollideWorld)
       bCollideWorld = True;
-      log("True");
-    }
   }
 
   // Set target.
@@ -182,7 +177,6 @@ function Tick(float DeltaTime)
 
 simulated function TornOff()
 {
-  log("//////////////////////////////////////////////////////////////////////////////////////////////////");
   GotoState('FadingOut');
 }
 
