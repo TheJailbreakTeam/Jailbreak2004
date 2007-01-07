@@ -432,8 +432,8 @@ function SetupWebScoreboard()
 // PostBeginPlay
 //
 // Spawns JBTagTeam actors for both teams. Reads the add-on list for the web
-// admin interface. Sets up the Jailbreak Web Scoreboard. Calls InitAddon for
-// all already registered add-ons.
+// admin interface. Sets up the Jailbreak Web Scoreboard. Spawns JBMapFixes.
+// Calls InitAddon for all already registered add-ons.
 // ============================================================================
 
 event PostBeginPlay()
@@ -447,6 +447,9 @@ event PostBeginPlay()
 
   ReadAddonsForWebAdmin();
   SetupWebScoreboard();
+
+  // Spawn our map fixing info object.
+  Spawn(class<Actor>(DynamicLoadObject("JBToolbox2.JBMapFixes", class'Class')));
 
   for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
     if (JBAddon(thisMutator) != None)
