@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.136 2006-12-08 11:49:15 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.138 2007-01-07 18:15:04 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -31,6 +31,7 @@ var config bool bFavorHumansForArena;
 var config bool bJailNewcomers;
 var config bool bDisallowEscaping;
 var config bool bReverseSwitchColors;
+var config bool bEnableJBMapFixes;
 
 var config bool bEnableWebScoreboard;
 var config bool bEnableWebAdminExtension;
@@ -47,12 +48,16 @@ var(LoadingHints) localized array<string> TextHintJailbreak;
 
 var localized string TextDescriptionEnableJailFights;
 var localized string TextDescriptionFavorHumansForArena;
-var localized string TextWebAdminEnableJailFights;
-var localized string TextWebAdminFavorHumansForArena;
 var localized string TextDescriptionJailNewcomers;
 var localized string TextDescriptionDisallowEscaping;
+var localized string TextDescriptionEnableJBMapFixes;
+
+var localized string TextWebAdminEnableJailFights;
+var localized string TextWebAdminFavorHumansForArena;
 var localized string TextWebAdminJailNewcomers;
 var localized string TextWebAdminDisallowEscaping;
+var localized string TextWebAdminEnableJBMapFixes;
+
 var localized string TextWebAdminPrefixAddon;
 
 
@@ -98,6 +103,7 @@ event InitGame(string Options, out string Error)
   local string OptionFavorHumansForArena;
   local string OptionJailNewcomers;
   local string OptionDisallowEscaping;
+  local string OptionEnableJBMapFixes;
   local string NameAddon;
   local WebServer thisWebServer;
 
@@ -136,6 +142,10 @@ event InitGame(string Options, out string Error)
   OptionDisallowEscaping = ParseOption(Options, "DisallowEscaping");
   if (OptionDisallowEscaping != "")
     bDisallowEscaping = bool(OptionDisallowEscaping);
+
+  OptionEnableJBMapFixes = ParseOption(Options, "EnableJBMapFixes");
+  if (OptionDisallowEscaping != "")
+    bDisallowEscaping = bool(OptionEnableJBMapFixes);
 
   bForceRespawn    = True;
   bTeamScoreRounds = False;
@@ -252,7 +262,8 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddSetting(Default.GameGroup, "bEnableJailFights",    Default.TextWebAdminEnableJailFights,    0, 60, "Check");
   PlayInfo.AddSetting(default.GameGroup, "bFavorHumansForArena", default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
   PlayInfo.AddSetting(default.GameGroup, "bJailNewcomers",       default.TextWebAdminJailNewcomers,       0, 60, "Check");
-  PlayInfo.AddSetting(default.GameGroup, "bDisallowEscaping",    default.TextWebAdminDisallowEscaping,       0, 60, "Check");
+  PlayInfo.AddSetting(default.GameGroup, "bDisallowEscaping",    default.TextWebAdminDisallowEscaping,    0, 60, "Check");
+  PlayInfo.AddSetting(default.GameGroup, "bEnableJBMapFixes",    default.TextWebAdminEnableJBMapFixes,    0, 60, "Check");
 }
 
 
@@ -271,6 +282,7 @@ static event string GetDescriptionText(string Property)
   if (Property ~= "bFavorHumansForArena") return Default.TextDescriptionFavorHumansForArena;
   if (Property ~= "bJailNewcomers")       return default.TextDescriptionJailNewcomers;
   if (Property ~= "bDisallowEscaping")    return default.TextDescriptionDisallowEscaping;
+  if (Property ~= "bEnableJBMapFixes")    return default.TextDescriptionEnableJBMapFixes;
 
   return Super.GetDescriptionText(Property);
 }
@@ -449,7 +461,8 @@ event PostBeginPlay()
   SetupWebScoreboard();
 
   // Spawn our map fixing info object.
-  Spawn(class<Actor>(DynamicLoadObject("JBToolbox2.JBMapFixes", class'Class')));
+  if (bEnableJBMapFixes)
+    Spawn(class<Actor>(DynamicLoadObject("JBToolbox2.JBMapFixes", class'Class')));
 
   for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
     if (JBAddon(thisMutator) != None)
@@ -2139,28 +2152,28 @@ state MatchOver
 
 defaultproperties
 {
-  Build = "%%%%-%%-%% %%:%%";
+  Build = "%%%%-%%-%% %%:%%"
 
-  ScreenShotName = "JBTexPreview.Preview";
+  ScreenShotName = "JBTexPreview.Preview"
   Description = "Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
 
-  LoadingScreens[ 0] = "JBTexLoading.Addien-Dwy";
-  LoadingScreens[ 1] = "JBTexLoading.Arlon";
-  LoadingScreens[ 2] = "JBTexLoading.Aswan";
-  LoadingScreens[ 3] = "JBTexLoading.BabylonTemple";
-  LoadingScreens[ 4] = "JBTexLoading.CastleBreak";
-  LoadingScreens[ 5] = "JBTexLoading.Cavern";
-  LoadingScreens[ 6] = "JBTexLoading.Conduit";
-  LoadingScreens[ 7] = "JBTexLoading.Cosmos";
-  LoadingScreens[ 8] = "JBTexLoading.Heights";
-  LoadingScreens[ 9] = "JBTexLoading.IndusRage2";
-  LoadingScreens[10] = "JBTexLoading.MoonCraters";
-  LoadingScreens[11] = "JBTexLoading.NoSense";
-  LoadingScreens[12] = "JBTexLoading.Oasis";
-  LoadingScreens[13] = "JBTexLoading.Poseidon";
-  LoadingScreens[14] = "JBTexLoading.SavoIsland";
-  LoadingScreens[15] = "JBTexLoading.Solamander";
-  LoadingScreens[16] = "JBTexLoading.SubZero";
+  LoadingScreens[ 0] = "JBTexLoading.Addien-Dwy"
+  LoadingScreens[ 1] = "JBTexLoading.Arlon"
+  LoadingScreens[ 2] = "JBTexLoading.Aswan"
+  LoadingScreens[ 3] = "JBTexLoading.BabylonTemple"
+  LoadingScreens[ 4] = "JBTexLoading.CastleBreak"
+  LoadingScreens[ 5] = "JBTexLoading.Cavern"
+  LoadingScreens[ 6] = "JBTexLoading.Conduit"
+  LoadingScreens[ 7] = "JBTexLoading.Cosmos"
+  LoadingScreens[ 8] = "JBTexLoading.Heights"
+  LoadingScreens[ 9] = "JBTexLoading.IndusRage2"
+  LoadingScreens[10] = "JBTexLoading.MoonCraters"
+  LoadingScreens[11] = "JBTexLoading.NoSense"
+  LoadingScreens[12] = "JBTexLoading.Oasis"
+  LoadingScreens[13] = "JBTexLoading.Poseidon"
+  LoadingScreens[14] = "JBTexLoading.SavoIsland"
+  LoadingScreens[15] = "JBTexLoading.Solamander"
+  LoadingScreens[16] = "JBTexLoading.SubZero"
 
   TextHintJailbreak[ 0] = "Watch the compass dots: The faster they pulse, the more players can be released by the corresponding switch."
   TextHintJailbreak[ 1] = "Use %PREVWEAPON% and %NEXTWEAPON% to switch view points when watching through a surveillance camera."
@@ -2181,55 +2194,58 @@ defaultproperties
   TextHintJailbreak[16] = "Don't try to cheat by reconnecting to the server while you're in jail! The game will turn you into a llama (quite literally) and give other players bonus points for hunting you down."
   TextHintJailbreak[17] = "Don't attack protected players who were just released from jail. You might get llamaized for it!"
 
-  TextDescriptionEnableJailFights    = "Allows jail inmates to fight each other with their Shield Guns for fun.";
-  TextDescriptionFavorHumansForArena = "Always selects human players over bots for arena fights.";
-  TextWebAdminEnableJailFights       = "Allow Jail Fights";
-  TextWebAdminFavorHumansForArena    = "Favor Humans For Arena";
-  TextDescriptionJailNewcomers       = "New players who join during the game will be jailed.";
-  TextDescriptionDisallowEscaping    = "Disallow players from leaving jail without being released or entering the arena.";
-  TextWebAdminJailNewcomers          = "Jail Newcomers";
-  TextWebAdminDisallowEscaping       = "Disallow Escaping";
+  TextDescriptionEnableJailFights    = "Allows jail inmates to fight each other with their Shield Guns for fun."
+  TextDescriptionFavorHumansForArena = "Always selects human players over bots for arena fights."
+  TextDescriptionJailNewcomers       = "New players who join during the game will be jailed."
+  TextDescriptionDisallowEscaping    = "Disallow players from leaving jail without being released or entering the arena."
+  TextDescriptionEnableJBMapFixes    = "Fixes a couple of small bugs in a few maps. Also adds a new execution to some."
+  TextWebAdminEnableJailFights       = "Allow Jail Fights"
+  TextWebAdminFavorHumansForArena    = "Favor Humans For Arena"
+  TextWebAdminJailNewcomers          = "Jail Newcomers"
+  TextWebAdminDisallowEscaping       = "Disallow Escaping"
+  TextWebAdminEnableJBMapFixes       = "Enable Map Fixes"
 
-  TextWebAdminPrefixAddon            = "Jailbreak:";
+  TextWebAdminPrefixAddon            = "Jailbreak:"
 
-  WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard";
-  WebScoreboardPath  = "/scoreboard";
+  WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard"
+  WebScoreboardPath  = "/scoreboard"
 
-  Addons = "JBAddonAvenger.JBAddonAvenger,JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection";
+  Addons = "JBAddonAvenger.JBAddonAvenger,JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection"
 
-  bEnableJailFights        = True;
-  bEnableScreens           = True;
-  bEnableSpectatorDeathCam = True;
-  bFavorHumansForArena     = False;
-  bJailNewcomers           = False;
-  bDisallowEscaping        = False;
+  bEnableJailFights        = True
+  bEnableScreens           = True
+  bEnableSpectatorDeathCam = True
+  bFavorHumansForArena     = False
+  bJailNewcomers           = False
+  bDisallowEscaping        = False
+  bEnableJBMapFixes        = True
 
-  bEnableWebScoreboard     = True;
-  bEnableWebAdminExtension = True;
+  bEnableWebScoreboard     = True
+  bEnableWebAdminExtension = True
 
-  GoalScore                = 5;
+  GoalScore                = 5
 
-  Acronym                  = "JB";
-  MapPrefix                = "JB";
-  BeaconName               = "JB";
+  Acronym                  = "JB"
+  MapPrefix                = "JB"
+  BeaconName               = "JB"
 
-  GameName                 = "Jailbreak";
-  HUDType                  = "Jailbreak.JBInterfaceHud";
-  ScoreBoardType           = "Jailbreak.JBInterfaceScores";
-  MapListType              = "Jailbreak.JBMapList";
-  HUDSettingsMenu          = "Jailbreak.JBGUICustomHUDMenu";
+  GameName                 = "Jailbreak"
+  HUDType                  = "Jailbreak.JBInterfaceHud"
+  ScoreBoardType           = "Jailbreak.JBInterfaceScores"
+  MapListType              = "Jailbreak.JBMapList"
+  HUDSettingsMenu          = "Jailbreak.JBGUICustomHUDMenu"
 
-  MessageClass             = Class'JBLocalMessage';
-  GameReplicationInfoClass = Class'JBGameReplicationInfo';
-  TeamAIType[0]            = Class'JBBotTeam';
-  TeamAIType[1]            = Class'JBBotTeam';
+  MessageClass             = Class'JBLocalMessage'
+  GameReplicationInfoClass = Class'JBGameReplicationInfo'
+  TeamAIType[0]            = Class'JBBotTeam'
+  TeamAIType[1]            = Class'JBBotTeam'
 
   PathWhisps[0] = "Jailbreak.JBRedWhisp"
   PathWhisps[1] = "Jailbreak.JBBlueWhisp"
 
-  bSpawnInTeamArea = True;
-  bScoreTeamKills  = False;
-  bAllowVehicles   = True;
+  bSpawnInTeamArea = True
+  bScoreTeamKills  = False
+  bAllowVehicles   = True
 
   MutatorClass = "Jailbreak.JBMutator"
 }
