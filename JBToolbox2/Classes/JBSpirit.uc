@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpirit
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBSpirit.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
+// $Id: JBSpirit.uc,v 1.2 2007-01-07 18:10:54 jrubzjeknf Exp $
 //
 // Base class of all spirits.
 // ============================================================================
@@ -45,13 +45,17 @@ var bool bNoTargetsLeft;
 
 simulated function PostBeginPlay()
 {
-  Velocity = vector(Rotation);
+  log(self$": NetMode:"@GetEnum(enum'ENetMode', Level.NetMode));
+  log(self$": Role:"@GetEnum(enum'ENetRole', Role));
 
   if (SpawnSound != None)
     PlaySound(SpawnSound, SLOT_Misc);
 
-  previousLocation = Location;
-  Jailbreak(Level.Game).ContainsActorJail(self, ExecutionJail);
+  if (Level.NetMode != NM_Client) {
+    Velocity = vector(Rotation);
+    previousLocation = Location;
+    Jailbreak(Level.Game).ContainsActorJail(self, ExecutionJail);
+  }
 }
 
 
