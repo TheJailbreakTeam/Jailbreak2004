@@ -1,5 +1,5 @@
 ===============================================================================
-Jailbreak 2004b (SP2)
+Jailbreak 2004c (SP3)
 Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
 ===============================================================================
 
@@ -63,6 +63,7 @@ Zip Installation
     ServerPackages=JBAddonTeleport
     ServerPackages=JBScreen
     ServerPackages=JBToolbox
+    ServerPackages=JBToolbox2
 
 
 ===============================================================================
@@ -88,6 +89,7 @@ Copyright
 
 Jailbreak for Unreal Tournament 2004
 Jailbreak Service Pack 1
+Jailbreak Service Pack 2
 
 Copyright (c) 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
 Contact <feedback@planetjailbreak.com> for feedback.
