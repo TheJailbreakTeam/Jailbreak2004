@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIHook
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIHook.uc,v 1.3 2004/05/30 10:33:48 mychaeel Exp $
+// $Id: JBGUIHook.uc,v 1.4 2005-04-24 20:04:05 mychaeel Exp $
 //
 // Hidden actor which hooks into the menu system in order to make the
 // Jailbreak theme music and the add-ons tab work.
@@ -45,7 +45,7 @@ static function Hook()
 {
   local UT2K4GamePageBase UT2K4GamePageBase;
   local JBGUIHook Hook;
-  
+
   if (Default.bIsHooked)
     return;
 
@@ -99,7 +99,7 @@ function Unhook()
 // ChangeGameType
 //
 // Called by the menu system when the user changes game types. Unhooks and
-// calls 
+// calls
 // ============================================================================
 
 function ChangeGameType(bool bIsCustom)
@@ -149,8 +149,8 @@ function NotifyEntered()
   if (SongPrev == "")
     SongPrev = Class'UT2K4MainMenu'.Default.MenuSong;
 
-  GUITabPanelAddons = UT2K4GamePageBase.c_Tabs.AddTab(
-    TextCaptionAddons, "Jailbreak.JBGUITabPanelAddons", , TextHintAddons);
+  GUITabPanelAddons = UT2K4GamePageBase.c_Tabs.AddTab(TextCaptionAddons, "Jailbreak.JBGUITabPanelAddons");
+  GUITabPanelAddons.MyButton.SetToolTipText(TextHintAddons);
 
        if (UT2K4GamePageSP(UT2K4GamePageBase) != None) iTabInserted = 3;
   else if (UT2K4GamePageMP(UT2K4GamePageBase) != None) iTabInserted = 4;
@@ -199,9 +199,9 @@ function string PlaySong(string Song, optional float TimeFadeOut, optional float
 {
   local string SongPrev;
   local PlayerController PlayerController;
-  
+
   PlayerController = UT2K4GamePageBase.PlayerOwner();
-  SongPrev = PlayerController.Song;  
+  SongPrev = PlayerController.Song;
 
   if (Song == "" ||
       Song ~= SongPrev)
@@ -227,7 +227,7 @@ event Tick(float TimeDelta)
   local int iSequenceItem;
   local GUIImage GUIImagePreview;
   local MaterialSequence MaterialSequencePreview;
-  
+
   foreach AllObjects(Class'GUIImage', GUIImagePreview)
     if (GUIImagePreview.PageOwner != None && GUIImagePreview.PageOwner.IsA('UT2K4GamePageBase') &&
         GUIImagePreview.MenuOwner != None && GUIImagePreview.MenuOwner.IsA('UT2K4Tab_MainSP')) {
