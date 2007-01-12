@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBGameRulesMapFixes.uc,v 1.1 2007-01-07 18:15:05 jrubzjeknf Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -41,7 +41,6 @@ simulated event SetInitialState()
     case "jb-arlon-gold":         GotoState('Arlon');         break;
     case "jb-babylontemple-gold": GotoState('BabylonTemple'); break;
     case "jb-heights-gold-v2":    GotoState('Heights');       break;
-    case "jb-collateral":         GotoState('Collateral');    break;
   }
 }
 
@@ -187,54 +186,6 @@ state Heights
     SetRandomExecution();
   }
 } // state Heights
-
-
-// ============================================================================
-// state Collateral (JB-Collateral.ut2)
-//
-// Adds a shocking spirit execution.
-// ============================================================================
-
-state Collateral
-{
-  // ============================================================================
-  // BeginState
-  //
-  // Start by randomly picking the first execution.
-  // ============================================================================
-
-  function BeginState()
-  {
-    local JBInfoJail thisJail;
-
-    // Find and set the JBInfoJails.
-    for (thisJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail; thisJail != None; thisJail = thisJail.nextJail)
-      switch (thisJail.Name) {
-        case 'JBInfoJail2': RedJail  = thisJail; break;
-        case 'JBInfoJail1': BlueJail = thisJail; break;
-      }
-
-    // Remember the original settings, so the original execution can be played again.
-    RememberInitialSetup();
-
-    // Pick an initial execution.
-    SetRandomExecution();
-  }
-
-
-  // ============================================================================
-  // NotifyExecutionEnd
-  //
-  // After each round, randomly pick the next execution.
-  // ============================================================================
-
-  function NotifyExecutionEnd()
-  {
-    Super.NotifyExecutionEnd();
-
-    SetRandomExecution();
-  }
-} // state Collateral
 
 
 // ============================================================================

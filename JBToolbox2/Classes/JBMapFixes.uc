@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBMapFixes.uc,v 1.1 2007-01-07 18:15:05 jrubzjeknf Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -199,28 +199,16 @@ function Heights()
 // Adds a shocking Spirit execution.
 // ============================================================================
 
-function Collateral()
+simulated function Collateral()
 {
-  // Create a SpiritSpawner for the red jail.
-  CreateSpiritSpawner(class'JBSpiritSpawner',
-                      'redspirit',
-                      vect(2080, 2112, 960),
-                      rot(-16384, 0, 0),
-                      class'JBToolbox2.JBThunderSpirit',
-                      2,
-                      0.6);
+  local Volume V;
 
-  // Create a SpiritSpawner for the blue jail.
-  CreateSpiritSpawner(class'JBSpiritSpawner',
-                      'bluespirit',
-                      vect(-2080, -2112, 960),
-                      rot(-16384, 0, 0),
-                      class'JBToolbox2.JBThunderSpirit',
-                      2,
-                      0.6);
-
-  // Picking a random execution is handled by our GameRules.
-  SpawnGameRules();
+  if (Level.NetMode != NM_DedicatedServer)
+    foreach AllActors(class'Volume', V)
+      if (V.Name == 'Volume4') {
+        V.LocationName = "Blue Base: Lowest Walkway";
+        break;
+      }
 }
 
 
