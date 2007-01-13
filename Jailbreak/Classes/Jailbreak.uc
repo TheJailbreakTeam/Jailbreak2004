@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.138 2007-01-07 18:15:04 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.139 2007-01-08 10:09:38 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -108,8 +108,6 @@ event InitGame(string Options, out string Error)
   local WebServer thisWebServer;
 
   Super.InitGame(Options, Error);
-
-  AddMutator(MutatorClass);
 
   if (HasOption(Options, "Addon"))
          OptionAddon = ParseOption(Options, "Addon");
@@ -259,11 +257,11 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 
   Super.FillPlayInfo(PlayInfo);
 
-  PlayInfo.AddSetting(Default.GameGroup, "bEnableJailFights",    Default.TextWebAdminEnableJailFights,    0, 60, "Check");
-  PlayInfo.AddSetting(default.GameGroup, "bFavorHumansForArena", default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
-  PlayInfo.AddSetting(default.GameGroup, "bJailNewcomers",       default.TextWebAdminJailNewcomers,       0, 60, "Check");
-  PlayInfo.AddSetting(default.GameGroup, "bDisallowEscaping",    default.TextWebAdminDisallowEscaping,    0, 60, "Check");
-  PlayInfo.AddSetting(default.GameGroup, "bEnableJBMapFixes",    default.TextWebAdminEnableJBMapFixes,    0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bEnableJailFights",    Default.TextWebAdminEnableJailFights,    0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bFavorHumansForArena", default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bJailNewcomers",       default.TextWebAdminJailNewcomers,       0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bDisallowEscaping",    default.TextWebAdminDisallowEscaping,    0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bEnableJBMapFixes",    default.TextWebAdminEnableJBMapFixes,    0, 60, "Check");
 }
 
 
@@ -1016,6 +1014,15 @@ function Killed(Controller ControllerKiller, Controller ControllerVictim, Pawn P
 
 function KilledInJail(Controller ControllerKiller, Controller ControllerVictim, Pawn PawnVictim,
                       Class<DamageType> ClassDamageType) {
+
+  local bool bEnemyKill;
+
+  if (ControllerKiller != None &&
+      UnrealPlayer(ControllerKiller) != None) {
+    bEnemyKill = ControllerKiller.GetTeamNum() != ControllerVictim.GetTeamNum() ||
+                 Class'JBBotSquadJail'.Static.IsPlayerFighting(ControllerKiller, True);
+    UnrealPlayer(ControllerKiller).LogMultiKills(0, bEnemyKill);
+  }
 
   BroadcastDeathMessage(ControllerKiller, ControllerVictim, ClassDamageType);
 
