@@ -1,6 +1,13 @@
 // ============================================================================
 // JBGameRulesJailCard
+// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Created by ?? (Someone from the Jailbreak community, most likely either
+// Kartoshka or tarquin)
+// $Id$
 //
+// GameRules class for the Jailbreak Addon JailCard (Get out of jail free card)
+//
+// CHANGELOG:
 // ============================================================================
 
 class JBGameRulesJailCard extends JBGameRules;

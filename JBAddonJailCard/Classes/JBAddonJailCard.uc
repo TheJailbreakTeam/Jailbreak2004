@@ -1,9 +1,12 @@
 // ============================================================================
 // JBAddonJailCard
-// Copyright 2004 by tarquin <tarquin@planetjailbreak.com>
+// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Created by tarquin <tarquin@planetjailbreak.com>
 // $Id$
 //
 // Implements a "Get Out of Jail Free" card
+//
+// CHANGELOG:
 // ============================================================================
 
 
@@ -95,7 +98,7 @@ function SpawnCard()
       if (PointCount == ChosenNavPoint)
       {
         SpawnedCardPickup = Spawn(class'JBPickupJailCard', , , NP.Location);
-        SpawnedCardPickup.MyAddon = Self;
+        log("woei!: "$SpawnedCardPickup.setMyAddon(Self));
         return;
       }
       PointCount++;
@@ -130,13 +133,13 @@ defaultproperties
    Build="%%%%-%%-%% %%:%%"
    ConfigMenuClassName="JBAddonJailCard.JBGUIPanelConfigJailCard"
 
-   FriendlyName = "Get Out of Jail Free"
+   FriendlyName = "JailCard"
    Description  = "Pick up the Get Out of Jail Free card and use it when you are in jail to gain your freedom."
 
    bAutoUseCard   = False
    bAllowDropCard = True
    SpawnDelay     = 0
-   NumCards       = 1
+   NumCards       = 4
 }
 
 /*

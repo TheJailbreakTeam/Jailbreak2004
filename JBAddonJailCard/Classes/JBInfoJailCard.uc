@@ -1,11 +1,13 @@
 //=============================================================================
 // JBInfoJailCard
-// Copyright 2004 by tarquin <tarquin@beyondunreal.com>
+// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Created by tarquin <tarquin@beyondunreal.com>
 // $Id$
 //
 // Desc
+//
+// CHANGELOG:
 //=============================================================================
-
 
 class JBInfoJailCard extends Info;
 

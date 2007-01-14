@@ -1,9 +1,12 @@
 //=============================================================================
 // JBGUIPanelConfigJailCard
-// Copyright 2004 by tarquin <tarquin@planetjailbreak.com>
+// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Created by tarquin <tarquin@planetjailbreak.com>
 // $Id$
 //
 // GUI options for the Get Out of Jail Free Card Addon
+//
+// CHANGELOG:
 //=============================================================================
 
 
