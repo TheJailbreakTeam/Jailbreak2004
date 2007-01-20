@@ -1,12 +1,16 @@
 //=============================================================================
 // JBGUIPanelConfigJailCard
-// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Copyright 2007 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
 // Created by tarquin <tarquin@planetjailbreak.com>
 // $Id$
 //
 // GUI options for the Get Out of Jail Free Card Addon
 //
 // CHANGELOG:
+// 15 jan 2007 - Fixed GUI page to correctly communicate its changed variables
+//               to the main addon class
+//               Changed code to use the 'var automated' UT2004 exclusive
+//               syntax
 //=============================================================================
 
 
@@ -31,16 +35,15 @@ var config int  SpawnDelay;       // delay at round start before spawning card
 var config int  NumCards;         // number of cards to spawn
   const DEFAULT_NUM_CARDS         = 1;
 */
-const CONTROL_AUTOUSE_CARD      = 0;
-const CONTROL_ALLOW_DROP        = 1;
-const CONTROL_SPAWN_DELAY       = 2;
-const CONTROL_NUM_CARDS         = 3;
-
 
 //=============================================================================
 // Variables
 //=============================================================================
 
+var automated JBGUIComponentTrackbar ctbSliderSpawnDelay;
+var automated JBGUIComponentTrackbar ctbSliderNumCards;
+var automated moCheckBox  cbAutoUseCard;
+var automated moCheckBox  cbAllowDropCard;
 var private bool bInitialized;  // used to prevent executing SaveINISettings() during initialization
 
 
@@ -52,10 +55,11 @@ var private bool bInitialized;  // used to prevent executing SaveINISettings() d
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
-  Super.InitComponent(MyController, MyOwner);
+    Super.InitComponent(MyController, MyOwner);
 
-  LoadINISettings();
+    LoadINISettings();
 }
+
 
 //=============================================================================
 // LoadINISettings
@@ -66,10 +70,10 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 function LoadINISettings()
 {
   bInitialized = False;
-  moCheckbox(Controls[CONTROL_AUTOUSE_CARD]).Checked(class'JBAddonJailCard'.default.bAutoUseCard);
-  moCheckbox(Controls[CONTROL_ALLOW_DROP]).Checked(class'JBAddonJailCard'.default.bAllowDropCard);
-  JBGUIComponentTrackbar(Controls[CONTROL_SPAWN_DELAY]).SetValue(class'JBAddonJailCard'.default.SpawnDelay);
-  JBGUIComponentTrackbar(Controls[CONTROL_NUM_CARDS]).SetValue(class'JBAddonJailCard'.default.NumCards);
+  cbAutoUseCard.Checked(class'JBAddonJailCard'.default.bAutoUseCard);
+  cbAllowDropCard.Checked(class'JBAddonJailCard'.default.bAllowDropCard);
+  ctbSliderSpawnDelay.SetValue(class'JBAddonJailCard'.default.SpawnDelay);
+  ctbSliderNumCards.SetValue(class'JBAddonJailCard'.default.NumCards);
   bInitialized = True;
 }
 
@@ -83,13 +87,13 @@ function LoadINISettings()
 
 function SaveINISettings(GUIComponent Sender)
 {
-  if ( !bInitialized )
+if ( !bInitialized )
     return;
 
-  class'JBAddonJailCard'.default.bAutoUseCard   = moCheckbox(Controls[CONTROL_AUTOUSE_CARD]).IsChecked();
-  class'JBAddonJailCard'.default.bAllowDropCard = moCheckbox(Controls[CONTROL_ALLOW_DROP]).IsChecked();
-  class'JBAddonJailCard'.default.SpawnDelay     = JBGUIComponentTrackbar(Controls[CONTROL_SPAWN_DELAY]).GetValue();
-  class'JBAddonJailCard'.default.NumCards       = JBGUIComponentTrackbar(Controls[CONTROL_NUM_CARDS]).GetValue();
+  class'JBAddonJailCard'.default.SpawnDelay = int(ctbSliderSpawnDelay.GetValue());
+  class'JBAddonJailCard'.default.NumCards = int(ctbSliderNumCards.GetValue());
+  class'JBAddonJailCard'.default.bAutoUseCard = cbAutoUseCard.IsChecked();
+  class'JBAddonJailCard'.default.bAllowDropCard = cbAllowDropCard.IsChecked();
 
   class'JBAddonJailCard'.static.StaticSaveConfig();
 }
@@ -124,8 +128,9 @@ defaultproperties
     bSquare = True; // makes button round
     Caption="Use card automatically"
     Hint="You are freed as soon as you are jailed!"
+    OnChange=SaveINISettings
   End Object
-  Controls(0)=moCheckBox'CheckBoxAutoUseCard'
+  cbAutoUseCard = CheckBoxAutoUseCard
 
   Begin Object Class=moCheckBox Name=CheckBoxAllowDropCard
     WinTop    = 0.21;
@@ -137,8 +142,9 @@ defaultproperties
     bSquare = True; // makes button round
     Caption="Card can be dropped"
     Hint="You may drop the card for another player to pick up."
+    OnChange=SaveINISettings
   End Object
-  Controls(1)=moCheckBox'CheckBoxAllowDropCard'
+  cbAllowDropCard = CheckBoxAllowDropCard
 
   Begin Object Class=JBGUIComponentTrackbar Name=SliderSpawnDelay
     WinTop    =0.4 // row 3
@@ -153,8 +159,9 @@ defaultproperties
     MinValue=0
     MaxValue=180
     bIntegerOnly=True
+    OnChange=SaveINISettings
   End Object
-  Controls(2)=JBGUIComponentTrackbar'SliderSpawnDelay'
+  ctbSliderSpawnDelay = SliderSpawnDelay
 
   Begin Object Class=JBGUIComponentTrackbar Name=SliderNumCards
     WinTop    =0.6 // row 4
@@ -167,11 +174,13 @@ defaultproperties
     Caption="Number of cards"
     Hint="How many cards are spawned in the game."
     MinValue=1
-    MaxValue=4
+    MaxValue=200  // only for testing, not sure if a game should have more than 1 JailCard
     bIntegerOnly=True
+    OnChange=SaveINISettings
   End Object
-  Controls(3)=JBGUIComponentTrackbar'SliderNumCards'
+  ctbSliderNumCards = SliderNumCards
 }
+
 
 
 

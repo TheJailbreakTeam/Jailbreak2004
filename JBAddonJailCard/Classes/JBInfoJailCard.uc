@@ -1,6 +1,6 @@
 //=============================================================================
 // JBInfoJailCard
-// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Copyright 2007 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
 // Created by tarquin <tarquin@beyondunreal.com>
 // $Id$
 //

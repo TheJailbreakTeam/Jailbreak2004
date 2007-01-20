@@ -1,6 +1,6 @@
 // ============================================================================
 // JBGameRulesJailCard
-// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Copyright 2007 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
 // Created by ?? (Someone from the Jailbreak community, most likely either
 // Kartoshka or tarquin)
 // $Id$

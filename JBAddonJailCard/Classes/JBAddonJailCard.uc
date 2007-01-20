@@ -1,16 +1,22 @@
 // ============================================================================
 // JBAddonJailCard
-// Copyright 2006 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
+// Copyright 2007 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
 // Created by tarquin <tarquin@planetjailbreak.com>
 // $Id$
 //
 // Implements a "Get Out of Jail Free" card
 //
 // CHANGELOG:
+// 14 jan 2007 - Changed friendly name to "JailCard"
+// 15 jan 2007 - Seperated code for finding a proper JailCard spawnpoint and
+//               the code to spawn it
+//               Added spawning multiple cards.
+//               Fixed config
+//               Stopped cards from spawning in jail/arena
 // ============================================================================
 
 
-class JBAddonJailCard extends JBAddon;
+class JBAddonJailCard extends JBAddon config;
 
 
 //=============================================================================
@@ -29,13 +35,21 @@ var config int  SpawnDelay;       // delay at round start before spawning card
 var config int  NumCards;         // number of cards to spawn
   const DEFAULT_NUM_CARDS         = 1;
 
+var() const editconst string Build;
+
+
 // ============================================================================
 // Variables
 // ============================================================================
 
-var() const editconst string Build;
-var   int NumNavPoints; // number of NavigationPoints in the entire level
-var   JBPickupJailCard SpawnedCardPickup;
+var   Array<JBPickupJailCard> SpawnedCardPickups;
+var   array<NavigationPoint> NavPoints; // list of usable navpoints
+
+struct NavPointScore
+{
+    var NavigationPoint NP;
+    var float score;
+};
 
 
 // ============================================================================
@@ -46,30 +60,105 @@ var   JBPickupJailCard SpawnedCardPickup;
 
 function PostBeginPlay()
 {
-  local JBGameRulesJailCard MyRules;
-  local NavigationPoint NP;
+    local JBGameRulesJailCard MyRules;
 
-  Super.PostBeginPlay();
+    Super.PostBeginPlay();
 
-  MyRules = Spawn(Class'JBGameRulesJailCard');
-  if(MyRules != None) {
-    if(Level.Game.GameRulesModifiers == None)
-      Level.Game.GameRulesModifiers = MyRules;
-    else
-      Level.Game.GameRulesModifiers.AddGameRules(MyRules);
-  }
-  else {
-    LOG("!!!!!"@name$".PostBeginPlay() : Failed to register the JBGameRulesJailCard !!!!!");
-    Destroy();
-  }
+    MyRules = Spawn(Class'JBGameRulesJailCard');
+    if(MyRules != None) {
+        if(Level.Game.GameRulesModifiers == None)
+            Level.Game.GameRulesModifiers = MyRules;
+        else
+            Level.Game.GameRulesModifiers.AddGameRules(MyRules);
+    }
+    else {
+        LOG("!!!!!"@name$".PostBeginPlay() : Failed to register the JBGameRulesJailCard !!!!!");
+        Destroy();
+    }
+}
 
-  // nicked from UT's Relics system
-  for (NP = Level.NavigationPointList; NP != None; NP = NP.nextNavigationPoint) {
-    if (NP.IsA('PathNode'))
-      // must eliminate jail & arena nodes!
-      NumNavPoints++;
-  }
-  SpawnCard();
+
+//=============================================================================
+// MyState
+//
+// This is here to make sure the code is executed AFTER the GRI is created
+//=============================================================================
+
+auto state MyState
+{
+    Begin:
+        MakeNavPointList();
+        SpawnCards();
+}
+
+
+//=============================================================================
+// MakeNavPointList
+//
+// Makes a list (NavPoints) of all usable navigationpoints in game. This
+// excludes jail and arena navigationpoints.
+//=============================================================================
+
+function MakeNavPointList()
+{
+    local NavigationPoint NP;
+    local Jailbreak JB;
+
+    JB = Jailbreak(Level.Game);
+    if(JB == none)
+        log("Invalid gametype");
+
+    // nicked from UT's Relics system and adapted
+    for (NP = Level.NavigationPointList; NP != None; NP = NP.nextNavigationPoint) {
+        if (NP.IsA('PathNode') && !JB.ContainsActorJail(NP) && !JB.ContainsActorArena(NP) ) {
+            NavPoints.Length = (NavPoints.Length + 1);
+            NavPoints[(NavPoints.Length - 1)] = NP;
+        }
+    }
+}
+
+
+//=============================================================================
+// MakeNavPointScoreList
+//
+// Makes a sorted list of NavigationPoints, based on
+// abs(Distance_to_red_switch - Distance_to_blue_switch), sorted from low to
+// high
+//=============================================================================
+
+//TODO
+
+
+//=============================================================================
+// FindSpawnPoint
+//
+// Finds a suitable spawnpoint for our JailCard
+//=============================================================================
+
+function NavigationPoint FindSpawnPoint()
+{
+    local int PointCount, ChosenNavPoint, NavCount;
+    local NavigationPoint NP;
+
+    ChosenNavPoint = Rand(NavPoints.Length);
+
+    // this code needs to be replaced with something that finds a decent spot: use
+    // StartSpot = FindPlayerStart( None, InTeam, Portal );
+    /*for (NavCount = 0; NavCount < NavPoints.Length; NavCount++)
+    {
+        NP = NavPoints[NavCount];
+        if ( NP.IsA('PathNode') )
+        {
+            if (PointCount == ChosenNavPoint)
+            {
+                break;
+            }
+            PointCount++;
+        }
+    } */
+
+    // current 'bug': cards may appear on the same PathNode
+    return NavPoints[ChosenNavPoint];
 }
 
 
@@ -79,31 +168,36 @@ function PostBeginPlay()
 // Spawns the GOOJF card pickup.
 //=============================================================================
 
-function SpawnCard()
+function SpawnCard(NavigationPoint NP)
 {
-  local int PointCount, ChosenNavPoint;
-  local NavigationPoint NP;
+    local int len;
 
-  ChosenNavPoint = Rand(NumNavPoints);
+    len = SpawnedCardPickups.Length;
+    SpawnedCardPickups.Length = len +1;
+    SpawnedCardPickups[len] = Spawn(class'JBPickupJailCard', , , NP.Location);
+    SpawnedCardPickups[len].setMyAddon(Self);
+    //debug
+    log("Spawned JailCard");
+}
 
-  // this code needs to be replaced with something that finds a decent spot: use
-  //     StartSpot = FindPlayerStart( None, InTeam, Portal );
+//=============================================================================
+// SpawnCards
+//
+// spawn X amount of jailcards, X being the number of cards set in the
+// config, or the amount of NavPoints in a map; whichever is lowest.
+//=============================================================================
 
+function SpawnCards()
+{
+    local int i;
 
+    for (i = 0; i < min(NavPoints.Length, NumCards); i++)
+        SpawnCard(FindSpawnPoint());
 
-  for (NP = Level.NavigationPointList; NP != None; NP = NP.NextNavigationPoint)
-  {
-    if ( NP.IsA('PathNode') )
-    {
-      if (PointCount == ChosenNavPoint)
-      {
-        SpawnedCardPickup = Spawn(class'JBPickupJailCard', , , NP.Location);
-        log("woei!: "$SpawnedCardPickup.setMyAddon(Self));
-        return;
-      }
-      PointCount++;
-    }
-  }
+    log("Cards: "$NumCards);
+    log("Auto Use: "$bAutoUseCard);
+    log("Allow Drop: "$bAllowDropCard);
+    log("Delay: "$SpawnDelay);
 }
 
 
@@ -139,7 +233,7 @@ defaultproperties
    bAutoUseCard   = False
    bAllowDropCard = True
    SpawnDelay     = 0
-   NumCards       = 4
+   NumCards       = 1
 }
 
 /*
