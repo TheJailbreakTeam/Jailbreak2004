@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBGameRulesOvertimeLockdown.uc,v 1.3 2006-12-08 21:12:55 jrubzjeknf Exp $
 //
 // When in overtime starts, the releases will be jammed. Once you're jailed,
 // there's no getting out any more. Last chance to score a point!
@@ -21,7 +21,7 @@ var byte RestartPlayers; // 0=don't, 1=free, 2=everybody
 var byte LockdownDelay;  // in minutes
 
 var class<JBLocalMessageOvertimeLockdown> MessageClassOvertimeLockdown;
-var byte StartCountdownTime;
+var int StartCountdownTime;
 var byte Countdown;
 
 
@@ -65,6 +65,12 @@ state WaitAndCountdown {
     Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown, -1,,, Self);
 
     StartCountdownTime = DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60 - 9;
+    log("DeathMatch(Level.Game).ElapsedTime:"@DeathMatch(Level.Game).ElapsedTime);
+    log("LockdownDelay:"@LockdownDelay);
+    log("LockdownDelay*60:"@LockdownDelay*60);
+    log("DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60:"@DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60);
+    log("DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60 - 9:"@DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60 - 9);
+    log("StartCountdownTime:"@StartCountdownTime);
 
     SetTimer(1, True);
   }
