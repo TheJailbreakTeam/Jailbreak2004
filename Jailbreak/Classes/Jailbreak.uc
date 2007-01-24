@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.139 2007-01-08 10:09:38 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.140 2007-01-13 00:53:21 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -169,6 +169,18 @@ function AddMutator(string NameMutator, optional bool bUserAdded)
       return;
 
   Super.AddMutator(NameMutator, bUserAdded);
+}
+
+
+// ============================================================================
+// WantsPickups
+//
+// Prevents bots from trying to pick up inventory when they're jailfighting.
+// ============================================================================
+
+function bool WantsPickups(Bot Bot)
+{
+  return !class'JBBotSquadJail'.static.IsPlayerFighting(Bot);
 }
 
 
