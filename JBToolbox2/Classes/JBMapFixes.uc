@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBMapFixes.uc,v 1.1 2007-01-07 18:15:05 jrubzjeknf Exp $
+// $Id: JBMapFixes.uc,v 1.2 2007-01-12 15:24:57 jrubzjeknf Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -110,8 +110,7 @@ simulated function Arlon()
   }
 
   // Fix the pickup message of the custom healthpacks.
-  if (Role < ROLE_Authority)
-    class'HealthPack'.default.HealingAmount = 50;
+  class'HealthPack'.default.HealingAmount = 50;
 }
 
 
