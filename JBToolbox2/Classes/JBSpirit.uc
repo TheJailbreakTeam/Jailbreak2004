@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpirit
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBSpirit.uc,v 1.2 2007-01-07 18:10:54 jrubzjeknf Exp $
+// $Id: JBSpirit.uc,v 1.3 2007-01-08 13:03:31 jrubzjeknf Exp $
 //
 // Base class of all spirits.
 // ============================================================================
@@ -21,7 +21,7 @@ class JBSpirit extends Emitter abstract;
 // Properties
 // ============================================================================
 
-var() float DetectionRadius, MaxSpeed, AccelStrength;
+var() float DetectionRadius, MaxSpeed, AccelStrength, AccelIncreaseStrength;
 var() bool  bExecuteOutsideJail;
 var() Sound SpawnSound, TouchSound;
 var() float FadeoutTime;
@@ -45,9 +45,6 @@ var bool bNoTargetsLeft;
 
 simulated function PostBeginPlay()
 {
-  log(self$": NetMode:"@GetEnum(enum'ENetMode', Level.NetMode));
-  log(self$": Role:"@GetEnum(enum'ENetRole', Role));
-
   if (SpawnSound != None)
     PlaySound(SpawnSound, SLOT_Misc);
 
@@ -85,6 +82,9 @@ function Timer()
     SetTimer(0.1, False);
 
   previousLocation = Location;
+
+  // Increase turning rate, so the spirit will be harder to dodge over time.
+  AccelStrength += AccelIncreaseStrength;
 }
 
 
@@ -282,6 +282,7 @@ defaultproperties
   DetectionRadius=2000.000000
   MaxSpeed=700.000000
   AccelStrength=2000.000000
+  AccelIncreaseStrength=70.000000
   FadeOutTime=2.000000
 
   Begin Object Class=SpriteEmitter Name=SpiritFlare
