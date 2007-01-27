@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageArenaLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBGUIPanelConfigArenaLockdown.uc,v 1.2 2006-12-08 21:12:54 jrubzjeknf Exp $
 //
 // Addon's GUI.
 // ============================================================================
@@ -113,13 +113,13 @@ defaultproperties
 
   Begin Object Class=moComboBox Name=SelectionMethodComboBox
     bReadOnly=True
-    CaptionWidth=0.8
+    CaptionWidth=0.48
     Caption="Selection method"
     Hint="Choose how the arena players will be picked from their jail."
-      WinTop   =0.215000
-      WinLeft  =0.000000
-      WinWidth =1.000000
-      WinHeight=0.100000
+      WinTop      =0.215000
+      WinLeft     =0.000000
+      WinWidth    =1.000000
+      WinHeight   =0.100000
     TabOrder=2
     OnChange=SaveINISettings
   End Object

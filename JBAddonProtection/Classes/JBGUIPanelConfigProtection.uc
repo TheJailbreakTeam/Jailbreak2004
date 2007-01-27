@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIPanelConfigProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGUIPanelConfigProtection.uc,v 1.11 2004/05/12 09:14:42 wormbo Exp $
+// $Id: JBGUIPanelConfigProtection.uc,v 1.12 2004-05-23 09:00:49 tarquin Exp $
 //
 // Options for the protection add-on.
 // ============================================================================
@@ -45,7 +45,7 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   ProtectionType = JBGUIComponentOptions(Controls[CONTROL_PROTECTION_TYPE]);
   ProtectArenaWinner = moCheckBox(Controls[CONTROL_PROTECT_ARENA]);
   LlamaizeCampers = moCheckBox(Controls[CONTROL_LLAMAIZE_CAMPERS]);
-    
+
   LoadINISettings();
 }
 
@@ -115,9 +115,9 @@ defaultproperties
     WinLeft   =0.0
     WinHeight =0.1
     WinWidth  =1.0
-    CaptionWidth  = -1;
-    SliderWidth   = 0.34;
-    EditBoxWidth  = 0.18;
+    CaptionWidth = -1;
+    SliderWidth  = 0.34;
+    EditBoxWidth = 0.18;
     Caption="Protection time"
     Hint="Duration of protection in seconds."
     MinValue=0
@@ -129,21 +129,21 @@ defaultproperties
 
   Begin Object class=JBGUIComponentOptions Name=OptionsProtectionType
     WinTop    = 0.2;
-    WinLeft   = 0.0; 
+    WinLeft   = 0.0;
     WinWidth  = 1.0;
     WinHeight = 0.5;
-    
+
     GroupCaption = "Protection type:";
 
     OptionText(0) = "You can't inflict damage";
     OptionText(1) = "Drop when you inflict damage";
-    
+
     OptionHint(0) = "Your weapons do no damage while protected.";
     OptionHint(1) = "Protection is removed when you hit a player.";
-    
+
     ItemHeight = 0.1;
-    ButtonWidth=0.04;
-    LabelWidth = 0.63;
+    ButtonWidth= 0.04;
+    LabelWidth = 0.96;
     ItemIndent = 0.05;
 
     OnChange=ChangeOptions
@@ -154,9 +154,9 @@ defaultproperties
     WinTop        =0.6
     WinLeft       =0.0
     WinHeight = 0.07; // for button to be right size
-    WinWidth  = 0.667; // sets how far button is from left edge
-    CaptionWidth  =0.9
-    
+    WinWidth  = 1.00; // sets how far button is from left edge
+    CaptionWidth  =1.00
+
     OnChange=ChangeOptions
     Caption="Protect the arena winner"
     Hint="Players released from arenas get protection."
@@ -165,13 +165,13 @@ defaultproperties
 
   End Object
   Controls(2)=moCheckBox'ProtectArenaWinnerCheckBox'
-  
+
   Begin Object class=moCheckBox Name=LlamaizeCampersCheckBox
     WinTop        = 0.77; // weird
     WinLeft       = 0.0;
     WinHeight     = 0.07;
-    WinWidth      = 0.667;
-    CaptionWidth  = 0.9;
+    WinWidth      = 1.00;
+    CaptionWidth  = 1.00;
     OnChange=ChangeOptions
     Caption="Make jail campers llamas"
     Hint="Causing a protectee lethal damage makes you a llama."

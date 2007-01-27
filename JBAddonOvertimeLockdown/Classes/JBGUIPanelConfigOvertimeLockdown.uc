@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBGUIPanelConfigOvertimeLockdown.uc,v 1.3 2006-12-08 21:12:54 jrubzjeknf Exp $
 //
 // Addon's GUI.
 // ============================================================================
@@ -137,7 +137,7 @@ defaultproperties
 
   Begin Object Class=moComboBox Name=RestartPlayersComboBox
     bReadOnly=True
-    CaptionWidth=0.6
+    CaptionWidth=0.7
     Caption="Restart players in Overtime"
     Hint="Restart all, free or no players when the game goes into overtime."
       WinTop   =0.400000
