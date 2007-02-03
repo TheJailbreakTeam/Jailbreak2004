@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessageOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBLocalMessageOvertimeLockdown.uc,v 1.2 2006-12-08 21:12:55 jrubzjeknf Exp $
 //
 // Used instead of normal overtime announcement.
 // ============================================================================
@@ -18,7 +18,6 @@ var localized string TextOvertimeLockdown;
 var localized string TextLockdownCountdown;
 var localized string TextTeleport;
 var localized string TextLockdownStarts;
-var localized string TextNoEscaping;
 var localized string TextMinute;
 var localized string TextMinutes;
 
@@ -43,10 +42,6 @@ static function string GetString(optional int Switch,
   // Announces lockdown at overtime.
   if (Switch == -1)
     return FormatMinute(default.TextLockdownStarts, GameRules.LockdownDelay);
-
-  // Instigator tried to escape.
-  if (Switch == -2)
-    return default.TextNoEscaping;
 
   if (GameRules == None) {
     Warn("JBLocalMessageOvertimeLockdown expects a JBGameRulesOvertimeLockdown as ObjectOptional, gets"@GameRules$"!");
@@ -106,7 +101,6 @@ defaultproperties
   TextLockdownCountdown = "Lockdown in %time%."
   TextTeleport          = "Prepare to be teleported!"
   TextOvertimeLockdown  = "Locks jammed - last chance to win!"
-  TextNoEscaping        = "No escaping in Lockdown!"
   TextMinute            = "minute"
   TextMinutes           = "minutes"
 

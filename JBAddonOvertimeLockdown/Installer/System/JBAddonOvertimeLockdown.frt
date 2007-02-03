@@ -32,7 +32,6 @@ TextOvertimeLockdown="Verrous bloqués - dernière chance de gagner!"
 TextLockdownCountdown="Incarcération dans %time%."
 TextTeleport="Preparez d'être téléporté!"
 TextLockdownStarts="La Prolongation commence dans %time% %minute%."
-TextNoEscaping="Pas d'évasions pendant l'Incarcération!"
 TextMinute="minute"
 TextMinutes="minutes"
 

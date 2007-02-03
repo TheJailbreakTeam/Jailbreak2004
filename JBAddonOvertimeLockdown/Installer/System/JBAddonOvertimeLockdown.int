@@ -32,7 +32,6 @@ TextOvertimeLockdown="Locks jammed - last chance to win!"
 TextLockdownCountdown="Lockdown in %time%."
 TextTeleport="Prepare to be teleported!"
 TextLockdownStarts="Lockdown starts in %time% %minute%."
-TextNoEscaping="No escaping in Lockdown!"
 TextMinute="minute"
 TextMinutes="minutes"
 

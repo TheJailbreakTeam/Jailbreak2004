@@ -32,7 +32,6 @@ TextOvertimeLockdown="Schlösser deaktiviert - Letzte Chance für den Sieg!"
 TextLockdownCountdown="Inhaftierung in %time%."
 TextTeleport="Bereite dich vor, teleportiert zu werden!"
 TextLockdownStarts="Inhaftierung beginnt in %time% %minute%."
-TextNoEscaping="Keine Flucht während der Inhaftierung!"
 TextMinute="Minute"
 TextMinutes="Minuten"
 
