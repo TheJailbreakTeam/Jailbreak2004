@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBMapFixes.uc,v 1.2 2007-01-12 15:24:57 jrubzjeknf Exp $
+// $Id: JBMapFixes.uc,v 1.3 2007-01-24 16:56:19 jrubzjeknf Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -29,6 +29,7 @@ var JBGameRulesMapFixes GameRules;
 
 simulated function PostBeginPlay()
 {
+  AddToPackageMap();
   MapName = GetJBMapName(Level);
 
   // Pick your function!
@@ -38,6 +39,7 @@ simulated function PostBeginPlay()
     case "jb-babylontemple-gold": BabylonTemple(); break;
     case "jb-heights-gold-v2":    Heights();       break;
     case "jb-collateral":         Collateral();    break;
+    case "jb-aswan-v2":           Aswan();         break;
   }
 }
 
@@ -208,6 +210,124 @@ simulated function Collateral()
         V.LocationName = "Blue Base: Lowest Walkway";
         break;
       }
+}
+
+
+// ============================================================================
+// Aswan (JB-Aswan-v2.ut2)
+//
+// Fixes the spider mines.
+// ============================================================================
+
+simulated function Aswan()
+{
+  local Actor A;
+  local bool bTemp;
+  
+  // red giant spider and explosion emitter
+  foreach DynamicActors(class'Actor', A, 'RedGiantSpider') {
+    if (A.IsA('JBGiantBlueSpiderMine') && A.Class != class'JBGiantBlueSpiderMine')
+      ReplaceGiantSpider(A, class'JBGiantBlueSpiderMine');
+    else if (A.IsA('JBGiantSpiderMine') && A.Class != class'JBGiantBlueSpiderMine' && A.Class != class'JBGiantSpiderMine')
+      ReplaceGiantSpider(A, class'JBGiantSpiderMine');
+  }
+  
+  // blue giant spider and explosion emitter
+  foreach DynamicActors(class'Actor', A, 'BlueGiantSpider') {
+    if (A.IsA('JBGiantBlueSpiderMine') && A.Class != class'JBGiantBlueSpiderMine')
+      ReplaceGiantSpider(A, class'JBGiantBlueSpiderMine');
+    else if (A.IsA('JBGiantSpiderMine') && A.Class != class'JBGiantBlueSpiderMine' && A.Class != class'JBGiantSpiderMine')
+      ReplaceGiantSpider(A, class'JBGiantSpiderMine');
+  }
+  
+  // temporarily disable default initial spawning
+  bTemp = class'JBSpiderSpawner'.default.bInitiallyActive;
+  class'JBSpiderSpawner'.default.bInitiallyActive = False;
+  
+  // red spider spawners
+  foreach DynamicActors(class'Actor', A, 'RedExecutionEnd') {
+    if (A.IsA('JBSpiderSpawner') && A.Class != class'JBSpiderSpawner') {
+      ReplaceSpiderSpawner(A);
+    }
+  }
+  // blue spider spawners
+  foreach DynamicActors(class'Actor', A, 'BlueExecutionEnd') {
+    if (A.IsA('JBSpiderSpawner') && A.Class != class'JBSpiderSpawner') {
+      ReplaceSpiderSpawner(A);
+    }
+  }
+  
+  // reenable default initial spawning
+  class'JBSpiderSpawner'.default.bInitiallyActive = bTemp;
+}
+
+
+// ============================================================================
+// ReplaceGiantSpider
+//
+// Replaces a giant spider mine.
+// ============================================================================
+
+function ReplaceGiantSpider(Actor OldSpider, class<JBGiantSpiderMine> NewClass)
+{
+  local JBGiantSpiderMine NewSpider;
+  
+  // spawn a new spawner
+  NewSpider = Spawn(NewClass,, OldSpider.Tag, OldSpider.Location, OldSpider.Rotation);
+  NewSpider.SetPropertyText("AssociatedJails", OldSpider.GetPropertyText("AssociatedJails"));
+  NewSpider.SetPropertyText("SpawnEvent", OldSpider.GetPropertyText("SpawnEvent"));
+  NewSpider.SetPropertyText("PreExplosionEvent", OldSpider.GetPropertyText("PreExplosionEvent"));
+  NewSpider.SetPropertyText("SpawnOverlayMaterial", OldSpider.GetPropertyText("SpawnOverlayMaterial"));
+  NewSpider.SetPropertyText("MyDamageType", OldSpider.GetPropertyText("MyDamageType"));
+  NewSpider.SetPropertyText("BulletSounds", OldSpider.GetPropertyText("BulletSounds"));
+  
+  NewSpider.PreSpawnDelay = float(OldSpider.GetPropertyText("PreSpawnDelay"));
+  NewSpider.PreExplosionDelay = float(OldSpider.GetPropertyText("PreExplosionDelay"));
+  NewSpider.ExplosionDelay = float(OldSpider.GetPropertyText("ExplosionDelay"));
+  NewSpider.SpawnOverlayTime = float(OldSpider.GetPropertyText("SpawnOverlayTime"));
+  NewSpider.MomentumTransfer = float(OldSpider.GetPropertyText("MomentumTransfer"));
+  
+  NewSpider.Event = OldSpider.Event;
+  
+  // destroy old spider
+  OldSpider.Destroy();
+}
+
+
+// ============================================================================
+// ReplaceSpiderSpawner
+//
+// Replaces a spider spawner.
+// ============================================================================
+
+function ReplaceSpiderSpawner(Actor OldSpawner)
+{
+  local JBSpiderSpawner newSpawner;
+  
+  // spawn a new spawner
+  newSpawner = Spawn(class'JBSpiderSpawner',, OldSpawner.Tag, OldSpawner.Location, OldSpawner.Rotation);
+  newSpawner.SetPropertyText("TagSpider", OldSpawner.GetPropertyText("TagSpider"));
+  newSpawner.SetPropertyText("EventSpiderDestroyed", OldSpawner.GetPropertyText("EventSpiderDestroyed"));
+  newSpawner.bInitiallyActive     = bool(OldSpawner.GetPropertyText("bInitiallyActive"));
+  newSpawner.bRespawnDeadSpiders  = bool(OldSpawner.GetPropertyText("bRespawnDeadSpiders"));
+  newSpawner.bTriggeredSpawnDelay = bool(OldSpawner.GetPropertyText("bInitiallyActive"));
+  newSpawner.bInitiallyActive     = bool(OldSpawner.GetPropertyText("bTriggeredSpawnDelay"));
+  newSpawner.DetectionRange       = float(OldSpawner.GetPropertyText("DetectionRange"));
+  newSpawner.SpiderDamage         = int(OldSpawner.GetPropertyText("SpiderDamage"));
+  newSpawner.SpiderHealth         = int(OldSpawner.GetPropertyText("SpiderHealth"));
+  newSpawner.RespawnDelay         = float(OldSpawner.GetPropertyText("RespawnDelay"));
+  newSpawner.Team                 = byte(OldSpawner.GetPropertyText("Team"));
+  newSpawner.TargetLocFuzz        = int(OldSpawner.GetPropertyText("TargetLocFuzz"));
+  
+  // destroy spawned spider first
+  OldSpawner.SetPropertyText("bRespawnDeadSpiders", "False");
+  OldSpawner.SetPropertyText("bInitiallyActive", "False");
+  OldSpawner.Reset();
+  OldSpawner.Destroy();
+  
+  // now spawn new spider
+  if (newSpawner.bInitiallyActive)
+    newSpawner.SpawnSpider();
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpiderMine
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBSpiderMine.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
 //
 // A standalone version of the parasite mine.
 // ============================================================================
@@ -45,6 +45,18 @@ simulated event PostBeginPlay()
 
   TweenAnim('Startup', 0.01);
   bClosedDown = True;
+}
+
+
+// ============================================================================
+// PostNetBeginPlay
+// ============================================================================
+
+simulated event PostNetBeginPlay()
+{
+  Super(Projectile).PostNetBeginPlay();
+  if (Physics != PHYS_Falling && IsInState('Flying'))
+    Landed(vect(0,0,0));
 }
 
 
@@ -135,21 +147,29 @@ simulated event EncroachedBy(Actor Other)
 
 function AcquireTarget()
 {
-  local Pawn A;
+  local Pawn A, BestTarget;
   local float Dist, BestDist;
 
-  TargetPawn = None;
-  if ( bClosedDown )
+  if ( bClosedDown ) {
+    if (TargetPawn != None) {
+      TargetPawn = None;
+      NetUpdateTime = Level.TimeSeconds - 1;
+    }
     return;
-
-  foreach CollidingActors(class'Pawn', A, DetectionRange, Location)
+  }
+  foreach CollidingActors(class'Pawn', A, DetectionRange, Location) {
     if ( A.Health > 0 && (Vehicle(A) == None || Vehicle(A).Driver != None || Vehicle(A).bTeamLocked) && (ONSStationaryWeaponPawn(A) == None || ONSStationaryWeaponPawn(A).bPowered) && (FastTrace(A.Location, Location) || FastTrace(A.Location - vect(0,0,0.9) * A.CollisionHeight, Location)) ) {
       Dist = VSize(A.Location - Location);
-      if ( (TargetPawn == None || Dist < BestDist) && (VSize(A.Location - Location) < DamageRadius || Normal(A.Location - Location) dot vect(0,0,1) < 0.7 || A.Location.Z - Location.Z > VSize(A.Location * vect(1,1,0) - Location * vect(1,1,0))) ) {
-        TargetPawn = A;
+      if ( (BestTarget == None || Dist < BestDist) && (VSize(A.Location - Location) < DamageRadius || Normal(A.Location - Location) dot vect(0,0,1) < 0.7 || A.Location.Z - Location.Z > VSize(A.Location * vect(1,1,0) - Location * vect(1,1,0))) ) {
+        BestTarget = A;
         BestDist = Dist;
       }
     }
+  }
+  if (TargetPawn != BestTarget) {
+    TargetPawn = BestTarget;
+    NetUpdateTime = Level.TimeSeconds - 1;
+  }
 }
 
 
@@ -167,6 +187,7 @@ function SetScurryTarget(vector NewTargetLoc)
       TargetLoc = HL;
     if ( !bClosedDown ) {
       bGoToTargetLoc = true;
+      NetUpdateTime = Level.TimeSeconds - 1;
       GotoState('ScurryToTargetLoc');
     }
   }
@@ -204,7 +225,7 @@ function Trigger(Actor Other, Pawn InstigatedBy)
 
 auto state Flying
 {
-  simulated function Landed( vector HitNormal )
+  simulated function Landed(vector HitNormal)
   {
     if ( Level.NetMode != NM_DedicatedServer && Velocity.Z < -50 )
       PlaySound(ImpactSound, SLOT_Misc);
@@ -265,15 +286,16 @@ Begin:
     bClosedDown = False;
     if ( TargetLoc != vect(0,0,0) ) {
       bGoToTargetLoc = true;
+      NetUpdateTime = Level.TimeSeconds - 1;
       GotoState('ScurryToTargetLoc');
     }
   }
-  while (True) {
+  do {
     PlayAnim(IdleAnims[Rand(ArrayCount(IdleAnims))], RandRange(0.8, 1.0), 0.3);
     FinishAnim();
     PlayAnim('Idle', 1.0, 0.3);
     FinishAnim();
-  }
+  };
 }
 
 
@@ -398,7 +420,7 @@ defaultproperties
   bNoFX=True
   bDramaticLighting=True
   bOrientOnSlope=True
-  Mesh=SkeletalMesh'JBToolbox2.SmallSpiderMineAnims'
+  Mesh=SkeletalMesh'SpiderMineMesh'
   AmbientGlow=0
   bUnlit=False
   TransientSoundRadius=150.000000

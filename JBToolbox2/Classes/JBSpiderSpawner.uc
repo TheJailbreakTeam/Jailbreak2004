@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpiderSpawner
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBSpiderSpawner.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
 //
 // Spawns JBSpiderMines.
 // ============================================================================
@@ -137,9 +137,14 @@ singular function Trigger(Actor Other, Pawn InstigatedBy)
 
 function Reset()
 {
+  local bool bTemp;
+  
   if ( LastSpawned != None ) {
+    bTemp = bRespawnDeadSpiders;
+    bRespawnDeadSpiders = False;
     LastSpawned.bNoFX = true;
     LastSpawned.Destroy();
+    bRespawnDeadSpiders = bTemp;
   }
   LastSpawned = None;
 
@@ -157,20 +162,21 @@ defaultproperties
   bInitiallyActive=True
   bRespawnDeadSpiders=True
   bTriggeredSpawnDelay=True
-  DetectionRange=1000.000000
+  DetectionRange=1000.0
   SpiderDamage=50
   SpiderHealth=50
-  RespawnDelay=0.200000
   TargetLocFuzz=50
-  DrawType=DT_Mesh
-  bHidden=True
-  RemoteRole=ROLE_None
-  Mesh=SkeletalMesh'JBToolbox2.SmallSpiderMineAnims'
-  DrawScale=0.200000
-  PrePivot=(Z=-2.900000)
-  bUnlit=True
-  bCollideWhenPlacing=True
-  CollisionRadius=10.000000
-  CollisionHeight=10.000000
+  RespawnDelay=0.2
   bDirectional=True
+  DrawType=DT_Mesh
+  Mesh=SpiderMineMesh
+  DrawScale=0.2
+  PrePivot=(Z=-2.9)
+  bUnlit=True
+  bHidden=True
+  bCollideActors=False
+  bCollideWhenPlacing=True
+  CollisionRadius=10.0
+  CollisionHeight=10.0
+  RemoteRole=ROLE_None
 }

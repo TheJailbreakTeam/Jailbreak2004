@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGiantSpiderMine
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBGiantSpiderMine.uc,v 1.1 2006-11-29 19:14:28 jrubzjeknf Exp $
 //
 // A standalone version of the parasite mine.
 // ============================================================================
@@ -42,6 +42,48 @@ var(Sounds) array<Sound> BulletSounds;
 var name IdleAnims[4];
 var float ExplosionCountdown;
 var bool bPreExplosion;
+var name ExplosionEvent;
+
+
+// ============================================================================
+// Replication
+// ============================================================================
+
+replication
+{
+  reliable if (Role == ROLE_Authority)
+    SpawnEvent, PreExplosionEvent, PreSpawnDelay, PreExplosionDelay, ExplosionDelay, SpawnOverlayMaterial, SpawnOverlayTime, MomentumTransfer, MyDamageType, ExplosionEvent;
+}
+
+
+//== PreBeginPlay =============================================================
+/**
+Force clientside update of editable settings.
+*/
+// ============================================================================
+
+event PreBeginPlay()
+{
+  Super.PreBeginPlay();
+  if (SpawnEvent != default.SpawnEvent)
+    SpawnEvent = SpawnEvent;
+  if (PreExplosionEvent != default.PreExplosionEvent)
+    PreExplosionEvent = PreExplosionEvent;
+  if (PreSpawnDelay != default.PreSpawnDelay)
+    PreSpawnDelay = PreSpawnDelay;
+  if (PreExplosionDelay != default.PreExplosionDelay)
+    PreExplosionDelay = PreExplosionDelay;
+  if (ExplosionDelay != default.ExplosionDelay)
+    ExplosionDelay = ExplosionDelay;
+  if (SpawnOverlayMaterial != default.SpawnOverlayMaterial)
+    SpawnOverlayMaterial = SpawnOverlayMaterial;
+  if (SpawnOverlayTime != default.SpawnOverlayTime)
+    SpawnOverlayTime = SpawnOverlayTime;
+  if (MomentumTransfer != default.MomentumTransfer)
+    MomentumTransfer = MomentumTransfer;
+  if (MyDamageType != default.MyDamageType)
+    MyDamageType = MyDamageType;
+}
 
 
 //== EncroachingOn ============================================================
@@ -59,62 +101,65 @@ event bool EncroachingOn(Actor Other)
 }
 
 
+function Trigger(Actor Other, Pawn EventInstigator)
+{
+  local JBInfoJail thisJail;
+  local int i;
+  local PlayerReplicationInfo PRI;
+  local JBTagPlayer TagPlayer;
+  local Pawn thisPawn;
+  
+  if ( AssociatedJails.Length == 0 ) {
+    foreach AllActors(class'JBInfoJail', thisJail) {
+      if ( thisJail.ContainsActor(Self) ) {
+        AssociatedJails[0] = thisJail;
+        break;
+      }
+    }
+    if ( AssociatedJails.Length == 0 ) {
+      // no associated jails found, associate with all jails
+      log("!!!!" @ Self @ "not associated with any jails!", 'Warning');
+      foreach AllActors(class'JBInfoJail', thisJail) {
+        AssociatedJails[AssociatedJails.Length] = thisJail;
+      }
+    }
+  }
+  
+  // check if we actually have someone in this jail
+  foreach DynamicActors(class'PlayerReplicationInfo', PRI) {
+    TagPlayer = class'JBTagPlayer'.static.FindFor(PRI);
+    if ( TagPlayer != None && TagPlayer.IsInJail() && TagPlayer.GetPawn() != None ) {
+      thisJail = TagPlayer.GetJail();
+      thisPawn = TagPlayer.GetPawn();
+      for (i = 0; i < AssociatedJails.Length; ++i) {
+        if ( thisJail == AssociatedJails[i] ) {
+          // prisoner found, now spawn
+          bClientTrigger = !bClientTrigger;
+          if (ExplosionEvent != Event)
+            ExplosionEvent = Event;
+          NetUpdateTime = Level.TimeSeconds - 1;
+          GotoState('Spawning');
+          return;
+        }
+      }
+    }
+  }
+}
+
+simulated event ClientTrigger()
+{
+  GotoState('Spawning');
+}
+
+
 //== state Sleeping ===========================================================
 /**
 Wait hidden and non-colliding until triggered.
 */
 // ============================================================================
 
-simulated state Sleeping
+auto simulated state Sleeping
 {
-  function Trigger(Actor Other, Pawn EventInstigator)
-  {
-    local JBInfoJail thisJail;
-    local int i;
-    local PlayerReplicationInfo PRI;
-    local JBTagPlayer TagPlayer;
-    local Pawn thisPawn;
-
-    if ( AssociatedJails.Length == 0 ) {
-      foreach AllActors(class'JBInfoJail', thisJail) {
-        if ( thisJail.ContainsActor(Self) ) {
-          AssociatedJails[0] = thisJail;
-          break;
-        }
-      }
-      if ( AssociatedJails.Length == 0 ) {
-        // no associated jails found, associate with all jails
-        log("!!!!" @ Self @ "not associated with any jails!", 'Warning');
-        foreach AllActors(class'JBInfoJail', thisJail) {
-          AssociatedJails[AssociatedJails.Length] = thisJail;
-        }
-      }
-    }
-
-    // check if we actually have someone in this jail
-    foreach DynamicActors(class'PlayerReplicationInfo', PRI) {
-      TagPlayer = class'JBTagPlayer'.static.FindFor(PRI);
-      if ( TagPlayer != None && TagPlayer.IsInJail() && TagPlayer.GetPawn() != None ) {
-        thisJail = TagPlayer.GetJail();
-        thisPawn = TagPlayer.GetPawn();
-        for (i = 0; i < AssociatedJails.Length; ++i) {
-          if ( thisJail == AssociatedJails[i] ) {
-            // prisoner found, now spawn
-            NetUpdateTime = Level.TimeSeconds - 1;
-            bClientTrigger = !bClientTrigger;
-            GotoState('Spawning');
-            return;
-          }
-        }
-      }
-    }
-  }
-
-  simulated event ClientTrigger()
-  {
-    GotoState('Spawning');
-  }
-
 Begin:
   bHidden = True;
   SetCollision(False, False, False);
@@ -142,6 +187,9 @@ Play a spawn effect.
 
 simulated state Spawning
 {
+  function ClientTrigger();
+  function Trigger(Actor Other, Pawn EventInstigator);
+  
 Begin:
   if ( PrespawnDelay > 0 )
     Sleep(PrespawnDelay); // wait until external spawn effect is over
@@ -165,6 +213,9 @@ Spider idles a bit before detonating.
 
 simulated state Waiting
 {
+  function ClientTrigger();
+  function Trigger(Actor Other, Pawn EventInstigator);
+  
   simulated function Timer()
   {
     local JBInfoJail thisJail;
@@ -182,7 +233,7 @@ simulated state Waiting
       SetTimer(0.0, False);
       if (bPreExplosion)
         UntriggerEvent(PreExplosionEvent, Self, None);
-      TriggerEvent(Event, Self, None);
+      TriggerEvent(ExplosionEvent, Self, None);
 
       if ( Role == ROLE_Authority ) {
         foreach DynamicActors(class'PlayerReplicationInfo', PRI) {
@@ -201,7 +252,7 @@ simulated state Waiting
           }
         }
       }
-      UntriggerEvent(Event, Self, None);
+      UntriggerEvent(ExplosionEvent, Self, None);
       UntriggerEvent(SpawnEvent, Self, None);
       GotoState('Sleeping');
     }
@@ -218,7 +269,6 @@ Begin:
     FinishAnim();
   }
 }
-
 
 // ============================================================================
 // Default properties
@@ -250,20 +300,21 @@ defaultproperties
   BulletSounds(14)=Sound'WeaponSounds.BaseImpactAndExplosions.BBulletImpact12'
   BulletSounds(15)=Sound'WeaponSounds.BaseImpactAndExplosions.BBulletImpact13'
   BulletSounds(16)=Sound'WeaponSounds.BaseImpactAndExplosions.BBulletImpact14'
-  IdleAnims(0)="clean"
-  IdleAnims(1)="look"
-  IdleAnims(2)="Bob"
-  IdleAnims(3)="footTap"
+  IdleAnims(0)=clean
+  IdleAnims(1)=look
+  IdleAnims(2)=Bob
+  IdleAnims(3)=footTap
   DrawType=DT_Mesh
   bUseDynamicLights=True
   bDramaticLighting=True
   RemoteRole=ROLE_SimulatedProxy
-  Mesh=SkeletalMesh'JBToolbox2.BigSpiderMineAnims'
-  InitialState="Sleeping"
+  Mesh=SkeletalMesh'CollidingSpiderMineMesh'
+  InitialState=Sleeping
   DrawScale=1.500000
   SurfaceType=EST_Metal
   CollisionRadius=150.000000
   CollisionHeight=60.000000
   bProjTarget=True
   bEdShouldSnap=True
+  bAlwaysRelevant=True
 }
