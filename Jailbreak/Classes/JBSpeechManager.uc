@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.7 2004/05/30 21:44:27 mychaeel Exp $
+// $Id: JBSpeechManager.uc,v 1.8 2004/06/03 00:03:55 mychaeel Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -60,6 +60,9 @@ var TInfoVoicePack InfoVoicePack;             // info on current voice pack
 var array<TInfoVoicePack> ListInfoVoicePack;  // info on all loaded voice packs
 
 var private array<JBSpeechClient> ListQueueSpeechClient;  // announcement queue
+
+var bool            bUseFallbackVoicePack;
+var JBDefaultVoice  FallbackVoicePack;
 
 
 // ============================================================================
@@ -159,10 +162,23 @@ simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFall
       InfoVoicePack.ListCacheSegment.Length = 0;
   
       ListInfoVoicePack[iInfoVoicePack] = InfoVoicePack;
+      bUseFallbackVoicePack = False;
     }
     else {
-      if (bNoFallbackToDefault)
-        return False;
+      if (bNoFallbackToDefault) {
+        if (FallbackVoicePack == None)
+          return False;
+        
+        iCharSeparator = InStr(FallbackVoicePack.VoicePackage $ ".", ".");
+        
+        InfoVoicePack.Package = Left(FallbackVoicePack.VoicePackage, iCharSeparator);
+        InfoVoicePack.Group   = Mid (FallbackVoicePack.VoicePackage, iCharSeparator + 1);
+        InfoVoicePack.Volume  = FallbackVoicePack.Volume;
+        InfoVoicePack.Pause   = FallbackVoicePack.Pause;
+        InfoVoicePack.ListCacheSegment.Length = 0;
+        bUseFallbackVoicePack = True;
+        return True;
+      }
       return LoadVoicePack("JBVoiceGrrrl.Classic", True);
     }
   }
@@ -277,9 +293,14 @@ simulated function string GetSetting(string Section, string Setting, optional co
         InfoVoicePack.ListCacheSetting[iCacheSetting].Setting ~= Setting)
       return InfoVoicePack.ListCacheSetting[iCacheSetting].Value;
 
-  if (InfoVoicePack.Group != "")
-                   Value = Localize(Section $ "." $ InfoVoicePack.Group, Setting, InfoVoicePack.Package);
-  if (Value == "") Value = Localize(Section,                             Setting, InfoVoicePack.Package);
+  if (bUseFallbackVoicePack) {
+    Value = FallbackVoicePack.GetPropertyText(Setting);
+  }
+  else {
+    if (InfoVoicePack.Group != "")
+                     Value = Localize(Section $ "." $ InfoVoicePack.Group, Setting, InfoVoicePack.Package);
+    if (Value == "") Value = Localize(Section,                             Setting, InfoVoicePack.Package);
+  }
   if (Value == "") Value = ValueDefault;
 
   InfoVoicePack.ListCacheSetting.Insert(iCacheSetting, 1);
@@ -393,4 +414,8 @@ defaultproperties
 {
   VoicePack = "JBVoiceGrrrl.Classic";
   bQueueAnnouncements = True;
+  
+  Begin Object Class=JBDefaultVoice Name=FallbackVoice
+  End Object
+  FallbackVoicePack = JBDefaultVoice'FallbackVoice';
 }
