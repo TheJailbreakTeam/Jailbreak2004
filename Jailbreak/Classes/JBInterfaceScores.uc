@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.19 2006-09-17 15:25:52 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.20 2007-01-03 22:48:07 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -476,6 +476,7 @@ simulated function DrawSpectators(Canvas Canvas)
           SpectatorString = SpectatorArray[0];
         else
           SpectatorString $= "," @ SpectatorArray[0];
+
         SpectatorArray.Remove(0, 1);
       } else
         break; // No more names of spectators can be added
@@ -979,7 +980,7 @@ simulated function bool UpdateEntry(out TEntry Entry)
 
   if (Level.NetMode != NM_Standalone && !TeamPlayerReplicationInfo.bBot) {
     Entry.InfoTime = FormatTime(GRI.ElapsedTime - TeamPlayerReplicationInfo.StartTime);
-    Entry.InfoNet = (TeamPlayerReplicationInfo.Ping * 4) @ "ms";
+    Entry.InfoNet = PingText @ (TeamPlayerReplicationInfo.Ping * 4) $ "," @ PLText @ TeamPlayerReplicationInfo.PacketLoss;
   }
 
   HealthCurrent = Entry.TagPlayer.GetHealth(True);
