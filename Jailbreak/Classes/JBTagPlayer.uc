@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.62 2006-12-08 00:59:46 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.63 2006-12-17 10:28:59 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -92,6 +92,7 @@ var private TInfoScore InfoScore;         // persistent score over reconnects
 var float TimeRestart;                    // time of next restart
 var private ERestart Restart;             // restart location for this player
 var private transient name TagRestart;    // tag of preferred starting spots
+var private bool bRestartedBefore;        // whether this player ever restarted
 
 var private JBInfoArena Arena;            // arena player is currently in
 var private JBInfoArena ArenaRestart;     // arena player will be restarted in
@@ -193,6 +194,7 @@ function Register()
   Super.Register();
 
   Controller = Controller(PlayerReplicationInfo(Keeper).Owner);
+  bRestartedBefore = False;
 
   PlayerReplicationInfo(Keeper).Score       = InfoScore.Score;
   PlayerReplicationInfo(Keeper).Deaths      = InfoScore.Deaths;
@@ -622,7 +624,8 @@ function NotifyRestarted()
     case Restart_Jail:     Arena = None;          Jail = FindJail();  break;
     case Restart_Arena:    Arena = ArenaRestart;  Jail = None;        break;
   }
-
+  
+  bRestartedBefore = True;
   CacheGetRestart.Time = 0.0;  // reset GetRestart cache
 
   if (ArenaPrev != None && Arena == None) NotifyArenaLeft(ArenaPrev);
@@ -907,13 +910,12 @@ private function ERestart GetRestart()
   CacheGetRestart.Time = Level.TimeSeconds;
 
   // Initial world spawn.
-  if (Controller.PreviousPawnClass == None &&
-      !bIsLlama &&
+  if (!bRestartedBefore && !bIsLlama &&
       !(Jailbreak(Level.Game).bJailNewcomers &&
         Level.Game.GameReplicationInfo.bMatchHasBegun &&
         PlayerController(Controller) != None))
     CacheGetRestart.Result = Restart_Freedom;
-
+  
   firstJBGameRules = Jailbreak(Level.Game).GetFirstJBGameRules();
   if (Restart == Restart_Jail &&
       firstJBGameRules != None &&
