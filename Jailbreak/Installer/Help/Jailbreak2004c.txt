@@ -26,6 +26,9 @@ Gameplay
 153722 – Being killed (not by suicide) increases death count by two in stats.
 153723 – Sprees don't "carry over" through rounds.
 157886 – Initial spawn delay for super pickups too long.
+182638 - The announcer pack is now downloaded and used when a client downloads
+         Jailbreak from a redirect (opposed to installing it).
+182470 - Announcements repeat for every player in serverside demos.
 * JBInfoJail stays in ExecutionFallback after all the prisoners died within
   ExecutionDelayCommit.
 * JBExecutionDepressurize's DepressurizeAmbientSound doesn't stop the ambient
@@ -60,11 +63,12 @@ User Interface
 * Camera can be activated whilst the instigator's jail is open.
 * Avenger's timer keeps going when he enters a vehicle.
 * Arena Messages are not being passed through GameRules.
+* The "Add-ons" tab's tooltip doesn't show up.
 
 
 ===============================================================================
 
-The following bugs have been fixed since the last release:
+The following features have been added since the last release:
 
 Gameplay
 ========
@@ -90,6 +94,8 @@ User Interface
 * Highlight admins on the scoreboard.
 * Show spectators on the scoreboard.
 * Support showing enemy players on minimap (llamas for example).
+* Besides Ping, PL will be shown on the scoreboard as well.
+* The celebration screen now support bright team skins and team-colored head skins.
 
 
 Addons
