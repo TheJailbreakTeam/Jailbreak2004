@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.63 2006-08-18 11:08:10 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.64 2006-09-02 03:03:27 mdavis Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -16,6 +16,7 @@ class JBInterfaceHud extends HudCTeamDeathMatch
 // ============================================================================
 
 #exec texture import file=Textures\SpriteWidgetHud.dds mips=on alpha=on lodset=LODSET_Interface
+#exec texture import file=Textures\ArenaBeacon.dds mips=on alpha=on lodset=LODSET_Interface uclampmode=clamp vclampmode=clamp
 
 
 // ============================================================================
@@ -101,6 +102,10 @@ var SpriteWidget SpriteWidgetTacticsBlob;     // colored and pulsing blob
 var SpriteWidget SpriteWidgetTacticsBack;     // tactics background
 var SpriteWidget SpriteWidgetTacticsIcon[5];  // tactics icons
 var SpriteWidget SpriteWidgetTacticsAuto;     // auto tactics display
+
+var Color ColorArenaBeacon;             // color of arena player beacon
+var Texture TextureArenaBeacon;         // texture of arena player beacon
+var Texture TextureArenaNoAttack;       // texture for "don't attack" indicator
 
 
 // ============================================================================
@@ -993,14 +998,133 @@ simulated function JBTagClient GetTagClientOwner()
 // ============================================================================
 // Tick
 //
-// Monitors the speech menu in order to hack into it.
+// Monitors the speech menu in order to hack into it and updates arena player
+// beacons.
 // ============================================================================
 
 simulated function Tick(float TimeDelta)
 {
   HackSpeechMenu();  // hack into the speech menu
-
+  UpdateArenaPlayerBeacons();
   Super.Tick(TimeDelta);
+}
+
+
+// ============================================================================
+// UpdateArenaPlayerBeacons
+//
+// Updates pawns' bScriptPostRender property in order to draw special beacons
+// above arena players.
+// ============================================================================
+
+function UpdateArenaPlayerBeacons()
+{
+  local UnrealPawn thisPawn;
+  local JBTagPlayer thisTagPlayer;
+  local JBInfoArena ViewingArena;
+  
+  if (JBCameraArena(PlayerOwner.ViewTarget) != None) {
+    ViewingArena = JBCameraArena(PlayerOwner.ViewTarget).Arena;
+  }
+  else if (TagPlayerOwner != None) {
+    ViewingArena = TagPlayerOwner.GetArena();
+  }
+  
+  foreach DynamicActors(class'UnrealPawn', thisPawn) {
+    if (thisPawn != PawnOwner) {
+      thisTagPlayer = class'JBTagPlayer'.static.FindFor(thisPawn.PlayerReplicationInfo);
+      if (thisTagPlayer == None)
+        thisPawn.bScriptPostRender = False;
+      else
+        thisPawn.bScriptPostRender = ViewingArena != None || thisTagPlayer.IsInArena();
+    }
+  }
+}
+
+
+// ============================================================================
+// DrawCustomBeacon
+//
+// Draws custom beacons over arena players if viewed from outside that player's
+// arena. Draws "don't attack" icon over non-arena players if viewed from
+// within an arena.
+// ============================================================================
+
+function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float ScreenLocY)
+{
+  local JBTagPlayer thisTagPlayer;
+  local JBInfoArena ViewingArena, PlayerArena;
+  local float PawnDist, ScaledDist, BeaconScale;
+  local vector CamLocation, X, Y, Z, ScreenLocation;
+  local rotator CamRotation;
+  local Texture BeaconTexture;
+  local PlayerReplicationInfo thisPRI;
+  
+  if (thisPawn == None || thisPawn.bNoTeamBeacon || thisPawn.Health <= 0
+      || ScreenLocX < 0 || ScreenLocX > C.ClipX
+      || ScreenLocY < 0 || ScreenLocY > C.ClipY
+      || PlayerOwner.PlayerReplicationInfo != None
+      && PlayerOwner.PlayerReplicationInfo.bOnlySpectator
+      && PlayerOwner.bHideSpectatorBeacons)
+    return;
+  
+  thisPRI = thisPawn.PlayerReplicationInfo;
+  if (thisPRI == None && thisPawn.DrivenVehicle != None)
+    thisPRI = thisPawn.DrivenVehicle.PlayerReplicationInfo;
+    
+  thisTagPlayer = class'JBTagPlayer'.static.FindFor(thisPRI);
+  
+  if (thisTagPlayer == None)
+    return;
+  else
+    PlayerArena = thisTagPlayer.GetArena();
+  
+  C.GetCameraLocation(CamLocation, CamRotation);
+  GetAxes(CamRotation, X, Y, Z);
+  PawnDist = PlayerOwner.FOVBias * (X dot (thisPawn.Location - CamLocation));
+  
+  if (PawnDist < 0 || !PlayerOwner.LineOfSightTo(thisPawn))
+    return; // behind viewer or hidden behind something, don't draw!
+  
+  ScaledDist = PlayerOwner.TeamBeaconMaxDist * FClamp(0.04 * thisPawn.CollisionRadius, 1, 2);
+  
+  if (PawnDist > ScaledDist)
+    return; // too far away
+  
+  if (JBCameraArena(PlayerOwner.ViewTarget) != None) {
+    ViewingArena = JBCameraArena(PlayerOwner.ViewTarget).Arena;
+  }
+  else if (TagPlayerOwner != None) {
+    ViewingArena = TagPlayerOwner.GetArena();
+  }
+  BeaconScale = FClamp(0.28 * (ScaledDist - VSize(thisPawn.Location - CamLocation)) / ScaledDist, 0.1, 0.25);
+  
+  C.Style = ERenderStyle.STY_Alpha;
+  
+  if (ViewingArena != None && ViewingArena != PlayerArena) {
+    // viewer is in arena, but pawn is not (in same arena)
+    
+    BeaconScale *= 2;
+    ScreenLocation = C.WorldToScreen(thisPawn.Location);
+    C.SetDrawColor(255, 255, 255, 96);
+    C.SetPos(ScreenLocation.X - 0.5 * BeaconScale * TextureArenaNoAttack.USize, ScreenLocation.Y - 0.5 * BeaconScale * TextureArenaNoAttack.VSize);
+    C.DrawIcon(TextureArenaNoAttack, BeaconScale);
+  }
+  else if (PlayerArena != None) {
+    // pawn is in an arena, but viewer is not
+    
+    if (PortraitPRI != None && PortraitPRI == thisPawn.PlayerReplicationInfo && PlayerOwner.SpeakingBeaconTexture != None) {
+      BeaconTexture = PlayerOwner.SpeakingBeaconTexture;
+      BeaconScale *= 3;
+    }
+    else {
+      BeaconTexture = TextureArenaBeacon;
+      BeaconScale *= 1.25;
+    }
+    C.DrawColor = ColorArenaBeacon;
+	C.SetPos(ScreenLocX - 0.5 * BeaconScale * BeaconTexture.USize, ScreenLocY - BeaconScale * BeaconTexture.VSize);
+	C.DrawIcon(BeaconTexture, BeaconScale);
+  }
 }
 
 
@@ -1357,6 +1481,10 @@ defaultproperties
   SpriteWidgetTacticsIcon[4] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=240,X2=497,Y2=332),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=033,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsAuto    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=080,Y1=352,X2=136,Y2=371),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=038,OffsetY=098,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255),ScaleMode=SM_Left,Scale=1.0);
 
+  ColorArenaBeacon      = (R=255,G=255,B=000,A=255);
+  TextureArenaBeacon    = Texture'ArenaBeacon';
+  TextureArenaNoAttack  = Texture'HUDContent.NoEntry';
+  
   ScoreTeam[0]               = (PosX=0.442000);
   ScoreTeam[1]               = (PosX=0.558000);
   TeamScoreBackGround[0]     = (PosX=0.442000);
