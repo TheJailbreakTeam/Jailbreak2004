@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.14 2004/06/01 21:30:33 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.15 2004/06/02 09:48:25 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -277,14 +277,28 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
     ActorMesh = Mesh(DynamicLoadObject(rec.MeshName, class'Mesh'));
     if ( ActorMesh != None ) {
       PlayerMesh.LinkMesh(ActorMesh);
-      ActorSkin = Material(DynamicLoadObject(rec.BodySkinName$"_"$PlayerInfo.PRI.Team.TeamIndex, class'Material'));
-      if ( ActorSkin == None )
+      
+      // load body skin
+      if (class'DMMutator'.Default.bBrightSkins && Left(rec.BodySkinName,12) ~= "PlayerSkins.")
+        ActorSkin = Material(DynamicLoadObject("Bright"$rec.BodySkinName$"_"$PlayerInfo.PRI.Team.TeamIndex$"B", class'Material', True));
+      if (ActorSkin == None)
+        ActorSkin = Material(DynamicLoadObject(rec.BodySkinName$"_"$PlayerInfo.PRI.Team.TeamIndex, class'Material', True));
+      if (ActorSkin == None)
         ActorSkin = Material(DynamicLoadObject(rec.BodySkinName, class'Material'));
-      if ( ActorSkin != None )
+      if (ActorSkin != None)
         PlayerMesh.Skins[0] = ActorSkin;
-      ActorSkin = Material(DynamicLoadObject(rec.FaceSkinName, class'Material'));
-      if ( ActorSkin != None )
+      
+      // load face skin
+      if (rec.TeamFace)
+        ActorSkin = Material(DynamicLoadObject(rec.FaceSkinName$"_"$PlayerInfo.PRI.Team.TeamIndex, class'Material', True));
+      if (!rec.TeamFace || ActorSkin == None)
+        ActorSkin = Material(DynamicLoadObject(rec.FaceSkinName, class'Material'));
+      if (ActorSkin != None)
         PlayerMesh.Skins[1] = ActorSkin;
+      
+      // Xan hack
+      if (rec.BodySkinName ~= "UT2004PlayerSkins.XanMk3V2_Body")
+        PlayerMesh.Skins[2] = Material(DynamicLoadObject("UT2004PlayerSkins.XanMk3V2_abdomen", class'Material'));
     }
   }
   
