@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.21 2006-12-08 00:59:46 jrubzjeknf Exp $
+// $Id: JBLocalMessage.uc,v 1.22 2006-12-14 21:01:38 jrubzjeknf Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -111,7 +111,12 @@ static function bool PlaySpeech(PlayerController PlayerController,
                                 optional int iDefinition)
 {
   local string Tags;
+  
+  // only play for local player
+  if (PlayerController == None || Viewport(PlayerController.Player) == None)
+    return False;
 
+  // check team/spectator
        if (PlayerController.PlayerReplicationInfo.bOnlySpectator)      Tags = "spectator";
   else if (PlayerController.PlayerReplicationInfo.Team.TeamIndex == 0) Tags = "red";
   else if (PlayerController.PlayerReplicationInfo.Team.TeamIndex == 1) Tags = "blue";
