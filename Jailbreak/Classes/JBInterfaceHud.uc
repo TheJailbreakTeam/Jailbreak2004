@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.64 2006-09-02 03:03:27 mdavis Exp $
+// $Id: JBInterfaceHud.uc,v 1.65 2007-02-11 15:37:23 wormbo Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1057,7 +1057,6 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
   local float PawnDist, ScaledDist, BeaconScale;
   local vector CamLocation, X, Y, Z, ScreenLocation;
   local rotator CamRotation;
-  local Texture BeaconTexture;
   local PlayerReplicationInfo thisPRI;
   
   if (thisPawn == None || thisPawn.bNoTeamBeacon || thisPawn.Health <= 0
@@ -1065,7 +1064,8 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
       || ScreenLocY < 0 || ScreenLocY > C.ClipY
       || PlayerOwner.PlayerReplicationInfo != None
       && PlayerOwner.PlayerReplicationInfo.bOnlySpectator
-      && PlayerOwner.bHideSpectatorBeacons)
+      && PlayerOwner.bHideSpectatorBeacons
+      || xPawn(thisPawn) != None && xPawn(thisPawn).bInvis)
     return;
   
   thisPRI = thisPawn.PlayerReplicationInfo;
@@ -1097,33 +1097,27 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
   else if (TagPlayerOwner != None) {
     ViewingArena = TagPlayerOwner.GetArena();
   }
-  BeaconScale = FClamp(0.28 * (ScaledDist - VSize(thisPawn.Location - CamLocation)) / ScaledDist, 0.1, 0.25);
   
   C.Style = ERenderStyle.STY_Alpha;
   
   if (ViewingArena != None && ViewingArena != PlayerArena) {
-    // viewer is in arena, but pawn is not (in same arena)
-    
-    BeaconScale *= 2;
+    // viewer is in arena, but pawn is not (or not in same) arena
     ScreenLocation = C.WorldToScreen(thisPawn.Location);
-    C.SetDrawColor(255, 255, 255, 96);
-    C.SetPos(ScreenLocation.X - 0.5 * BeaconScale * TextureArenaNoAttack.USize, ScreenLocation.Y - 0.5 * BeaconScale * TextureArenaNoAttack.VSize);
+    ScreenLocX = ScreenLocation.X;
+    ScreenLocY = ScreenLocation.Y;
+    
+    BeaconScale = Square(FClamp(1 - (0.5 * PawnDist) / PlayerOwner.TeamBeaconPlayerInfoMaxDist, 0.55, 1));
+    
+    C.SetDrawColor(255, 255, 255);
+    C.SetPos(ScreenLocX - 0.5 * BeaconScale * TextureArenaNoAttack.USize, ScreenLocY - 0.5 * BeaconScale * TextureArenaNoAttack.VSize);
     C.DrawIcon(TextureArenaNoAttack, BeaconScale);
   }
-  else if (PlayerArena != None) {
+  else if (PlayerArena != None && ViewingArena != PlayerArena) {
     // pawn is in an arena, but viewer is not
-    
-    if (PortraitPRI != None && PortraitPRI == thisPawn.PlayerReplicationInfo && PlayerOwner.SpeakingBeaconTexture != None) {
-      BeaconTexture = PlayerOwner.SpeakingBeaconTexture;
-      BeaconScale *= 3;
-    }
-    else {
-      BeaconTexture = TextureArenaBeacon;
-      BeaconScale *= 1.25;
-    }
+    BeaconScale = FClamp(0.28 * (ScaledDist - VSize(thisPawn.Location - CamLocation)) / ScaledDist, 0.1, 0.25) * 1.25;
     C.DrawColor = ColorArenaBeacon;
-	C.SetPos(ScreenLocX - 0.5 * BeaconScale * BeaconTexture.USize, ScreenLocY - BeaconScale * BeaconTexture.VSize);
-	C.DrawIcon(BeaconTexture, BeaconScale);
+	C.SetPos(ScreenLocX - 0.5 * BeaconScale * TextureArenaBeacon.USize, ScreenLocY - BeaconScale * TextureArenaBeacon.VSize);
+	C.DrawIcon(TextureArenaBeacon, BeaconScale);
   }
 }
 

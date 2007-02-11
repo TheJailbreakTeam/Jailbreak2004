@@ -75,6 +75,9 @@ Gameplay
 
 175858 – Frag arena players when the time runs out.
 175858 – Removed spawn protection for arena players.
+129061 - Added special arena beacons over arena combatants when viewed by a
+         player outside the arena. Arena combatants see a "no attack" icon on
+         all players but their opponent.
 
 
 User Interface
@@ -117,6 +120,7 @@ Mapper Tools
 157175 - JBExecutionFreeze: Execute by frostbite.
 146641 - Sentinel Cannons:  Execute by sentinels.
 152501 - Provide vehicle factories for ECE vehicles.
+
 * JBAction_IfMorePrisoners: Can be used in scripts.
 * JBInfoJail: PrisonerLimit: The number of prisoners cannot exceed this number.
               Priority: Players will respawn in a jail that has the lowest
