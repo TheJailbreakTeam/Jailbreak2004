@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUICustomHUDMenu
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUICustomHUDMenu.uc,v 1.5 2005-04-24 19:36:11 mychaeel Exp $
+// $Id: JBGUICustomHUDMenu.uc,v 1.6 2006-07-14 12:11:39 jrubzjeknf Exp $
 //
 // custom HUD configuration menu for Jailbreak's clientside settings.
 // ============================================================================
@@ -18,6 +18,7 @@ var automated moCombobox co_VoicePack;
 var automated GUIButton b_TestVoicePack;
 var automated moCheckbox ch_EnableScreens;
 var automated moCheckbox ch_ReverseSwitchColors;
+var automated moCheckbox ch_QueueAnnouncements;
 
 var private string VoicePackPrev;
 
@@ -73,6 +74,7 @@ function LoadSettings()
 
   ch_EnableScreens      .Checked(GetEnableScreens());
   ch_ReverseSwitchColors.Checked(GetReverseSwitchColors());
+  ch_QueueAnnouncements .Checked(GetQueueAnnouncements());
 }
 
 
@@ -101,7 +103,8 @@ function SaveSettings()
 {
   Class'JBSpeechManager'.Static.SetVoicePack(co_VoicePack.GetExtra());
   SetEnableScreens(ch_EnableScreens.IsChecked());
-  SetReverseSwitchColors(ch_ReverseSwitchColors.IsChecked()); //////////////////////////
+  SetReverseSwitchColors(ch_ReverseSwitchColors.IsChecked());
+  SetQueueAnnouncements(ch_QueueAnnouncements.IsChecked());
 }
 
 
@@ -117,6 +120,7 @@ function RestoreDefaults()
 
   ch_EnableScreens      .Checked(True);
   ch_ReverseSwitchColors.Checked(False);
+  ch_QueueAnnouncements .Checked(True);
 }
 
 
@@ -206,6 +210,18 @@ function bool GetReverseSwitchColors()
 
 
 // ============================================================================
+// GetQueueAnnouncements
+//
+// Returns whether jalibread announcements are queued.
+// ============================================================================
+
+function bool GetQueueAnnouncements()
+{
+  return Class'JBSpeechManager'.Default.bQueueAnnouncements;
+}
+
+
+// ============================================================================
 // SetEnableScreens
 //
 // Sets the config setting which enables JBScreen actors and updates any
@@ -238,7 +254,6 @@ function SetEnableScreens(bool bEnableScreens)
 
 function SetReverseSwitchColors(bool bReverseSwitchColors)
 {
-//  local GameObjective thisGameObjective;
   local Jailbreak thisJailbreak;
 
   Class'Jailbreak'.Default.bReverseSwitchColors = bReverseSwitchColors;
@@ -246,9 +261,25 @@ function SetReverseSwitchColors(bool bReverseSwitchColors)
 
   foreach PlayerOwner().DynamicActors(Class'Jailbreak', thisJailbreak)
     thisJailbreak.bReverseSwitchColors = bReverseSwitchColors;
+}
 
-//  foreach PlayerOwner().AllActors(Class'GameObjective', thisGameObjective)
-//    thisGameObjective.SetTeam(thisGameObjective.DefenderTeamIndex);
+
+// ============================================================================
+// SetQueueAnnouncements
+//
+// Sets the config setting which reverses switch colors and updates any
+// present objectives to reflect those changes.
+// ============================================================================
+
+function SetQueueAnnouncements(bool bQueueAnnouncements)
+{
+  local JBSpeechManager thisSpeechManager;
+
+  Class'JBSpeechManager'.Default.bQueueAnnouncements = bQueueAnnouncements;
+  Class'JBSpeechManager'.Static.StaticSaveConfig();
+
+  foreach PlayerOwner().DynamicActors(Class'JBSpeechManager', thisSpeechManager)
+    thisSpeechManager.bQueueAnnouncements = bQueueAnnouncements;
 }
 
 
@@ -268,7 +299,7 @@ defaultproperties
     Caption                = "Voice Pack";
     CaptionWidth           = 0.35;
     bReadOnly              = True;
-    WinTop                 = 0.40;
+    WinTop                 = 0.35;
     WinLeft                = 0.24;
     WinWidth               = 0.43;
     TabOrder               = 1;
@@ -278,7 +309,7 @@ defaultproperties
 
   Begin Object Class=GUIButton Name=TestVoicePackButton
     Caption                = "Test";
-    WinTop                 = 0.395;
+    WinTop                 = 0.345;
     WinLeft                = 0.68;
     WinWidth               = 0.08;
     WinHeight              = 0.04;
@@ -292,7 +323,7 @@ defaultproperties
     Caption                = "Enable Dynamic Screen Textures";
     CaptionWidth           = 0.10;
     ComponentJustification = TXTA_Center;
-    WinTop                 = 0.46;
+    WinTop                 = 0.40;
     WinLeft                = 0.24;
     WinWidth               = 0.52;
     TabOrder               = 3;
@@ -304,7 +335,7 @@ defaultproperties
     Caption                = "Reverse Switch Colors";
     CaptionWidth           = 0.10;
     ComponentJustification = TXTA_Center;
-    WinTop                 = 0.52;
+    WinTop                 = 0.45;
     WinLeft                = 0.24;
     WinWidth               = 0.52;
     TabOrder               = 4;
@@ -312,13 +343,25 @@ defaultproperties
   End Object
   ch_ReverseSwitchColors=ReverseSwitchColors
 
+  Begin Object Class=moCheckBox Name=QueueAnnouncements
+    Caption                = "Queue Announcements";
+    CaptionWidth           = 0.10;
+    ComponentJustification = TXTA_Center;
+    WinTop                 = 0.50;
+    WinLeft                = 0.24;
+    WinWidth               = 0.52;
+    TabOrder               = 5;
+    Hint = "Whether you want Jailbreak announcements to be queued. Otherwise multple announcements may overlap each other."
+  End Object
+  ch_QueueAnnouncements=QueueAnnouncements
+
   Begin Object Class=GUIButton Name=ResetButton
     Caption                = "Defaults";
     WinTop                 = 0.60;
     WinLeft                = 0.24;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 5;
+    TabOrder               = 6;
     OnClick                = InternalOnClick;
     Hint = "Restore all settings to their default value.";
   End Object
@@ -330,7 +373,7 @@ defaultproperties
     WinLeft                = 0.50;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 6;
+    TabOrder               = 7;
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, discarding changes.";
   End Object
@@ -342,7 +385,7 @@ defaultproperties
     WinLeft                = 0.64;
     WinWidth               = 0.12;
     WinHeight              = 0.04;
-    TabOrder               = 7;
+    TabOrder               = 8;
     OnClick                = InternalOnClick;
     Hint = "Click to close this menu, saving changes.";
   End Object

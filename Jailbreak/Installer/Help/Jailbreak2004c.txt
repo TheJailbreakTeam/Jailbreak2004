@@ -90,12 +90,14 @@ User Interface
          (nostalgia mode).
 152532 - Show time played and time to play on web scoreboard (and check why
          the web scoreboard doesn't look exactly as it should in Opera).
+141713 - Added "Queue Announcements" checkbox in HUD config menu.
 * Add ready/not ready on scoreboard.
 * Highlight admins on the scoreboard.
 * Show spectators on the scoreboard.
 * Support showing enemy players on minimap (llamas for example).
 * Besides Ping, PL will be shown on the scoreboard as well.
-* The celebration screen now support bright team skins and team-colored head skins.
+* The celebration screen now supports bright team skins and team-colored head
+  skins.
 
 
 Addons
