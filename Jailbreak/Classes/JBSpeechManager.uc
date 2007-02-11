@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.8 2004/06/03 00:03:55 mychaeel Exp $
+// $Id: JBSpeechManager.uc,v 1.9 2007-02-10 11:14:04 wormbo Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -90,7 +90,7 @@ static function JBSpeechManager SpawnFor(LevelInfo Level)
 
 simulated event PostBeginPlay()
 {
-  if (VoicePack != "")
+  //if (VoicePack != "")
     LoadVoicePack(VoicePack);
 }
 
@@ -141,7 +141,7 @@ simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFall
   local int iCharSeparator;
   local int iInfoVoicePack;
   
-  if (InfoVoicePack.Package ~= VoicePackNew)
+  if (InfoVoicePack.Package ~= VoicePackNew && (bUseFallbackVoicePack || VoicePackNew != ""))
     return True;
 
   for (iInfoVoicePack = 0; iInfoVoicePack < ListInfoVoicePack.Length; iInfoVoicePack++)
@@ -166,17 +166,22 @@ simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFall
     }
     else {
       if (bNoFallbackToDefault) {
-        if (FallbackVoicePack == None)
+        if (FallbackVoicePack == None) {
+          Log("No voice pack available.", 'JBSpeech');
+          bUseFallbackVoicePack = False;
           return False;
-        
-        iCharSeparator = InStr(FallbackVoicePack.VoicePackage $ ".", ".");
-        
-        InfoVoicePack.Package = Left(FallbackVoicePack.VoicePackage, iCharSeparator);
-        InfoVoicePack.Group   = Mid (FallbackVoicePack.VoicePackage, iCharSeparator + 1);
-        InfoVoicePack.Volume  = FallbackVoicePack.Volume;
-        InfoVoicePack.Pause   = FallbackVoicePack.Pause;
-        InfoVoicePack.ListCacheSegment.Length = 0;
-        bUseFallbackVoicePack = True;
+        }
+        if (!bUseFallbackVoicePack) {
+          Log("Using fallback voice pack.", 'JBSpeech');
+          iCharSeparator = InStr(FallbackVoicePack.VoicePackage $ ".", ".");
+          
+          InfoVoicePack.Package = Left(FallbackVoicePack.VoicePackage, iCharSeparator);
+          InfoVoicePack.Group   = Mid (FallbackVoicePack.VoicePackage, iCharSeparator + 1);
+          InfoVoicePack.Volume  = FallbackVoicePack.Volume;
+          InfoVoicePack.Pause   = FallbackVoicePack.Pause;
+          InfoVoicePack.ListCacheSegment.Length = 0;
+          bUseFallbackVoicePack = True;
+        }
         return True;
       }
       return LoadVoicePack("JBVoiceGrrrl.Classic", True);

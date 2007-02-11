@@ -9,6 +9,7 @@ TextJailed="en prison"
 
 [JBGUICustomHUDMenu]
 WindowName="Jailbreak Client Options"
+NoVoicepackInstalled="(no voice packs installed)"
 CancelButton.Caption="Annuler"
 CancelButton.Hint="Cliquez pour fermer ce menu en rejetant les modifications."
 EnableScreens.Caption="Activer les Textures des Ecrans Dynamiques"

@@ -1,13 +1,20 @@
 // ============================================================================
 // JBGUICustomHUDMenu
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUICustomHUDMenu.uc,v 1.6 2006-07-14 12:11:39 jrubzjeknf Exp $
+// $Id: JBGUICustomHUDMenu.uc,v 1.7 2007-02-11 10:08:17 wormbo Exp $
 //
 // custom HUD configuration menu for Jailbreak's clientside settings.
 // ============================================================================
 
 
 class JBGUICustomHUDMenu extends UT2K4CustomHUDMenu;
+
+
+// ============================================================================
+// Localization
+// ============================================================================
+
+var localized string NoVoicepackInstalled;
 
 
 // ============================================================================
@@ -55,7 +62,10 @@ function LoadVoicePacks()
   PlayerOwner().GetAllIntDesc("Jailbreak.JBVoice", ListEntry, ListDescription);
 
   for (iVoicePack = 0; iVoicePack < ListEntry.Length; iVoicePack++)
-    co_VoicePack.AddItem(ListDescription[iVoicePack], , ListEntry[iVoicePack]);
+    co_VoicePack.AddItem(ListDescription[iVoicePack],, ListEntry[iVoicePack]);
+  
+  if (co_VoicePack.ItemCount() == 0)
+    co_VoicePack.AddItem(NoVoicepackInstalled,, "JBVoiceGrrrl.Classic");
 }
 
 
@@ -294,6 +304,8 @@ defaultproperties
   WinLeft    = 0.20;
   WinWidth   = 0.60;
   WinHeight  = 0.40;
+  
+  NoVoicepackInstalled = "(no voice packs installed)";
 
   Begin Object class=moComboBox Name=VoicePack
     Caption                = "Voice Pack";

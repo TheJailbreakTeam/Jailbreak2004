@@ -9,6 +9,7 @@ TextJailed="gefangen"
 
 [JBGUICustomHUDMenu]
 WindowName="Jailbreak-Client-Optionen"
+NoVoicepackInstalled="(keine Sprachpakete installiert)"
 CancelButton.Caption="Abbrechen"
 CancelButton.Hint="Hier klicken, um das Dialogfeld ohne Speicherung der Änderungen zu schließen."
 EnableScreens.Caption="Dynamische Texturen aktivieren"
