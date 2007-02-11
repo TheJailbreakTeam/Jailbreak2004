@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.10 2004/05/19 15:44:12 mychaeel Exp $
+// $Id: JBAddon.uc,v 1.11 2004/05/31 20:23:42 mychaeel Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -27,6 +27,7 @@ var const bool bIsOverlay;  // set to have RenderOverlays called client-side
 // ============================================================================
 
 var JBGameReplicationInfo JBGameReplicationInfo;
+var PlayerController PlayerControllerLocal;
 
 
 // ============================================================================
@@ -42,6 +43,26 @@ function bool MutatorIsAllowed()
 
 
 // ============================================================================
+// state Startup
+//
+// Waits for a tick to ensure that the local player controller has been
+// spawned if any is spawned at all, then registers this actor as an overlay.
+// ============================================================================
+
+auto state Startup
+{
+Begin:
+  Sleep(0.0);
+  
+  if (PlayerControllerLocal == None)
+    PlayerControllerLocal = Level.GetLocalPlayerController();
+  if (bIsOverlay && PlayerControllerLocal != None)
+    JBInterfaceHud(PlayerControllerLocal.myHud).RegisterOverlay(Self);
+
+} // state Startup
+
+
+// ============================================================================
 // InitAddon
 //
 // Called server- and client-side when the game type has finished its own
@@ -51,15 +72,11 @@ function bool MutatorIsAllowed()
 
 simulated function InitAddon()
 {
-  local PlayerController PlayerControllerLocal;
-
   PlayerControllerLocal = Level.GetLocalPlayerController();
-  if (bIsOverlay && PlayerControllerLocal != None)
-    JBInterfaceHud(PlayerControllerLocal.myHud).RegisterOverlay(Self);
-
   if (Level.Game != None)
-         JBGameReplicationInfo = JBGameReplicationInfo(Level.Game.GameReplicationInfo);
-    else JBGameReplicationInfo = JBGameReplicationInfo(PlayerControllerLocal.GameReplicationInfo);
+    JBGameReplicationInfo = JBGameReplicationInfo(Level.Game.GameReplicationInfo);
+  else
+    JBGameReplicationInfo = JBGameReplicationInfo(PlayerControllerLocal.GameReplicationInfo);
 }
 
 
@@ -134,9 +151,6 @@ function GetServerDetails(out GameInfo.ServerResponseLine ServerState)
 
 simulated event Destroyed()
 {
-  local PlayerController PlayerControllerLocal;
-
-  PlayerControllerLocal = Level.GetLocalPlayerController();
   if (bIsOverlay && PlayerControllerLocal != None)
     JBInterfaceHud(PlayerControllerLocal.myHud).UnregisterOverlay(Self);
 
