@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBAddonTally.uc,v 1.11 2006-12-10 18:08:14 jrubzjeknf Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -53,7 +53,6 @@ var() const editconst string Build;
 // Variables
 // ============================================================================
 
-var PlayerController PlayerControllerLocal;
 var JBTagPlayer TagPlayerLocal;
 
 var int nEntries;                 // current number of entries
@@ -221,7 +220,7 @@ simulated function RenderOverlays(Canvas Canvas)
   if (TagPlayerLocal == None)
     TagPlayerLocal = Class'JBTagPlayer'.Static.FindFor(PlayerControllerLocal.PlayerReplicationInfo);
 
-  if (TagPlayerLocal.IsInJail() || bGameEnded)
+  if (TagPlayerLocal != None && TagPlayerLocal.IsInJail() || bGameEnded)
        nEntriesFade = FMin(nEntries, nEntriesFade + (Level.TimeSeconds - TimeFade) * 4.0);
   else nEntriesFade = FMax(0.0,      nEntriesFade - (Level.TimeSeconds - TimeFade) * 4.0);
 
@@ -318,25 +317,6 @@ simulated function DrawTextRightAligned(Canvas Canvas, coerce String Text, float
 
 
 // ============================================================================
-// state Startup
-//
-// Waits for a tick to ensure that the local player controller has been
-// spawned if any is spawned at all, then registers this actor as an overlay.
-// ============================================================================
-
-auto simulated state Startup
-{
-  Begin:
-    Sleep(0.0001);
-
-    PlayerControllerLocal = Level.GetLocalPlayerController();
-    if (PlayerControllerLocal != None)
-      JBInterfaceHud(PlayerControllerLocal.myHud).RegisterOverlay(Self);
-
-} // state Startup
-
-
-// ============================================================================
 // Defaults
 // ============================================================================
 
@@ -352,4 +332,5 @@ defaultproperties
 
   bAlwaysRelevant = True
   RemoteRole = ROLE_SimulatedProxy
+  bIsOverlay = True
 }
