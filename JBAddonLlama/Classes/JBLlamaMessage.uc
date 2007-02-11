@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaMessage
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaMessage.uc,v 1.4 2003/11/11 18:40:55 wormbo Exp $
+// $Id: JBLlamaMessage.uc,v 1.5 2004/05/17 20:25:45 wormbo Exp $
 //
 // Localized messages for Llama Hunt announcements.
 //=============================================================================
@@ -86,21 +86,22 @@ static function ClientReceive(PlayerController Player,
                               optional PlayerReplicationInfo PlayerReplicationInfo2,
                               optional Object ObjectOptional)
 {
-  // TODO: insert announcement here
-  switch (iSwitch) {
-    case 1:
-      if ( class'JBLocalMessage'.static.IsLocalPlayer(PlayerReplicationInfo1) )
-        Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaStart", "llama");
-      else
-        Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaStart", "other");
-      break;
-    case 2:
-    case 3:
-      Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaFragged");
-      break;
-    case 4:
-      Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaDisconnect");
-      break;
+  if (Player != None || Viewport(Player.Player) != None) {
+    switch (iSwitch) {
+      case 1:
+        if ( class'JBLocalMessage'.static.IsLocalPlayer(PlayerReplicationInfo1) )
+          Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaStart", "llama");
+        else
+          Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaStart", "other");
+        break;
+      case 2:
+      case 3:
+        Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaFragged");
+        break;
+      case 4:
+        Class'JBSpeechManager'.Static.PlayFor(Player.Level, "$AddonLlamaDisconnect");
+        break;
+    }
   }
   
   if ( iSwitch != 1 || !class'JBLocalMessage'.static.IsLocalPlayer(PlayerReplicationInfo1) )
