@@ -17,6 +17,7 @@
 // 10 feb 2007 - Added variable to address our GameRules class
 //               Added RenderOverlays method (does not work correctly yet)
 //               Added code to the auto state to register RenderOverlays
+// 12 feb 2007 - Changed SpawnCard to take a vector as parameter
 // ============================================================================
 
 
@@ -148,14 +149,14 @@ function MakeNavPointList()
 // Finds a suitable spawnpoint for our JailCard
 //=============================================================================
 
-function NavigationPoint FindSpawnPoint()
+function vector FindSpawnPoint()
 {
     local int ChosenNavPoint;
 
     ChosenNavPoint = Rand(NavPoints.Length);
 
     // current 'bug': cards may appear on the same PathNode
-    return NavPoints[ChosenNavPoint];
+    return (NavPoints[ChosenNavPoint]).Location;
 }
 
 
@@ -165,13 +166,13 @@ function NavigationPoint FindSpawnPoint()
 // Spawns the GOOJF card pickup.
 //=============================================================================
 
-function SpawnCard(NavigationPoint NP)
+function SpawnCard(vector loc)
 {
     local int len;
 
     len = SpawnedCardPickups.Length;
     SpawnedCardPickups.Length = len +1;
-    SpawnedCardPickups[len] = Spawn(class'JBPickupJailCard', , , NP.Location);
+    SpawnedCardPickups[len] = Spawn(class'JBPickupJailCard', , , loc);
     SpawnedCardPickups[len].setMyAddon(Self);
 }
 
@@ -207,7 +208,10 @@ function ClearCards()
 
     if(SpawnedCardPickups.Length > 0) {
         for (i = 0; i < SpawnedCardPickups.Length; i++)
+        {
+            SpawnedCardPickups[i].DeleteDecoration(none, none);
             SpawnedCardPickups[i].Destroy();
+        }
 
         SpawnedCardPickups.Remove(0, SpawnedCardPickups.Length);
     }

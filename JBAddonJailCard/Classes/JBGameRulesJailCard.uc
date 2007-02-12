@@ -20,6 +20,8 @@
 // 12 feb 2007 - Added UseCard method
 //               Modified NotifyPlayerJaied according to changes in the the
 //               JailCard (weapon) code
+//               Fixed a bug in PreventDeath that caused dropped pickups not to
+//               register with the SpawnedPickups list.
 // ============================================================================
 
 class JBGameRulesJailCard extends JBGameRules;
@@ -187,7 +189,6 @@ function bool CanSendToJail(JBTagPlayer TagPlayer)
 
 function bool PreventDeath (Pawn Killed, Controller Killer, class<DamageType> myDamageType, vector HitLocation) {
     local int i;
-    local JBPickupJailCard myPickup;
     local PlayerReplicationInfo myPRI;
 
     Super.PreventDeath(Killed, Killer, myDamageType, HitLocation);
@@ -195,8 +196,7 @@ function bool PreventDeath (Pawn Killed, Controller Killer, class<DamageType> my
     myPRI = Killed.PlayerReplicationInfo;
     i = HasJailCard(myPRI);
     if(i > -1 && myDamageType == class'DamTypeShieldImpact' && myAddon.bAllowDropCard) { // shieldgun kill
-        myPickup = Spawn(class'JBPickupJailCard', , , Killed.Location);
-        myPickup.setMyAddon(MyAddon);
+        myAddon.SpawnCard(Killed.Location);
         RemoveFromList(i);
         BroadcastLocalizedMessage(ConsoleMessageClass, 400, myPRI);
     }
