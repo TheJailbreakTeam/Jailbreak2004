@@ -140,7 +140,7 @@ defaultproperties
     bHeightFromComponent = False;
     CaptionWidth  = 0.9;
     bSquare = True; // makes button round
-    Caption="Card can be dropped"
+    Caption="Card can be dropped (shieldgun frag)"
     Hint="You may drop the card for another player to pick up."
     OnChange=SaveINISettings
   End Object
@@ -174,7 +174,7 @@ defaultproperties
     Caption="Number of cards"
     Hint="How many cards are spawned in the game."
     MinValue=1
-    MaxValue=200  // only for testing, not sure if a game should have more than 1 JailCard
+    MaxValue=4  // only for testing, not sure if a game should have more than 1 JailCard
     bIntegerOnly=True
     OnChange=SaveINISettings
   End Object

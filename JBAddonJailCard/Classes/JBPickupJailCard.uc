@@ -19,6 +19,12 @@
 // 17 jan 2007 - Added DeleteDecoration in an attempt to fix replication and
 //               have the emitter destroyed on clients; I failed :(
 //               Changed decoration to custom class
+// 10 feb 2007 - Added code to the Touch() method store a players PRI in the
+//               gamerules class
+//               Moved code within the Touch() method
+//               Added check in the Touch() method to see if a player already
+//               has a JailCard
+//               Adjusted the Broadcast- and ReceiveLocalisedMessage parameters
 //=============================================================================
 
 class JBPickupJailCard extends TournamentPickup;
@@ -29,6 +35,7 @@ class JBPickupJailCard extends TournamentPickup;
 // ============================================================================
 
 var Class<Decoration> MyDecoration;
+var class<LocalMessage> ConsoleMessageClass;
 
 
 // ============================================================================
@@ -53,22 +60,20 @@ function bool setMyAddon(JBAddonJailCard JC)
 
 
 // ============================================================================
-// PostBeginPlay
+// SpawnDeco
 //
 // Spawns the visible parts of the JailCard's decoration client-side.
 // ============================================================================
 
-simulated function PostBeginPlay()
+simulated function SpawnDeco()
 {
     if (Level.NetMode != NM_DedicatedServer)
     {
         Decoration = Spawn(MyDecoration, Self, ,
             MyDecoration.Default.Location + Location,
             MyDecoration.Default.Rotation + Rotation);
-        log("Decoration spawned");
     }
 
-  Super.PostBeginPlay();
 }
 
 
@@ -85,14 +90,33 @@ auto state Pickup
     function Touch( Actor Other )
     {
         local Pawn P;
+        local Controller C;
 
         if ( ValidTouch(Other) )
         {
             P = Pawn(Other);
-            BroadcastLocalizedMessage(MessageClass, 0);
-            DeleteDecoration(Other, P);
-            SetRespawn();
+            if(P.Controller != none)
+            {
+                C = P.Controller;
+                // Player touched the pickup, check if he already has a key y/m
+                if(MyAddon.myGameRules.HasJailCard(C.PlayerReplicationInfo) < 0) {
+                    MyAddon.myGameRules.AddPRI(C.PlayerReplicationInfo);
+                    BroadcastLocalizedMessage(ConsoleMessageClass, 100, C.PlayerReplicationInfo);
+
+                    DeleteDecoration(Other, P);
+                    SetRespawn();
+                    // send message
+                    if(PlayerController(C) != none)
+                        PlayerController(C).ReceiveLocalizedMessage(MessageClass, 100, C.PlayerReplicationInfo);
+                }
+            }
         }
+    }
+
+    function BeginState()
+    {
+        UntriggerEvent(Event, self, None);
+        SpawnDeco();
     }
 }
 
@@ -107,13 +131,14 @@ auto state Pickup
 //
 // I'm so confused  :(
 //============================================================================
+
 simulated function DeleteDecoration(Actor Other, Pawn P)
 {
-    log("DeleteDecoration1"); //show up in server log (not client)
+    //log("DeleteDecoration1"); //show up in server log (not client)
     if ( Level.NetMode != NM_DedicatedServer )
     {
         Decoration.Trigger(Other, P);
-        log("DeleteDecoration2");  //doesn't show up anywhere
+        //log("DeleteDecoration2");  //doesn't show up anywhere except on listen servers
     }
 }
 
@@ -141,8 +166,8 @@ defaultproperties
   MaxDesireability=0.3;
 
   // pickup stuff
-  MessageClass=class'JBJailCardMessage';
-  PickupMessage="Get Out Of Jail Free Card!";
+  MessageClass=class'JBJailCardMessageScreen';
+  ConsoleMessageClass=class'JBJailCardMessageConsole';
   PickupSound=sound'2K4MenuSounds.msfxDrag';
   CollisionRadius=24.0;
 }

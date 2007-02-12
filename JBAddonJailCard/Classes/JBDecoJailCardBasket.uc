@@ -8,6 +8,8 @@
 //
 // CHANGELOG:
 // 17 jan 2007 - class created
+// 20 jan 2007 - Fixed bug where the first emitter spawned would be blue
+//               instead of myColor
 // ============================================================================
 
 
@@ -29,9 +31,10 @@ var() Color myColor;
 
 simulated event PostBeginPlay()
 {
+    Class'JBEmitterBasket'.default.ColorBlue = myColor;
     Emitter = Spawn(Class'JBEmitterBasket', Self, , Location + PrePivot, Rotation);
-    Emitter.default.ColorBlue = myColor;
     Emitter.SetDefendingTeam(1);
+    Class'JBEmitterBasket'.default.ColorBlue = Class'JBEmitterBasket'.default.ColorBlue;
 }
 
 defaultproperties

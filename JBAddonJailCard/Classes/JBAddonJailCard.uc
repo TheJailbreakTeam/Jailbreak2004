@@ -13,6 +13,10 @@
 //               Added spawning multiple cards.
 //               Fixed config
 //               Stopped cards from spawning in jail/arena
+// 22 jan 2007 - Moved SpawnCards call to gamerules class
+// 10 feb 2007 - Added variable to address our GameRules class
+//               Added RenderOverlays method (does not work correctly yet)
+//               Added code to the auto state to register RenderOverlays
 // ============================================================================
 
 
@@ -42,8 +46,11 @@ var() const editconst string Build;
 // Variables
 // ============================================================================
 
-var   Array<JBPickupJailCard> SpawnedCardPickups;
-var   array<NavigationPoint> NavPoints; // list of usable navpoints
+var Array<JBPickupJailCard> SpawnedCardPickups; // list of spawned jailcards
+var Array<NavigationPoint> NavPoints; // list of usable navpoints
+var JBGameRulesJailCard myGameRules; // our gamerules class
+var private HUDBase.SpriteWidget  JailCardIcon; // our hud icon
+var PlayerController PC;
 
 struct NavPointScore
 {
@@ -65,7 +72,10 @@ function PostBeginPlay()
     Super.PostBeginPlay();
 
     MyRules = Spawn(Class'JBGameRulesJailCard');
+
     if(MyRules != None) {
+        MyRules.SetAddon(self);
+        myGameRules = MyRules;
         if(Level.Game.GameRulesModifiers == None)
             Level.Game.GameRulesModifiers = MyRules;
         else
@@ -88,7 +98,10 @@ auto state MyState
 {
     Begin:
         MakeNavPointList();
-        SpawnCards();
+
+        PC = Level.GetLocalPlayerController();
+        if (PC != None)
+            JBInterfaceHud(PC.myHud).RegisterOverlay(Self);
 }
 
 
@@ -111,8 +124,8 @@ function MakeNavPointList()
     // nicked from UT's Relics system and adapted
     for (NP = Level.NavigationPointList; NP != None; NP = NP.nextNavigationPoint) {
         if (NP.IsA('PathNode') && !JB.ContainsActorJail(NP) && !JB.ContainsActorArena(NP) ) {
-            NavPoints.Length = (NavPoints.Length + 1);
-            NavPoints[(NavPoints.Length - 1)] = NP;
+            NavPoints.length = (NavPoints.length + 1);
+            NavPoints[(NavPoints.length - 1)] = NP;
         }
     }
 }
@@ -137,25 +150,9 @@ function MakeNavPointList()
 
 function NavigationPoint FindSpawnPoint()
 {
-    local int PointCount, ChosenNavPoint, NavCount;
-    local NavigationPoint NP;
+    local int ChosenNavPoint;
 
     ChosenNavPoint = Rand(NavPoints.Length);
-
-    // this code needs to be replaced with something that finds a decent spot: use
-    // StartSpot = FindPlayerStart( None, InTeam, Portal );
-    /*for (NavCount = 0; NavCount < NavPoints.Length; NavCount++)
-    {
-        NP = NavPoints[NavCount];
-        if ( NP.IsA('PathNode') )
-        {
-            if (PointCount == ChosenNavPoint)
-            {
-                break;
-            }
-            PointCount++;
-        }
-    } */
 
     // current 'bug': cards may appear on the same PathNode
     return NavPoints[ChosenNavPoint];
@@ -176,8 +173,6 @@ function SpawnCard(NavigationPoint NP)
     SpawnedCardPickups.Length = len +1;
     SpawnedCardPickups[len] = Spawn(class'JBPickupJailCard', , , NP.Location);
     SpawnedCardPickups[len].setMyAddon(Self);
-    //debug
-    log("Spawned JailCard");
 }
 
 //=============================================================================
@@ -202,6 +197,25 @@ function SpawnCards()
 
 
 //=============================================================================
+// ClearCards
+//
+// Removes all cards
+//=============================================================================
+function ClearCards()
+{
+    local int i;
+
+    if(SpawnedCardPickups.Length > 0) {
+        for (i = 0; i < SpawnedCardPickups.Length; i++)
+            SpawnedCardPickups[i].Destroy();
+
+        SpawnedCardPickups.Remove(0, SpawnedCardPickups.Length);
+    }
+
+}
+
+
+//=============================================================================
 // ResetConfiguration
 //
 // Resets the user configuration.
@@ -217,6 +231,29 @@ static function ResetConfiguration()
   StaticSaveConfig();
 }
 
+//=============================================================================
+// RenderOverlays
+//
+// Draw HUD icon if a player has the jail card
+//=============================================================================
+simulated function RenderOverlays(Canvas Canvas)
+{
+    local JBInterfaceHud myHUD;
+
+    if(PC != none) {   // This HasJailCard() call should be moved to somewhere where it is not called quite as often.
+                       // Afterall, the HUD icon only needs to change when a player gets or loses a jailcard
+        if(myGameRules.HasJailCard(PC.PlayerReplicationInfo) > -1) {    // not returning the right result because HasJailCard is only present correctly on the server ARG!
+            myHUD = JBInterfaceHud(PC.myHUD);
+            myHUD.DrawSpriteWidget(Canvas, JailCardIcon);
+            //log("I have a card!");   // works fine on Instant Action
+        }
+        //else
+            //log("no card =|");
+    }
+    //else
+        //log("why's my PC none? :("); // logs this when playing on a dedicated server
+}
+
 
 // ============================================================================
 // Default properties
@@ -224,16 +261,21 @@ static function ResetConfiguration()
 
 defaultproperties
 {
-   Build="%%%%-%%-%% %%:%%"
-   ConfigMenuClassName="JBAddonJailCard.JBGUIPanelConfigJailCard"
+    Build="%%%%-%%-%% %%:%%";
+    ConfigMenuClassName="JBAddonJailCard.JBGUIPanelConfigJailCard";
 
-   FriendlyName = "JailCard"
-   Description  = "Pick up the Get Out of Jail Free card and use it when you are in jail to gain your freedom."
+    FriendlyName = "JailCard";
+    Description  = "Pick up the Get Out of Jail Free card and use it when you are in jail to gain your freedom.";
 
-   bAutoUseCard   = False
-   bAllowDropCard = True
-   SpawnDelay     = 0
-   NumCards       = 1
+    bAutoUseCard   = False;
+    bAllowDropCard = True;
+    SpawnDelay     = 0;
+    NumCards       = 1;
+
+    bIsOverlay = True;
+    RemoteRole = ROLE_SimulatedProxy;
+    bAlwaysRelevant = True;
+    JailCardIcon=(WidgetTexture=Texture'JBJailCard.jailcardhud',RenderStyle=STY_Alpha,TextureCoords=(X1=8,Y1=0,X2=56,Y2=63),TextureScale=2.0,DrawPivot=DP_MiddleMiddle,PosX=0.05,PosY=0.75,OffsetY=7,Tints[0]=(B=255,G=255,R=255,A=128),Tints[1]=(B=255,G=255,R=255,A=128));
 }
 
 /*
