@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.12 2004/05/31 21:02:50 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.13 2004/06/09 16:50:04 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -225,23 +225,28 @@ function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
 //=============================================================================
 // IsLlama
 //
-// Checks whether a is a llama or is about to become a llama.
+// Checks whether the player represented by or owning the specified actor is a
+// llama or is about to become a llama.
 //=============================================================================
 
-function bool IsLlama(Controller ControllerPlayer)
+static function bool IsLlama(Actor Player)
 {
-  local JBLlamaPendingTag thisLlamaPendingTag;
+  local Inventory thisTag;
   
-  if ( ControllerPlayer == None )
-    return False;
-  else if ( ControllerPlayer.Pawn != None ) {
-    if ( Vehicle(ControllerPlayer.Pawn) != None && Vehicle(ControllerPlayer.Pawn).Driver != None )
-      return Vehicle(ControllerPlayer.Pawn).Driver.FindInventoryType(class'JBLlamaTag') != None;
-    return ControllerPlayer.Pawn.FindInventoryType(class'JBLlamaTag') != None;
-  }
-  else {
-    foreach ControllerPlayer.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
+  if (Player != None ) {
+    if (Controller(Player) != None && IsLlama(Controller(Player).Pawn)) {
       return true;
+    }
+    else if (Vehicle(Player) != None && IsLlama(Vehicle(Player).Driver)) {
+      return true;
+    }
+    else if (Pawn(Player) == None && IsLlama(Player.Owner)) {
+      return true;
+    }
+    for (thisTag = Player.Inventory; thisTag != None; thisTag = thisTag.Inventory) {
+      if (JBLlamaPendingTag(thisTag) != None || JBLlamaTag(thisTag) != None)
+        return true;
+    }
   }
   
   return false;
@@ -254,35 +259,40 @@ function bool IsLlama(Controller ControllerPlayer)
 // Makes a player a Llama.
 //=============================================================================
 
-function Llamaize(Controller ControllerPlayer)
+static function Llamaize(Controller ControllerPlayer)
 {
   //log("Llamaizing"@ControllerPlayer, Name);
-  Spawn(class'JBLlamaPendingTag', ControllerPlayer);
+  if (ControllerPlayer != None && !IsLlama(ControllerPlayer))
+    ControllerPlayer.Spawn(class'JBLlamaPendingTag', ControllerPlayer);
 }
 
 
 //=============================================================================
 // UnLlamaize
 //
-// Removes a player's llama effect
+// Removes any llama effect from the player represented by or owning the
+// specified actor.
 //=============================================================================
 
-function UnLlamaize(Controller ControllerPlayer)
+static function UnLlamaize(Actor Player)
 {
-  local Inventory LlamaTag;
-  local JBLlamaPendingTag thisLlamaPendingTag;
+  local Inventory thisTag, nextTag;
   
-  if ( ControllerPlayer.Pawn != None ) {
-    if ( Vehicle(ControllerPlayer.Pawn) != None && Vehicle(ControllerPlayer.Pawn).Driver != None )
-      LlamaTag = Vehicle(ControllerPlayer.Pawn).Driver.FindInventoryType(class'JBLlamaTag');
-    if ( LlamaTag == None )
-      LlamaTag = ControllerPlayer.Pawn.FindInventoryType(class'JBLlamaTag');
-    if ( LlamaTag != None )
-      LlamaTag.Destroy();
-  }
-  else if ( ControllerPlayer != None ) {
-    foreach ControllerPlayer.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
-      thisLlamaPendingTag.Destroy();
+  if (Player != None ) {
+    if (Controller(Player) != None) {
+      UnLlamaize(Controller(Player).Pawn);
+    }
+    else if (Vehicle(Player) != None) {
+      UnLlamaize(Vehicle(Player).Driver);
+    }
+    else if (Pawn(Player) == None) {
+      UnLlamaize(Player.Owner);
+    }
+    for (thisTag = Player.Inventory; thisTag != None; thisTag = nextTag) {
+      nextTag = thisTag.Inventory;
+      if (JBLlamaPendingTag(thisTag) != None || JBLlamaTag(thisTag) != None)
+        thisTag.Destroy();
+    }
   }
 }
 
@@ -344,6 +354,23 @@ simulated function NotifyLevelChange()
 
 
 //=============================================================================
+// Precaching
+//=============================================================================
+
+simulated function UpdatePrecacheMaterials()
+{
+  Level.AddPrecacheMaterial(Material'Llama');
+  Level.AddPrecacheMaterial(Material'LlamaIconMask');
+  Level.AddPrecacheMaterial(Material'LlamaScreenOverlay');
+}
+simulated function UpdatePrecacheStaticMeshes()
+{
+  Level.AddPrecacheStaticMesh(StaticMesh'LlamaArrow');
+  Level.AddPrecacheStaticMesh(StaticMesh'LlamaHead');
+}
+
+
+//=============================================================================
 // default properties
 //=============================================================================
 
@@ -359,6 +386,9 @@ defaultproperties
   RewardHealth=25
   MaximumLlamaDuration=60
   bLlamaizeOnJailDisconnect=True
+  bAlwaysRelevant=True
+  RemoteRole=ROLE_SimulatedProxy
+  
   RewardAdrenalineText         = "Adrenaline gained for killing a Llama"
   RewardHealthText             = "Health gained for killing a Llama"
   RewardShieldText             = "Shield gained for killing a Llama"

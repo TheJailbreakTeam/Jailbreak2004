@@ -1,14 +1,14 @@
 //=============================================================================
 // JBLlamaPendingTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaPendingTag.uc,v 1.2 2003/11/11 17:48:49 wormbo Exp $
+// $Id: JBLlamaPendingTag.uc,v 1.3 2004/05/31 11:14:57 wormbo Exp $
 //
 // Spawned for Controllers without a Pawn to make the next xPawn possessed by
 // that Controller a Llama.
 //=============================================================================
 
 
-class JBLlamaPendingTag extends Info
+class JBLlamaPendingTag extends Inventory
   notplaceable;
 
 
@@ -24,18 +24,41 @@ var JBGameRulesLlamaHunt LlamaHuntRules; // JBGameRules class for Jailbreak noti
 //
 // Finds a JBGameRulesLlamaHunt actor which is responsible for preventing
 // llamas from releasing team mates and from sending players killed by them to
-// jail.
+// jail. Adds this tag to the owner's Inventory chain for faster lookup.
 //=============================================================================
 
-simulated event PostBeginPlay()
+function PostBeginPlay()
 {
-  Super.PostBeginPlay();
+  local Actor OwnerInventory;
   
-  //log("Tagged"@Owner@"as llama.", Name);
-  
-  if ( Role == ROLE_Authority ) {
-    LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
+  OwnerInventory = Owner;
+  while(OwnerInventory.Inventory != None) {
+    OwnerInventory = OwnerInventory.Inventory;
   }
+  OwnerInventory.Inventory = Self;
+  
+  LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
+}
+
+
+//=============================================================================
+// Destroyed
+//
+// Remove this tag from the owner's Inventory chain.
+//=============================================================================
+
+function Destroyed()
+{
+  local Actor OwnerInventory;
+  
+  if (Owner != None) {
+    OwnerInventory = Owner;
+    while(OwnerInventory.Inventory != None && OwnerInventory.Inventory != Self) {
+      OwnerInventory = OwnerInventory.Inventory;
+    }
+    OwnerInventory.Inventory = Inventory;
+  }
+  Inventory = None;
 }
 
 

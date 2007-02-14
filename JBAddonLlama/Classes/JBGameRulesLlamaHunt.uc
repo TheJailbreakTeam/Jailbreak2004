@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.10 2005-08-10 14:55:52 wormbo Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.11 2006-07-19 14:26:03 jrubzjeknf Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -69,8 +69,7 @@ function NotifyPlayerDisconnect(PlayerController ControllerPlayer, out byte bIsL
     BroadcastLocalizedMessage(class'JBLlamaMessage', 4, ControllerPlayer.PlayerReplicationInfo);
   }
 
-  if ( bIsLlama == 0 && ControllerPlayer.Pawn == None
-      && IsLlamaPending(class'JBTagPlayer'.static.FindFor(ControllerPlayer.PlayerReplicationInfo)) ) {
+  if ( bIsLlama == 0 && class'JBAddonLlama'.static.IsLlama(ControllerPlayer) ) {
     bIsLlama = 1;
     BroadcastLocalizedMessage(class'JBLlamaMessage', 4, ControllerPlayer.PlayerReplicationInfo);
   }
@@ -104,13 +103,15 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 
 function bool OverridePickupQuery(Pawn Other, Pickup Item, out byte bAllowPickup)
 {
-	if ( Item.IsA('TournamentPickup') && Other.FindInventoryType(class'JBLlamaTag') != None
-	    && Other.PlayerReplicationInfo != None && !Other.PlayerReplicationInfo.bBot ) {
-	  bAllowPickup = 0;
-	  return true;
-	}
-
-	return Super.OverridePickupQuery(Other, Item, bAllowPickup);
+  if ( Item.IsA('TournamentPickup')
+      && class'JBAddonLlama'.static.IsLlama(Other)
+      && Other.PlayerReplicationInfo != None
+      && !Other.PlayerReplicationInfo.bBot ) {
+    bAllowPickup = 0;
+    return true;
+  }
+    
+  return Super.OverridePickupQuery(Other, Item, bAllowPickup);
 }
 
 
@@ -122,8 +123,8 @@ function bool OverridePickupQuery(Pawn Other, Pickup Item, out byte bAllowPickup
 
 function bool CanRelease(TeamInfo Team, Pawn PawnInstigator, GameObjective Objective)
 {
-  return Super.CanRelease(Team, PawnInstigator, Objective) && (PawnInstigator == None
-      || PawnInstigator.FindInventoryType(class'JBLlamaTag') == None);
+  return Super.CanRelease(Team, PawnInstigator, Objective)
+      && !class'JBAddonLlama'.static.IsLlama(PawnInstigator);
 }
 
 
@@ -137,7 +138,8 @@ function bool CanSendToJail(JBTagPlayer TagPlayer)
 {
   //log(Level.TimeSeconds@"CanSendToJail"@TagPlayer@TagPlayer.GetController());
   return Super.CanSendToJail(TagPlayer) && (!TagPlayer.IsFree()
-      || !WasKilledByLlama(TagPlayer) && !IsLlamaPending(TagPlayer));
+    || !WasKilledByLlama(TagPlayer)
+    && !class'JBAddonLlama'.static.IsLlama(TagPlayer));
 }
 
 
@@ -154,8 +156,8 @@ function ScoreKill(Controller Killer, Controller Killed)
 
   //log(Level.TimeSeconds@"ScoreKill"@Killer@Killed);
 
-  bKilledIsLlama = Killed.Pawn != None && Killed.Pawn.FindInventoryType(class'JBLlamaTag') != None;
-  bKillerIsLlama = Killer != None && Killer.Pawn != None && Killer.Pawn.FindInventoryType(class'JBLlamaTag') != None;
+  bKilledIsLlama = class'JBAddonLlama'.static.IsLlama(Killed);
+  bKillerIsLlama = class'JBAddonLlama'.static.IsLlama(Killer);
 
   if ( bKillerIsLlama && !bKilledIsLlama &&
        Killer.GetTeamNum() != Killed.GetTeamNum())
@@ -222,10 +224,9 @@ protected function LlamaSuicided(Controller Killed)
 
 function bool CanSendToArena(JBTagPlayer TagPlayer, JBInfoArena Arena, out byte bForceSendToArena)
 {
-  if ( TagPlayer.GetPawn() != None && TagPlayer.GetPawn().FindInventoryType(class'JBLlamaTag') != None )
+  if ( class'JBAddonLlama'.static.IsLlama(TagPlayer) )
     return false;
-  else
-    return Super.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
+  return Super.CanSendToArena(TagPlayer, Arena, bForceSendToArena);
 }
 
 
@@ -261,18 +262,8 @@ protected function bool WasKilledByLlama(JBTagPlayer TagPlayer)
 
 protected function bool IsLlamaPending(JBTagPlayer TagPlayer)
 {
-  local JBLlamaPendingTag thisLlamaPendingTag;
-  local Controller ControllerPlayer;
-
-  ControllerPlayer = TagPlayer.GetController();
-
-  if ( ControllerPlayer == None )
-    return false;
-
-  foreach ControllerPlayer.ChildActors(class'JBLlamaPendingTag', thisLlamaPendingTag)
-    return true;
-
-  return false;
+  warn("This function should no longer be used!");
+  return class'JBAddonLlama'.static.IsLlama(TagPlayer);
 }
 
 
