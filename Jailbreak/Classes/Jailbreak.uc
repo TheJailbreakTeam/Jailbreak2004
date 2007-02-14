@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.140 2007-01-13 00:53:21 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.141 2007-01-24 17:04:58 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -2163,6 +2163,22 @@ state MatchOver
 
 } // state MatchOver
 
+
+// ============================================================================
+// PrecacheGameTextures
+// 
+// Precache HUD and scoreboard textures.
+// ============================================================================
+
+static function PrecacheGameTextures(LevelInfo myLevel)
+{
+  class'xTeamGame'.static.PrecacheGameTextures(myLevel);
+  
+  myLevel.AddPrecacheMaterial(Material'SpriteWidgetHud');
+  myLevel.AddPrecacheMaterial(Material'SpriteWidgetScores');
+  myLevel.AddPrecacheMaterial(Material'ArenaBeacon');
+  myLevel.AddPrecacheMaterial(Material'HUDContent.NoEntry');
+}
 
 
 // ============================================================================

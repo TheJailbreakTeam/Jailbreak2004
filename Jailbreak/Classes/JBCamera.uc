@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.37 2006-10-28 11:01:48 jrubzjeknf Exp $
+// $Id: JBCamera.uc,v 1.38 2006-10-28 11:51:17 jrubzjeknf Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -893,6 +893,19 @@ simulated function RemoveCameraEffect(CameraEffect CameraEffect)
       return;
 
   Level.ObjectPool.FreeObject(CameraEffect);
+}
+
+
+// ============================================================================
+// UpdatePrecacheMaterials
+//
+// Precache the overlay material.
+// ============================================================================
+
+simulated function UpdatePrecacheMaterials()
+{
+  Super.UpdatePrecacheMaterials();
+  Level.AddPrecacheMaterial(Overlay.Material);
 }
 
 
