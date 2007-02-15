@@ -1,13 +1,20 @@
 //=============================================================================
 // JBLlamaTrailer
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBLlamaTrailer.uc,v 1.3 2003/08/11 20:34:26 wormbo Exp $
 //
 // Pulsing colored light effect for the llama.
 //=============================================================================
 
 
 class JBLlamaTrailer extends Effects notplaceable;
+
+
+//=============================================================================
+// Variables
+//=============================================================================
+
+var transient float HueChangeTime, RadiusChangeTime;
 
 
 //=============================================================================
@@ -18,13 +25,15 @@ class JBLlamaTrailer extends Effects notplaceable;
 
 simulated function Tick(float DeltaTime)
 {
-  LightHue = int(Level.TimeSeconds * 100.0) % 256;
-  LightRadius = 3.0 * Cos(2.0 * Pi * Level.TimeSeconds) + 8.0;
+  HueChangeTime += DeltaTime * (1 + 0.2 * FRand());
+  RadiusChangeTime += DeltaTime * (1 + 0.2 * FRand());
+  LightHue = int(HueChangeTime * 100.0) % 256;
+  LightRadius = 3.0 * Cos(2.0 * Pi * RadiusChangeTime) + 8.0;
 }
 
 
 //=============================================================================
-// default properties
+// Default properties
 //=============================================================================
 
 defaultproperties
@@ -41,4 +50,5 @@ defaultproperties
   LightEffect=LE_NonIncidence
   LightSaturation=0
   LightBrightness=250
+  bAlwaysTick=True
 }

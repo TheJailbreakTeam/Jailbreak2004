@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaArrow
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaArrow.uc,v 1.5 2004/05/24 10:29:13 wormbo Exp $
+// $Id: JBLlamaArrow.uc,v 1.6 2004/05/31 11:14:57 wormbo Exp $
 //
 // A spinning arrow hovering above a llama's head.
 //=============================================================================
@@ -213,6 +213,7 @@ defaultproperties
   Physics=PHYS_Rotating
   Style=STY_Additive
   bHidden=True
+  bAlwaysTick=True
   DrawType=DT_StaticMesh
   StaticMesh=StaticMesh'JBAddonLlama.LlamaArrow.LlamaArrow'
 }
