@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.20 2007-01-03 22:48:07 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.21 2007-02-10 13:21:17 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -1568,7 +1568,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
 
     Canvas.DrawColor.A = FClamp(LayoutEntry.ColorMain.A * Entry.FadeMain, 0, 255);
 
-    if (iEntryOwner >= 0) {
+    if (iEntryOwner >= 0 && !Entry.bBroadcastPlayer) {
       EntryOwner = ListEntry[iEntryOwner];
 
       iTableOwner = EntryOwner.PositionCurrent .iTable *        EntryOwner.AlphaPosition +
@@ -1576,10 +1576,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
       iTableEntry = Entry     .PositionCurrent .iTable *        Entry     .AlphaPosition +
                     Entry     .PositionPrevious.iTable * (1.0 - Entry     .AlphaPosition);
 
-      if (Entry.bBroadcastPlayer)
-        Canvas.DrawColor.A = FClamp(Canvas.DrawColor.A * (          iTableOwner               ), 0, 255);
-      else
-        Canvas.DrawColor.A = FClamp(Canvas.DrawColor.A * (1.0 - Abs(iTableEntry - iTableOwner)), 0, 255);
+      Canvas.DrawColor.A = FClamp(Canvas.DrawColor.A * (1.0 - Abs(iTableEntry - iTableOwner)), 0, 255);
     }
 
     if (Canvas.DrawColor.A > 0) {
