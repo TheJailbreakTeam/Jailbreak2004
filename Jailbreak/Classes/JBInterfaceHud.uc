@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.65 2007-02-11 15:37:23 wormbo Exp $
+// $Id: JBInterfaceHud.uc,v 1.66 2007-02-11 18:46:05 wormbo Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -17,6 +17,7 @@ class JBInterfaceHud extends HudCTeamDeathMatch
 
 #exec texture import file=Textures\SpriteWidgetHud.dds mips=on alpha=on lodset=LODSET_Interface
 #exec texture import file=Textures\ArenaBeacon.dds mips=on alpha=on lodset=LODSET_Interface uclampmode=clamp vclampmode=clamp
+#exec texture import file=Textures\ArenaPendingBeacon.dds mips=on alpha=on lodset=LODSET_Interface uclampmode=clamp vclampmode=clamp
 
 
 // ============================================================================
@@ -103,8 +104,8 @@ var SpriteWidget SpriteWidgetTacticsBack;     // tactics background
 var SpriteWidget SpriteWidgetTacticsIcon[5];  // tactics icons
 var SpriteWidget SpriteWidgetTacticsAuto;     // auto tactics display
 
-var Color ColorArenaBeacon;             // color of arena player beacon
 var Texture TextureArenaBeacon;         // texture of arena player beacon
+var Material MaterialArenaPendingBeacon;// texture of arena pending beacon
 var Texture TextureArenaNoAttack;       // texture for "don't attack" indicator
 
 
@@ -1036,7 +1037,7 @@ function UpdateArenaPlayerBeacons()
       if (thisTagPlayer == None)
         thisPawn.bScriptPostRender = False;
       else
-        thisPawn.bScriptPostRender = ViewingArena != None || thisTagPlayer.IsInArena();
+        thisPawn.bScriptPostRender = ViewingArena != None || thisTagPlayer.IsInArena() || thisTagPlayer.GetArenaPending() != None /*|| thisTagPlayer.GetArenaRequest() != None*/;
     }
   }
 }
@@ -1115,9 +1116,16 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
   else if (PlayerArena != None && ViewingArena != PlayerArena) {
     // pawn is in an arena, but viewer is not
     BeaconScale = FClamp(0.28 * (ScaledDist - VSize(thisPawn.Location - CamLocation)) / ScaledDist, 0.1, 0.25) * 1.25;
-    C.DrawColor = ColorArenaBeacon;
+    C.SetDrawColor(255, 255, 255);
 	C.SetPos(ScreenLocX - 0.5 * BeaconScale * TextureArenaBeacon.USize, ScreenLocY - BeaconScale * TextureArenaBeacon.VSize);
 	C.DrawIcon(TextureArenaBeacon, BeaconScale);
+  }
+  else if (thisTagPlayer.GetArenaPending() != None) {
+    // pawn is about to enter the arena
+    BeaconScale = FClamp(0.28 * (ScaledDist - VSize(thisPawn.Location - CamLocation)) / ScaledDist, 0.1, 0.25) * 1.25;
+    C.SetDrawColor(255, 255, 255);
+	C.SetPos(ScreenLocX - 0.5 * BeaconScale * MaterialArenaPendingBeacon.MaterialUSize(), ScreenLocY - BeaconScale * MaterialArenaPendingBeacon.MaterialVSize());
+    C.DrawTileScaled(MaterialArenaPendingBeacon, BeaconScale, BeaconScale);
   }
 }
 
@@ -1474,10 +1482,38 @@ defaultproperties
   SpriteWidgetTacticsIcon[3] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=272,Y1=400,X2=351,Y2=488),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=043,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsIcon[4] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=240,X2=497,Y2=332),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=033,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsAuto    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=080,Y1=352,X2=136,Y2=371),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=038,OffsetY=098,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255),ScaleMode=SM_Left,Scale=1.0);
-
-  ColorArenaBeacon      = (R=255,G=255,B=000,A=255);
-  TextureArenaBeacon    = Texture'ArenaBeacon';
-  TextureArenaNoAttack  = Texture'HUDContent.NoEntry';
+  
+  Begin Object Class=FadeColor Name=ArenaPendingPulse
+    Color1=(R=255,G=255,B=255,A=255)
+    Color2=(R=0,G=0,B=0,A=0)
+    FadePeriod=0.2
+    ColorFadeType=FC_Sinusoidal
+  End Object
+  
+  Begin Object Class=Combiner Name=ArenaPendingPulseCombiner
+    CombineOperation=CO_Multiply
+    AlphaOperation=AO_Multiply
+    Material1=Texture'ArenaPendingBeacon'
+    Material2=FadeColor'ArenaPendingPulse'
+  End Object
+  
+  Begin Object Class=Combiner Name=ArenaPendingBeaconCombiner
+    CombineOperation=CO_AlphaBlend_With_Mask
+    AlphaOperation=AO_Add
+    Material1=Texture'ArenaBeacon'
+    Material2=Combiner'ArenaPendingPulseCombiner'
+    Mask=Combiner'ArenaPendingPulseCombiner'
+  End Object
+  
+  Begin Object Class=FinalBlend Name=ArenaPendingBeaconFinal
+    FrameBufferBlending=FB_AlphaBlend
+    Material=Combiner'ArenaPendingBeaconCombiner'
+    FallbackMaterial=Texture'ArenaBeacon'
+  End Object
+  
+  TextureArenaBeacon         = Texture'ArenaBeacon';
+  MaterialArenaPendingBeacon = FinalBlend'ArenaPendingBeaconFinal';
+  TextureArenaNoAttack       = Texture'HUDContent.NoEntry';
   
   ScoreTeam[0]               = (PosX=0.442000);
   ScoreTeam[1]               = (PosX=0.558000);
