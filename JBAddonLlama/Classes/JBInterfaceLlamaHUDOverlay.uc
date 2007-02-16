@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInterfaceLlamaHUDOverlay
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.10 2004/05/31 21:02:50 wormbo Exp $
+// $Id: JBInterfaceLlamaHUDOverlay.uc,v 1.11 2004/07/25 18:46:35 wormbo Exp $
 //
 // Registered as overlay for the Jailbreak HUD to draw the llama effects.
 // Spawned client-side through the static function FindLlamaHUDOverlay called
@@ -17,7 +17,7 @@ class JBInterfaceLlamaHUDOverlay extends Info notplaceable;
 //=============================================================================
 
 #exec Texture Import File=Textures\Llama.dds Mips=Off Alpha=1 Group=LlamaCompass
-#exec Texture Import File=Textures\LlamaIconMask.dds Mips=Off Alpha=1 Group=LlamaCompass
+//#exec Texture Import File=Textures\LlamaIconMask.dds Mips=Off Alpha=1 Group=LlamaCompass
 #exec Texture Import File=Textures\LlamaScreenOverlay.dds Mips=Off Alpha=1 Group=LlamaHudOverlay
 #exec Audio Import File=Sounds\Heartbeat.wav
 #exec obj load file=..\Textures\HudContent.utx
@@ -36,7 +36,7 @@ var MotionBlur                   MotionBlur;            // a motion blur effect 
 var CameraOverlay                CameraOverlay;         // an overlay camera effect for the llama
 var bool                         bCameraEffectsEnabled; // whether the motion blur and overlay is active
 var private float                HUDCanvasScale;
-var private bool                 bHeartbeakPlayed;
+var private bool                 bHeartbeatPlayed;
 
 // llama compass
 var private HudBase.SpriteWidget LlamaCompassIcon;    // the llama icon
@@ -252,13 +252,13 @@ simulated event Tick(float DeltaTime)
     HeartbeatTime = ((Level.TimeSeconds - LocalLlamaTag.LlamaStartTime) / Level.TimeDilation) % 1.0;
     if ( HeartbeatTime < 0.05 ) {
       JailbreakHUD.HUDCanvasScale = HUDCanvasScale + 2 * HeartbeatTime;
-      if ( !bHeartbeakPlayed ) {
+      if ( !bHeartbeatPlayed ) {
         PlayerController(JailbreakHUD.Owner).ViewTarget.PlayOwnedSound(sound'Heartbeat', SLOT_Misc);
-        bHeartbeakPlayed = True;
+        bHeartbeatPlayed = True;
       }
     }
     else {
-      bHeartbeakPlayed = False;
+      bHeartbeatPlayed = False;
       if ( HeartbeatTime < 0.35 )
         JailbreakHUD.HUDCanvasScale = HUDCanvasScale + (0.35 - HeartbeatTime) / 3;
       else if ( HeartbeatTime < 0.4 )
@@ -525,15 +525,16 @@ defaultproperties
   End Object
   
   Begin Object Class=Combiner Name=LlamaIconCombiner
-    AlphaOperation=AO_Multiply
+    CombineOperation=CO_Multiply
+    AlphaOperation=AO_Use_Alpha_From_Material1
     Material1=TexRotator'LlamaIconRotator'
-    Material2=Texture'LlamaIconMask'
+    Material2=Texture'Llama'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
     Outer=LlamaCompass
   End Object
   
   Begin Object Class=FinalBlend Name=LlamaIconFinalBlend
-    FrameBufferBlending=FB_AlphaBlend
+    FrameBufferBlending=FB_Brighten
     Material=Combiner'LlamaIconCombiner'
     FallbackMaterial=TexOscillator'LlamaIconOscillator'
     Outer=LlamaCompass

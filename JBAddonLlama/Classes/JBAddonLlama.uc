@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.13 2004/06/09 16:50:04 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.14 2007-02-14 09:56:42 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -360,7 +360,7 @@ simulated function NotifyLevelChange()
 simulated function UpdatePrecacheMaterials()
 {
   Level.AddPrecacheMaterial(Material'Llama');
-  Level.AddPrecacheMaterial(Material'LlamaIconMask');
+  //Level.AddPrecacheMaterial(Material'LlamaIconMask');
   Level.AddPrecacheMaterial(Material'LlamaScreenOverlay');
 }
 simulated function UpdatePrecacheStaticMeshes()

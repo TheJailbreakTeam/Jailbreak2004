@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTrailer
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTrailer.uc,v 1.3 2003/08/11 20:34:26 wormbo Exp $
+// $Id: JBLlamaTrailer.uc,v 1.4 2007-02-15 23:47:50 wormbo Exp $
 //
 // Pulsing colored light effect for the llama.
 //=============================================================================
@@ -25,8 +25,8 @@ var transient float HueChangeTime, RadiusChangeTime;
 
 simulated function Tick(float DeltaTime)
 {
-  HueChangeTime += DeltaTime * (1 + 0.2 * FRand());
-  RadiusChangeTime += DeltaTime * (1 + 0.2 * FRand());
+  HueChangeTime += DeltaTime * (0.9 + 0.2 * FRand());
+  RadiusChangeTime += DeltaTime * (0.9 + 0.2 * FRand());
   LightHue = int(HueChangeTime * 100.0) % 256;
   LightRadius = 3.0 * Cos(2.0 * Pi * RadiusChangeTime) + 8.0;
 }

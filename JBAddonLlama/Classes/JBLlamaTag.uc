@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.15 2004-07-25 18:46:35 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.16 2006-08-23 23:09:11 jrubzjeknf Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -41,6 +41,7 @@ var array<Sound>               LlamaSounds;
 var bool                       bNotYetRegistered;
 var bool                       bShiftedView;
 var rotator                    ViewRotationOffset;
+var float                      ScoreboardColorTime;
 
 
 //=============================================================================
@@ -254,9 +255,10 @@ simulated function Tick(float DeltaTime)
   local int CurrentCrosshair;
   local PlayerController MyController;
 
+  ScoreboardColorTime += DeltaTime * (0.9 + 0.2 * FRand());
   if ( LocalScoreboard != None && TagPlayer != None ) {
     LocalScoreboard.OverrideEntryColor(TagPlayer,
-        class'JBInterfaceLlamaHUDOverlay'.static.HueToRGB(int(Level.TimeSeconds * 150.0) % 256));
+        class'JBInterfaceLlamaHUDOverlay'.static.HueToRGB(int(ScoreboardColorTime * 150.0) % 256));
     LocalScoreboard.BroadcastPlayer(TagPlayer, True);
   }
 
