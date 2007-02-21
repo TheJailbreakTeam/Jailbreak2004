@@ -1,14 +1,15 @@
 // ============================================================================
 // JBSentinelCeiling
 // Copyright 2004 by Blitz
-// $Id$
+// $Id: JBSentinelCeiling.uc,v 1.1 2006-12-16 19:39:37 jrubzjeknf Exp $
 //
 // The sentinel that hangs from the ceiling.
 // ============================================================================
 
 
 class JBSentinelCeiling extends ASVehicle_Sentinel_Ceiling
-  placeable;
+  placeable
+  cacheexempt;
 
 
 // ============================================================================
