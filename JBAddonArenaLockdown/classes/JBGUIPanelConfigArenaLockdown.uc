@@ -1,7 +1,7 @@
 // ============================================================================
-// JBLocalMessageArenaLockdown - original by _Lynx
+// JBGUIPanelConfigArenaLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGUIPanelConfigArenaLockdown.uc,v 1.2 2006-12-08 21:12:54 jrubzjeknf Exp $
+// $Id: JBGUIPanelConfigArenaLockdown.uc,v 1.3 2007-01-27 20:32:01 jrubzjeknf Exp $
 //
 // Addon's GUI.
 // ============================================================================
