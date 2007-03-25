@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.66 2007-02-11 18:46:05 wormbo Exp $
+// $Id: JBInterfaceHud.uc,v 1.67 2007-02-16 16:48:17 wormbo Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1061,6 +1061,7 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
   local PlayerReplicationInfo thisPRI;
   
   if (thisPawn == None || thisPawn.bNoTeamBeacon || thisPawn.Health <= 0
+      || thisPawn.LastRenderTime < Level.TimeSeconds
       || ScreenLocX < 0 || ScreenLocX > C.ClipX
       || ScreenLocY < 0 || ScreenLocY > C.ClipY
       || PlayerOwner.PlayerReplicationInfo != None
