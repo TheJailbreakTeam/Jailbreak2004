@@ -1,9 +1,9 @@
 // ============================================================================
 // JBGameRulesArenaLockdown
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBGameRulesArenaLockdown.uc,v 1.2 2006-12-08 21:12:54 jrubzjeknf Exp $
 //
-// The only way to release your teammates is by winning the arena match!
+// The only way to get out of jail is by winning the arena match!
 // ============================================================================
 
 class JBGameRulesArenaLockdown extends JBGameRules;
@@ -167,9 +167,6 @@ event Timer()
   RedChallenger  = FindChallenger(RedPrisoners);
   BlueChallenger = FindChallenger(BluePrisoners);
 
-  /*RedChallenger  = FindRedChallenger();
-  BlueChallenger = FindBlueChallenger();*/
-
   if (RedChallenger != None && BlueChallenger != None) {
     RemoveRedPrisonerFromArray (RedChallenger);
     RemoveBluePrisonerFromArray(BlueChallenger);
@@ -253,25 +250,6 @@ function JBTagPlayer FindChallenger(array<JBTagPlayer> Prisoners)
 }
 
 
-/*function JBTagPlayer FindBlueChallenger()
-{
-  local int i;
-
-  for (i=0; i<BluePrisoners.Length; i++) {
-    if (BluePrisoners[i] == None ||
-        BluePrisoners[i].GetController() == None) {
-      BluePrisoners.Remove(i, 1);
-      i--;
-      continue;
-    }
-    if (ValidateChallenger(BluePrisoners[i].GetController()))
-      return BluePrisoners[i];
-  }
-
-  return None;
-}*/
-
-
 // ============================================================================
 // ValidateChallenger
 //
@@ -292,15 +270,15 @@ function bool ValidateChallenger(Controller Challenger)
 
 function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 {
-  local JBInfoJail firstJail;
-  local JBInfoJail thisJail;
+/*  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;   */
 
   if (TagPlayerWinner != None) //not a tie
   {
-    firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+    /*firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
 
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
-      thisJail.ForceRelease(TagPlayerWinner.GetTeam(), TagPlayerWinner.GetController());
+      thisJail.ForceRelease(TagPlayerWinner.GetTeam(), TagPlayerWinner.GetController());*/
   } else
     AttemptArenaMatch(None);
 

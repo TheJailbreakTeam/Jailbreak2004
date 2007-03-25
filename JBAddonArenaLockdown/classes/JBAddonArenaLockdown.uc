@@ -1,9 +1,9 @@
 // ============================================================================
 // JBAddonArenaLockdown
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBAddonArenaLockdown.uc,v 1.2 2006-12-08 21:12:54 jrubzjeknf Exp $
 //
-// The only way to release your teammates is by winning the arena match!
+// The only way to get out of jail is by winning the arena match!
 // ============================================================================
 
 class JBAddonArenaLockdown extends JBAddon config cacheexempt;
@@ -103,7 +103,7 @@ static event string GetDescriptionText(string PropName)
 
 defaultproperties
 {
-  Build = "%%%%-%%-%% %%:%%";
+  Build = "%%%%-%%-%% %%:%%"
 
   CrossBaseSpawningText  = "Random base spawning"
   CrossBaseSpawningDesc  = "Players can be spawned in their enemy's base, so that basecamping is discouraged."
@@ -112,6 +112,6 @@ defaultproperties
   SelectionMethodOptions = "0;Queue;1;Random"
 
   FriendlyName = "Arena Lockdown"
-  Description  = "The only way to release your teammates is by winning the arena match!"
+  Description  = "The only way to get out of jail is by winning the arena match!"
   ConfigMenuClassName="JBAddonArenaLockdown.JBGUIPanelConfigArenaLockdown"
 }
