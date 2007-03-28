@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.67 2007-02-16 16:48:17 wormbo Exp $
+// $Id: JBInterfaceHud.uc,v 1.68 2007-03-25 12:44:20 wormbo Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -107,6 +107,8 @@ var SpriteWidget SpriteWidgetTacticsAuto;     // auto tactics display
 var Texture TextureArenaBeacon;         // texture of arena player beacon
 var Material MaterialArenaPendingBeacon;// texture of arena pending beacon
 var Texture TextureArenaNoAttack;       // texture for "don't attack" indicator
+
+var int TimerCountdown;                 // custom countdown in seconds
 
 
 // ============================================================================
@@ -1023,14 +1025,14 @@ function UpdateArenaPlayerBeacons()
   local UnrealPawn thisPawn;
   local JBTagPlayer thisTagPlayer;
   local JBInfoArena ViewingArena;
-  
+
   if (JBCameraArena(PlayerOwner.ViewTarget) != None) {
     ViewingArena = JBCameraArena(PlayerOwner.ViewTarget).Arena;
   }
   else if (TagPlayerOwner != None) {
     ViewingArena = TagPlayerOwner.GetArena();
   }
-  
+
   foreach DynamicActors(class'UnrealPawn', thisPawn) {
     if (thisPawn != PawnOwner) {
       thisTagPlayer = class'JBTagPlayer'.static.FindFor(thisPawn.PlayerReplicationInfo);
@@ -1059,7 +1061,7 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
   local vector CamLocation, X, Y, Z, ScreenLocation;
   local rotator CamRotation;
   local PlayerReplicationInfo thisPRI;
-  
+
   if (thisPawn == None || thisPawn.bNoTeamBeacon || thisPawn.Health <= 0
       || thisPawn.LastRenderTime < Level.TimeSeconds
       || ScreenLocX < 0 || ScreenLocX > C.ClipX
@@ -1069,47 +1071,47 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
       && PlayerOwner.bHideSpectatorBeacons
       || xPawn(thisPawn) != None && xPawn(thisPawn).bInvis)
     return;
-  
+
   thisPRI = thisPawn.PlayerReplicationInfo;
   if (thisPRI == None && thisPawn.DrivenVehicle != None)
     thisPRI = thisPawn.DrivenVehicle.PlayerReplicationInfo;
-    
+
   thisTagPlayer = class'JBTagPlayer'.static.FindFor(thisPRI);
-  
+
   if (thisTagPlayer == None)
     return;
   else
     PlayerArena = thisTagPlayer.GetArena();
-  
+
   C.GetCameraLocation(CamLocation, CamRotation);
   GetAxes(CamRotation, X, Y, Z);
   PawnDist = PlayerOwner.FOVBias * (X dot (thisPawn.Location - CamLocation));
-  
+
   if (PawnDist < 0 || !PlayerOwner.LineOfSightTo(thisPawn))
     return; // behind viewer or hidden behind something, don't draw!
-  
+
   ScaledDist = PlayerOwner.TeamBeaconMaxDist * FClamp(0.04 * thisPawn.CollisionRadius, 1, 2);
-  
+
   if (PawnDist > ScaledDist)
     return; // too far away
-  
+
   if (JBCameraArena(PlayerOwner.ViewTarget) != None) {
     ViewingArena = JBCameraArena(PlayerOwner.ViewTarget).Arena;
   }
   else if (TagPlayerOwner != None) {
     ViewingArena = TagPlayerOwner.GetArena();
   }
-  
+
   C.Style = ERenderStyle.STY_Alpha;
-  
+
   if (ViewingArena != None && ViewingArena != PlayerArena) {
     // viewer is in arena, but pawn is not (or not in same) arena
     ScreenLocation = C.WorldToScreen(thisPawn.Location);
     ScreenLocX = ScreenLocation.X;
     ScreenLocY = ScreenLocation.Y;
-    
+
     BeaconScale = Square(FClamp(1 - (0.5 * PawnDist) / PlayerOwner.TeamBeaconPlayerInfoMaxDist, 0.55, 1));
-    
+
     C.SetDrawColor(255, 255, 255);
     C.SetPos(ScreenLocX - 0.5 * BeaconScale * TextureArenaNoAttack.USize, ScreenLocY - 0.5 * BeaconScale * TextureArenaNoAttack.VSize);
     C.DrawIcon(TextureArenaNoAttack, BeaconScale);
@@ -1118,16 +1120,134 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
     // pawn is in an arena, but viewer is not
     BeaconScale = FClamp(0.28 * (ScaledDist - VSize(thisPawn.Location - CamLocation)) / ScaledDist, 0.1, 0.25) * 1.25;
     C.SetDrawColor(255, 255, 255);
-	C.SetPos(ScreenLocX - 0.5 * BeaconScale * TextureArenaBeacon.USize, ScreenLocY - BeaconScale * TextureArenaBeacon.VSize);
-	C.DrawIcon(TextureArenaBeacon, BeaconScale);
+    C.SetPos(ScreenLocX - 0.5 * BeaconScale * TextureArenaBeacon.USize, ScreenLocY - BeaconScale * TextureArenaBeacon.VSize);
+    C.DrawIcon(TextureArenaBeacon, BeaconScale);
   }
   else if (thisTagPlayer.GetArenaPending() != None) {
     // pawn is about to enter the arena
     BeaconScale = FClamp(0.28 * (ScaledDist - VSize(thisPawn.Location - CamLocation)) / ScaledDist, 0.1, 0.25) * 1.25;
     C.SetDrawColor(255, 255, 255);
-	C.SetPos(ScreenLocX - 0.5 * BeaconScale * MaterialArenaPendingBeacon.MaterialUSize(), ScreenLocY - BeaconScale * MaterialArenaPendingBeacon.MaterialVSize());
+    C.SetPos(ScreenLocX - 0.5 * BeaconScale * MaterialArenaPendingBeacon.MaterialUSize(), ScreenLocY - BeaconScale * MaterialArenaPendingBeacon.MaterialVSize());
     C.DrawTileScaled(MaterialArenaPendingBeacon, BeaconScale, BeaconScale);
   }
+}
+
+
+// ============================================================================
+// ModifyTimerDisplay
+//
+// Changes the timer's display color, icon and time.
+// ============================================================================
+
+simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCountdown)
+{
+  TimerHours  .Tints[0] = C;
+  TimerHours  .Tints[1] = C;
+  TimerMinutes.Tints[0] = C;
+  TimerMinutes.Tints[1] = C;
+  TimerSeconds.Tints[0] = C;
+  TimerSeconds.Tints[1] = C;
+  TimerDigitSpacer[0].Tints[0] = C;
+  TimerDigitSpacer[0].Tints[1] = C;
+  TimerDigitSpacer[1].Tints[0] = C;
+  TimerDigitSpacer[1].Tints[1] = C;
+
+  TimerIcon = Icon;
+  TimerCountdown = PlayerOwner.GameReplicationInfo.ElapsedTime + SecondsCountdown;
+}
+
+
+// ============================================================================
+// ResetTimerDisplay
+//
+// Resets the timer to it's original state, where the time is the current time,
+// not the time it was when the timer was changed.
+// ============================================================================
+
+simulated function ResetTimerDisplay()
+{
+  TimerHours  .Tints[0] = Default.TimerHours  .Tints[0];
+  TimerHours  .Tints[1] = Default.TimerHours  .Tints[1];
+  TimerMinutes.Tints[0] = Default.TimerMinutes.Tints[0];
+  TimerMinutes.Tints[1] = Default.TimerMinutes.Tints[1];
+  TimerSeconds.Tints[0] = Default.TimerSeconds.Tints[0];
+  TimerSeconds.Tints[1] = Default.TimerSeconds.Tints[1];
+  TimerDigitSpacer[0].Tints[0] = Default.TimerDigitSpacer[0].Tints[0];
+  TimerDigitSpacer[0].Tints[1] = Default.TimerDigitSpacer[0].Tints[1];
+  TimerDigitSpacer[1].Tints[0] = Default.TimerDigitSpacer[1].Tints[0];
+  TimerDigitSpacer[1].Tints[1] = Default.TimerDigitSpacer[1].Tints[1];
+
+  TimerIcon = Default.TimerIcon;
+  TimerCountdown = 0;
+}
+
+
+// ============================================================================
+// DrawTimer
+//
+// Exact copy from HudCDeathmatch, because I need to change the time displayed.
+// ============================================================================
+
+simulated function DrawTimer(Canvas C)
+{
+  local GameReplicationInfo GRI;
+  local int Minutes, Hours, Seconds;
+
+  GRI = PlayerOwner.GameReplicationInfo;
+
+  // One added if-statement and one changed variable..
+  if (TimerCountdown != 0)
+    Seconds = Max(0, TimerCountdown - GRI.ElapsedTime);
+  else
+    if (GRI.TimeLimit != 0)
+      Seconds = GRI.RemainingTime;
+    else
+      Seconds = GRI.ElapsedTime;
+
+  TimerBackground.Tints[TeamIndex] = HudColorBlack;
+  TimerBackground.Tints[TeamIndex].A = 150;
+
+  DrawSpriteWidget(C, TimerBackground);
+  DrawSpriteWidget(C, TimerBackgroundDisc);
+  DrawSpriteWidget(C, TimerIcon);
+
+  TimerMinutes.OffsetX = default.TimerMinutes.OffsetX - 80;
+  TimerSeconds.OffsetX = default.TimerSeconds.OffsetX - 80;
+  TimerDigitSpacer[0].OffsetX = Default.TimerDigitSpacer[0].OffsetX;
+  TimerDigitSpacer[1].OffsetX = Default.TimerDigitSpacer[1].OffsetX;
+
+  if (Seconds > 3600)
+  {
+    Hours = Seconds / 3600;
+    Seconds -= Hours * 3600;
+
+    DrawNumericWidget( C, TimerHours, DigitsBig);
+    TimerHours.Value = Hours;
+
+    if (Hours>9)
+    {
+      TimerMinutes.OffsetX = default.TimerMinutes.OffsetX;
+      TimerSeconds.OffsetX = default.TimerSeconds.OffsetX;
+    }
+    else
+    {
+      TimerMinutes.OffsetX = default.TimerMinutes.OffsetX - 40;
+      TimerSeconds.OffsetX = default.TimerSeconds.OffsetX - 40;
+      TimerDigitSpacer[0].OffsetX = Default.TimerDigitSpacer[0].OffsetX - 32;
+      TimerDigitSpacer[1].OffsetX = Default.TimerDigitSpacer[1].OffsetX - 32;
+    }
+    DrawSpriteWidget(C, TimerDigitSpacer[0]);
+  }
+  DrawSpriteWidget(C, TimerDigitSpacer[1]);
+
+  Minutes = Seconds / 60;
+  Seconds -= Minutes * 60;
+
+  TimerMinutes.Value = Min(Minutes, 60);
+  TimerSeconds.Value = Min(Seconds, 60);
+
+  DrawNumericWidget(C, TimerMinutes, DigitsBig);
+  DrawNumericWidget(C, TimerSeconds, DigitsBig);
 }
 
 
@@ -1483,21 +1603,21 @@ defaultproperties
   SpriteWidgetTacticsIcon[3] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=272,Y1=400,X2=351,Y2=488),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=043,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsIcon[4] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=240,X2=497,Y2=332),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=033,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsAuto    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=080,Y1=352,X2=136,Y2=371),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=038,OffsetY=098,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255),ScaleMode=SM_Left,Scale=1.0);
-  
+
   Begin Object Class=FadeColor Name=ArenaPendingPulse
     Color1=(R=255,G=255,B=255,A=255)
     Color2=(R=0,G=0,B=0,A=0)
     FadePeriod=0.2
     ColorFadeType=FC_Sinusoidal
   End Object
-  
+
   Begin Object Class=Combiner Name=ArenaPendingPulseCombiner
     CombineOperation=CO_Multiply
     AlphaOperation=AO_Multiply
     Material1=Texture'ArenaPendingBeacon'
     Material2=FadeColor'ArenaPendingPulse'
   End Object
-  
+
   Begin Object Class=Combiner Name=ArenaPendingBeaconCombiner
     CombineOperation=CO_AlphaBlend_With_Mask
     AlphaOperation=AO_Add
@@ -1505,17 +1625,17 @@ defaultproperties
     Material2=Combiner'ArenaPendingPulseCombiner'
     Mask=Combiner'ArenaPendingPulseCombiner'
   End Object
-  
+
   Begin Object Class=FinalBlend Name=ArenaPendingBeaconFinal
     FrameBufferBlending=FB_AlphaBlend
     Material=Combiner'ArenaPendingBeaconCombiner'
     FallbackMaterial=Texture'ArenaBeacon'
   End Object
-  
+
   TextureArenaBeacon         = Texture'ArenaBeacon';
   MaterialArenaPendingBeacon = FinalBlend'ArenaPendingBeaconFinal';
   TextureArenaNoAttack       = Texture'HUDContent.NoEntry';
-  
+
   ScoreTeam[0]               = (PosX=0.442000);
   ScoreTeam[1]               = (PosX=0.558000);
   TeamScoreBackGround[0]     = (PosX=0.442000);
