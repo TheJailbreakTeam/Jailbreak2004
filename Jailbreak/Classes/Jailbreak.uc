@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.141 2007-01-24 17:04:58 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.142 2007-02-14 09:33:59 wormbo Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -1006,14 +1006,16 @@ function Killed(Controller ControllerKiller, Controller ControllerVictim, Pawn P
   if (ControllerVictim != None)
     TagPlayerVictim = Class'JBTagPlayer'.Static.FindFor(ControllerVictim.PlayerReplicationInfo);
 
+  if (TagPlayerVictim != None &&
+      TagPlayerVictim.IsInJail()) {
+    KilledInJail(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
+    return;
+  }
+
   if (TagPlayerVictim != None)
     TagPlayerVictim.TimeRestart = Level.TimeSeconds + 2.0;
 
-  if (TagPlayerVictim != None &&
-      TagPlayerVictim.IsInJail())
-    KilledInJail(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
-  else
-    Super.Killed(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
+  Super.Killed(ControllerKiller, ControllerVictim, PawnVictim, ClassDamageType);
 }
 
 
@@ -2166,14 +2168,14 @@ state MatchOver
 
 // ============================================================================
 // PrecacheGameTextures
-// 
+//
 // Precache HUD and scoreboard textures.
 // ============================================================================
 
 static function PrecacheGameTextures(LevelInfo myLevel)
 {
   class'xTeamGame'.static.PrecacheGameTextures(myLevel);
-  
+
   myLevel.AddPrecacheMaterial(Material'SpriteWidgetHud');
   myLevel.AddPrecacheMaterial(Material'SpriteWidgetScores');
   myLevel.AddPrecacheMaterial(Material'ArenaBeacon');
