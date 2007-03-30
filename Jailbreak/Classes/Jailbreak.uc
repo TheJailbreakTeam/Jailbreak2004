@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.142 2007-02-14 09:33:59 wormbo Exp $
+// $Id: Jailbreak.uc,v 1.143 2007-03-30 16:23:08 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -105,7 +105,6 @@ event InitGame(string Options, out string Error)
   local string OptionDisallowEscaping;
   local string OptionEnableJBMapFixes;
   local string NameAddon;
-  local WebServer thisWebServer;
 
   Super.InitGame(Options, Error);
 
