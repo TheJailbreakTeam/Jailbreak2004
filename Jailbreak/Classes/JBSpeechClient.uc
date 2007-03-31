@@ -1,13 +1,26 @@
 // ============================================================================
 // JBSpeechClient
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechClient.uc,v 1.5 2004/05/17 02:59:06 mychaeel Exp $
+// $Id: JBSpeechClient.uc,v 1.6 2004/05/25 12:31:26 mychaeel Exp $
 //
 // Parses and interprets a speech sequence definition and plays it.
 // 
 // A speech sequence definition is a whitespace-separated list of sound
 // object names which are played one after each other in the order they appear
-// in the list. In addition, you can add the following extra control tokens:
+// in the list. Sound objects can be specified as follows:
+//
+//   Sound        Loads the sound with the given name from the player's
+//                currently selected Jailbreak voice pack.
+//
+//   Pack.Sound   Uses the given fully-qualified object name to load the sound
+//                with the specified name from the given package, ignoring the
+//                player's currently selected Jailbreak or game voice pack.
+//
+//   Type/Name    Plays an announcement from the player's currently selected
+//                game voice pack. Type must be either "Reward" or "Status" to
+//                select either the reward announcer or the status announcer.
+//
+// In addition, you can add the following extra control tokens:
 //
 //   (tag: ...)   Conditional. The sequence following the colon within the
 //                parentheses is played only if the tag is included in the
@@ -431,7 +444,8 @@ static final function bool IsCharIdentifier(string Char)
          (Char >= "A" && Char <= "Z") ||
          (Char >= "a" && Char <= "z") ||
           Char == "."                 ||
-          Char == "_";
+          Char == "_"                 ||
+          Char == "/";
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.9 2007-02-10 11:14:04 wormbo Exp $
+// $Id: JBSpeechManager.uc,v 1.10 2007-02-11 17:00:40 wormbo Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -64,6 +64,8 @@ var private array<JBSpeechClient> ListQueueSpeechClient;  // announcement queue
 var bool            bUseFallbackVoicePack;
 var JBDefaultVoice  FallbackVoicePack;
 
+var transient name Announcement;              // used to cast string to name
+
 
 // ============================================================================
 // SpawnFor
@@ -90,8 +92,7 @@ static function JBSpeechManager SpawnFor(LevelInfo Level)
 
 simulated event PostBeginPlay()
 {
-  //if (VoicePack != "")
-    LoadVoicePack(VoicePack);
+  LoadVoicePack(VoicePack);
 }
 
 
@@ -327,59 +328,80 @@ simulated function string GetSetting(string Section, string Setting, optional co
 simulated function TSegment GetSegment(string Identifier)
 {
   local int iCacheSegment;
+  local int iCharSeparatorAnnouncer;
   local int iSegment;
   local int iSegmentLoaded;
+  local string Announcer;
   local string Package;
   local string Group;
   local string Suffix;
   local Sound SoundLoaded;
   local TCacheSegment CacheSegment;
+  local TSegment SegmentAnnouncement;
   local TSegment SegmentNone;
   
-  for (iCacheSegment = 0; iCacheSegment < InfoVoicePack.ListCacheSegment.Length; iCacheSegment++)
-    if (InfoVoicePack.ListCacheSegment[iCacheSegment].Identifier ~= Identifier)
-      break;
+  iCharSeparatorAnnouncer = InStr(Identifier, "/");
 
-  if (iCacheSegment < InfoVoicePack.ListCacheSegment.Length) {
-    CacheSegment = InfoVoicePack.ListCacheSegment[iCacheSegment];
+  if (iCharSeparatorAnnouncer >= 0) {
+    Announcer = Left(Identifier, iCharSeparatorAnnouncer);
+    SetPropertyText("Announcement", Mid(Identifier, iCharSeparatorAnnouncer + 1));
+
+         if (Announcer ~= "Reward") SoundLoaded = Level.GetLocalPlayerController().RewardAnnouncer.GetSound(Announcement);
+    else if (Announcer ~= "Status") SoundLoaded = Level.GetLocalPlayerController().StatusAnnouncer.GetSound(Announcement);
+
+    if (SoundLoaded != None) {
+      SegmentAnnouncement.Sound    =                  SoundLoaded;
+      SegmentAnnouncement.Duration = GetSoundDuration(SoundLoaded);
+      return SegmentAnnouncement;
+    }
   }
   else {
-    CacheSegment.Identifier = Identifier;
-
-    Package = InfoVoicePack.Package;
-    Group   = InfoVoicePack.Group;
-
-    for (iSegmentLoaded = 0; True; iSegmentLoaded++) {
-      if (iSegmentLoaded == 0)
-             Suffix = "";
-        else Suffix = "_" $ iSegmentLoaded;
-
-      SoundLoaded = None;
-      if (InStr(Identifier, ".") >= 0)
-                                 SoundLoaded = DynamicLoadSound(                              Identifier $ Suffix);
-      else {
-        if (Group != "")         SoundLoaded = DynamicLoadSound(Package $ "." $ Group $ "_" $ Identifier $ Suffix);
-        if (SoundLoaded == None) SoundLoaded = DynamicLoadSound(Package $ "."               $ Identifier $ Suffix);
-      }
-
-      if (SoundLoaded == None)
-        if (iSegmentLoaded == 0) continue;
-                            else break;
+    for (iCacheSegment = 0; iCacheSegment < InfoVoicePack.ListCacheSegment.Length; iCacheSegment++)
+      if (InfoVoicePack.ListCacheSegment[iCacheSegment].Identifier ~= Identifier)
+        break;
   
-      iSegment = CacheSegment.ListSegment.Length;
-      CacheSegment.ListSegment.Insert(iSegment, 1);
-      CacheSegment.ListSegment[iSegment].Sound    =                  SoundLoaded;
-      CacheSegment.ListSegment[iSegment].Duration = GetSoundDuration(SoundLoaded);
+    if (iCacheSegment < InfoVoicePack.ListCacheSegment.Length) {
+      CacheSegment = InfoVoicePack.ListCacheSegment[iCacheSegment];
+    }
+    else {
+      CacheSegment.Identifier = Identifier;
+  
+      Package = InfoVoicePack.Package;
+      Group   = InfoVoicePack.Group;
+  
+      for (iSegmentLoaded = 0; True; iSegmentLoaded++) {
+        if (iSegmentLoaded == 0)
+               Suffix = "";
+          else Suffix = "_" $ iSegmentLoaded;
+  
+        SoundLoaded = None;
+        if (InStr(Identifier, ".") >= 0)
+                                   SoundLoaded = DynamicLoadSound(                              Identifier $ Suffix);
+        else {
+          if (Group != "")         SoundLoaded = DynamicLoadSound(Package $ "." $ Group $ "_" $ Identifier $ Suffix);
+          if (SoundLoaded == None) SoundLoaded = DynamicLoadSound(Package $ "."               $ Identifier $ Suffix);
+        }
+  
+        if (SoundLoaded == None)
+          if (iSegmentLoaded == 0) continue;
+                              else break;
+    
+        iSegment = CacheSegment.ListSegment.Length;
+        CacheSegment.ListSegment.Insert(iSegment, 1);
+        CacheSegment.ListSegment[iSegment].Sound    =                  SoundLoaded;
+        CacheSegment.ListSegment[iSegment].Duration = GetSoundDuration(SoundLoaded);
+      }
+  
+      InfoVoicePack.ListCacheSegment[iCacheSegment] = CacheSegment;
     }
     
-    InfoVoicePack.ListCacheSegment[iCacheSegment] = CacheSegment;
+    if (CacheSegment.ListSegment.Length > 0) {
+      iSegment = Rand(CacheSegment.ListSegment.Length);
+      return CacheSegment.ListSegment[iSegment];
+    }
   }
-  
-  if (CacheSegment.ListSegment.Length == 0)
-    return SegmentNone;
-  
-  iSegment = Rand(CacheSegment.ListSegment.Length);
-  return CacheSegment.ListSegment[iSegment];
+
+  return SegmentNone;
 }
 
 
