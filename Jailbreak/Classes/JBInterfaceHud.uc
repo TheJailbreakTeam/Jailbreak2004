@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.68 2007-03-25 12:44:20 wormbo Exp $
+// $Id: JBInterfaceHud.uc,v 1.69 2007-03-28 22:16:17 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -108,7 +108,16 @@ var Texture TextureArenaBeacon;         // texture of arena player beacon
 var Material MaterialArenaPendingBeacon;// texture of arena pending beacon
 var Texture TextureArenaNoAttack;       // texture for "don't attack" indicator
 
-var int TimerCountdown;                 // custom countdown in seconds
+var bool bTimerModified;                      // set to false when resetted
+var bool bModifiedTimerAnnouncer;             // announcer based on modded timer
+var int OldTimerSeconds;                      // announcer shouldn't play twice
+var float LastTimerModTime;                   // for animation purposes
+var float TimerIconTexScale;                  // original tex scale of the icon
+var int TimerCountdown;                       // custom countdown in seconds
+var SpriteWidget SpriteWidgetTimerHighlight;  // highlights the timer3
+var int TimerPreFlashTime;                    // seconds to flash timer before..
+var int TimerPostFlashTime;                   // ..and after hitting zero
+var int TimerResetTime;                       // how long to wait before reset
 
 
 // ============================================================================
@@ -267,7 +276,11 @@ simulated event PostRender(Canvas Canvas)
 
     PlayerOwner.ViewTarget.RenderOverlays(Canvas);
 
-    CheckCountDown(PlayerOwner.GameReplicationInfo);
+    // In case the timer is modified and needs announcement, then disable this,
+    // so the announcements don't interfere.
+    if (!bModifiedTimerAnnouncer)
+      CheckCountDown(PlayerOwner.GameReplicationInfo);
+
     if (bShowScoreBoard)
       ScoreBoard.DrawScoreboard(Canvas);
     if (bShowBadConnectionAlert)
@@ -1136,11 +1149,23 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
 // ============================================================================
 // ModifyTimerDisplay
 //
-// Changes the timer's display color, icon and time.
+// Changes the timer's display color, icon, time, announcer to be based on the
+// modified timer, if and for how long the timer icon should flash and if and
+// when the timer should reset.
 // ============================================================================
 
-simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCountdown)
+simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCountdown,
+                                      optional bool bAnnouncerUsesModifiedTimer,
+                                      optional bool bFlash, optional bool bSlowFlash, optional int PreFlashForSeconds,
+                                                                                      optional int PostFlashForSeconds,
+                                      optional bool bReset, optional int ResetAfterSeconds)
 {
+  local TexOscillator TexOsc;
+
+  bTimerModified = True;
+
+  bModifiedTimerAnnouncer = bAnnouncerUsesModifiedTimer;
+
   TimerHours  .Tints[0] = C;
   TimerHours  .Tints[1] = C;
   TimerMinutes.Tints[0] = C;
@@ -1153,19 +1178,45 @@ simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCou
   TimerDigitSpacer[1].Tints[1] = C;
 
   TimerIcon = Icon;
+  TimerIconTexScale = Icon.TextureScale;
   TimerCountdown = PlayerOwner.GameReplicationInfo.ElapsedTime + SecondsCountdown;
+
+  if (bSlowFlash &&
+      FinalBlend(SpriteWidgetTimerHighlight.WidgetTexture) != None &&
+      TexOscillator(FinalBlend(SpriteWidgetTimerHighlight.WidgetTexture).Material) != None) {
+    TexOsc = TexOscillator(FinalBlend(SpriteWidgetTimerHighlight.WidgetTexture).Material);
+    TexOsc.UOscillationRate /= 3;
+    TexOsc.VOscillationRate /= 3;
+  }
+
+  if (bFlash) {
+    TimerPreFlashTime  = TimerCountdown - PreFlashForSeconds;
+    TimerPostFlashTime = TimerCountdown + PostFlashForSeconds;
+  } else {
+    TimerPreFlashTime  = 0;
+    TimerPostFlashTime = 0;
+  }
+
+  if (bReset)
+    TimerResetTime = TimerCountdown + ResetAfterSeconds;
+  else
+    TimerResetTime = 0;
+
+  LastTimerModTime = Level.TimeSeconds;
 }
 
 
 // ============================================================================
 // ResetTimerDisplay
 //
-// Resets the timer to it's original state, where the time is the current time,
-// not the time it was when the timer was changed.
+// Resets the timer to it's original state. The time is the current time, not
+// the time it was when the timer was changed.
 // ============================================================================
 
 simulated function ResetTimerDisplay()
 {
+  bModifiedTimerAnnouncer = False;
+
   TimerHours  .Tints[0] = Default.TimerHours  .Tints[0];
   TimerHours  .Tints[1] = Default.TimerHours  .Tints[1];
   TimerMinutes.Tints[0] = Default.TimerMinutes.Tints[0];
@@ -1179,6 +1230,53 @@ simulated function ResetTimerDisplay()
 
   TimerIcon = Default.TimerIcon;
   TimerCountdown = 0;
+
+  TimerPreFlashTime  = 0;
+  TimerPostFlashTime = 0;
+  TimerResetTime     = 0;
+
+  bTimerModified = False;
+  LastTimerModTime = Level.TimeSeconds;
+}
+
+
+// ============================================================================
+// ModifiedTimerAnnouncer
+//
+// Plays the announcer.
+// ============================================================================
+
+simulated function ModifiedTimerAnnouncer(int Seconds)
+{
+  local String Announcement;
+
+  if (OldTimerSeconds == Seconds || Seconds == 0)
+    return;
+
+  switch (Seconds) {
+    case 300: Announcement = "5_minute_warning";  break;
+    case 180: Announcement = "3_minutes_remain";  break;
+    case 120: Announcement = "2_minutes_remain";  break;
+    case  60: Announcement = "1_minute_remains";  break;
+    case  30: Announcement = "30_seconds_remain"; break;
+    case  20: Announcement = "20_seconds";        break;
+    case  10: Announcement = "Ten";               break;
+    case   9: Announcement = "Nine";              break;
+    case   8: Announcement = "Eight";             break;
+    case   7: Announcement = "Seven";             break;
+    case   6: Announcement = "Six";               break;
+    case   5: Announcement = "Five";              break;
+    case   4: Announcement = "Four";              break;
+    case   3: Announcement = "Three";             break;
+    case   2: Announcement = "Two";               break;
+    case   1: Announcement = "One";               break;
+  }
+
+  if (Announcement != "")
+    Class'JBSpeechManager'.Static.PlayFor(Level, "Status/" $ Announcement);
+
+  // Prevent the same announcement a second time.
+  OldTimerSeconds = Seconds;
 }
 
 
@@ -1204,11 +1302,22 @@ simulated function DrawTimer(Canvas C)
     else
       Seconds = GRI.ElapsedTime;
 
+  // Announce the modified timer countdown.
+  if (bModifiedTimerAnnouncer)
+    ModifiedTimerAnnouncer(Seconds);
+
   TimerBackground.Tints[TeamIndex] = HudColorBlack;
   TimerBackground.Tints[TeamIndex].A = 150;
 
   DrawSpriteWidget(C, TimerBackground);
   DrawSpriteWidget(C, TimerBackgroundDisc);
+
+  if (TimerPreFlashTime  <= GRI.ElapsedTime &&
+      TimerPostFlashTime >= GRI.ElapsedTime) {
+    DrawSpriteWidget(C, SpriteWidgetTimerHighlight);
+    SpriteWidgetTimerHighlight.Tints[TeamIndex] = HudColorHighLight;
+  }
+
   DrawSpriteWidget(C, TimerIcon);
 
   TimerMinutes.OffsetX = default.TimerMinutes.OffsetX - 80;
@@ -1248,6 +1357,15 @@ simulated function DrawTimer(Canvas C)
 
   DrawNumericWidget(C, TimerMinutes, DigitsBig);
   DrawNumericWidget(C, TimerSeconds, DigitsBig);
+
+  // Draw animation.
+  if (TimerIconTexScale == 0)
+    TimerIconTexScale = default.TimerIcon.TextureScale;
+  DrawHUDAnimWidget(TimerIcon, TimerIconTexScale, LastTimerModTime, 0.6, 0.6);
+
+  // Reset timer if wanted.
+  if (TimerResetTime == GRI.ElapsedTime)
+    ResetTimerDisplay();
 }
 
 
@@ -1603,6 +1721,11 @@ defaultproperties
   SpriteWidgetTacticsIcon[3] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=272,Y1=400,X2=351,Y2=488),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=043,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsIcon[4] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=240,X2=497,Y2=332),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=033,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsAuto    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=080,Y1=352,X2=136,Y2=371),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=038,OffsetY=098,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255),ScaleMode=SM_Left,Scale=1.0);
+
+  SpriteWidgetTimerHighlight = (WidgetTexture=Material'HudContent.Generic.fb_Pulse001',TextureCoords=(X1=0,Y1=0,X2=64,Y2=64),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=-4,OffsetY=-4,RenderStyle=STY_Alpha,Tints[0]=(G=255,R=255,B=255,A=255),Tints[1]=(G=255,R=255,B=255,A=255),ScaleMode=SM_Right,Scale=1.000000)
+
+  // Prevents the clock from animating when the game initially starts.
+  LastTimerModTime = -1
 
   Begin Object Class=FadeColor Name=ArenaPendingPulse
     Color1=(R=255,G=255,B=255,A=255)
