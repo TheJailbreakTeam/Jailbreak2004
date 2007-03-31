@@ -1,13 +1,22 @@
 // ============================================================================
 // JBLocalMessageOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGUIPanelConfigOvertimeLockdown.uc,v 1.3 2006-12-08 21:12:54 jrubzjeknf Exp $
+// $Id: JBGUIPanelConfigOvertimeLockdown.uc,v 1.4 2007-01-27 20:32:01 jrubzjeknf Exp $
 //
 // Addon's GUI.
 // ============================================================================
 
 
 class JBGUIPanelConfigOvertimeLockdown extends JBGUIPanelConfig;
+
+
+//=============================================================================
+// Constants
+//=============================================================================
+
+const CONTROL_NO_ARENA_IN_OVERTIME  = 0;
+const CONTROL_NO_ESCAPE_IN_OVERTIME = 1;
+const CONTROL_LOCKDOWN_DELAY        = 2;
 
 
 //=============================================================================
@@ -18,28 +27,22 @@ var private bool bInitialized;  // used to prevent executing SaveINISettings() d
 
 var automated moCheckbox             ch_NoArenaInOvertime;
 var automated moCheckbox             ch_NoEscapeInOvertime;
-var automated moComboBox             co_RestartPlayers;
 var automated JBGUIComponentTrackbar tb_LockdownDelay;
 
-var localized string str_RestartAllPlayers;
-var localized string str_RestartOnlyFreePlayers;
-var localized string str_DoNotRestart;
 
-
-//=============================================================================
+// ============================================================================
 // InitComponent
 //
-// Sets the values for co_RestartPlayers dropdown box and loads the
-// configurable values.
-//=============================================================================
+// Create the windows components.
+// ============================================================================
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
   Super.InitComponent(MyController, MyOwner);
 
-  co_RestartPlayers.AddItem(str_DoNotRestart);
-  co_RestartPlayers.AddItem(str_RestartOnlyFreePlayers);
-  co_RestartPlayers.AddItem(str_RestartAllPlayers);
+  ch_NoArenaInOvertime  = moCheckBox(Controls[CONTROL_NO_ARENA_IN_OVERTIME]);
+  ch_NoEscapeInOvertime = moCheckBox(Controls[CONTROL_NO_ESCAPE_IN_OVERTIME]);
+  tb_LockdownDelay      = JBGUIComponentTrackbar(Controls[CONTROL_LOCKDOWN_DELAY]);
 
   LoadINISettings();
 }
@@ -57,7 +60,6 @@ function LoadINISettings()
 
   ch_NoArenaInOvertime.Checked (class'JBAddonOvertimeLockdown'.default.bNoArenaInOvertime);
   ch_NoEscapeInOvertime.Checked(class'JBAddonOvertimeLockdown'.default.bNoEscapeInOvertime);
-  co_RestartPlayers.SetIndex   (class'JBAddonOvertimeLockdown'.default.RestartPlayers);
   tb_LockdownDelay.SetValue    (class'JBAddonOvertimeLockdown'.default.LockdownDelay);
 
   bInitialized = True;
@@ -78,7 +80,6 @@ function SaveINISettings(GUIComponent Sender)
 
   class'JBAddonOvertimeLockdown'.default.bNoArenaInOvertime  = ch_NoArenaInOvertime.IsChecked();
   class'JBAddonOvertimeLockdown'.default.bNoEscapeInOvertime = ch_NoEscapeInOvertime.IsChecked();
-  class'JBAddonOvertimeLockdown'.default.RestartPlayers      = co_RestartPlayers.GetIndex();
   class'JBAddonOvertimeLockdown'.default.LockdownDelay       = tb_LockdownDelay.GetValue();
 
   class'JBAddonOvertimeLockdown'.static.StaticSaveConfig();
@@ -105,10 +106,6 @@ function ResetConfiguration()
 
 defaultproperties
 {
-  str_RestartAllPlayers="All players"
-  str_RestartOnlyFreePlayers="Free players"
-  str_DoNotRestart="No-one"
-
   Begin Object Class=moCheckBox Name=NoArenaInOvertimeCheckBox
     CaptionWidth=0.6
     Caption="No arena matches in Overtime"
@@ -135,25 +132,11 @@ defaultproperties
   End Object
   ch_NoEscapeInOvertime=moCheckBox'JBaddonOvertimeLockdown.JBGUIPanelConfigOvertimeLockdown.NoEscapeInOvertimeCheckBox'
 
-  Begin Object Class=moComboBox Name=RestartPlayersComboBox
-    bReadOnly=True
-    CaptionWidth=0.7
-    Caption="Restart players in Overtime"
-    Hint="Restart all, free or no players when the game goes into overtime."
-      WinTop   =0.400000
-      WinLeft  =0.000000
-      WinWidth =1.000000
-      WinHeight=0.100000
-    TabOrder=2
-    OnChange=SaveINISettings
-  End Object
-  co_RestartPlayers=moComboBox'JBaddonOvertimeLockdown.JBGUIPanelConfigOvertimeLockdown.RestartPlayersComboBox'
-
   Begin Object Class=JBGUIComponentTrackbar Name=LockdownDelayTrackBar
     CaptionWidth=-1
     Caption="Lockdown delay"
     Hint="How long normal overtime should last before before the lockdown kicks in."
-      WinTop   =0.600000
+      WinTop   =0.385000
       WinLeft  =0.000000
       WinWidth =1.000000
       WinHeight=0.100000

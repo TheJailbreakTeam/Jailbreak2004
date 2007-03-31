@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGameRulesOvertimeLockdown.uc,v 1.3 2006-12-08 21:12:55 jrubzjeknf Exp $
+// $Id: JBGameRulesOvertimeLockdown.uc,v 1.4 2007-01-24 16:57:57 jrubzjeknf Exp $
 //
 // When in overtime starts, the releases will be jammed. Once you're jailed,
 // there's no getting out any more. Last chance to score a point!
@@ -12,17 +12,38 @@ class JBGameRulesOvertimeLockdown extends JBGameRules;
 
 
 // ============================================================================
+// Imports
+// ============================================================================
+
+#exec texture import file=Textures\LockIcon.dds mips=off masked=off group=icons
+
+
+// ============================================================================
+// Replication
+// ============================================================================
+
+replication
+{
+  reliable if (Role == ROLE_Authority)
+    bOvertimeRep, LockdownDelay, LockIcon;
+}
+
+
+// ============================================================================
 // Variables
 // ============================================================================
 
+// Received from addon
 var bool bNoArenaInOvertime;
 var bool bNoEscapeInOvertime;
-var byte RestartPlayers; // 0=don't, 1=free, 2=everybody
-var byte LockdownDelay;  // in minutes
+var byte LockdownDelay;            // in minutes
 
 var class<JBLocalMessageOvertimeLockdown> MessageClassOvertimeLockdown;
-var int StartCountdownTime;
-var byte Countdown;
+var int EndTime;
+
+var Color TimerDisplayColor;
+var HudBase.SpriteWidget LockIcon;
+var bool bOvertime, bOvertimeRep;
 
 
 // ============================================================================
@@ -34,7 +55,13 @@ var byte Countdown;
 function bool CanBroadcast(class<LocalMessage> MessageClass, optional int switch, optional PlayerReplicationInfo RelatedPRI_1, optional PlayerReplicationInfo RelatedPRI_2, optional Object OptionalObject)
 {
   // When overtime start.
-  if (switch == 910) {
+  if (Switch == 910) {
+    // Initiate clients overtime effects by notifying them.
+    bOvertimeRep = True;
+
+    if (Level.NetMode != NM_DedicatedServer)
+      PostNetReceive();
+
     if (LockdownDelay == 0)
       GotoState('InitiateLockdown');
     else
@@ -46,13 +73,35 @@ function bool CanBroadcast(class<LocalMessage> MessageClass, optional int switch
 
 
 // ============================================================================
+// PostNetReceive
+//
+// Changes the timer's display color and icon and alters the time displayed.
+// ============================================================================
+
+simulated function PostNetReceive()
+{
+  local JBInterfaceHud H;
+
+  if (bOvertimeRep &&
+     !bOvertime &&
+      Level.GetLocalPlayerController() != None &&
+      JBInterfaceHud(Level.GetLocalPlayerController().myHUD) != None) {
+    bOvertime = True;
+
+    H = JBInterfaceHud(Level.GetLocalPlayerController().myHUD);
+    H.ModifyTimerDisplay(class'HudCDeathmatch'.default.HudColorHighLight, LockIcon, LockdownDelay*60 + 1, True, True, True, LockdownDelay*60, 0);
+  }
+}
+
+
+// ============================================================================
 // state WaitAndCountdown
 //
 // Wait before starting the Lockdown, which begins after a countdown.
 // ============================================================================
 
-state WaitAndCountdown {
-
+state WaitAndCountdown
+{
   // ================================================================
   // BeginState
   //
@@ -62,15 +111,7 @@ state WaitAndCountdown {
 
   event BeginState()
   {
-    Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown, -1,,, Self);
-
-    StartCountdownTime = DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60 - 9;
-    log("DeathMatch(Level.Game).ElapsedTime:"@DeathMatch(Level.Game).ElapsedTime);
-    log("LockdownDelay:"@LockdownDelay);
-    log("LockdownDelay*60:"@LockdownDelay*60);
-    log("DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60:"@DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60);
-    log("DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60 - 9:"@DeathMatch(Level.Game).ElapsedTime + LockdownDelay*60 - 9);
-    log("StartCountdownTime:"@StartCountdownTime);
+    EndTime = Level.Game.GameReplicationInfo.ElapsedTime + LockdownDelay*60;
 
     SetTimer(1, True);
   }
@@ -90,20 +131,14 @@ state WaitAndCountdown {
       return;
     }
 
-    if (DeathMatch(Level.Game).ElapsedTime >= StartCountdownTime) {
-      Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown, Countdown,,, Self);
+    if (DeathMatch(Level.Game).ElapsedTime > EndTime) {
+      Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown);
 
-      // Done with countdown.
-      if (Countdown == 0) {
-        SetTimer(0, False);
-        GotoState('InitiateLockdown');
-        return;
-      }
-
-      Countdown--;
+      SetTimer(0, False);
+      GotoState('InitiateLockdown');
     }
   }
-}
+} // state WaitAndCountdown
 
 
 // ============================================================================
@@ -112,8 +147,8 @@ state WaitAndCountdown {
 // Lockdown has been initiated.
 // ============================================================================
 
-state InitiateLockdown {
-
+state InitiateLockdown
+{
   // ================================================================
   // BeginState
   //
@@ -128,32 +163,28 @@ state InitiateLockdown {
     local JBInfoArena firstArena;
     local JBInfoArena thisArena;
 
-    // Jam the jails, thus the locks
     firstJail = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstJail;
+    firstArena = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstArena;
+
+    // Jam the jails, thus the locks
     for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail) {
       thisJail.Jam(0);
       thisJail.Jam(1);
     }
 
     // Cancel ongoing arena matches.
-    if (RestartPlayers == 2 || bNoArenaInOvertime) {
-      firstArena = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstArena;
+    if (bNoArenaInOvertime) {
       for (thisArena = firstArena; thisArena != None; thisArena = thisArena.nextArena)
         if (thisArena.IsInState('MatchRunning'))
           thisArena.MatchTie();
-    }
-
-    // Restart players.
-    switch (RestartPlayers) {
-      case 1: Jailbreak(Level.Game).RestartPlayers(True); break; // restart free players
-      case 2: Jailbreak(Level.Game).RestartAll();         break; // restart all
     }
 
     // Prevent players from being able to escape jail.
     if (bNoEscapeInOvertime)
       Jailbreak(Level.Game).bDisallowEscaping = True;
 
-    Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown,,,,Self);
+    // Tell everybody lockdown has started.
+    Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown);
 
     GotoState('Lockdown');
   }
@@ -183,8 +214,8 @@ state InitiateLockdown {
 // Lockdown has started.
 // ============================================================================
 
-state Lockdown {
-
+state Lockdown
+{
   // ================================================================
   // CanSendToArena
   //
@@ -220,6 +251,11 @@ state Lockdown {
 
 defaultproperties
 {
-  Countdown = 10
   MessageClassOvertimeLockdown = class'JBLocalMessageOvertimeLockdown'
+
+  LockIcon = (WidgetTexture=Texture'JBAddonOvertimeLockdown.icons.LockIcon',PosX=0.0,PosY=0.0,OffsetX=10,OffsetY=9,DrawPivot=DP_UpperLeft,RenderStyle=STY_Alpha,TextureCoords=(X1=0,Y1=0,X2=34,Y2=33),TextureScale=0.55,ScaleMode=SM_Right,Scale=1.000000,Tints[0]=(G=255,R=255,B=255,A=255),Tints[1]=(G=255,R=255,B=255,A=255))
+
+  bAlwaysRelevant = True
+  RemoteRole = ROLE_SimulatedProxy
+  bNetNotify = True
 }
