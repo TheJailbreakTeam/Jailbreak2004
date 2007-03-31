@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.38 2006-10-28 11:51:17 jrubzjeknf Exp $
+// $Id: JBCamera.uc,v 1.39 2007-02-14 09:33:59 wormbo Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -194,7 +194,8 @@ simulated event SetInitialState()
 
 event Trigger(Actor ActorOther, Pawn PawnInstigator)
 {
-  TriggerForController(ActorOther, PawnInstigator.Controller);
+  if (PawnInstigator.Controller != None)
+    TriggerForController(ActorOther, PawnInstigator.Controller);
 }
 
 
