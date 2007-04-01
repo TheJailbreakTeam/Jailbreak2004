@@ -8,7 +8,7 @@ SelectionMethodText="Auswahlmethode"
 SelectionMethodDesc="Wähle wie die Arenakämpfer aus dem Gefängniss gewählt werden."
 SelectionMethodOptions="0;Der Reihe nach;1;Zufällig"
 FriendlyName="Arena vor Inhaftierung"
-Description="Deine Teammitglieder können nur durch das Gewinnen eines Arenakampfes befreit werden!"
+Description="The only way to get out of jail is by winning the arena match!"
 
 [JBGUIPanelConfigArenaLockdown]
 str_FIFO="Der Reihe nach"

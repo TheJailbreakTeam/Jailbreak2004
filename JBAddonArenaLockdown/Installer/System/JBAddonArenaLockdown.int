@@ -8,7 +8,7 @@ SelectionMethodText="Selection method"
 SelectionMethodDesc="Choose how the arena players will be picked from their jail."
 SelectionMethodOptions="0;Queue;1;Random"
 FriendlyName="Arena Lockdown"
-Description="The only way to release your teammates is by winning the arena match!"
+Description="The only way to get out of jail is by winning the arena match!"
 
 [JBGUIPanelConfigArenaLockdown]
 str_FIFO="Queue"

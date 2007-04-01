@@ -47,7 +47,7 @@ TextDialogTopP="Jailbreak a assigné temporairement ces touches pour vous:"
 TextDialogBottomS="Configurez les raccourcis pour assigner définitivement une touche à cette fonction."
 TextDialogBottomP="Configurez les raccourcis pour assigner définitivement des touches à ces fonctions."
 TextDialogClose="Tapez TIR pour fermer, TIR-SECONDAIRE pour supprimer"
-TextDescription=("Fixe les tactiques d'équipe sur un mode plus agressif.","Fixe les tactiques d'équipe sur un mode plus défensif.","Revient sur la sélection auto des tactiques d'équipe.","Active la Vue depuis l'Arène.")
+TextDescription=("Fixe les tactiques d'équipe sur un mode plus agressif.","Fixe les tactiques d'équipe sur un mode plus défensif.","Revient sur la sélection auto des tactiques d'équipe.","Active la Vue depuis l'Arène.","View your teammates who battle in freedom.")
 
 [JBInteractionPanorama]
 TextInstructionsHidden="Appuyez sur MAJ+H pour afficher les instructions."
@@ -131,8 +131,8 @@ TextArenaCountdown[1]="Un combat dans l'arène va commencer...2"
 TextArenaCountdown[2]="Un combat dans l'arène va commencer...3"
 TextArenaStartCombatant="Le combat dans l'arène a commencé!"
 TextArenaStartOther="%teammate% affronte %enemy% dans l'arène."
-TextArenaCancelCombatant="Le combat dans l'arène entre %teammate% et %enemy% est annulé."
-TextArenaCancelOther="Le combat dans l'arène est annulé."
+TextArenaCancelCombatant="Le combat dans l'arène est annulé."
+TextArenaCancelOther="Le combat dans l'arène entre %teammate% et %enemy% est annulé."
 TextArenaTieCombatant="Combat dans l'arène : égalité."
 TextArenaTieOther="Le combat dans l'arène entre %teammate% et %enemy% s'est terminé sur une égalité."
 TextArenaEndWinner="Vous avez gagné votre liberté!"

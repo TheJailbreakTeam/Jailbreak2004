@@ -47,7 +47,7 @@ TextDialogTopP="Jailbreak hat vorübergehend folgende Tastenzuordnungen für Sie e
 TextDialogBottomS="Sie können über die Steuerungs-Einstellungen eine andere Zuordnung für diese Funktion festlegen."
 TextDialogBottomP="Sie können über die Steuerungs-Einstellungen eine andere Zuordnung für diese Funktionen festlegen."
 TextDialogClose="FEUER zum Schließen, ALT-FEUER zum dauerhaften Schließen"
-TextDescription=("Team-Taktik aggressiver machen.","Team-Taktik defensiver machen.","Team-Taktik automatisch einstellen.","Arena-Live-Übertragung aktivieren.")
+TextDescription=("Team-Taktik aggressiver machen.","Team-Taktik defensiver machen.","Team-Taktik automatisch einstellen.","Arena-Live-Übertragung aktivieren.","View your teammates who battle in freedom.")
 
 [JBInteractionPanorama]
 TextInstructionsHidden="Umschalt+H drücken, um Hilfe anzuzeigen."
@@ -131,8 +131,8 @@ TextArenaCountdown[1]="Arena-Kampf beginnt in...2"
 TextArenaCountdown[2]="Arena-Kampf beginnt in...3"
 TextArenaStartCombatant="Arena-Kampf hat begonnen!"
 TextArenaStartOther="%teammate% kämpft gegen %enemy% in der Arena."
-TextArenaCancelCombatant="Arena-Kampf zwischen %teammate% und %enemy% wurde abgesagt."
-TextArenaCancelOther="Arena-Kampf wurde abgesagt."
+TextArenaCancelCombatant="Arena-Kampf wurde abgesagt."
+TextArenaCancelOther="Arena-Kampf zwischen %teammate% und %enemy% wurde abgesagt."
 TextArenaTieCombatant="Arena-Kampf unentschieden."
 TextArenaTieOther="Arena-Kampf zwischen %teammate% und %enemy% unentschieden."
 TextArenaEndWinner="Sie haben in der Arena Ihre Freiheit gewonnen!"

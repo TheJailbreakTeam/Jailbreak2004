@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.22 2006-12-14 21:01:38 jrubzjeknf Exp $
+// $Id: JBLocalMessage.uc,v 1.23 2007-02-11 08:00:27 wormbo Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -111,7 +111,7 @@ static function bool PlaySpeech(PlayerController PlayerController,
                                 optional int iDefinition)
 {
   local string Tags;
-  
+
   // only play for local player
   if (PlayerController == None || Viewport(PlayerController.Player) == None)
     return False;
@@ -431,8 +431,8 @@ defaultproperties
   TextArenaCountdown[0]     = "Arena match is about to begin...1";
   TextArenaStartCombatant   = "Arena match has begun!";
   TextArenaStartOther       = "%teammate% is fighting %enemy% in the arena.";
-  TextArenaCancelCombatant  = "Arena match between %teammate% and %enemy% cancelled.";
-  TextArenaCancelOther      = "Arena match has been cancelled.";
+  TextArenaCancelCombatant  = "Arena match has been cancelled.";
+  TextArenaCancelOther      = "Arena match between %teammate% and %enemy% cancelled.";
   TextArenaTieCombatant     = "Arena match tied.";
   TextArenaTieOther         = "Arena match between %teammate% and %enemy% tied.";
   TextArenaEndWinner        = "You have won your freedom!";
