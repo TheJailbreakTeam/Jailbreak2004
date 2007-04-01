@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.22 2007-02-16 09:54:06 wormbo Exp $
+// $Id: JBInterfaceScores.uc,v 1.23 2007-04-01 00:29:40 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -366,7 +366,8 @@ simulated event UpdateScoreBoard(Canvas Canvas)
     DrawEntry(Canvas, ListEntry[iEntry]);
   }
 
-  DrawSpectators(Canvas);
+  if (Level.NetMode != NM_StandAlone)
+    DrawSpectators(Canvas);
 
   DrawCrosshair(Canvas);
 }
