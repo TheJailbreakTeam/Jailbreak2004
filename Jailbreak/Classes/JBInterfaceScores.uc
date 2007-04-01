@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.24 2007-04-01 11:58:24 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.25 2007-04-01 15:15:34 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -262,9 +262,10 @@ var Color ColorBarStats[3];             // color of stats bars themselves
 var SpriteWidget SpriteWidgetIconStats[3];  // icons for stats bar headers
 
 var SpriteWidget SpriteWidgetDot;       // dot used for location splines
-var SpriteWidget SpriteWidgetGradient;  // background gradient for scoreboard
 var SpriteWidget SpriteWidgetPlayer;    // icon for player on minimap
 var SpriteWidget SpriteWidgetDamage;    // damage fadeout for player on minimap
+var SpriteWidget SpriteWidgetGradient;  // background gradient for scoreboard
+var RotatedWidget RotatedWidgetDirection;        // player direction indicator
 
 var Color ColorMarkerTie;               // color for marker on tie
 var Color ColorMarkerCaptured[2];       // color for marker when team captured
@@ -1492,6 +1493,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
   local float iTableEntry;
   local float iTableOwner;
   local vector LocationPlayer;
+  local vector LocationDirection;
   local vector LocationStats;
   local TEntry EntryOwner;
   local TEntryLayout LayoutEntry;
@@ -1591,6 +1593,22 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
       DrawSpline(Canvas,
         LayoutEntry.Location + LayoutEntry.OffsetLine,
         LocationPlayer);
+
+      if (Entry.bIsLocal &&
+          Controller(Owner)      != None &&
+          Controller(Owner).Pawn != None) {
+
+        LocationDirection = Panorama.CalcLocation(Canvas,
+          Entry.Location + 100.0 * vector(Controller(Owner).Pawn.Rotation));
+        LocationDirection -= LocationPlayer;
+
+        RotatedWidgetDirection.Angle = 16384 - 32768 * Atan(LocationDirection.Y, LocationDirection.X) / Pi;
+        RotatedWidgetDirection.PosX  = LocationPlayer.X / Canvas.ClipX;
+        RotatedWidgetDirection.PosY  = LocationPlayer.Y / Canvas.ClipY;
+        RotatedWidgetDirection.Color = Canvas.DrawColor;
+        
+        DrawRotatedWidget(Canvas, RotatedWidgetDirection);
+      }
 
       if (Entry.FadeDamage > 0.0) {
         SpriteWidgetDamage.PosX = LocationPlayer.X / Canvas.ClipX;
@@ -1916,71 +1934,72 @@ simulated function DrawLine(Canvas Canvas, vector LocationStart, vector Location
 
 defaultproperties
 {
-  TextGameBotmatch = "Botmatch";
-  TextGameOnline   = "Online Match on";
+  TextGameBotmatch             = "Botmatch";
+  TextGameOnline               = "Online Match on";
 
-  TextSkill[0] = "Novice";
-  TextSkill[1] = "Average";
-  TextSkill[2] = "Experienced";
-  TextSkill[3] = "Skilled";
-  TextSkill[4] = "Adept";
-  TextSkill[5] = "Masterful";
-  TextSkill[6] = "Inhuman";
-  TextSkill[7] = "Godlike";
+  TextSkill[0]                 = "Novice";
+  TextSkill[1]                 = "Average";
+  TextSkill[2]                 = "Experienced";
+  TextSkill[3]                 = "Skilled";
+  TextSkill[4]                 = "Adept";
+  TextSkill[5]                 = "Masterful";
+  TextSkill[6]                 = "Inhuman";
+  TextSkill[7]                 = "Godlike";
 
-  TextLimitPrefix = " [";
-  TextLimitTime   = "minutes";
-  TextLimitScore  = "captures";
-  TextLimitSuffix = " max]";
+  TextLimitPrefix              = " [";
+  TextLimitTime                = "minutes";
+  TextLimitScore               = "captures";
+  TextLimitSuffix              = " max]";
 
-  TextInfoWaiting = "waiting";
-  TextInfoDead    = "dead";
-  TextInfoArena   = "arena";
-  TextInfoJail    = "jailed";
+  TextInfoWaiting              = "waiting";
+  TextInfoDead                 = "dead";
+  TextInfoArena                = "arena";
+  TextInfoJail                 = "jailed";
 
-  TextOrdersUndisclosed = "undisclosed";
-  TextOrdersAttack      = "attacking";
-  TextOrdersDefense     = "defending";
-  TextOrdersFreelance   = "Sweeper";
-  TextScoresNone        = "";
-  TextScoresAttack      = "attack";
-  TextScoresDefense     = "defense";
-  TextScoresRelease     = "release";
+  TextOrdersUndisclosed        = "undisclosed";
+  TextOrdersAttack             = "attacking";
+  TextOrdersDefense            = "defending";
+  TextOrdersFreelance          = "Sweeper";
+  TextScoresNone               = "";
+  TextScoresAttack             = "attack";
+  TextScoresDefense            = "defense";
+  TextScoresRelease            = "release";
 
-  TextRelationElapsed   = "played";
-  TextRelationRemaining = "to play";
-  TextRelationOvertime  = "overtime";
+  TextRelationElapsed          = "played";
+  TextRelationRemaining        = "to play";
+  TextRelationOvertime         = "overtime";
 
-  TextConnecting = "connecting";
-  TextReady      = "ready";
-  TextNotReady   = "not ready";
+  TextConnecting               = "connecting";
+  TextReady                    = "ready";
+  TextNotReady                 = "not ready";
 
-  TextSpectators       = "Spectators:";
-  TextNoSpectators     = "No Spectators";
-  TextSpectatorsAnd    = "and";
-  TextSpectatorsOthers = "others";
+  TextSpectators               = "Spectators:";
+  TextNoSpectators             = "No Spectators";
+  TextSpectatorsAnd            = "and";
+  TextSpectatorsOthers         = "others";
 
-  Table[0] = (iTable=0,ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
-  Table[1] = (iTable=1,ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
+  Table[0]                     = (iTable=0,ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
+  Table[1]                     = (iTable=1,ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
 
-  ColorLineStats[0] = (R=255,G=000,B=000,A=064);
-  ColorLineStats[1] = (R=255,G=255,B=000,A=064);
-  ColorLineStats[2] = (R=000,G=255,B=000,A=064);
+  ColorLineStats[0]            = (R=255,G=000,B=000,A=064);
+  ColorLineStats[1]            = (R=255,G=255,B=000,A=064);
+  ColorLineStats[2]            = (R=000,G=255,B=000,A=064);
 
-  ColorBarStats[0]  = (R=128,G=000,B=000,A=255);
-  ColorBarStats[1]  = (R=128,G=128,B=000,A=255);
-  ColorBarStats[2]  = (R=000,G=128,B=000,A=255);
+  ColorBarStats[0]             = (R=128,G=000,B=000,A=255);
+  ColorBarStats[1]             = (R=128,G=128,B=000,A=255);
+  ColorBarStats[2]             = (R=000,G=128,B=000,A=255);
 
-  ColorMarkerTie    = (R=128,G=128,B=128,A=255);
+  ColorMarkerTie               = (R=128,G=128,B=128,A=255);
 
-  SpriteWidgetIconStats[0] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=272,Y1=400,X2=351,Y2=488),TextureScale=0.10,OffsetX=06,OffsetY=10,Color=(R=255,G=000,B=000,A=128));
-  SpriteWidgetIconStats[1] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=128,X2=496,Y2=223),TextureScale=0.10,OffsetX=06,OffsetY=10,Color=(R=255,G=255,B=000,A=128));
-  SpriteWidgetIconStats[2] = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=342,Y1=87,X2=428,Y2=174),TextureScale=0.10,OffsetX=26,OffsetY=0,Color=(R=000,G=255,B=000,A=128));
+  SpriteWidgetIconStats[0]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=272,Y1=400,X2=351,Y2=488),TextureScale=0.10,OffsetX=06,OffsetY=10,Color=(R=255,G=000,B=000,A=128));
+  SpriteWidgetIconStats[1]     = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=128,X2=496,Y2=223),TextureScale=0.10,OffsetX=06,OffsetY=10,Color=(R=255,G=255,B=000,A=128));
+  SpriteWidgetIconStats[2]     = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=342,Y1=87,X2=428,Y2=174),TextureScale=0.10,OffsetX=26,OffsetY=0,Color=(R=000,G=255,B=000,A=128));
 
-  SpriteWidgetDot      = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.04);
-  SpriteWidgetPlayer   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09);
-  SpriteWidgetDamage   = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09,OffsetX=-32,OffsetY=-32);
-  SpriteWidgetGradient = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=144,Y1=399,X2=145,Y2=401),Color=(R=0,G=0,B=0,A=128));
+  SpriteWidgetDot              = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.04);
+  SpriteWidgetPlayer           = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09);
+  SpriteWidgetDamage           = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09,OffsetX=-32,OffsetY=-32);
+  SpriteWidgetGradient         = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=144,Y1=399,X2=145,Y2=401),Color=(R=0,G=0,B=0,A=128));
+  RotatedWidgetDirection       = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=384,X2=176,Y2=448),TextureScale=0.08,OffsetCenterX=32,OffsetCenterY=32,OffsetRotatedX=0,OffsetRotatedY=48);
 
   SpriteWidgetClockAnchor      = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=210,Y2=255),TextureScale=1.40,PosX=1.0,PosY=0,OffsetX=-042,OffsetY=012,Color=(R=000,G=000,B=000,A=150));
   SpriteWidgetClockCircle      = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=016,Y1=016,X2=272,Y2=272),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-256,OffsetY=000,Color=(R=255,G=255,B=255,A=255));
