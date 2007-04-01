@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.21 2007-02-10 13:21:17 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.22 2007-02-16 09:54:06 wormbo Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -1525,7 +1525,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
   Canvas.DrawTextClipped(Entry.InfoGame);
 
   Canvas.DrawColor   = LayoutEntry.ColorInfo;
-  Canvas.DrawColor.A = LayoutEntry.ColorInfo.A / 4;
+  Canvas.DrawColor.A = LayoutEntry.ColorInfo.A / 2;
 
   Canvas.SetPos(
     LayoutEntry.Location.X + LayoutEntry.OffsetInfoTime.X,
