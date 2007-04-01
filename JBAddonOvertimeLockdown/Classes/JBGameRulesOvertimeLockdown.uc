@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGameRulesOvertimeLockdown.uc,v 1.4 2007-01-24 16:57:57 jrubzjeknf Exp $
+// $Id: JBGameRulesOvertimeLockdown.uc,v 1.5 2007-03-31 14:55:00 jrubzjeknf Exp $
 //
 // When in overtime starts, the releases will be jammed. Once you're jailed,
 // there's no getting out any more. Last chance to score a point!
@@ -25,7 +25,7 @@ class JBGameRulesOvertimeLockdown extends JBGameRules;
 replication
 {
   reliable if (Role == ROLE_Authority)
-    bOvertimeRep, LockdownDelay, LockIcon;
+    LockdownDelay;
 }
 
 
@@ -43,7 +43,20 @@ var int EndTime;
 
 var Color TimerDisplayColor;
 var HudBase.SpriteWidget LockIcon;
-var bool bOvertime, bOvertimeRep;
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// We'll be using Tick to find out if and when we need to start the lockdown.
+// ============================================================================
+
+function PostBeginPlay()
+{
+  Super.PostBeginPlay();
+
+  Disable('Tick');
+}
 
 
 // ============================================================================
@@ -57,10 +70,10 @@ function bool CanBroadcast(class<LocalMessage> MessageClass, optional int switch
   // When overtime start.
   if (Switch == 910) {
     // Initiate clients overtime effects by notifying them.
-    bOvertimeRep = True;
+    bClientTrigger = !bClientTrigger;
 
     if (Level.NetMode != NM_DedicatedServer)
-      PostNetReceive();
+      ClientTrigger();
 
     if (LockdownDelay == 0)
       GotoState('InitiateLockdown');
@@ -78,26 +91,24 @@ function bool CanBroadcast(class<LocalMessage> MessageClass, optional int switch
 // Changes the timer's display color and icon and alters the time displayed.
 // ============================================================================
 
-simulated function PostNetReceive()
+simulated function ClientTrigger()
 {
   local JBInterfaceHud H;
 
-  if (bOvertimeRep &&
-     !bOvertime &&
-      Level.GetLocalPlayerController() != None &&
-      JBInterfaceHud(Level.GetLocalPlayerController().myHUD) != None) {
-    bOvertime = True;
+  if (Level.GetLocalPlayerController() == None ||
+      Level.GetLocalPlayerController().myHUD == None ||
+      JBInterfaceHud(Level.GetLocalPlayerController().myHUD) == None)
+    return;
 
-    H = JBInterfaceHud(Level.GetLocalPlayerController().myHUD);
-    H.ModifyTimerDisplay(class'HudCDeathmatch'.default.HudColorHighLight, LockIcon, LockdownDelay*60 + 1, True, True, True, LockdownDelay*60, 0);
-  }
+  H = JBInterfaceHud(Level.GetLocalPlayerController().myHUD);
+  H.ModifyTimerDisplay(class'HudCDeathmatch'.default.HudColorHighLight, LockIcon, LockdownDelay * 60 + 1, True, True, True, LockdownDelay * 60);
 }
 
 
 // ============================================================================
 // state WaitAndCountdown
 //
-// Wait before starting the Lockdown, which begins after a countdown.
+// Wait before starting the Lockdown.
 // ============================================================================
 
 state WaitAndCountdown
@@ -105,36 +116,35 @@ state WaitAndCountdown
   // ================================================================
   // BeginState
   //
-  // Announce how long it'll take before the Lockdown starts,
-  // calculate when to start counting down and start the timer.
+  // Calculate when to start the lockdown.
   // ================================================================
 
   event BeginState()
   {
-    EndTime = Level.Game.GameReplicationInfo.ElapsedTime + LockdownDelay*60;
+    EndTime = Level.Game.GameReplicationInfo.ElapsedTime + LockdownDelay * 60 + 1;
 
-    SetTimer(1, True);
+    Enable('Tick');
   }
 
 
   // ================================================================
-  // Timer
+  // Tick
   //
-  // Broadcast a countdown.
+  // When the time is up, initiate the lockdown.
   // ================================================================
 
-  function Timer()
+  function Tick(float dt)
   {
     // Cancel lockdown if executing.
     if (Jailbreak(Level.Game).IsInState('Executing')) {
-      SetTimer(0, False);
+      Disable('Tick');
       return;
     }
 
-    if (DeathMatch(Level.Game).ElapsedTime > EndTime) {
+    if (Level.Game.GameReplicationInfo.ElapsedTime == EndTime) {
       Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown);
 
-      SetTimer(0, False);
+      Disable('Tick');
       GotoState('InitiateLockdown');
     }
   }
@@ -183,7 +193,7 @@ state InitiateLockdown
     if (bNoEscapeInOvertime)
       Jailbreak(Level.Game).bDisallowEscaping = True;
 
-    // Tell everybody lockdown has started.
+    // Tell everybody the lockdown has started.
     Level.Game.BroadcastHandler.BroadcastLocalizedMessage(MessageClassOvertimeLockdown);
 
     GotoState('Lockdown');
@@ -255,7 +265,8 @@ defaultproperties
 
   LockIcon = (WidgetTexture=Texture'JBAddonOvertimeLockdown.icons.LockIcon',PosX=0.0,PosY=0.0,OffsetX=10,OffsetY=9,DrawPivot=DP_UpperLeft,RenderStyle=STY_Alpha,TextureCoords=(X1=0,Y1=0,X2=34,Y2=33),TextureScale=0.55,ScaleMode=SM_Right,Scale=1.000000,Tints[0]=(G=255,R=255,B=255,A=255),Tints[1]=(G=255,R=255,B=255,A=255))
 
-  bAlwaysRelevant = True
-  RemoteRole = ROLE_SimulatedProxy
   bNetNotify = True
+  bAlwaysRelevant = True
+  bSkipActorPropertyReplication = False
+  RemoteRole = ROLE_SimulatedProxy
 }
