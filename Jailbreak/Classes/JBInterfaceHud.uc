@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.69 2007-03-28 22:16:17 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.70 2007-03-31 14:53:18 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -97,6 +97,8 @@ var SpriteWidget SpriteWidgetCompass[2];      // compass rings and jail circles
 var SpriteWidget SpriteWidgetCompassDot;      // compass dot showing releases
 var SpriteWidget SpriteWidgetHandcuffs[2];    // handcuff icons in circles
 var SpriteWidget SpriteWidgetArenaNotifier;   // arena notifier slider
+
+var Color JammedLockCompassColor;             // Color to show for jammed locks
 
 var SpriteWidget SpriteWidgetTacticsCircle;   // tactics circle
 var SpriteWidget SpriteWidgetTacticsBlob;     // colored and pulsing blob
@@ -761,6 +763,7 @@ simulated function ShowCompass(Canvas Canvas)
     Objective = thisTagObjective.GetObjective();
 
     DefenderTeamIndex = Objective.DefenderTeamIndex;
+
     if (Class'Jailbreak'.Default.bReverseSwitchColors)
       DefenderTeamIndex = abs(DefenderTeamIndex-1);
 
@@ -789,7 +792,10 @@ simulated function ShowCompass(Canvas Canvas)
     SpriteWidgetCompassDot.PosX = (SpriteWidgetCompassDot.PosX + SizeCompass.X * Sin(AngleDot)) * HudScale + 0.5;
     SpriteWidgetCompassDot.PosY = (SpriteWidgetCompassDot.PosY - SizeCompass.Y * Cos(AngleDot)) * HudScale;
 
-    SpriteWidgetCompassDot.Tints[TeamIndex] = SpriteWidgetCompassDot.Tints[TeamIndex] * (1.0 / thisTagObjective.ScaleDot);
+    if (class'JBInfoJail'.static.ObjectiveIsJammed(Objective, TeamIndex))
+      SpriteWidgetCompassDot.Tints[TeamIndex] = JammedLockCompassColor * (1.0 / thisTagObjective.ScaleDot);
+    else
+      SpriteWidgetCompassDot.Tints[TeamIndex] = SpriteWidgetCompassDot.Tints[TeamIndex] * (1.0 / thisTagObjective.ScaleDot);
     SpriteWidgetCompassDot.Tints[TeamIndex].A = 255 * AlphaCompass;
     SpriteWidgetCompassDot.TextureScale = Default.SpriteWidgetCompassDot.TextureScale * thisTagObjective.ScaleDot;
 
@@ -1712,6 +1718,8 @@ defaultproperties
   SpriteWidgetHandcuffs[0]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=064,Y1=400,X2=160,Y2=507),TextureScale=0.23,DrawPivot=DP_UpperRight,PosX=0.5,PosY=0.0,OffsetX=-108,OffsetY=34,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=64),Tints[1]=(R=255,G=255,B=255,A=64));
   SpriteWidgetHandcuffs[1]   = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X2=064,Y1=400,X1=160,Y2=507),TextureScale=0.23,DrawPivot=DP_UpperLeft,PosX=0.5,PosY=0.0,OffsetX=108,OffsetY=34,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=64),Tints[1]=(R=255,G=255,B=255,A=64));
 
+  JammedLockCompassColor     = (R=128,G=128,B=128,A=255)
+
   SpriteWidgetTacticsBlob    = (WidgetTexture=Texture'HUDContent.Generic.GlowCircle',TextureCoords=(X1=0,Y1=0,X2=64,Y2=64),TextureScale=0.47,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=0,OffsetY=67,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=000,A=255),Tints[1]=(R=255,G=255,B=000,A=255));
   SpriteWidgetTacticsCircle  = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=119,Y1=258,X2=173,Y2=313),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=00,OffsetY=60,RenderStyle=STY_Alpha,Tints[0]=(B=255,G=255,R=255,A=255),Tints[1]=(B=255,G=255,R=255,A=255));
   SpriteWidgetTacticsBack    = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=334,Y2=255),TextureScale=0.40,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=60,OffsetY=94,RenderStyle=STY_Alpha,Tints[0]=(R=000,G=000,B=000,A=150),Tints[1]=(R=000,G=000,B=000,A=150));
@@ -1724,8 +1732,12 @@ defaultproperties
 
   SpriteWidgetTimerHighlight = (WidgetTexture=Material'HudContent.Generic.fb_Pulse001',TextureCoords=(X1=0,Y1=0,X2=64,Y2=64),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=-4,OffsetY=-4,RenderStyle=STY_Alpha,Tints[0]=(G=255,R=255,B=255,A=255),Tints[1]=(G=255,R=255,B=255,A=255),ScaleMode=SM_Right,Scale=1.000000)
 
-  // Prevents the clock from animating when the game initially starts.
-  LastTimerModTime = -1
+  // Prevents the clock from animating and flashing when the game initially starts.
+  LastTimerModTime   = -10
+  TimerPreFlashTime  = -10
+  TimerPostFlashTime = -10
+  TimerResetTime     = -10
+
 
   Begin Object Class=FadeColor Name=ArenaPendingPulse
     Color1=(R=255,G=255,B=255,A=255)
