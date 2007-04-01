@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.23 2007-04-01 00:29:40 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.24 2007-04-01 11:58:24 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -232,6 +232,11 @@ var localized string TextRelationOvertime;   // displaying overtime
 var localized string TextConnecting;         // player is connecting
 var localized string TextReady;              // player is ready
 var localized string TextNotReady;           // player is not ready
+
+var localized string TextSpectators;         // there are spectators
+var localized string TextNoSpectators;       // there are no spectators
+var localized string TextSpectatorsAnd;      // to complete spectators sentence
+var localized string TextSpectatorsOthers;   // to complete spectators sentence
 
 
 // ============================================================================
@@ -467,9 +472,9 @@ simulated function DrawSpectators(Canvas Canvas)
       TextArray.Length = 0;
 
       if (SpectatorString == "")
-        Canvas.WrapStringToArray("Spectators:" @ SpectatorArray[0],                         TextArray, 0.700 * Canvas.ClipX, "|");
+        Canvas.WrapStringToArray(TextSpectators @ SpectatorArray[0],                         TextArray, 0.700 * Canvas.ClipX, "|");
       else
-        Canvas.WrapStringToArray("Spectators:" @ SpectatorString $ "," @ SpectatorArray[0], TextArray, 0.700 * Canvas.ClipX, "|");
+        Canvas.WrapStringToArray(TextSpectators @ SpectatorString $ "," @ SpectatorArray[0], TextArray, 0.700 * Canvas.ClipX, "|");
 
 
       if (TextArray.Length == 1) { // fits the screen
@@ -483,12 +488,12 @@ simulated function DrawSpectators(Canvas Canvas)
         break; // No more names of spectators can be added
     }
 
-    SpectatorString = "Spectators:" @ SpectatorString;
+    SpectatorString = TextSpectators @ SpectatorString;
 
     if (SpectatorArray.Length > 0) // add how many spectators couldn't be added to the list
-      SpectatorString @= "and" @ SpectatorArray.Length @ "others";
+      SpectatorString @= TextSpectatorsAnd @ SpectatorArray.Length @ TextSpectatorsOthers;
   } else
-    SpectatorString = "No spectators";
+    SpectatorString = TextNoSpectators;
 
   Canvas.DrawScreenText(SpectatorString, 0.500, 1.000, DP_LowerMiddle);
 }
@@ -1949,6 +1954,11 @@ defaultproperties
   TextConnecting = "connecting";
   TextReady      = "ready";
   TextNotReady   = "not ready";
+
+  TextSpectators       = "Spectators:";
+  TextNoSpectators     = "No Spectators";
+  TextSpectatorsAnd    = "and";
+  TextSpectatorsOthers = "others";
 
   Table[0] = (iTable=0,ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));
   Table[1] = (iTable=1,ColorMainLocal=(R=160,G=160,B=255,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCamera
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBCamera.uc,v 1.39 2007-02-14 09:33:59 wormbo Exp $
+// $Id: JBCamera.uc,v 1.40 2007-03-31 11:26:42 mychaeel Exp $
 //
 // General-purpose camera for Jailbreak.
 // ============================================================================
@@ -49,7 +49,7 @@ struct TInfoCaption
   var() bool bBlinking;             // caption pulses
   var() Color Color;                // caption color and transparency
   var() string Font;                // caption font name
-  var() string Text;                // caption text
+  var() localized string Text;      // caption text
   var() float Position;             // relative vertical position
 
   var Font FontObject;              // loaded Font object
