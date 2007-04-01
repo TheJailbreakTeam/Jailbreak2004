@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.63 2006-12-17 10:28:59 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.64 2007-02-11 16:44:08 wormbo Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -24,8 +24,8 @@ replication
     Pawn,
     Controller,
     Health,
+    bReceivedPing,
     bCanBeBaseForPawns,
-    bPlayerCanPlay,
     ScorePartialAttack,
     ScorePartialDefense,
     ScorePartialRelease,
@@ -108,10 +108,10 @@ var private float TimeRelease;            // time of last release from jail
 var private Pawn Pawn;                    // pawn used by this player
 var private Controller Controller;        // controller used by this player
 var private int Health;                   // current health and armor
-var private bool bCanBeBaseForPawns;      // can be base for other players
-var private int spree;                    // used to carry sprees over rounds
+var private int Spree;                    // used to carry sprees over rounds
+var private bool bReceivedPing;           // whether player completed loading
 var private bool bRecoverSpree;           // recover spree after a round
-var bool bPlayerCanPlay;                  // initial spawn delay
+var private bool bCanBeBaseForPawns;      // can be base for other players
 
 var private float TimeUpdateLocation;     // client-side location update time
 var private float VelocityPawn;           // replicated velocity of pawn
@@ -216,10 +216,6 @@ function Register()
   if (PlayerController(Controller) != None)
     HashIdPlayer = PlayerController(Controller).GetPlayerIDHash();
 
-  if (PlayerController(Controller) == None || // Bots dont have ping
-      Level.NetMode != NM_DedicatedServer)
-    bPlayerCanPlay = True; // Bots dont need initial spawn delay
-
   Enable('Tick');
   SetTimer(RandRange(0.18, 0.22), True);
 }
@@ -278,7 +274,6 @@ function Unregister()
   TimeElapsedDisconnect = Level.Game.GameReplicationInfo.ElapsedTime;
 
   Disable('Tick');
-  bPlayerCanPlay = False; // for future initial spawn delay
   SetTimer(0.0, False);  // stop timer
 
   Super.Unregister();
@@ -293,6 +288,8 @@ function Unregister()
 
 event Timer()
 {
+  bReceivedPing = PlayerReplicationInfo(Keeper).bReceivedPing;
+
   UpdateJail();
   UpdateLocation();
 
@@ -314,17 +311,6 @@ event Tick(float TimeDelta)
   local xPawn thisPawn;
 
   Pawn = Controller.Pawn;
-
-  // Prevents the player from spawning if he's not able to control his pawn yet.
-  if (!bPlayerCanPlay) {
-    Controller.PlayerReplicationInfo.bReadyToPlay = False;
-    PlayerController(Controller).WaitDelay = Level.TimeSeconds + 1.0;
-
-    if (Controller.PlayerReplicationInfo.bReceivedPing) { // if he's got ping, he can control his player
-      bPlayerCanPlay = True;
-      PlayerController(Controller).WaitDelay = Level.TimeSeconds; // clear delay
-    }
-  }
 
   // fixes replicating over and over when referenced actor has been destroyed
   if (PawnObjectiveGuessed == None)
@@ -597,7 +583,7 @@ simulated function bool IsInJail()
 function NotifyRound()
 {
   bIsLlama = False;
-  if (spree > 0)
+  if (Spree > 0)
     bRecoverSpree = true;
 }
 
@@ -1054,10 +1040,11 @@ simulated function int GetHealth(optional bool bCached)
 //
 // Saves the current killing spree. Called from Jailbreak.ExecutionCommit
 // ============================================================================
+
 function SaveSpree()
 {
-  if(Pawn != None)
-    spree = Pawn.GetSpree();
+  if (Pawn != None)
+    Spree = Pawn.GetSpree();
 }
 
 
@@ -1066,15 +1053,18 @@ function SaveSpree()
 //
 // Recovers a previously saved killing spree.
 // ============================================================================
+
 function RecoverSpree()
 {
-  if(Pawn != None)
-    while(spree > 0) {
-      Pawn.IncrementSpree(); //deals with custom Pawns/Vehicles
-      spree--;
+  if (Pawn == None) {
+    Spree = 0;
+  }
+  else {
+    while (Spree > 0) {
+      Pawn.IncrementSpree();  // deals with custom Pawns/Vehicles
+      Spree--;
     }
-  else
-    spree = 0;
+  }
 
   bRecoverSpree = False;
 }
@@ -1342,6 +1332,8 @@ simulated function Controller GetController() {
   return Controller; }
 simulated function TeamInfo GetTeam() {
   if (Keeper == None) return None; return PlayerReplicationInfo(Keeper).Team; }
+simulated function bool HasReceivedPing() {
+  return bReceivedPing; }
 
 simulated function JBInfoJail GetJail() {
   return Jail; }

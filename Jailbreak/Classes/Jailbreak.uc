@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.145 2007-04-01 10:05:53 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.146 2007-04-01 18:38:11 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -2002,19 +2002,18 @@ state MatchInProgress {
   // ================================================================
   // RestartPlayer
   //
-  // Notifies both bot teams of the respawn.
+  // Keeps players un-spawned until they have control over their
+  // pawns. Otherwise, notifies both bot teams of the respawn.
   // ================================================================
 
   function RestartPlayer(Controller Controller)
   {
-    local JBTagClient TagClient;
     local JBTagPlayer TagPlayer;
 
-    if (PlayerController(Controller) != None)
-      TagClient = Class'JBTagClient'.Static.FindFor(PlayerController(Controller));
-
-    if (TagClient != None &&
-       !TagClient.IsTimeSynchronized())
+    // do not spawn players until they have control over their pawn
+    if (PlayerController(Controller)     != None &&
+        Controller.PlayerReplicationInfo != None &&
+       !Controller.PlayerReplicationInfo.bReceivedPing)
       return;
 
     TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.25 2007-04-01 15:15:34 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.26 2007-04-01 18:49:19 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -1023,7 +1023,7 @@ simulated function string GetInfoOrders(JBTagPlayer TagPlayer)
     IsAdmin = "[" $ AdminText $ "] ";
 
   if (TeamPlayerReplicationInfo.bWaitingPlayer) {
-    if (!TagPlayer.bPlayerCanPlay)
+    if (!TagPlayer.HasReceivedPing())
       return IsAdmin $ TextConnecting;
 
     if (!GRI.bMatchHasBegun &&
