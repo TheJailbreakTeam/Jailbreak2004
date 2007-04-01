@@ -64,6 +64,7 @@ TextInstructions[15]="Press Shift+H to hide these instructions."
 TextInstructions[16]="Press Shift+X to exit adjustment mode."
 TextStatusCopy="JBPanorama actor copied to the clipboard."
 TextStatusScreenshot="Screenshot saved to the last Shot?????.bmp file in your ScreenShots directory."
+TextFov="Field of View:"
 
 [JBInterfaceHud]
 TextPlayerKilled="You were killed."

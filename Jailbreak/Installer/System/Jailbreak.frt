@@ -64,6 +64,7 @@ TextInstructions[15]="Appuyez sur MAJ+H pour masquer ces instructions."
 TextInstructions[16]="Appuyez sur MAJ+X pour quitter le mode de réglage."
 TextStatusCopy="Acteur JBPanorama copié sur le clipboard."
 TextStatusScreenshot="Capture d'écran enregistrée sous le nom de la dernière image Shot?????.bmp dans votre dossier ScreenShots."
+TextFov="Champ de Vision:"
 
 [JBInterfaceHud]
 TextPlayerKilled="Vous avez été tué."

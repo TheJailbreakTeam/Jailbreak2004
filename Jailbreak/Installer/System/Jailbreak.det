@@ -64,6 +64,7 @@ TextInstructions[15]="Drücken Sie Umschalt+H, um diese Hilfe auszublenden."
 TextInstructions[16]="Drücken Sie Umschalt+X, um den Einstellungsmodus zu verlassen."
 TextStatusCopy="JBPanorama-Aktor wurde in die Zwischenablage kopiert."
 TextStatusScreenshot="Bildschirmfoto wurde als letzte Shot?????.bmp-Datei in Ihr ScreenShots-Verzeichnis gespeichert."
+TextFov="Sichtfeld:"
 
 [JBInterfaceHud]
 TextPlayerKilled="Sie wurden getötet."

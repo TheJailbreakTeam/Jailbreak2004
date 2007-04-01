@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionPanorama
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionPanorama.uc,v 1.2 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBInteractionPanorama.uc,v 1.3 2004-04-14 11:59:14 mychaeel Exp $
 //
 // Provides a special interactive adjustment mode for the scoreboard overlook
 // map. Use the SetupPanorama console command to enter this mode.
@@ -21,6 +21,8 @@ var localized string TextInstructions[17];
 
 var localized string TextStatusCopy;
 var localized string TextStatusScreenshot;
+
+var localized string TextFov;
 
 
 // ============================================================================
@@ -299,7 +301,7 @@ event PostRender(Canvas Canvas)
       Canvas.DrawText(TextInstructionsHidden);
     }
 
-    TextZoom = "Field of View:" @ int(ViewportOwner.Actor.FOVAngle) $ "°";
+    TextZoom = TextFov @ int(ViewportOwner.Actor.FOVAngle) $ "°";
 
     LocationZoom.X = Canvas.ClipX * 0.970 - SizeCharacter.X * Len(TextZoom);
     LocationZoom.Y = Canvas.ClipY * 0.040;
@@ -348,6 +350,8 @@ defaultproperties
 
   TextStatusCopy       = "JBPanorama actor copied to the clipboard.";
   TextStatusScreenshot = "Screenshot saved to the last Shot?????.bmp file in your ScreenShots directory.";
+
+  TextFov = "Field of View:";
 
   bVisible      = True;
   bRequiresTick = True;
