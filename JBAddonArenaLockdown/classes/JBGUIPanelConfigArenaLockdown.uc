@@ -1,12 +1,20 @@
 // ============================================================================
 // JBGUIPanelConfigArenaLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGUIPanelConfigArenaLockdown.uc,v 1.3 2007-01-27 20:32:01 jrubzjeknf Exp $
+// $Id: JBGUIPanelConfigArenaLockdown.uc,v 1.4 2007-03-25 12:27:36 jrubzjeknf Exp $
 //
 // Addon's GUI.
 // ============================================================================
 
 class JBGUIPanelConfigArenaLockdown extends JBGUIPanelConfig;
+
+
+//=============================================================================
+// Constants
+//=============================================================================
+
+const CONTROL_CROSSBASE_SPAWNING = 0;
+const CONTROL_SELECTION_METHOD   = 1;
 
 
 //=============================================================================
@@ -32,6 +40,9 @@ var localized string str_Random;
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
   Super.InitComponent(MyController, MyOwner);
+
+  ch_CrossBaseSpawning = moCheckBox(Controls[CONTROL_CROSSBASE_SPAWNING]);
+  co_SelectionMethod   = moComboBox(Controls[CONTROL_SELECTION_METHOD]);
 
   co_SelectionMethod.AddItem(str_FIFO);
   co_SelectionMethod.AddItem(str_Random);
