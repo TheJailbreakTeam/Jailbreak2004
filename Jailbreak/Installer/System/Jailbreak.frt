@@ -169,4 +169,5 @@ TextWebAdminEnableJBMapFixes="Correction des maps"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Deux équipes s'affrontent pour fragger les joueurs adverses et ainsi les envoyer dans une prison. Lorsque tous les membres d'une équipe sont emprisonnés, l'équipe adverse marque un point. Frayez-vous un passage à travers la base ennemie pour libérer vos équipiers!"
+GIPropsDisplayText[6]="Limite de Captures"
 

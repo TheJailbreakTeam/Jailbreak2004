@@ -169,4 +169,5 @@ TextWebAdminEnableJBMapFixes="Levelprobleme beheben"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Zwei Teams versuchen, die gegnerischen Spieler ins Gefängnis zu bringen, indem sie sie töten. Wenn alle Spieler eines Teams gefangen sind, erhält das andere Team einen Punkt. Kämpfen Sie ihren Weg in die gegnerische Basis, um Ihre Teamgefährten freizulassen!"
+GIPropsDisplayText[6]="Runden-Limit"
 

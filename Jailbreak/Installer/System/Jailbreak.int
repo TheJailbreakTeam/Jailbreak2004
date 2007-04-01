@@ -169,4 +169,5 @@ TextWebAdminEnableJBMapFixes="Enable Map Fixes"
 TextWebAdminPrefixAddon="Jailbreak:"
 GameName="Jailbreak"
 Description="Two teams face off to send the other team's players to jail by fragging them. When all members of a team are in jail, the opposing team scores a point. Fight your way into the enemy base to release your teammates!"
+GIPropsDisplayText[6]="Capture Limit"
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.143 2007-03-30 16:23:08 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.144 2007-03-30 18:18:07 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -2242,6 +2242,8 @@ defaultproperties
   TextWebAdminEnableJBMapFixes       = "Enable Map Fixes"
 
   TextWebAdminPrefixAddon            = "Jailbreak:"
+
+  GIPropsDisplayText(6)              = "Capture Limit"
 
   WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard"
   WebScoreboardPath  = "/scoreboard"
