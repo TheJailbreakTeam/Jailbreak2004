@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagClient
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagClient.uc,v 1.17 2006-07-13 20:50:08 jrubzjeknf Exp $
+// $Id: JBTagClient.uc,v 1.18 2006-08-15 19:27:15 jrubzjeknf Exp $
 //
 // Attached to every PlayerController and used for exec function replication.
 // Only accessible via a given PlayerController object; not chained and not
@@ -339,6 +339,7 @@ simulated function bool IsTimeSynchronized()
 
 private function ServerSynchronizeTime()
 {
+  bTimeSynchronized = True;  // server-side
   ClientSynchronizeTime(Level.TimeSeconds);
 }
 
@@ -359,7 +360,7 @@ private simulated function ClientSynchronizeTime(float TimeServer)
   TimeOffsetServer = TimeServer - Level.TimeSeconds + TimeRoundTrip / 2;
 
   TimeSynchronization = 0.0;
-  bTimeSynchronized = True;
+  bTimeSynchronized = True;  // client-side
 
   Log("Synchronized time with server:"
       @ "Local="     @ Level.TimeSeconds           $  "s"

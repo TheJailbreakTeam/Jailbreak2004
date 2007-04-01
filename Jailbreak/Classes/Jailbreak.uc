@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.144 2007-03-30 18:18:07 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.145 2007-04-01 10:05:53 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -952,10 +952,9 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
   if (TagPlayerVictim.IsInJail() &&
       TagPlayerVictim.GetJail() == TagPlayerInstigator.GetJail() &&
      !TagPlayerVictim.GetJail().IsReleaseActive(PawnVictim.PlayerReplicationInfo.Team))
-    if (bEnableJailFights &&
+    if (bEnableJailFights && !PawnVictim.Controller.bGodMode &&
         Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerInstigator.GetController(), True) &&
-        Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerVictim    .GetController(), True) &&
-       !PawnVictim.Controller.bGodMode)
+        Class'JBBotSquadJail'.Static.IsPlayerFighting(TagPlayerVictim    .GetController(), True))
       return Damage;
     else {
       MomentumHit = vect(0,0,0);
@@ -2008,7 +2007,15 @@ state MatchInProgress {
 
   function RestartPlayer(Controller Controller)
   {
+    local JBTagClient TagClient;
     local JBTagPlayer TagPlayer;
+
+    if (PlayerController(Controller) != None)
+      TagClient = Class'JBTagClient'.Static.FindFor(PlayerController(Controller));
+
+    if (TagClient != None &&
+       !TagClient.IsTimeSynchronized())
+      return;
 
     TagPlayer = Class'JBTagPlayer'.Static.FindFor(Controller.PlayerReplicationInfo);
     if (TagPlayer.TimeRestart > Level.TimeSeconds)
