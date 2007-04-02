@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.146 2007-04-01 18:38:11 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.147 2007-04-01 21:01:39 mychaeel Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -2013,6 +2013,7 @@ state MatchInProgress {
     // do not spawn players until they have control over their pawn
     if (PlayerController(Controller)     != None &&
         Controller.PlayerReplicationInfo != None &&
+        Level.NetMode == NM_DedicatedServer      &&
        !Controller.PlayerReplicationInfo.bReceivedPing)
       return;
 
