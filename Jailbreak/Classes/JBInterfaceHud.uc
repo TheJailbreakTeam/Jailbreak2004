@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.70 2007-03-31 14:53:18 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.71 2007-04-01 00:32:01 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -483,6 +483,10 @@ simulated function DrawSpectatingHud(Canvas Canvas)
     Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerKilled;
 
   Super.DrawSpectatingHud(Canvas);
+
+  // Draw the timer, something the superclass lacks to do.
+  if (bDrawTimer)
+    DrawTimer(Canvas);
 
   Class'ScoreboardDeathMatch'.Default.Restart = TextPlayerRestartPrev;
 }
