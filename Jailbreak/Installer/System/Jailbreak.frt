@@ -7,6 +7,9 @@ TextArena="combat dans l'arène"
 [JBBotSquadJail]
 TextJailed="en prison"
 
+[JBCameraArena]
+Caption.Text="Vue depuis l'Arène"
+
 [JBGUICustomHUDMenu]
 WindowName="Jailbreak Client Options"
 NoVoicepackInstalled="(no voice packs installed)"
@@ -47,7 +50,7 @@ TextDialogTopP="Jailbreak a assigné temporairement ces touches pour vous:"
 TextDialogBottomS="Configurez les raccourcis pour assigner définitivement une touche à cette fonction."
 TextDialogBottomP="Configurez les raccourcis pour assigner définitivement des touches à ces fonctions."
 TextDialogClose="Tapez TIR pour fermer, TIR-SECONDAIRE pour supprimer"
-TextDescription=("Fixe les tactiques d'équipe sur un mode plus agressif.","Fixe les tactiques d'équipe sur un mode plus défensif.","Revient sur la sélection auto des tactiques d'équipe.","Active la Vue depuis l'Arène.","View your teammates who battle in freedom.")
+TextDescription=("Fixe les tactiques d'équipe sur un mode plus agressif.","Fixe les tactiques d'équipe sur un mode plus défensif.","Revient sur la sélection auto des tactiques d'équipe.","Active la Vue depuis l'Arène.","Regardez se battre vos équipiers libres.")
 
 [JBInteractionPanorama]
 TextInstructionsHidden="Appuyez sur MAJ+H pour afficher les instructions."
@@ -116,6 +119,10 @@ TextRelationOvertime="prolongation"
 TextConnecting="Connexion"
 TextReady="Prêt"
 TextNotReady="Pas Prêt"
+TextSpectators="Spectateurs:"
+TextNoSpectators="Pas de spectateurs"
+TextSpectatorsAnd="et"
+TextSpectatorsOthers="autres"
 
 [JBLocalMessage]
 TextTeamCaptured[0]="L'équipe rouge s'est fait capturer."

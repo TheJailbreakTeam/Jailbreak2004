@@ -7,6 +7,9 @@ TextArena="fighting in arena"
 [JBBotSquadJail]
 TextJailed="jailed"
 
+[JBCameraArena]
+Caption.Text="Arena Live Feed"
+
 [JBGUICustomHUDMenu]
 WindowName="Jailbreak Client Options"
 NoVoicepackInstalled="(no voice packs installed)"
@@ -116,6 +119,10 @@ TextRelationOvertime="overtime"
 TextConnecting="Connecting"
 TextReady="Ready"
 TextNotReady="Not Ready"
+TextSpectators="Spectators:"
+TextNoSpectators="No Spectators"
+TextSpectatorsAnd="and"
+TextSpectatorsOthers="others"
 
 [JBLocalMessage]
 TextTeamCaptured[0]="The red team has been captured."

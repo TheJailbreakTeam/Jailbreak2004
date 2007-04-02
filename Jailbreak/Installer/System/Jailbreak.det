@@ -7,6 +7,9 @@ TextArena="kämpft in der Arena"
 [JBBotSquadJail]
 TextJailed="gefangen"
 
+[JBCameraArena]
+Caption.Text="Live Arenakamera"
+
 [JBGUICustomHUDMenu]
 WindowName="Jailbreak-Client-Optionen"
 NoVoicepackInstalled="(keine Sprachpakete installiert)"
@@ -47,7 +50,7 @@ TextDialogTopP="Jailbreak hat vorübergehend folgende Tastenzuordnungen für Sie e
 TextDialogBottomS="Sie können über die Steuerungs-Einstellungen eine andere Zuordnung für diese Funktion festlegen."
 TextDialogBottomP="Sie können über die Steuerungs-Einstellungen eine andere Zuordnung für diese Funktionen festlegen."
 TextDialogClose="FEUER zum Schließen, ALT-FEUER zum dauerhaften Schließen"
-TextDescription=("Team-Taktik aggressiver machen.","Team-Taktik defensiver machen.","Team-Taktik automatisch einstellen.","Arena-Live-Übertragung aktivieren.","View your teammates who battle in freedom.")
+TextDescription=("Team-Taktik aggressiver machen.","Team-Taktik defensiver machen.","Team-Taktik automatisch einstellen.","Arena-Live-Übertragung aktivieren.","Beobachte deine Teammitglieder, wie sie in Freiheit kämpfen.")
 
 [JBInteractionPanorama]
 TextInstructionsHidden="Umschalt+H drücken, um Hilfe anzuzeigen."
@@ -116,6 +119,10 @@ TextRelationOvertime="Nachspiel"
 TextConnecting="Verbinden"
 TextReady="Bereit"
 TextNotReady="Nicht Bereit"
+TextSpectators="Zuschauer:"
+TextNoSpectators="Keine Zuschauer"
+TextSpectatorsAnd="und"
+TextSpectatorsOthers="andere"
 
 [JBLocalMessage]
 TextTeamCaptured[0]="Team Rot ist eingefangen."

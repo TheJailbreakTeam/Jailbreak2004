@@ -8,7 +8,7 @@ SelectionMethodText="Méthode de sélection"
 SelectionMethodDesc="Choisissez comment les combattants pour l'arène seront choisis depuis la prison."
 SelectionMethodOptions="0;Dans l'ordre;1;Au hasard;"
 FriendlyName="Arène avant Incarcération"
-Description="The only way to get out of jail is by winning the arena match!"
+Description="Le seul moyen de sortir de prison est de gagner le combat dans l'arène!"
 
 [JBGUIPanelConfigArenaLockdown]
 str_FIFO="Dans l'ordre"
