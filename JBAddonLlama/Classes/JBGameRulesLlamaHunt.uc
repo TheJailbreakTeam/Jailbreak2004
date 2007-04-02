@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesLlamaHunt
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesLlamaHunt.uc,v 1.11 2006-07-19 14:26:03 jrubzjeknf Exp $
+// $Id: JBGameRulesLlamaHunt.uc,v 1.12 2007-02-14 09:56:42 wormbo Exp $
 //
 // The JBGameRules class for Llama Hunt used to get Jailbreak notifications.
 //=============================================================================
@@ -35,6 +35,27 @@ function bool PreventDeath(Pawn Killed, Controller Killer, class<DamageType> dam
     SetTimer(0.1, False); // will reset LlamaSuicidedLast to None
   }
   return Super.PreventDeath(Killed,Killer, damageType,HitLocation);
+}
+
+
+//=============================================================================
+// NetDamage
+//
+// Prevents the llama from hurting anyone and teammates from hurting the llama.
+//=============================================================================
+
+function int NetDamage(int OriginalDamage, int Damage, pawn injured, pawn instigatedBy, vector HitLocation, out vector Momentum, class<DamageType> DamageType)
+{
+  if (instigatedBy != None &&
+     (instigatedBy.FindInventoryType(class'JBLlamaTag') != None ||
+      (injured != None &&
+       injured.FindInventoryType(class'JBLlamaTag') != None &&
+       injured.GetTeamNum() == instigatedBy.GetTeamNum()))) {
+    Momentum = vect(0,0,0);
+    return 0;
+  }
+
+  return Super.NetDamage(OriginalDamage,Damage,injured,instigatedBy,HitLocation,Momentum,DamageType);
 }
 
 
@@ -98,19 +119,18 @@ function NotifyPlayerReconnect(PlayerController ControllerPlayer, bool bIsLlama)
 //=============================================================================
 // OverridePickupQuery
 //
-// Don't allow the Llama to pick up health, armor or adrenaline.
+// Don't allow the Llama to pick up anything.
 //=============================================================================
 
 function bool OverridePickupQuery(Pawn Other, Pickup Item, out byte bAllowPickup)
 {
-  if ( Item.IsA('TournamentPickup')
-      && class'JBAddonLlama'.static.IsLlama(Other)
+  if ( class'JBAddonLlama'.static.IsLlama(Other)
       && Other.PlayerReplicationInfo != None
       && !Other.PlayerReplicationInfo.bBot ) {
     bAllowPickup = 0;
     return true;
   }
-    
+
   return Super.OverridePickupQuery(Other, Item, bAllowPickup);
 }
 
@@ -189,11 +209,15 @@ protected function KilledByLlama(Controller Killer)
 //=============================================================================
 // ScoreLlamaKill
 //
-// Awards adrenaline, health and shield points to the llama killer.
+// Awards adrenaline, health and shield points to the llama killer, if he's not
+// on the same team as the llama.
 //=============================================================================
 
 protected function ScoreLlamaKill(Controller Killer, Controller Killed)
 {
+  if (Killer.GetTeamNum() == Killed.GetTeamNum())
+    return;
+
   Killer.AwardAdrenaline(class'JBAddonLlama'.default.RewardAdrenaline);
   if ( Killer.Pawn != None ) {
     Killer.Pawn.GiveHealth(class'JBAddonLlama'.default.RewardHealth, Min(199, Killer.Pawn.HealthMax * 2.0));

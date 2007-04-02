@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.16 2006-08-23 23:09:11 jrubzjeknf Exp $
+// $Id: JBLlamaTag.uc,v 1.17 2007-02-16 10:03:37 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -247,7 +247,8 @@ simulated function ResetCrosshairLocations()
 // Tick
 //
 // Update third person llama effects and checks whether the maximum llama hunt
-// duration was exceeded.
+// duration was exceeded. Prevents the llama from suiciding by constantly
+// updating his LastStartTime.
 //=============================================================================
 
 simulated function Tick(float DeltaTime)
@@ -267,8 +268,10 @@ simulated function Tick(float DeltaTime)
   if ( bNotYetRegistered || Owner == None )
     return;
 
-  if ( Pawn(Owner) != None )
+  if ( Pawn(Owner) != None ) {
     MyController = PlayerController(Pawn(Owner).Controller);
+    Pawn(Owner).LastStartTime = Level.TimeSeconds;
+  }
   if ( MyController == None && TagPlayer != None )
     MyController = PlayerController(TagPlayer.GetController());
 
@@ -304,8 +307,8 @@ simulated function Tick(float DeltaTime)
 
   if ( Role == ROLE_Authority
       && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration ) {
-    if ( MyController != None )
-      Spawn(class'JBLlamaKillAutoSelect', MyController);
+    if (Pawn(Owner).Controller != None )
+      Spawn(class'JBLlamaKillAutoSelect', Pawn(Owner).Controller);
     else
       Pawn(Owner).Died(None, class'JBDamageTypeLlamaDied', Owner.Location);
   }
