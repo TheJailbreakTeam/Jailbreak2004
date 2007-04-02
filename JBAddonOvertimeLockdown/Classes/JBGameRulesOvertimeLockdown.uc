@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGameRulesOvertimeLockdown.uc,v 1.5 2007-03-31 14:55:00 jrubzjeknf Exp $
+// $Id: JBGameRulesOvertimeLockdown.uc,v 1.6 2007-04-01 00:34:19 jrubzjeknf Exp $
 //
 // When in overtime starts, the releases will be jammed. Once you're jailed,
 // there's no getting out any more. Last chance to score a point!
@@ -101,7 +101,7 @@ simulated function ClientTrigger()
     return;
 
   H = JBInterfaceHud(Level.GetLocalPlayerController().myHUD);
-  H.ModifyTimerDisplay(class'HudCDeathmatch'.default.HudColorHighLight, LockIcon, LockdownDelay * 60 + 1, True, True, True, LockdownDelay * 60);
+  H.ModifyTimerDisplay(class'HudCDeathmatch'.default.HudColorHighLight, LockIcon, LockdownDelay * 60 + 1, True, True, 1.0, LockdownDelay * 60);
 }
 
 

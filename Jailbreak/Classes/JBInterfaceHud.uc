@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.71 2007-04-01 00:32:01 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.72 2007-04-02 21:27:59 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -116,7 +116,8 @@ var int OldTimerSeconds;                      // announcer shouldn't play twice
 var float LastTimerModTime;                   // for animation purposes
 var float TimerIconTexScale;                  // original tex scale of the icon
 var int TimerCountdown;                       // custom countdown in seconds
-var SpriteWidget SpriteWidgetTimerHighlight;  // highlights the timer3
+var TexOscillator TexOscTimerHighlight;       // highlights the timer
+var SpriteWidget SpriteWidgetTimerHighlight;  // highlights the timer
 var int TimerPreFlashTime;                    // seconds to flash timer before..
 var int TimerPostFlashTime;                   // ..and after hitting zero
 var int TimerResetTime;                       // how long to wait before reset
@@ -1166,12 +1167,10 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
 
 simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCountdown,
                                       optional bool bAnnouncerUsesModifiedTimer,
-                                      optional bool bFlash, optional bool bSlowFlash, optional int PreFlashForSeconds,
-                                                                                      optional int PostFlashForSeconds,
+                                      optional bool bFlash, optional float FlashSpeed, optional int PreFlashForSeconds,
+                                                                                       optional int PostFlashForSeconds,
                                       optional bool bReset, optional int ResetAfterSeconds)
 {
-  local TexOscillator TexOsc;
-
   bTimerModified = True;
 
   bModifiedTimerAnnouncer = bAnnouncerUsesModifiedTimer;
@@ -1191,12 +1190,9 @@ simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCou
   TimerIconTexScale = Icon.TextureScale;
   TimerCountdown = PlayerOwner.GameReplicationInfo.ElapsedTime + SecondsCountdown;
 
-  if (bSlowFlash &&
-      FinalBlend(SpriteWidgetTimerHighlight.WidgetTexture) != None &&
-      TexOscillator(FinalBlend(SpriteWidgetTimerHighlight.WidgetTexture).Material) != None) {
-    TexOsc = TexOscillator(FinalBlend(SpriteWidgetTimerHighlight.WidgetTexture).Material);
-    TexOsc.UOscillationRate /= 3;
-    TexOsc.VOscillationRate /= 3;
+  if (FlashSpeed > 0.0) {
+    TexOscTimerHighlight.UOscillationRate = FlashSpeed;
+    TexOscTimerHighlight.VOscillationRate = FlashSpeed;
   }
 
   if (bFlash) {
@@ -1240,6 +1236,9 @@ simulated function ResetTimerDisplay()
 
   TimerIcon = Default.TimerIcon;
   TimerCountdown = 0;
+
+  TexOscTimerHighlight.UOscillationRate = 3.0;
+  TexOscTimerHighlight.VOscillationRate = 3.0;
 
   TimerPreFlashTime  = 0;
   TimerPostFlashTime = 0;
@@ -1734,8 +1733,6 @@ defaultproperties
   SpriteWidgetTacticsIcon[4] = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=400,Y1=240,X2=497,Y2=332),TextureScale=0.18,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=033,OffsetY=213,RenderStyle=STY_Alpha,Tints[0]=(R=176,G=176,B=176,A=255),Tints[1]=(R=176,G=176,B=176,A=255));
   SpriteWidgetTacticsAuto    = (WidgetTexture=Material'SpriteWidgetHud',TextureCoords=(X1=080,Y1=352,X2=136,Y2=371),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=038,OffsetY=098,RenderStyle=STY_Alpha,Tints[0]=(R=255,G=255,B=255,A=255),Tints[1]=(R=255,G=255,B=255,A=255),ScaleMode=SM_Left,Scale=1.0);
 
-  SpriteWidgetTimerHighlight = (WidgetTexture=Material'HudContent.Generic.fb_Pulse001',TextureCoords=(X1=0,Y1=0,X2=64,Y2=64),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=-4,OffsetY=-4,RenderStyle=STY_Alpha,Tints[0]=(G=255,R=255,B=255,A=255),Tints[1]=(G=255,R=255,B=255,A=255),ScaleMode=SM_Right,Scale=1.000000)
-
   // Prevents the clock from animating and flashing when the game initially starts.
   LastTimerModTime   = -10
   TimerPreFlashTime  = -10
@@ -1786,4 +1783,28 @@ defaultproperties
   TimerIcon                  = (TextureScale=0.54,OffsetY=11);
 
   bShowLocation = false;
+
+  // Copy from GlowCirclePulse and fb_Pulse001 from HudContent. Was necessary
+  // to support slowing down the flashing.
+  Begin Object Class=TexOscillator Name=TimerGlowCirclePulse
+    UOscillationRate=3.0
+    VOscillationRate=3.0
+    UOscillationPhase=0.01
+    VOscillationPhase=0.01
+    UOscillationAmplitude=0.5
+    VOscillationAmplitude=0.5
+    UOscillationType=OT_Stretch
+    VOscillationType=OT_Stretch
+    UOffset=32.0
+    VOffset=32.0
+    Material=TexScaler'HUDContent.Generic.ScaledGlowCircle'
+  End Object
+
+  Begin Object Class=FinalBlend Name=Timerfb_Pulse001
+    FrameBufferBlending=FB_AlphaBlend
+    Material=TexOscillator'TimerGlowCirclePulse'
+  End Object
+
+  TexOscTimerHighlight       = TexOscillator'TimerGlowCirclePulse'
+  SpriteWidgetTimerHighlight = (WidgetTexture=TexOscillator'TimerGlowCirclePulse',TextureCoords=(X1=0,Y1=0,X2=64,Y2=64),TextureScale=0.53,DrawPivot=DP_UpperLeft,PosX=0,PosY=0,OffsetX=-4,OffsetY=-4,RenderStyle=STY_Alpha,Tints[0]=(G=255,R=255,B=255,A=255),Tints[1]=(G=255,R=255,B=255,A=255),ScaleMode=SM_Right,Scale=1.000000)
 }
