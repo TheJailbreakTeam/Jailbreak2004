@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUICustomHUDMenu
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGUICustomHUDMenu.uc,v 1.7 2007-02-11 10:08:17 wormbo Exp $
+// $Id: JBGUICustomHUDMenu.uc,v 1.8 2007-02-11 17:00:39 wormbo Exp $
 //
 // custom HUD configuration menu for Jailbreak's clientside settings.
 // ============================================================================
@@ -63,7 +63,7 @@ function LoadVoicePacks()
 
   for (iVoicePack = 0; iVoicePack < ListEntry.Length; iVoicePack++)
     co_VoicePack.AddItem(ListDescription[iVoicePack],, ListEntry[iVoicePack]);
-  
+
   if (co_VoicePack.ItemCount() == 0)
     co_VoicePack.AddItem(NoVoicepackInstalled,, "JBVoiceGrrrl.Classic");
 }
@@ -304,7 +304,7 @@ defaultproperties
   WinLeft    = 0.20;
   WinWidth   = 0.60;
   WinHeight  = 0.40;
-  
+
   NoVoicepackInstalled = "(no voice packs installed)";
 
   Begin Object class=moComboBox Name=VoicePack
@@ -363,7 +363,7 @@ defaultproperties
     WinLeft                = 0.24;
     WinWidth               = 0.52;
     TabOrder               = 5;
-    Hint = "Whether you want Jailbreak announcements to be queued. Otherwise multple announcements may overlap each other."
+    Hint = "Whether you want Jailbreak announcements to be queued. Otherwise multiple announcements may overlap each other."
   End Object
   ch_QueueAnnouncements=QueueAnnouncements
 
