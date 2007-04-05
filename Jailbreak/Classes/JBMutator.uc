@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutator
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBMutator.uc,v 1.1 2006-12-20 17:11:24 jrubzjeknf Exp $
+// $Id: JBMutator.uc,v 1.2 2006-12-20 22:13:37 jrubzjeknf Exp $
 //
 // Jailbreak's base mutator.
 // ============================================================================
@@ -17,6 +17,47 @@ class JBMutator extends DMMutator
 // ============================================================================
 
 var array<String> VariableNames;
+
+
+// ============================================================================
+// AddMutator
+//
+// Checks if the added mutator is an Arena mutator like Instagib.
+// ============================================================================
+
+function AddMutator(Mutator M)
+{
+  Super.AddMutator(M);
+
+   if (M != None && M.GroupName ~= "Arena")
+     Jailbreak(Level.Game).bArenaMutatorActive = True;
+}
+
+
+// ============================================================================
+// AlwaysKeep
+//
+// Prevents the ShieldGun from being deleted from a user's inventory by an
+// Arena mutator when it's added in prison.
+// ============================================================================
+
+function bool AlwaysKeep(Actor Other)
+{
+  local JBTagPlayer TagPlayer;
+
+  if (Jailbreak(Level.Game).bArenaMutatorActive &&
+      Jailbreak(Level.Game).bEnableJailFights &&
+      Weapon(Other) != None &&
+     !Weapon(Other).bCanThrow &&
+      Weapon(Other).bMeleeWeapon &&
+      Other.Instigator != None &&
+      Other.Instigator.PlayerReplicationInfo != None) {
+    TagPlayer = class'JBTagPlayer'.static.FindFor(Other.Instigator.PlayerReplicationInfo);
+    return TagPlayer.IsInJail() || Super.AlwaysKeep(Other);
+  }
+
+  return Super.AlwaysKeep(Other);
+}
 
 
 // ============================================================================

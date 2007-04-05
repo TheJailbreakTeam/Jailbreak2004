@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.147 2007-04-01 21:01:39 mychaeel Exp $
+// $Id: Jailbreak.uc,v 1.148 2007-04-02 15:33:27 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -87,6 +87,8 @@ var private float DilationTimePrev;      // last synchronized time dilation
 
 var transient CacheManager.MutatorRecord MutatorRecord;  // for web admin hack
 var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
+
+var bool bArenaMutatorActive; // add a shieldgun to a prisoner's inventory
 
 
 // ============================================================================
