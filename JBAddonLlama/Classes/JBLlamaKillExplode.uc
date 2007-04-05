@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaKillExplode
 // Copyright 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBLlamaKillExplode.uc,v 1.1 2004-05-31 11:14:58 wormbo Exp $
 //
 // Lets the player explode.
 //=============================================================================
@@ -20,7 +20,7 @@ function PostBeginPlay()
 {
   if ( bDeleteMe )
     return;
-  
+
   Timer();
   SetTimer(0.25, True);
 }
@@ -34,12 +34,12 @@ function PostBeginPlay()
 
 function Timer()
 {
-  local Pawn P;
-  
+  local xPawn P;
+
   if ( Controller(Owner) != None && Controller(Owner).Pawn == None )
     return;
-  
-  foreach Owner.ChildActors(class'Pawn', P)
+
+  foreach Owner.ChildActors(class'xPawn', P)
     if ( P.Health > 0 ) {
       Spawn(class'JBEmitterKillExplosion',,, P.Location + vect(0,0,1) * (FRand() - 0.3) * P.CollisionHeight);
       P.TakeDamage(1000, P, P.Location, Normal(VRand() + vect(0,0,1.2)) * 30000, class'JBDamageTypeLlamaExploded');
@@ -48,7 +48,7 @@ function Timer()
         P.Died(Controller(Owner), class'JBDamageTypeLlamaExploded', P.Location);
       }
     }
-  
+
   if ( Controller(Owner) == None || Controller(Owner).Pawn == None )
     Destroy();
 }

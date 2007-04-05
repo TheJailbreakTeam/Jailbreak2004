@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaKillLaser
 // Copyright 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBLlamaKillLaser.uc,v 1.1 2004-05-31 11:14:58 wormbo Exp $
 //
 // Kills a player by letting a satellite fire a laser beam at that player.
 //=============================================================================
@@ -26,14 +26,14 @@ class JBLlamaKillLaser extends JBLlamaKill;
 function PostBeginPlay()
 {
   local IonCannon Cannon;
-  
+
   if ( bDeleteMe )
     return;
-  
+
   if ( Controller(Owner) != None )
     foreach DynamicActors(class'IonCannon', Cannon)
       break;
-  
+
   if ( Cannon == None )
     Destroy();
   else {
@@ -54,13 +54,13 @@ function Timer()
   local IonCannon Cannon;
   local IonCannon BestCannon, BestActiveCannon;
   local float BestDist, BestActiveDist;
-  local Pawn P;
+  local xPawn P;
   local JBxEmitterKillLaser Beam;
 
   if ( Controller(Owner) != None && Controller(Owner).Pawn == None )
     return;
-  
-  foreach Owner.ChildActors(class'Pawn', P) {
+
+  foreach Owner.ChildActors(class'xPawn', P) {
     if ( P.Health > 0 ) {
       BestDist = 20000;
       BestActiveDist = 20000;
@@ -77,10 +77,10 @@ function Timer()
             BestCannon = Cannon;
           }
         }
-      
+
       if ( BestCannon == None )
         BestCannon = BestActiveCannon;
-      
+
       if ( BestCannon != None ) {
         Beam = Spawn(class'JBxEmitterKillLaser',,, BestCannon.Location);
         Beam.SetBeam(BestCannon.Location, P.Location);
@@ -92,7 +92,7 @@ function Timer()
       }
     }
   }
-  
+
   if ( Controller(Owner) == None || Controller(Owner).Pawn == None )
     Destroy();
 }
