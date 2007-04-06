@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.148 2007-04-02 15:33:27 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.149 2007-04-05 18:32:19 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -32,6 +32,7 @@ var config bool bJailNewcomers;
 var config bool bDisallowEscaping;
 var config bool bReverseSwitchColors;
 var config bool bEnableJBMapFixes;
+var config bool bNoJailKill;
 
 var config bool bEnableWebScoreboard;
 var config bool bEnableWebAdminExtension;
@@ -51,12 +52,14 @@ var localized string TextDescriptionFavorHumansForArena;
 var localized string TextDescriptionJailNewcomers;
 var localized string TextDescriptionDisallowEscaping;
 var localized string TextDescriptionEnableJBMapFixes;
+var localized string TextDescriptionNoJailKill;
 
 var localized string TextWebAdminEnableJailFights;
 var localized string TextWebAdminFavorHumansForArena;
 var localized string TextWebAdminJailNewcomers;
 var localized string TextWebAdminDisallowEscaping;
 var localized string TextWebAdminEnableJBMapFixes;
+var localized string TextWebAdminNoJailKill;
 
 var localized string TextWebAdminPrefixAddon;
 
@@ -88,6 +91,8 @@ var private float DilationTimePrev;      // last synchronized time dilation
 var transient CacheManager.MutatorRecord MutatorRecord;  // for web admin hack
 var private transient JBTagPlayer TagPlayerRestart;  // player being restarted
 
+var private bool bGiveTrans;
+
 var bool bArenaMutatorActive; // add a shieldgun to a prisoner's inventory
 
 
@@ -106,6 +111,7 @@ event InitGame(string Options, out string Error)
   local string OptionJailNewcomers;
   local string OptionDisallowEscaping;
   local string OptionEnableJBMapFixes;
+  local string OptionNoJailKill;
   local string NameAddon;
 
   Super.InitGame(Options, Error);
@@ -145,6 +151,10 @@ event InitGame(string Options, out string Error)
   OptionEnableJBMapFixes = ParseOption(Options, "EnableJBMapFixes");
   if (OptionDisallowEscaping != "")
     bDisallowEscaping = bool(OptionEnableJBMapFixes);
+
+  OptionNoJailKill = ParseOption(Options, "NoJailKill");
+  if (OptionDisallowEscaping != "")
+    bNoJailKill = bool(OptionNoJailKill);
 
   bForceRespawn    = True;
   bTeamScoreRounds = False;
@@ -270,11 +280,12 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 
   Super.FillPlayInfo(PlayInfo);
 
-  PlayInfo.AddSetting(default.GameName, "bEnableJailFights",    Default.TextWebAdminEnableJailFights,    0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bEnableJailFights",    default.TextWebAdminEnableJailFights,    0, 60, "Check");
   PlayInfo.AddSetting(default.GameName, "bFavorHumansForArena", default.TextWebAdminFavorHumansForArena, 0, 60, "Check");
   PlayInfo.AddSetting(default.GameName, "bJailNewcomers",       default.TextWebAdminJailNewcomers,       0, 60, "Check");
   PlayInfo.AddSetting(default.GameName, "bDisallowEscaping",    default.TextWebAdminDisallowEscaping,    0, 60, "Check");
   PlayInfo.AddSetting(default.GameName, "bEnableJBMapFixes",    default.TextWebAdminEnableJBMapFixes,    0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bNoJailKill",          default.TextWebAdminNoJailKill,          0, 60, "Check");
 }
 
 
@@ -294,6 +305,7 @@ static event string GetDescriptionText(string Property)
   if (Property ~= "bJailNewcomers")       return default.TextDescriptionJailNewcomers;
   if (Property ~= "bDisallowEscaping")    return default.TextDescriptionDisallowEscaping;
   if (Property ~= "bEnableJBMapFixes")    return default.TextDescriptionEnableJBMapFixes;
+  if (Property ~= "bNoJailKill")          return default.TextDescriptionNoJailKill;
 
   return Super.GetDescriptionText(Property);
 }
@@ -877,20 +889,25 @@ function SetPlayerDefaults(Pawn PawnPlayer)
 
 function AddGameSpecificInventory(Pawn PawnPlayer)
 {
-  local bool bAllowTransPrev;
   local JBTagPlayer TagPlayer;
-
-  bAllowTransPrev = bAllowTrans;
 
   TagPlayer = Class'JBTagPlayer'.Static.FindFor(PawnPlayer.PlayerReplicationInfo);
 
-  if (TagPlayer != None &&
-      TagPlayer.IsInJail())
-    bAllowTrans = False;
+  bGiveTrans = TagPlayer == None || !TagPlayer.IsInJail();
 
   Super.AddGameSpecificInventory(PawnPlayer);
+}
 
-  bAllowTrans = bAllowTransPrev;
+
+// ============================================================================
+// AllowTransloc
+//
+// Returns False if the translocator shouldn't be given to the player.
+// ============================================================================
+
+function bool AllowTransloc()
+{
+	return bGiveTrans && Super.AllowTransloc();
 }
 
 
@@ -934,7 +951,9 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
 
   local JBTagPlayer TagPlayerInstigator;
   local JBTagPlayer TagPlayerVictim;
+  local xPawn       xPawnVictim;
 
+  // No instigator or himself.
   if (PawnInstigator == None ||
       PawnInstigator.Controller == PawnVictim.Controller)
     return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
@@ -942,15 +961,18 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
   TagPlayerInstigator = Class'JBTagPlayer'.Static.FindFor(PawnInstigator.PlayerReplicationInfo);
   TagPlayerVictim     = Class'JBTagPlayer'.Static.FindFor(PawnVictim    .PlayerReplicationInfo);
 
+  // No tag found for the instigator or the victim.
   if (TagPlayerInstigator == None ||
       TagPlayerVictim     == None)
     return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
 
+  // Arena players only receive damage from players from the same arena.
   if (TagPlayerVictim.GetArena() != TagPlayerInstigator.GetArena()) {
     MomentumHit = vect(0,0,0);
     return 0;
   }
 
+  // Concerns jail fighting.
   if (TagPlayerVictim.IsInJail() &&
       TagPlayerVictim.GetJail() == TagPlayerInstigator.GetJail() &&
      !TagPlayerVictim.GetJail().IsReleaseActive(PawnVictim.PlayerReplicationInfo.Team))
@@ -962,6 +984,23 @@ function int ReduceDamage(int Damage, Pawn PawnVictim, Pawn PawnInstigator, vect
       MomentumHit = vect(0,0,0);
       return 0;
     }
+
+  // NoJailKill implementation - Nullify damage and momentum.
+  if (Jailbreak(Level.Game).bNoJailKill &&
+      TagPlayerInstigator.IsInJail()) {
+    MomentumHit = vect(0,0,0);
+
+    // Visual feedback: the victim lights up.
+    xPawnVictim = xPawn(PawnVictim);
+    PawnVictim.PlaySound(Sound'WeaponSounds.BaseImpactAndExplosions.BShieldReflection', SLOT_Pain, TransientSoundVolume*2,, 400);
+
+    switch (xPawnVictim.PlayerReplicationInfo.Team.TeamIndex) {
+      case 0: xPawnVictim.SetOverlayMaterial(Shader'XGameShaders.PlayerShaders.PlayerTransRed', xPawnVictim.ShieldHitMatTime, False); break;
+      case 1: xPawnVictim.SetOverlayMaterial(Shader'XGameShaders.PlayerShaders.PlayerTrans'   , xPawnVictim.ShieldHitMatTime, False); break;
+    }
+
+    return 0;
+  }
 
   return Super.ReduceDamage(Damage, PawnVictim, PawnInstigator, LocationHit, MomentumHit, ClassDamageType);
 }
@@ -2244,11 +2283,13 @@ defaultproperties
   TextDescriptionJailNewcomers       = "New players who join during the game will be jailed."
   TextDescriptionDisallowEscaping    = "Disallow players from leaving jail without being released or entering the arena."
   TextDescriptionEnableJBMapFixes    = "Fixes a couple of small bugs in a few maps. Also adds a new execution to some."
+  TextDescriptionNoJailKill          = "Jailed players can no longer hurt enemies."
   TextWebAdminEnableJailFights       = "Allow Jail Fights"
   TextWebAdminFavorHumansForArena    = "Favor Humans For Arena"
   TextWebAdminJailNewcomers          = "Jail Newcomers"
   TextWebAdminDisallowEscaping       = "Disallow Escaping"
   TextWebAdminEnableJBMapFixes       = "Enable Map Fixes"
+  TextWebAdminNoJailKill             = "No Jail Kills"
 
   TextWebAdminPrefixAddon            = "Jailbreak:"
 
@@ -2266,6 +2307,7 @@ defaultproperties
   bJailNewcomers           = False
   bDisallowEscaping        = False
   bEnableJBMapFixes        = True
+  bNoJailKill              = False
 
   bEnableWebScoreboard     = True
   bEnableWebAdminExtension = True

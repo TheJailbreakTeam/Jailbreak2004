@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.65 2007-04-01 21:01:39 mychaeel Exp $
+// $Id: JBTagPlayer.uc,v 1.66 2007-04-05 18:32:19 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -773,6 +773,7 @@ function NotifyJailLeft(JBInfoJail JailPrev)
             Weapon(thisInventory).StopFire(0);
             Weapon(thisInventory).StopFire(1);
             thisInventory.Destroy();
+            break;
           }
         }
 
