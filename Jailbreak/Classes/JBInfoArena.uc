@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.51 2006-08-15 19:27:15 jrubzjeknf Exp $
+// $Id: JBInfoArena.uc,v 1.52 2006-12-08 11:49:15 jrubzjeknf Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -85,6 +85,8 @@ var() name TagAttachStarts;
 var() name TagAttachStartsWinner;
 var() name TagAttachPickups;
 var() name TagAttachVehicles;
+
+var() bool bRandomPlayerstartSwitching;
 
 
 // ============================================================================
@@ -573,9 +575,15 @@ function bool MatchStart()
 {
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
+  local NavigationPoint NP;
 
   if (IsInState('MatchCountdown')) {
     if (CanStart()) {
+      if (bRandomPlayerstartSwitching && FRand() < 0.5)
+        for (NP = Level.NavigationPointList; NP != None; NP = NP.nextNavigationPoint)
+          if (PlayerStart(NP) != None && ContainsActor(NP))
+            PlayerStart(NP).TeamNumber = abs(PlayerStart(NP).TeamNumber - 1);
+
       firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
       for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
         if (thisTagPlayer.GetArenaPending() == Self)
