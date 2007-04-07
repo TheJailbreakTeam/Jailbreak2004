@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.66 2007-04-05 18:32:19 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.67 2007-04-06 13:38:57 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -640,6 +640,8 @@ function NotifyArenaEntered()
 
   Controller.bAdrenalineEnabled = False;
   Controller.Adrenaline = Controller.AdrenalineMax;
+
+  UnsetJailInventory();
 }
 
 
@@ -665,39 +667,16 @@ function NotifyArenaLeft(JBInfoArena ArenaPrev)
 // ============================================================================
 // NotifyJailEntered
 //
-// Called when the player entered the jail from an arena or from freedom.
-// Notifies the jail of that. Puts bots on the jail squad. Removes the
-// player's translocator, adds the shieldgun if an arena mutator is active.
+// Called when the player walks into or respawns inside a jail. Notifies the
+// jail of that. Puts bots on the jail squad. Modifies the player's inventory.
 // ============================================================================
 
 function NotifyJailEntered()
 {
-  local Inventory thisInventory;
-  local Inventory nextInventory;
-  local Pawn P;
-
   if (Bot(Controller) != None)
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(Controller));
 
-  if (Vehicle(Controller.Pawn) != None)
-    P = Vehicle(Controller.Pawn).Driver;
-  else
-    P = Controller.Pawn;
-
-  if (P != None) {
-    for (thisInventory = P.Inventory; thisInventory != None; thisInventory = nextInventory) {
-      nextInventory = thisInventory.Inventory;
-      if (TransLauncher(thisInventory) != None)
-        thisInventory.Destroy();
-    }
-
-    if  (P.Weapon == None)
-      Controller.ClientSwitchToBestWeapon();
-
-    if (Jailbreak(Level.Game).bArenaMutatorActive &&
-        Jailbreak(Level.Game).bEnableJailFights)
-      P.CreateInventory("XWeapons.ShieldGun");
-  }
+  SetJailInventory();
 
   Jail.NotifyJailEntered(Self);
 }
@@ -706,11 +685,9 @@ function NotifyJailEntered()
 // ============================================================================
 // NotifyJailLeft
 //
-// Called when the player left the jail for an arena or for freedom. Resets
-// all arena-related information and scores points for the releaser. Checks if
-// the player is allowed to leave the jail. Gives back a translocator to the
-// player if it is enabled in the game. Removes the ShieldGun from the player
-// if an Arena mutator is active
+// Called when the player escapes from a jail. Resets all arena-related
+// information and scores points for the releaser. Checks if the player is
+// allowed to leave the jail. Modifies the player's inventory.
 // ============================================================================
 
 function NotifyJailLeft(JBInfoJail JailPrev)
@@ -718,9 +695,6 @@ function NotifyJailLeft(JBInfoJail JailPrev)
   local Controller ControllerInstigator;
   local JBInfoArena firstArena;
   local JBInfoArena thisArena;
-  local Inventory thisInventory;
-  local Inventory nextInventory;
-  local Pawn P;
 
   if (ArenaPending != None &&
       ArenaPending != Arena)
@@ -755,32 +729,7 @@ function NotifyJailLeft(JBInfoJail JailPrev)
     TimeRelease = JailPrev.GetReleaseTime(GetTeam());
   }
 
-  if (Vehicle(Controller.Pawn) != None)
-    P = Vehicle(Controller.Pawn).Driver;
-  else
-    P = Controller.Pawn;
-
-  if (P != None) {
-    if (DeathMatch(Level.Game).bAllowTrans)
-      P.CreateInventory("XWeapons.TransLauncher");
-
-    if (Jailbreak(Level.Game).bArenaMutatorActive &&
-        Jailbreak(Level.Game).bEnableJailFights) {
-      if (class'JBBotSquadJail'.static.CountWeaponsFor(P) > 1)
-        for (thisInventory = P.Inventory; thisInventory != None; thisInventory = nextInventory) {
-          nextInventory = thisInventory.Inventory;
-          if (thisInventory == class'JBBotSquadJail'.static.GetPrimaryWeaponFor(P)) {
-            Weapon(thisInventory).StopFire(0);
-            Weapon(thisInventory).StopFire(1);
-            thisInventory.Destroy();
-            break;
-          }
-        }
-
-      if  (P.Weapon == None)
-        Controller.ClientSwitchToBestWeapon();
-    }
-  }
+  UnsetJailInventory();
 
   JBBotTeam(TeamGame(Level.Game).Teams[0].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
   JBBotTeam(TeamGame(Level.Game).Teams[1].AI).NotifyReleasePlayer(JailPrev.Tag, Controller);
@@ -837,6 +786,86 @@ function NotifyJailClosed()
     JBBotTeam(UnrealTeamInfo(GetTeam()).AI).PutOnSquadJail(Bot(Controller));
 }
 
+
+// ============================================================================
+// SetJailInventory
+//
+// Removes the player's translocator, adds the shieldgun if an arena mutator
+// is active.
+// ============================================================================
+
+function SetJailInventory()
+{
+  local Pawn P;
+  local Inventory thisInventory;
+  local Inventory nextInventory;
+
+  if (Vehicle(Controller.Pawn) != None)
+    P = Vehicle(Controller.Pawn).Driver;
+  else
+    P = Controller.Pawn;
+
+  if (P != None) {
+    log("SetJailInventory("$P.GetHumanReadableName()$")");
+
+    for (thisInventory = P.Inventory; thisInventory != None; thisInventory = nextInventory) {
+      nextInventory = thisInventory.Inventory;
+      if (TransLauncher(thisInventory) != None)
+        thisInventory.Destroy();
+    }
+
+    if  (P.Weapon == None)
+      Controller.ClientSwitchToBestWeapon();
+
+    if (Jailbreak(Level.Game).bArenaMutatorActive &&
+        Jailbreak(Level.Game).bEnableJailFights)
+      P.CreateInventory("XWeapons.ShieldGun");
+  }
+}
+
+
+// ============================================================================
+// UnsetJailInventory
+//
+// Gives back a translocator to the player if it is enabled in the game.
+// Removes the ShieldGun from the player if an Arena mutator is active.
+// ============================================================================
+
+function UnsetJailInventory()
+{
+  local Pawn P;
+  local Inventory thisInventory;
+  local Inventory nextInventory;
+
+  if (Vehicle(Controller.Pawn) != None)
+    P = Vehicle(Controller.Pawn).Driver;
+  else
+    P = Controller.Pawn;
+
+  if (P != None) {
+    log("UnsetJailInventory("$P.GetHumanReadableName()$")");
+
+    if (DeathMatch(Level.Game).bAllowTrans)
+      P.CreateInventory("XWeapons.TransLauncher");
+
+    if (Jailbreak(Level.Game).bArenaMutatorActive &&
+        Jailbreak(Level.Game).bEnableJailFights) {
+      if (class'JBBotSquadJail'.static.CountWeaponsFor(P) > 1)
+        for (thisInventory = P.Inventory; thisInventory != None; thisInventory = nextInventory) {
+          nextInventory = thisInventory.Inventory;
+          if (thisInventory == class'JBBotSquadJail'.static.GetPrimaryWeaponFor(P)) {
+            Weapon(thisInventory).StopFire(0);
+            Weapon(thisInventory).StopFire(1);
+            thisInventory.Destroy();
+            break;
+          }
+        }
+
+      if  (P.Weapon == None)
+        Controller.ClientSwitchToBestWeapon();
+    }
+  }
+}
 
 // ============================================================================
 // RestartPlayer
