@@ -1,7 +1,7 @@
 // ============================================================================
 // JBEmitterFreeze
 // Copyright 2005 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBEmitterFreeze.uc,v 1.1 2006-11-29 19:14:28 jrubzjeknf Exp $
 //
 // Produces a visual and audible freeze-and-shattering effect on its owner.
 // ============================================================================
@@ -15,11 +15,12 @@ class JBEmitterFreeze extends Emitter
 // Imports
 // ============================================================================
 
-#exec new staticmesh import Name="IceChunk" file="StaticMeshes\IceChunk.ase"
-#exec Texture import file=Textures\IceSkin.dds mips=on masked=on
-#exec Texture import file=Textures\IceFullscreen.dds mips=on masked=on
-#exec audio import file="Sounds\PlayerFreezing.wav"
-#exec audio import file="Sounds\PlayerShattering.wav"
+#exec texture import file=Textures\IceSkin.dds mips=on alpha=on
+#exec new staticmesh file=StaticMeshes\IceChunk.ase
+
+#exec texture import file=Textures\IceFullscreen.dds mips=on masked=on
+#exec audio import file=Sounds\PlayerFreezing.wav
+#exec audio import file=Sounds\PlayerShattering.wav
 
 
 // ============================================================================
