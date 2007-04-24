@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotTeam
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotTeam.uc,v 1.40 2006-07-13 20:55:02 jrubzjeknf Exp $
+// $Id: JBBotTeam.uc,v 1.41 2006-08-06 14:52:47 jrubzjeknf Exp $
 //
 // Controls the bots of one team.
 // ============================================================================
@@ -486,7 +486,7 @@ function bool IsObjectiveAttack(GameObjective GameObjective)
 {
   return (GameObjective != None &&
           GameObjective.DefenderTeamIndex != Team.TeamIndex &&
-         !class'JBInfoJail'.static.ObjectiveIsJammed(GameObjective, Team.TeamIndex)); //can release own team
+         !class'JBTagObjective'.static.FindFor(GameObjective).IsJammed(Team.TeamIndex)); //can release own team
 }
 
 
@@ -501,7 +501,7 @@ function bool IsObjectiveDefense(GameObjective GameObjective)
 {
   return (GameObjective != none &&
           GameObjective.DefenderTeamIndex == Team.TeamIndex &&
-         !class'JBInfoJail'.static.ObjectiveIsJammed(GameObjective, abs(Team.TeamIndex-1))); //can release enemy team
+         !class'JBTagObjective'.static.FindFor(GameObjective).IsJammed(abs(Team.TeamIndex-1))); //can release enemy team
 }
 
 

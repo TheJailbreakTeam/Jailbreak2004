@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.51 2006-11-11 16:27:52 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.52 2006-11-18 16:15:58 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -940,35 +940,6 @@ function bool ForceRelease(TeamInfo Team, optional Controller ControllerInstigat
   }
 
   return bAllowForcedRelease;
-}
-
-
-// ============================================================================
-// ObjectiveIsJammed
-//
-// Checks if all the JBInfoJails, that can be triggered by the given
-// GameObjective, are jammed. If so, the GameObjective cannot be used and
-// is therefore ignored.
-// ============================================================================
-
-static function bool ObjectiveIsJammed(GameObjective GameObjective, int TeamIndex)
-{
-  local JBInfoJail firstJail;
-  local JBInfoJail thisJail;
-  local bool       bConnected; // At least one jail can be triggered by the GameObjective.
-
-  if (GameObjective != None &&
-      JBGameReplicationInfo(GameObjective.Level.Game.GameReplicationInfo) != None)
-    firstJail = JBGameReplicationInfo(GameObjective.Level.Game.GameReplicationInfo).firstJail;
-
-  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
-    if (GameObjective.Event == thisJail.Tag) {
-      bConnected = True;
-      if (!thisJail.IsJammed(TeamIndex))
-        return False;
-    }
-
-  return bConnected;
 }
 
 

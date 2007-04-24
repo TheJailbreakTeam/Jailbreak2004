@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagObjective
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagObjective.uc,v 1.9 2004/02/16 17:17:02 mychaeel Exp $
+// $Id: JBTagObjective.uc,v 1.10 2004-05-18 13:53:10 mychaeel Exp $
 //
 // Stores and replicates information about an objective.
 // ============================================================================
@@ -18,7 +18,7 @@ class JBTagObjective extends JBTag
 replication
 {
   reliable if (Role == ROLE_Authority)
-    nPlayersReleasable;
+    nPlayersReleasable, bJammedRed, bJammedBlue;
 }
 
 
@@ -36,6 +36,10 @@ var private float TimeRandomWeight;   // last time random weight was updated
 
 var transient int nPlayersCurrent;    // used by deployment functions
 var transient int nPlayersDeployed;   // used by deployment functions
+
+var private bool bJammedRed;          // red prisoners can't be released
+var private bool bJammedBlue;         // blue prisoners can't be released
+var private float TimeCountJammed;    // time of last count
 
 
 // ============================================================================
@@ -83,6 +87,8 @@ function Register()
 event Timer()
 {
   CountPlayersReleasable();
+  IsJammed(0);
+  IsJammed(1);
 }
 
 
@@ -140,8 +146,67 @@ function float GetRandomWeight()
       RandomWeight = FRand();
     TimeRandomWeight = Level.TimeSeconds;
   }
-  
+
   return RandomWeight;
+}
+
+
+// ============================================================================
+// IsJammed
+//
+// Checks if all the JBInfoJails, that can be triggered by this Keeper, are
+// jammed.
+// ============================================================================
+
+simulated function bool IsJammed(byte TeamIndex, optional bool bCached)
+{
+  local GameObjective GO;
+  local JBInfoJail firstJail;
+  local JBInfoJail thisJail;
+  local bool bConnected; // At least one jail can be triggered by this Tag's GameObjective.
+
+  if (Role < ROLE_Authority || bCached || TimeCountJammed == Level.TimeSeconds)
+    return GetJammed(TeamIndex);
+
+  GO = GameObjective(Keeper);
+  firstJail = JBGameReplicationInfo(GetGameReplicationInfo()).firstJail;
+
+  for (thisJail = firstJail; thisJail != None; thisJail = thisJail.nextJail)
+    if (GO.Event == thisJail.Tag) {
+      bConnected = True;
+
+      if (!thisJail.IsJammed(TeamIndex)) {
+        SetJammed(TeamIndex, False);
+        return False;
+      }
+    }
+
+  SetJammed(TeamIndex, bConnected);
+
+  return bConnected;
+}
+
+
+// ============================================================================
+// SetJammed / GetJammed
+//
+// Sets and gets bJammed variable for the giving TeamIndex.
+// ============================================================================
+
+simulated private function SetJammed(byte TeamIndex, bool bJammed)
+{
+  switch (TeamIndex) {
+    case 0: bJammedRed  = bJammed;
+    case 1: bJammedBlue = bJammed;
+  }
+}
+
+simulated private function bool GetJammed(byte TeamIndex)
+{
+  switch (TeamIndex) {
+    case 0: return bJammedRed;
+    case 1: return bJammedBlue;
+  }
 }
 
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.72 2007-04-02 21:27:59 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.73 2007-04-02 23:08:33 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -740,6 +740,7 @@ simulated function ShowCompass(Canvas Canvas)
   local JBTagObjective firstTagObjective;
   local JBTagObjective thisTagObjective;
   local int DefenderTeamIndex;
+  local bool bIsJammed;
 
   TimeDelta = Level.TimeSeconds - TimeUpdateCompass;
   TimeUpdateCompass = Level.TimeSeconds;
@@ -776,13 +777,14 @@ simulated function ShowCompass(Canvas Canvas)
     SpriteWidgetCompassDot.PosY = LocationCompass.Y;
 
     switch (DefenderTeamIndex) {
-      case 0:  SpriteWidgetCompassDot.PosX = -LocationCompass.X;  break;
-      case 1:  SpriteWidgetCompassDot.PosX =  LocationCompass.X;  break;
+      case 0: SpriteWidgetCompassDot.PosX = -LocationCompass.X;  break;
+      case 1: SpriteWidgetCompassDot.PosX =  LocationCompass.X;  break;
     }
 
     nPlayersReleasable = thisTagObjective.CountPlayersReleasable(True);
+    bIsJammed          = thisTagObjective.IsJammed(abs(Objective.DefenderTeamIndex-1), True);
 
-    if (nPlayersReleasable > 0) {
+    if (!bIsJammed && nPlayersReleasable > 0) {
       thisTagObjective.ScaleDot -= 0.5 * nPlayersReleasable * TimeDelta;
       if (thisTagObjective.ScaleDot < 1.0)
         thisTagObjective.ScaleDot = (thisTagObjective.ScaleDot % 0.5) + 1.0;
@@ -797,7 +799,7 @@ simulated function ShowCompass(Canvas Canvas)
     SpriteWidgetCompassDot.PosX = (SpriteWidgetCompassDot.PosX + SizeCompass.X * Sin(AngleDot)) * HudScale + 0.5;
     SpriteWidgetCompassDot.PosY = (SpriteWidgetCompassDot.PosY - SizeCompass.Y * Cos(AngleDot)) * HudScale;
 
-    if (class'JBInfoJail'.static.ObjectiveIsJammed(Objective, TeamIndex))
+    if (bIsJammed)
       SpriteWidgetCompassDot.Tints[TeamIndex] = JammedLockCompassColor * (1.0 / thisTagObjective.ScaleDot);
     else
       SpriteWidgetCompassDot.Tints[TeamIndex] = SpriteWidgetCompassDot.Tints[TeamIndex] * (1.0 / thisTagObjective.ScaleDot);

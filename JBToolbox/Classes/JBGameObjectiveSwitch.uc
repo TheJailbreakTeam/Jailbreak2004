@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameObjectiveSwitch
 // Copyright 2004 by tarquin <tarquin@beyondunreal.com>
-// $Id: JBGameObjectiveSwitch.uc,v 1.16 2006-08-09 22:34:11 jrubzjeknf Exp $
+// $Id: JBGameObjectiveSwitch.uc,v 1.17 2006-08-18 11:08:09 jrubzjeknf Exp $
 //
 // Visible release switch that must be touched to be disabled.
 // ============================================================================
@@ -143,7 +143,7 @@ function Reset()
 
   Super.Reset();
 
-  bJammedRep = class'JBInfoJail'.static.ObjectiveIsJammed(Self, abs(DefenderTeamIndex-1));
+  bJammedRep = class'JBTagObjective'.static.FindFor(self).IsJammed(abs(DefenderTeamIndex-1));
 
   foreach AllActors(class'JBGameObjectiveSwitch', ObjectiveSwitch)
     if(ObjectiveSwitch.Event == Event)
