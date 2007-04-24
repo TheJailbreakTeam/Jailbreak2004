@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.19 2006-07-09 21:45:02 jrubzjeknf Exp $
+// $Id: JBBotSquad.uc,v 1.20 2006-07-13 20:55:02 jrubzjeknf Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -111,7 +111,8 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
      !firstJBGameRules.CanBotAttackEnemy(Bot, PawnEnemy))
     return False;
 
-  TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
+  if (PawnEnemy != None)
+    TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
 
   if (TagPlayerEnemy == None ||
       TagPlayerEnemy.IsFree())

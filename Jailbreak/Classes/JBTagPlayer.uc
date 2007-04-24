@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.67 2007-04-06 13:38:57 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.68 2007-04-07 11:42:04 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -806,8 +806,6 @@ function SetJailInventory()
     P = Controller.Pawn;
 
   if (P != None) {
-    log("SetJailInventory("$P.GetHumanReadableName()$")");
-
     for (thisInventory = P.Inventory; thisInventory != None; thisInventory = nextInventory) {
       nextInventory = thisInventory.Inventory;
       if (TransLauncher(thisInventory) != None)
@@ -843,8 +841,6 @@ function UnsetJailInventory()
     P = Controller.Pawn;
 
   if (P != None) {
-    log("UnsetJailInventory("$P.GetHumanReadableName()$")");
-
     if (DeathMatch(Level.Game).bAllowTrans)
       P.CreateInventory("XWeapons.TransLauncher");
 
