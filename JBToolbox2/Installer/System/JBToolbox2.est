@@ -1,0 +1,6 @@
+[JBAction_IfMorePrisoners]
+ActionString="Si hay más prisioneros"
+
+[JBSentinelWeapon]
+ItemName="Arma del Centinela"
+

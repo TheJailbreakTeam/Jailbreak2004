@@ -1,0 +1,33 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonAvenger.JBAddonAvenger)
+
+[JBAddonAvenger]
+PowerTimeMultiplierText="Multiplicador de Tiempo de Vengador"
+PowerTimeMultiplierDesc="Porcentaje de multiplicación del tiempo restante en la Arena para el tiempo del Vengador."
+PowerTimeMaximumText="Tiempo Máximo de Vengador"
+PowerTimeMaximumDesc="Duración máxima de Vengador permitida."
+PowerComboIndexText="Poder del Vengador"
+PowerComboIndexDesc="Combo otorgado al Vengador."
+PowerComboIndexOptions="0;Velocidad;1;Frenésí;2;Defensivo;3;Invisible;4;Aleatorio"
+FriendlyName="Vengador de la Arena"
+Description="El vencedor de un duelo en la Arena recibe un Poder Especial para vengarse de aquellos que le encarcelaron."
+
+[JBGUIPanelConfigAvenger]
+SecondsText="segundos"
+ComboBoxText[0]="Velocidad"
+ComboBoxText[1]="Frenésí"
+ComboBoxText[2]="Defensivo"
+ComboBoxText[3]="Invisible"
+ComboBoxText[4]="Aleatorio"
+BerserkTimeMaxEditSlider.Caption="Tiempo Máximo de Vengador"
+BerserkTimeMaxEditSlider.Hint="Tiempo máximo en segundos para el Vengador."
+BerserkTimeMultiplierEditSlider.Caption="Multiplicador de Tiempo de Vengador"
+BerserkTimeMultiplierEditSlider.Hint="Porcentaje de tiempo restante en la Arena."
+PowerUpTypeComboBox.Caption="Poder del Vengador"
+PowerUpTypeComboBox.Hint="Poder otorgado al vencedor del duelo."
+
+[JBLocalMessageAvenger]
+PreAvengerMessage="¡Eres Vengador durante"
+PostAvengerMessage="segundos!"
+
+

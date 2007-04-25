@@ -1,0 +1,24 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonSpoils.JBAddonSpoils)
+
+[JBAddonSpoils]
+WeaponComboText="Arma del Vengador"
+WeaponComboDesc="Arma otorgada al Vengador."
+MaxAmmoText="Munición al Máximo"
+MaxAmmoCheckDesc="Otorga el arma con munición al máximo."
+CanThrowText="El Arma puede Arrojarse."
+CanThrowCheckDesc="Permite arrojar el arma del Vengador o que ésta caiga si es abatido."
+FriendlyName="Vengador Armado"
+Description="El vencedor de un duelo en la Arena recibe un Arma para vengarse de aquellos que le encarcelaron."
+
+[JBGUIPanelConfigSpoils]
+CheckBoxCanThrow.Caption="Puede Caer o Arrojarse"
+CheckBoxCanThrow.Hint="Permite arrojar el arma del Vengador o que ésta caiga si es abatido."
+CheckBoxMaxAmmo.Caption="Munición al Máximo"
+CheckBoxMaxAmmo.Hint="Otorga el arma con munición al máximo."
+WeaponTypeComboBox.Caption="Arma"
+WeaponTypeComboBox.Hint="Arma que obtiene el vencedor de un duelo en la Arena."
+
+[JBLocalMessageSpoils]
+PreSpoilsMessage="Has ganado un"
+

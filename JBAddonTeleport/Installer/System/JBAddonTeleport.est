@@ -1,0 +1,7 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonTeleport.JBAddonTeleport)
+
+[JBAddonTeleport]
+FriendlyName="Teletransportar Liberador"
+Description="Cada vez que un jugador libere a su equipo, será teletransportado de vuelta a su propia base."
+

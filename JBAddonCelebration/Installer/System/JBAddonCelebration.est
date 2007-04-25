@@ -1,0 +1,41 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonCelebration.JBAddonCelebration)
+
+[JBAddonCelebration]
+CapturedOtherMessage[0]="%p ha capturado al último perdedor del equipo %t."
+CapturedOtherMessage[1]="%p imparte justicia al equipo %t."
+CapturedOtherMessage[2]="%p acaba de meter en chirona al equipo %t."
+CapturedOtherMessage[3]="%p acaba de encerrar al equipo %t."
+CapturedOtherMessage[4]="%p ha cerrado las puertas al equipo %t."
+CapturedOtherMessage[5]="%p hace del %t el color de la muerte."
+CapturedOtherMessage[6]="%p ha preparado al equipo %t para la carnicería."
+CapturedOtherMessage[7]="%p envió al equipo %t al corredor de la muerte."
+CapturedOtherMessage[8]="%p ha prestado la silla eléctrica al equipo %t!"
+CapturedOtherMessage[9]="%p ha pronunciado sentencia contra el equipo %t."
+CapturedOtherMessage[10]="%p ha dejado al equipo %t en un aprieto y sin ningún recurso."
+CapturedOtherMessage[11]="¡%p acaba de revocar la condicional del equipo %t!"
+CapturedOtherMessage[12]="%p ha regalado un viaje de penitencia al equipo %t, de ida sólamente..."
+CapturedOtherMessage[13]="%p ha puesto el cerrojo al equipo %t y ha tirado la llave."
+CapturedOtherMessage[14]="%p revoca la libertad con vigilancia del equipo %t."
+CapturedOtherMessage[15]="¡%p envía al equipo %t a la celda de castigo!"
+CapturedOtherMessage[16]="¡%p da con la puerta en las narices al equipo %t!"
+CapturedOtherMessage[17]="¡%p condena a muerte al equipo %t!"
+CapturedOtherMessage[18]="¡%p encierra al equipo %t y arroja la llave!"
+CapturedOtherMessage[19]="%p dice: No hagan el tonto si no quieren pudrirse en chirona..."
+CapturedOtherMessage[20]="%p ha cogido in fraganti al equipo %t."
+CapturedOtherMessage[21]="%p ha reforzado con éxito la seguridad del edificio."
+CapturedOtherMessage[22]="El %t es el color favorito de %p para decorar cárceles."
+CapturedOtherMessage[23]="%p anota un punto para el equipo %o. Al equipo %t no le va a gustar..."
+NumCapturedOtherMessages=24
+CapturedSelfMessage[0]="%p no pudo soportar estar en libertad por más tiempo."
+CapturedSelfMessage[1]="Un asesino incondicional habría preguntado por ese botón, %p."
+CapturedSelfMessage[2]="%p, ¡cuentas con todo el apoyo por parte del equipo %o!"
+CapturedSelfMessage[3]="%p olvido leer la advertencia: 'no apunte hacia su cara'."
+CapturedSelfMessage[4]="Eh, %p... estás en el equipo %t, si no te has dado cuenta..."
+CapturedSelfMessage[5]="Ehm, %p... se supone que debes matar a los del equipo %o, ¡no a los del %t!"
+NumCapturedSelfMessages=6
+TeamString[0]="rojo"
+TeamString[1]="azul"
+FriendlyName="Pantalla de Celebración"
+Description="Activa la Pantalla de Celebración durante las Ejecuciones."
+

@@ -1,0 +1,20 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonArenaLockdown.JBAddonArenaLockdown)
+
+[JBAddonArenaLockdown]
+CrossBaseSpawningText="Aparición en una base al azar"
+CrossBaseSpawningDesc="Los jugadores pueden aparecer en la base enemiga (para evitar que se acampe en una base)."
+SelectionMethodText="Método de selección"
+SelectionMethodDesc="Elige el modo en que serán elegidos los combatientes de Arena"
+SelectionMethodOptions="0;Cola;1;Al azar;"
+FriendlyName="Bloquear Candados"
+Description="¡La única manera de salir de prisión es ganar un duelo en la arena!"
+
+[JBGUIPanelConfigArenaLockdown]
+str_FIFO="Cola"
+str_Random="Al azar"
+CrossBaseSpawningCheckBox.Caption="Aparición en una base al azar"
+CrossBaseSpawningCheckBox.Hint="Los jugadores pueden aparecer en la base enemiga (para evitar que se acampe en una base)."
+SelectionMethodComboBox.Caption="Método de Selección"
+SelectionMethodComboBox.Hint="Elige el modo en que serán elegidos los combatientes de Arena."
+

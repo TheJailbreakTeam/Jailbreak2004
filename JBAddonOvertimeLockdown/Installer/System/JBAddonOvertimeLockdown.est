@@ -1,0 +1,23 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonOvertimeLockdown.JBAddonOvertimeLockdown)
+
+[JBAddonOvertimeLockdown]
+NoArenaInOvertimeText="Bloquear Arena durante la Muerte Súbita."
+NoArenaInOvertimeDesc="Ningún duelo en la Arena comenzará durante la muerte súbita. Los duelos pendientes serán cancelados."
+NoEscapeInOvertimeText="Bloquear Fugas durante la Muerte Súbita."
+NoEscapeInOvertimeDesc="Cualquier jugador que intente fugarse durante la muerte súbita será eliminado y enviado de vuelta a prisión."
+LockdownDelayText="Duración de la Prórroga"
+LockdownDelayDesc="Duración de la prórroga antes de que comienze la muerte súbita y los candados sean bloqueados."
+FriendlyName="Muerte Súbita"
+Description="En caso de agotarse el tiempo de prórroga, se bloquearán los candados de liberación y nadie podrá ser liberado."
+
+[JBGUIPanelConfigOvertimeLockdown]
+LockdownDelayTrackBar.Caption="Duración de la Prórroga"
+LockdownDelayTrackBar.Hint="Duración de la prórroga antes de que comienze la muerte súbita y los candados sean bloqueados."
+NoArenaInOvertimeCheckBox.Caption="Bloquear Arena durante la Muerte Súbita."
+NoArenaInOvertimeCheckBox.Hint="Ningún duelo en la Arena comenzará durante la muerte súbita. Los duelos pendientes serán cancelados."
+NoEscapeInOvertimeCheckBox.Caption="Bloquear Fugas durante la Muerte Súbita."
+NoEscapeInOvertimeCheckBox.Hint="Cualquier jugador que intente fugarse durante la muerte súbita será eliminado y enviado de vuelta a prisión."
+
+[JBLocalMessageOvertimeLockdown]
+TextOvertimeLockdown="Candados bloqueados... ¡Ultima oportunidad para ganar!"

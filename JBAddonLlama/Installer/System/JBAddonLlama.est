@@ -1,0 +1,56 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonLlama.JBAddonLlama)
+
+[JBAddonLlama]
+RewardAdrenalineText="Adrenalina ganada por matar a una Llama"
+RewardAdrenalineDesc="Los jugadores que maten a una Llama serán recompensados con esta cantidad de Adrenalina."
+RewardHealthText="Vida ganada por matar a una Llama"
+RewardHealthDesc="Los jugadores que maten a una Llama serán recompensados con esta cantidad de Vida."
+RewardShieldText="Escudo ganado por matar a una Llama"
+RewardShieldDesc="Los jugadores que maten a una Llama serán recompensados con esta cantidad de Escudo."
+MaximumLlamaDurationText="Máxima duración de la Caza de la Llama"
+MaximumLlamaDurationDesc="Tiempo máximo que vive una Llama. La llama será eliminada si nadie la ha matado al final del tiempo de caza."
+LlamaizeOnJailDisconnectText="Convertir en Llama a quien se reconecte en prisión."
+LlamaizeOnJailDisconnectDesc="Convierte en Llama a los jugadores que se desconecten cuando estén en prisión y se reconecten después para aparecer libres."
+FriendlyName="Caza de la Llama"
+Description="Convierte a los jugadores tramposos en Llamas que pueden ser cazadas por los demás para obtener una recompensa."
+
+[JBDamageTypeLlamaDied]
+DeathString="%o no quería ser Llama por más tiempo."
+FemaleSuicide="%o no quería ser Llama por más tiempo."
+MaleSuicide="%o no quería ser Llama por más tiempo."
+
+[JBDamageTypeLlamaLaser]
+DeathString="%o fue tostado"
+FemaleSuicide="%o fue tostada"
+MaleSuicide="%o fue tostado"
+
+[JBDamageTypeLlamaLightning]
+DeathString="%o fue alcanzado por un rayo"
+FemaleSuicide="%o fue alcanzada por un rayo"
+MaleSuicide="%o fue alcanzado por un rayo"
+
+[JBGUIPanelConfigLlama]
+LlamaKillRewardLabel.Caption="Recompensas por matar a una Llama:"
+chkLlamaizeOnJailDisconnect.Caption="Convertir en Llama a quien se reconecte en prisión"
+chkLlamaizeOnJailDisconnect.Hint="Convierte en Llama a los jugadores que se desconecten cuando estén en prisión y se reconecten después para aparecer libres."
+trkMaximumLlamaDuration.Caption="Duración de la Caza de la Llama"
+trkMaximumLlamaDuration.Hint="Duración máxima de la Caza de la Llama."
+trkRewardAdrenaline.Caption="Adrenalina"
+trkRewardAdrenaline.Hint="Adrenalina ganada por matar a una Llama."
+trkRewardHealth.Caption="Vida"
+trkRewardHealth.Hint="Vida ganada por matar a una Llama."
+trkRewardShield.Caption="Escudo"
+trkRewardShield.Hint="Escudo ganado por matar a una Llama."
+
+[JBLlamaHelpMessage]
+HelpMessageLines[0]="Syntax: 'mutate llama <parameter>' or 'mutate unllama <playername>'"
+HelpMessageLines[1]=" <parameter> can be a playername or 'config' followed by a second parameter."
+HelpMessageLines[2]=" Additional parameters for 'config' can be 'health', 'shield', 'adrenaline' and 'duration', each followed by their new value."
+
+[JBLlamaMessage]
+TextLlamaHuntStart="Caza a %llama% para obtener una recompensa."
+TextLlamaCaught="¡%llama% fue cazado por %killer%!"
+TextLlamaDied="¡%llama% ha estallado!"
+TextLlamaDisconnected="¡%llama% ha huído!"
+
