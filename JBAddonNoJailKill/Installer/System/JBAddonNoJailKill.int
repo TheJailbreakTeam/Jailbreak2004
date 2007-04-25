@@ -1,7 +1,0 @@
-[Public]
-Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonNoJailKill.JBAddonNoJailKill)
-
-[JBAddonNojailKill]
-FriendlyName="No Jail Kills"
-Description="No kills from jail: jailed players can no longer hurt enemies."
-

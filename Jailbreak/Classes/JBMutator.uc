@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMutator
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBMutator.uc,v 1.2 2006-12-20 22:13:37 jrubzjeknf Exp $
+// $Id: JBMutator.uc,v 1.3 2007-04-05 18:32:19 jrubzjeknf Exp $
 //
 // Jailbreak's base mutator.
 // ============================================================================
@@ -22,15 +22,26 @@ var array<String> VariableNames;
 // ============================================================================
 // AddMutator
 //
-// Checks if the added mutator is an Arena mutator like Instagib.
+// Does not add NoJailKill addons, since it's implemented in Jailbreak. Checks
+// if the added mutator is an Arena mutator like Instagib.
 // ============================================================================
 
 function AddMutator(Mutator M)
 {
+  if (M != None && M.GroupName ~= "NoJailKill") {
+    log("Warning: Superfluous NoJailKill addon NOT loaded - remove this addon from the addon list");
+
+    if (!Jailbreak(Level.Game).bNoJailKill) {
+      log("Warning: Jailbreak.bNoJailKill is now enabled. Please enable it permanently to use NoJailKill functionality");
+      Jailbreak(Level.Game).bNoJailKill = True;
+    }
+    return;
+  }
+
   Super.AddMutator(M);
 
-   if (M != None && M.GroupName ~= "Arena")
-     Jailbreak(Level.Game).bArenaMutatorActive = True;
+  if (M != None && M.GroupName ~= "Arena")
+    Jailbreak(Level.Game).bArenaMutatorActive = True;
 }
 
 

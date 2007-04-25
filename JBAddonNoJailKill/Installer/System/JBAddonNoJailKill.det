@@ -1,7 +1,0 @@
-[Public]
-Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonNoJailKill.JBAddonNoJailKill)
-
-[JBAddonNojailKill]
-FriendlyName="Keine Kills im Gefängnis"
-Description="Keine Kills aus dem Gefängnis: gefangene Spieler können Gegnern nicht schaden."
-
