@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.26 2007-04-01 18:49:19 mychaeel Exp $
+// $Id: JBInterfaceScores.uc,v 1.27 2007-04-01 21:01:38 mychaeel Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -987,7 +987,7 @@ simulated function bool UpdateEntry(out TEntry Entry)
 
   if (Level.NetMode != NM_Standalone && !TeamPlayerReplicationInfo.bBot) {
     Entry.InfoTime = FormatTime(GRI.ElapsedTime - TeamPlayerReplicationInfo.StartTime);
-    Entry.InfoNet = PingText @ (TeamPlayerReplicationInfo.Ping * 4) $ "," @ PLText @ TeamPlayerReplicationInfo.PacketLoss;
+    Entry.InfoNet = (TeamPlayerReplicationInfo.Ping * 4) @ "ms";
   }
 
   HealthCurrent = Entry.TagPlayer.GetHealth(True);
@@ -1606,7 +1606,7 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
         RotatedWidgetDirection.PosX  = LocationPlayer.X / Canvas.ClipX;
         RotatedWidgetDirection.PosY  = LocationPlayer.Y / Canvas.ClipY;
         RotatedWidgetDirection.Color = Canvas.DrawColor;
-        
+
         DrawRotatedWidget(Canvas, RotatedWidgetDirection);
       }
 
