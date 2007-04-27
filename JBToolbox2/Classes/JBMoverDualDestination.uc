@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMoverDualDestination
 // Copyright 2007 by Wormbo <wormbo@online.de>
-// $Id$
+// $Id: JBMoverDualDestination.uc,v 1.1 2007-04-22 14:01:57 wormbo Exp $
 //
 // A mover with a multitude of improvements over standard movers:
 //
@@ -497,16 +497,16 @@ function DoOpen()
   bDelaying = false;
   if (bAlternateMovement) {
     if (KeyNum == 0) {
-      log("Alternate open first" @ NumKeysPrimary);
+      //log("Alternate open first" @ NumKeysPrimary);
       InterpolateTo(NumKeysPrimary, AlternateMoveTime * TimeMultipliersOpen[NumKeysPrimary]);
     }
     else {
-      log("Alternate open" @ Min(KeyNum + 1, NumKeys - 1));
+      //log("Alternate open" @ Min(KeyNum + 1, NumKeys - 1));
       InterpolateTo(Min(KeyNum + 1, NumKeys - 1), AlternateMoveTime * TimeMultipliersOpen[Min(KeyNum + 1, NumKeys - 1)]);
     }
   }
   else {
-    log("Primary open" @ Min(KeyNum + 1, NumKeysPrimary - 1));
+    //log("Primary open" @ Min(KeyNum + 1, NumKeysPrimary - 1));
     InterpolateTo(Min(KeyNum + 1, NumKeysPrimary - 1), MoveTime * TimeMultipliersOpen[Min(KeyNum + 1, NumKeysPrimary - 1)]);
   }
   MakeNoise(1.0);
@@ -538,16 +538,16 @@ function DoClose()
   bDelaying = false;
   if (bAlternateMovement) {
     if (KeyNum <= NumKeysPrimary) {
-      log("Alternate close first" @ 0);
+      //log("Alternate close first" @ 0);
       InterpolateTo(0, AlternateCloseTime * TimeMultipliersClose[NumKeysPrimary]);
     }
     else {
-      log("Alternate close" @ KeyNum - 1);
+      //log("Alternate close" @ KeyNum - 1);
       InterpolateTo(KeyNum - 1, AlternateCloseTime * TimeMultipliersClose[KeyNum]);
     }
   }
   else {
-    log("Primary close" @ Max(0, KeyNum - 1));
+    //log("Primary close" @ Max(0, KeyNum - 1));
     InterpolateTo(Max(0, KeyNum - 1), CloseTime * TimeMultipliersClose[Max(1, KeyNum)]);
   }
   MakeNoise(1.0);
