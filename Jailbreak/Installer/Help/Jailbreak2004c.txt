@@ -19,14 +19,14 @@ The following bugs have been fixed since the last release:
 Gameplay
 ========
 
-152492 – JBExecutionDepressurize effects not visible client-side.
+152492 - JBExecutionDepressurize effects not visible client-side.
 - JBExecutionDepressurize's DepressurizeAmbientSound doesn't stop the ambient
   sound after it starts playing.
-154840 – JBExecution gibbing effects not visible client-side.
-153722 – Being killed (not by suicide) increases death count by two in stats.
-153723 – Sprees don't "carry over" through rounds.
-157886 – Initial spawn delay for super pickups too long.
-175858 – Players shouldn't spawn until they are actually able to take control
+154840 - JBExecution gibbing effects not visible client-side.
+153722 - Being killed (not by suicide) increases death count by two in stats.
+153723 - Sprees don't "carry over" through rounds.
+157886 - Initial spawn delay for super pickups too long.
+175858 - Players shouldn't spawn until they are actually able to take control
          the player.
 182470 - Announcements repeat for every player in serverside demos.
 - JBInfoJail stays in ExecutionFallback after all the prisoners died within
@@ -41,9 +41,9 @@ Gameplay
 Bot Support
 ===========
 
-144421 – JBBotSquad ListInfoEnemy array out of bounds in vehicle maps.
-154116 – Bots taunt when killing/telefragging a teammate.
-157816 – Bots don't use vehicles in the arena.
+144421 - JBBotSquad ListInfoEnemy array out of bounds in vehicle maps.
+154116 - Bots taunt when killing/telefragging a teammate.
+157816 - Bots don't use vehicles in the arena.
 - Bots use adrenaline when they start jailfighting.
 - Bots try to get pickups (which they can't reach) while jailfighting.
 
@@ -51,16 +51,16 @@ Bot Support
 User Interface
 ==============
 
-147939 – JBCamControllerSweeping doesn't sweep when TimeWait is set to zero.
-149542 – "You are the last free player" message plays even while jail is open
+147939 - JBCamControllerSweeping doesn't sweep when TimeWait is set to zero.
+149542 - "You are the last free player" message plays even while jail is open
           and players are escaping.
-157057 – Long server names are partly obscured by scoreboard clock.
-157347 – Executed players are displayed as "free" even before the new round
+157057 - Long server names are partly obscured by scoreboard clock.
+157347 - Executed players are displayed as "free" even before the new round
           starts.
-157850 – Arena cam positions itself unfavorably behind a Raptor.
-157852 – Arena cam health display doesn't scale properly when players are using
+157850 - Arena cam positions itself unfavorably behind a Raptor.
+157852 - Arena cam health display doesn't scale properly when players are using
           vehicles.
-175858 – JBPanorama has a slightly off location and rotation due to network
+175858 - JBPanorama has a slightly off location and rotation due to network
           optimization.
 - Camera can be activated whilst the instigator's jail is open.
 - Avenger's adrenaline timer keeps going when he enters a vehicle, which causes
@@ -100,8 +100,8 @@ Gameplay
          player outside the arena. Arena combatants see a "no attack" icon on
          all players but their opponent.
 152501 - Provide vehicle factories for ECE vehicles.
-175858 – Frag arena players when the time runs out.
-175858 – Removed spawn protection for arena players.
+175858 - Frag arena players when the time runs out.
+175858 - Removed spawn protection for arena players.
 - Prisoners respawn instantly when they are killed.
 - Llamas cannot suicide or hurt anyone, and teammates can't hurt the llama,
   regardless of the Friendly Fire setting.
@@ -112,7 +112,7 @@ Gameplay
 User Interface
 ==============
 
-175858 – "Arenamatch starts" message is more obvious for prisoners.
+175858 - "Arenamatch starts" message is more obvious for prisoners.
 155433 - Uncheck and disable "Only Official Maps" checkbox on map selection
          page.
 150107 - Disable ViewTeam... commands while jail doors are open to prevent
