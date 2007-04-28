@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAction_WaitForCondition
-// Copyright (c) 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// Copyright (c) 2007 by Wormbo <wormbo@online.de>
+// $Id: JBAction_WaitForCondition.uc,v 1.1 2007-04-27 15:50:59 wormbo Exp $
 //
 // Waits until a TriggeredCondition has a certain value. Completes either
 // instantly when the condition is matched or waits until the condition stays in
