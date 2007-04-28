@@ -19,22 +19,23 @@ The following bugs have been fixed since the last release:
 Gameplay
 ========
 
-175858 – Players shouldn't spawn until they are actually able to take control
-          the player.
-154840 – JBExecution gibbing effects not visible client-side.
 152492 – JBExecutionDepressurize effects not visible client-side.
+- JBExecutionDepressurize's DepressurizeAmbientSound doesn't stop the ambient
+  sound after it starts playing.
+154840 – JBExecution gibbing effects not visible client-side.
 153722 – Being killed (not by suicide) increases death count by two in stats.
 153723 – Sprees don't "carry over" through rounds.
 157886 – Initial spawn delay for super pickups too long.
-182638 - The announcer pack is now downloaded and used when a client downloads
-         Jailbreak from a redirect (opposed to installing it).
+175858 – Players shouldn't spawn until they are actually able to take control
+         the player.
 182470 - Announcements repeat for every player in serverside demos.
-* JBInfoJail stays in ExecutionFallback after all the prisoners died within
+- JBInfoJail stays in ExecutionFallback after all the prisoners died within
   ExecutionDelayCommit.
-* JBExecutionDepressurize's DepressurizeAmbientSound doesn't stop the ambient
-  sound after it starts playing.
-* The translocator is not removed from a player's inventory when he respawns
+- The translocator is not removed from a player's inventory when he respawns
   in jail.
+- Players keep multikilling in jail while jailfighting after they had a multi-
+  kill in freedom.
+- JBAddonLlama doesn't work properly with Vehicles.
 
 
 Bot Support
@@ -43,41 +44,69 @@ Bot Support
 144421 – JBBotSquad ListInfoEnemy array out of bounds in vehicle maps.
 154116 – Bots taunt when killing/telefragging a teammate.
 157816 – Bots don't use vehicles in the arena.
-* Bots use adrenaline when they start jailfighting.
+- Bots use adrenaline when they start jailfighting.
+- Bots try to get pickups (which they can't reach) while jailfighting.
 
 
 User Interface
 ==============
 
-175858 – JBPanorama has a slightly off location and rotation due to network
-          optimization.
 147939 – JBCamControllerSweeping doesn't sweep when TimeWait is set to zero.
 149542 – "You are the last free player" message plays even while jail is open
           and players are escaping.
-157852 – Arena cam health display doesn't scale properly when players are using
-          vehicles.
-157850 – Arena cam positions itself unfavorably behind a Raptor.
+157057 – Long server names are partly obscured by scoreboard clock.
 157347 – Executed players are displayed as "free" even before the new round
           starts.
-157057 – Long server names are partly obscured by scoreboard clock.
-* Camera can be activated whilst the instigator's jail is open.
-* Avenger's timer keeps going when he enters a vehicle.
-* Arena Messages are not being passed through GameRules.
-* The "Add-ons" tab's tooltip doesn't show up.
+157850 – Arena cam positions itself unfavorably behind a Raptor.
+157852 – Arena cam health display doesn't scale properly when players are using
+          vehicles.
+175858 – JBPanorama has a slightly off location and rotation due to network
+          optimization.
+- Camera can be activated whilst the instigator's jail is open.
+- Avenger's adrenaline timer keeps going when he enters a vehicle, which causes
+  his adrenaline combo to be lost.
+- Arena Messages are not being passed through GameRules.
+- The "Add-ons" tab's tooltip doesn't show up.
+
+
+Miscellaneous
+=============
+
+182638 - The announcer pack is now downloaded and used when a client downloads
+         Jailbreak from a redirect (opposed to installing it).
 
 
 ===============================================================================
 
 The following features have been added since the last release:
 
+Game Settings
+=============
+
+- Jail Newcomers:    Players who join a match after it started spawn in prison.
+- Disallow Escaping: Escaping the jail (without being released or going to the
+                     arena) is not allowed. Players who try to do so anyway
+                     will be teleported back to jail.
+- Enable JBMapFixes: Fixes small in maps or adds a nice execution in some maps.
+- No Jail Kill:      Jailed players cannot hurt free players.
+- Allow Jail Fights: If an arena mutator, like instagib, is loaded, then all
+                     prisoners are granted a ShieldGun to JailFight with.
+
+
 Gameplay
 ========
 
-175858 – Frag arena players when the time runs out.
-175858 – Removed spawn protection for arena players.
 129061 - Added special arena beacons over arena combatants when viewed by a
          player outside the arena. Arena combatants see a "no attack" icon on
          all players but their opponent.
+152501 - Provide vehicle factories for ECE vehicles.
+175858 – Frag arena players when the time runs out.
+175858 – Removed spawn protection for arena players.
+- Prisoners respawn instantly when they are killed.
+- Llamas cannot suicide or hurt anyone, and teammates can't hurt the llama,
+  regardless of the Friendly Fire setting.
+- If an arenamatch's timer hits zero, then the two combatants are gibbed,
+  than being teleported back to jail.
 
 
 User Interface
@@ -94,13 +123,14 @@ User Interface
 152532 - Show time played and time to play on web scoreboard (and check why
          the web scoreboard doesn't look exactly as it should in Opera).
 141713 - Added "Queue Announcements" checkbox in HUD config menu.
-* Add ready/not ready on scoreboard.
-* Highlight admins on the scoreboard.
-* Show spectators on the scoreboard.
-* Support showing enemy players on minimap (llamas for example).
-* Besides Ping, PL will be shown on the scoreboard as well.
-* The celebration screen now supports bright team skins and team-colored head
+- New player statuses are: Ready, Not Ready, Connecting, Waiting and [Admin].
+- Show spectators on the scoreboard.
+- Support showing enemy players on minimap (llamas for example).
+- The celebration screen now supports bright team skins and team-colored head
   skins.
+- The player in the minimap is given a tiny nose, so he can see in which
+  direction he's looking.
+- The Timer now shows up for spectators too.
 
 
 Addons
@@ -108,7 +138,6 @@ Addons
 
 143952 - JBAddonArenaLockdown: Jailbreak without switches - release your team
          by winning the arena match.
-140327 - JBAddonNoJailKill: Prevents jailed players from killing free players.
 157405 - JBAddonOvertimeLastChance: Escaping jail is impossible in overtime.
 140078 - JBAddonSpoils: Awards the arena winner with a weapon.
 172638 - JBAddonTally: Shows a jail fight score tally to prisoners.
@@ -117,24 +146,53 @@ Addons
 Mapper Tools
 ============
 
-157175 - JBExecutionFreeze: Execute by frostbite.
-146641 - Sentinel Cannons:  Execute by sentinels.
-152501 - Provide vehicle factories for ECE vehicles.
+New Building Actors:
+- JBMovableVolume.
+- JBMovableBlockingVolume.
+- JBMovablePhysicsVolume.
+- JBMoverDualDestination:
+  - Can trigger an event when receiving damage.
+  - Can trigger/untrigger an event when someone stands in it.
+  - The mapper can define two different movement paths with individual
+    trigger tags, sounds and events.
+  - The mapper can specify separate open and close times.
+  - The mapper can specify indifid move times for every key.
+- JBClientMoverDualDestination: A client version of the JBMoverDualDestination.
+- JBRandomDispatcher: Fires a random event from a list of events.
+- JBTriggerableUTJumppad
+- JBTriggerRandomPathUnblocker:
+    Enables all associated BlockedPaths, expect for one randomly chosen one.
 
-* JBAction_IfMorePrisoners: Can be used in scripts.
-* JBInfoJail: PrisonerLimit: The number of prisoners cannot exceed this number.
-              Priority: Players will respawn in a jail that has the lowest
-                        priority, but is not full (see PrisonerLimit).
-              FinalExecution: Fire a different execution when it wins the game.
-* JBMovableBlockingVolume/JBMovablePhysicsVolume:  Can be attached to Movers.
-* JBRandomDispatcher: Fires a random event from a list of events.
-* JBSpiderMine/JBGiantSpiderMine: Execute by spider mines.
-* JBSpiritSpawner: Execute my spirits - includes Ice, Fire and Thunder.
-* JBTriggerRandomPathUnblocker: A trigger that block all of it's associated
-                                BlockedPaths, expect for a random chosen one.
-* JBMutatorDebug: Mutate ToggleShowLocation (shows the current location of the
-                  player on-screen)
-                  Mutate CanBeJailed (now works for whole teams as well.)
+New Executions:
+157175 - JBExecutionFreeze: Execute by frostbite.
+146641 - JBSentinelCeilingFactory: Execute by sentinels.
+- JBSpiderMine/JBGiantSpiderMine: Execute by spider mines.
+
+- JBSpiritSpawner: Execute by spirits - includes Ice, Fire and Thunder.
+
+New Scripts:
+- JBAction_IfMorePrisoners.
+- JBAction_WaitForCondition - works better with JBMoverDualDestination.
+- JBAction_WaitForEvent     - works better with JBMoverDualDestination.
+
+Expansions:
+- JBInfoArena:
+  - bRandomPlayerstartSwitching: Switch the TeamNum value of the playerstarts.
+- JBInfoJail:
+  - PrisonerLimit: The number of prisoners is capped at this number.
+  - Priority: Prisoners always spawn in the jail with the lowest priority,
+              unless the jail is full according to the PrisonerLimit.
+  - FinalExecution: Fires a different execution if it's the winning one.
+- JBMutatorDebug:
+  - Mutate ToggleShowLocation: Shows the location of the player on-screen.
+  - Mutate CanBeJailed: Now has team support - mutate canbejailed off team red.
+
+
+
+Miscellaneous
+=============
+
+- JBMapFixes: fixes small issues or adds a second execution in maps.
 
 
 ===============================================================================
