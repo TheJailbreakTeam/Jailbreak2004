@@ -4,4 +4,4 @@ echo ===========================================================================
 echo Full Installer
 echo ===============================================================================
 echo.
-perl make-distribution.pl --version="b"
+perl make-distribution.pl --version="c" --zip zip
