@@ -14,7 +14,7 @@ echo ===========================================================================
 echo Patch
 echo ===============================================================================
 echo.
-perl make-distribution.pl --version="c-Patch" --reference-file="Jailbreak2004b-reference.txt" --reference-version=102 --skip-rebuild --zip zip
+perl make-distribution.pl --version="c-Patch" --reference-file="Jailbreak2004b-zip-reference.txt" --reference-version=102 --skip-rebuild --zip zip
 
 
 :END
