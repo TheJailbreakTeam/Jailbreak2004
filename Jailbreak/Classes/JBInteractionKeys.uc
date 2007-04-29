@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInteractionKeys
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInteractionKeys.uc,v 1.10 2004-05-31 20:23:42 mychaeel Exp $
+// $Id: JBInteractionKeys.uc,v 1.11 2006-08-03 10:48:52 jrubzjeknf Exp $
 //
 // Temporarily assigns keys which have not been bound by the user.
 // ============================================================================
@@ -516,7 +516,7 @@ defaultproperties
   Bindings[1] = (Alias="TeamTactics Down",iKeyPreferred=109);  // GreyMinus
   Bindings[2] = (Alias="TeamTactics Auto",iKeyPreferred=111);  // GreySlash
   Bindings[3] = (Alias="ArenaCam",iKeyPreferred=106);          // GreyStar
-  Bindings[4] = (Alias="ViewTeamFree",iKeyPreferred=110);      // GreyPeriod
+  Bindings[4] = (Alias="ViewTeamFree",iKeyPreferred=110);      // NumPadPeriod
 
   Dialog = (MaterialFrame=Texture'2K4Menus.Display99',Margins=(X=30,Y=44),FontTitle="UT2DefaultFont",FontText="UT2SmallFont",FontKey="UT2SmallFont",FontClose="UT2SmallFont",ColorTextTitle=(R=255,G=210,B=0),ColorText=(R=255,G=255,B=255),ColorTextKey=(R=255,G=210,B=0),ColorTextClose=(R=255,G=210,B=0),OffsetTextTitle=(Y=16),OffsetTextClose=(Y=-16));
 
