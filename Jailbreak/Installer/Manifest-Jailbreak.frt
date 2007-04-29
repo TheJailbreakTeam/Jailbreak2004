@@ -1,5 +1,5 @@
 [Setup]
-LocalProduct=Jailbreak 2004b
+LocalProduct=Jailbreak 2004c
 ReadMe=Help\Jailbreak.txt
 SetupWindowTitle=Jailbreak Setup
 AutoplayWindowTitle=Jailbreak Options
@@ -33,4 +33,4 @@ Description=Une série de bonnes maps Jailbreak pour votre plus grande joie ludiq
 
 [GroupKeys]
 Caption=Configuration des touches Jailbreak par défaut
-Description=Configure les touches pour Jailbreak: EtoileNum active la Vue depuis l'Arène; PlusNum/MoinsNum augmente/diminue l'agressivité de l'équipe; SlashNum remet les ordres de l'équipe sur auto.
+Description=Configure les touches pour Jailbreak: EtoileNum active la Vue depuis l'Arène; PlusNum/MoinsNum augmente/diminue l'agressivité de l'équipe; SlashNum remet les ordres de l'équipe sur auto; PointNum permet de voir vos équipiers libres.

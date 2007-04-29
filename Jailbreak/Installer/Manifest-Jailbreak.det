@@ -1,5 +1,5 @@
 [Setup]
-LocalProduct=Jailbreak 2004b
+LocalProduct=Jailbreak 2004c
 ReadMe=Help\Jailbreak.txt
 SetupWindowTitle=Jailbreak Setup
 AutoplayWindowTitle=Jailbreak Options
@@ -33,4 +33,4 @@ Description=Eine Zusammenstellung von Jailbreak-Levels. (Empfohlen.)
 
 [GroupKeys]
 Caption=Jailbreak-Tastenzuordnungen
-Description=Konfiguriert Tastenzuordnungen: GrauStern aktiviert die Arena-Live-Übertragung; GrauPlus/GrauMinus erhöht/vermindet die Aggressivität der Team-Taktik; GrauSchrägstrich wählt automatisch eine passende Team-Taktik.
+Description=Konfiguriert Tastenzuordnungen: GreyStar aktiviert die Arena-Live-Übertragung; GreyPlus/GreyMinus erhöht/vermindet die Aggressivität der Team-Taktik; GreySlash wählt automatisch eine passende Team-Taktik; NumPadPeriod zum Beobachten freier Teammitglieder.

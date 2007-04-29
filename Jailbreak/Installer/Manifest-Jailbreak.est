@@ -33,4 +33,4 @@ Description=Un grupo de mapas Jailbreak para empezar a jugar. (Recomendado)
 
 [GroupKeys]
 Caption=Controles predeterminados
-Description=Establece algunos controles de teclado necesarios en Jailbreak: 'Inicio' para ver un duelo en la Arena; 'Num+/Num-' para aumentar/reducir la agresividad del equipo; 'Fin' para agresividad automática.
+Description=Establece algunos controles de teclado necesarios en Jailbreak: Num * para ver un duelo en la Arena; Num +/Num - para aumentar/reducir la agresividad del equipo; Num / para agresividad automática; Num . para ver a los compañeros libres.
