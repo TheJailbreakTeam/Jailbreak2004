@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBMapFixes.uc,v 1.4 2007-02-10 19:13:25 wormbo Exp $
+// $Id: JBMapFixes.uc,v 1.5 2007-04-28 11:04:11 jrubzjeknf Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -150,11 +150,18 @@ function BabylonTemple()
 // ============================================================================
 // Heights (JB-Heights-Gold-v2.ut2)
 //
-// Adds a shocking Spirit execution.
+// Fixes the crane elevators and adds a shocking Spirit execution.
 // ============================================================================
 
 function Heights()
 {
+  local ScriptedTrigger ST;
+
+  // Fix the crane elevators.
+  foreach AllActors(class'ScriptedTrigger', ST)
+    if (ST.Name == 'ScriptedTrigger5' || ST.Name == 'ScriptedTrigger9')
+      ACTION_WaitForTimer(ST.Actions[9]).PauseTime = 14.00;
+
   // Create two SpiritSpawners for the red jail.
   CreateSpiritSpawner(class'JBSpiritSpawner',
                       'redspirit',

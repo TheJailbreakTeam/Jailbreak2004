@@ -83,6 +83,7 @@ The following features have been added since the last release:
 Game Settings
 =============
 
+Can be enabled or disabled:
 - Jail Newcomers:    Players who join a match after it started spawn in prison.
 - Disallow Escaping: Escaping the jail (without being released or going to the
                      arena) is not allowed. Players who try to do so anyway
