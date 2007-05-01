@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMoverDualDestination
 // Copyright 2007 by Wormbo <wormbo@online.de>
-// $Id: JBMoverDualDestination.uc,v 1.1 2007-04-22 14:01:57 wormbo Exp $
+// $Id: JBMoverDualDestination.uc,v 1.2 2007-04-27 15:50:59 wormbo Exp $
 //
 // A mover with a multitude of improvements over standard movers:
 //
@@ -87,6 +87,11 @@ var(MoverSounds) Sound  AlternateLoopSound;
 // ----------------------------------------------------------------------------
 // Events
 // ----------------------------------------------------------------------------
+
+/**
+Name of the event that opens this mover with its primary movement.
+*/
+var(Events)      name   PrimaryTag;
 
 /**
 Name of the event that opens this mover with its alternate movement.
@@ -197,6 +202,9 @@ var bool bTriggeredStandOnMoverEvent;
 /** Alternate movement handling. */
 var bool bAlternateMovement;
 
+/** Set to True while receiving (un)trigger events from the probe event actors. */
+var transient bool bReceivingTriggerEvent;
+
 
 // ============================================================================
 // BeginPlay
@@ -212,67 +220,77 @@ event BeginPlay()
 {
   local JBProbeEvent ProbeEvent;
   
-  if (IsA('JBClientMoverDualDestination') && Level.NetMode == NM_DedicatedServer) {
-    // skip most of the logic that could lead to spawning JBProbeEvents
-    AlternateTag = '';
-  }
-  if (Tag == Name && AlternateTag != '') {
-    log(Name $ " - Tag should not be equal to any actor's Name", 'Warning');
-  }
-  if (Tag != Name && AlternateTag == Tag) {
-    log(Name $ " - AlternateTag is ignored because it's identical to Tag", 'Warning');
-    AlternateTag = '';
-  }
   if (NumKeys > ArrayCount(KeyPos) || NumKeys < 2) {
-    log(Name $ " - NumKeys out of bounds! (" $ NumKeys $ "/" $ ArrayCount(KeyPos) $ ")", 'Warning');
+    log(Name $ " - NumKeys out of bounds! (" $ NumKeys $ "/" $ ArrayCount(KeyPos) $ ")", 'Error');
   }
   if (NumKeysPrimary > NumKeys || NumKeysPrimary < 2) {
-    log(Name $ " - NumKeysPrimary out of bounds! (" $ NumKeysPrimary $ "/" $ NumKeys $ ")", 'Warning');
+    log(Name $ " - NumKeysPrimary out of bounds! (" $ NumKeysPrimary $ "/" $ NumKeys $ ")", 'Error');
     NumKeysPrimary = Clamp(NumKeysPrimary, 2, NumKeys);
   }
-  if (AlternateTag != '') {
-    switch (InitialState) {
-      case 'BumpButton':        // doesn't use triggering
-      case 'BumpOpenTimed':     // doesn't use triggering
-      case 'ConstantLoop':      // doesn't use triggering
-      case 'LoopMove':          // wouldn't make sense
-      case 'RotatingMover':     // wouldn't make sense
-      case 'StandOpenTimed':    // doesn't use triggering
+  if (PrimaryTag != '' && AlternateTag == PrimaryTag) {
+    log(Name $ " - AlternateTag is ignored because it's identical to PrimaryTag", 'Warning');
+    AlternateTag = '';
+  }
+  switch (InitialState) {
+    case 'BumpButton':        // doesn't use triggering
+    case 'BumpOpenTimed':     // doesn't use triggering
+    case 'ConstantLoop':      // doesn't use triggering
+    case 'RotatingMover':     // doesn't use triggering
+    case 'StandOpenTimed':    // doesn't use triggering
+      if (PrimaryTag != '')
+        log(Name $ " - PrimaryTag is ignored in state " $ InitialState, 'Warning');
+      // fall through to next case
+    
+    case 'LoopMove':          // wouldn't make sense
+      if (AlternateTag != '')
         log(Name $ " - AlternateTag is ignored in state " $ InitialState, 'Warning');
-        
-      case 'ServerIdle':
-        break;
-        
-      default:
+      // fall through to next case
+    
+    case 'ServerIdle':
+      break;
+      
+    default:
+      if (AlternateTag != '') {
         if (NumKeysPrimary < NumKeys) {
-          if (Tag != '' && Tag != Name) {
-            // redirect the primary event to prevent unchecked triggering
-            ProbeEvent = Spawn(class'JBProbeEvent', Self, Tag);
-            ProbeEvent.OnTrigger   = PrimaryTrigger;
-            ProbeEvent.OnUntrigger = PrimaryUntrigger;
-            Tag = Name;
-          }
-          else {
-            log(Name $ " - No Tag specified but AlternateTag is present. Are you sure this is what you want?", 'Warning');
+          if (PrimaryTag == '')
+            log(Name $ " - No PrimaryTag specified but AlternateTag is present. Are you sure this is what you want?", 'Warning');
+          
+          if (!IsA('JBClientMoverDualDestination') || Level.NetMode != NM_DedicatedServer) {
+            // catch the alternate event
+            ProbeEvent = Spawn(class'JBProbeEvent', Self, AlternateTag);
+            ProbeEvent.OnTrigger   = AlternateTrigger;
+            ProbeEvent.OnUntrigger = AlternateUntrigger;
           }
           
-          // catch the alternate event
-          ProbeEvent = Spawn(class'JBProbeEvent', Self, AlternateTag);
-          ProbeEvent.OnTrigger   = AlternateTrigger;
-          ProbeEvent.OnUntrigger = AlternateUntrigger;
+          if (KeyNum != 0) {
+            log(Name $ " - Mover must start at key 0 if AlternateTag is specified", 'Warning');
+            KeyNum = 0;
+          }
         }
         else {
-          log(Name $ " - AlternateTag is ignored because there are no keys left for the alternate movement (" $ NumKeysPrimary $ "/" $ NumKeys $ ")", 'Warning');
-          AlternateTag = '';
+          log(Name $ " - AlternateTag is ignored because there are no keys left for the alternate movement (" $ NumKeysPrimary $ "/" $ NumKeys $ ")", 'Error');
         }
-    }
+      }
+      else if (NumKeysPrimary < NumKeys && (ReturnGroup == '' || bIsLeader)) {
+          log(Name $ " - No AlternateTag speficied, but mover has alternate movement path", 'Warning');
+      }
+      if (PrimaryTag != '') {
+        if (NumKeysPrimary > 1) {
+          if (!IsA('JBClientMoverDualDestination') || Level.NetMode != NM_DedicatedServer) {
+            // catch the primary event
+            ProbeEvent = Spawn(class'JBProbeEvent', Self, PrimaryTag);
+            ProbeEvent.OnTrigger   = PrimaryTrigger;
+            ProbeEvent.OnUntrigger = PrimaryUntrigger;
+          }
+        }
+        else {
+          log(Name $ " - PrimaryKey is ignored because there are no keys left for the primary movement (" $ NumKeysPrimary $ "/" $ NumKeys $ ")", 'Error');
+        }
+      }
+      else if (ReturnGroup == '' || bIsLeader) {
+        log(Name $ " - No PrimaryTag specified", 'Warning');
+      }
   }
-  
-  if (AlternateTag != '' && KeyNum != 0) {
-    log(Name $ " - Mover must start at key 0 if AlternateTag is specified", 'Warning');
-    KeyNum = 0;
-  }
-  
   bAlternateMovement = False;
   
   Super.BeginPlay();
@@ -287,11 +305,13 @@ event BeginPlay()
 
 function PrimaryTrigger(Actor Other, Pawn EventInstigator)
 {
-  if (bClosed)
+  if (bClosed) {
     SetGroupMovement(False);
-  
-  if (!bAlternateMovement)
+  }
+  if (!bAlternateMovement) {
+    bReceivingTriggerEvent = True;
     Trigger(Other, EventInstigator);
+  }
 }
 
 
@@ -303,8 +323,10 @@ function PrimaryTrigger(Actor Other, Pawn EventInstigator)
 
 function PrimaryUntrigger(Actor Other, Pawn EventInstigator)
 {
-  if (!bAlternateMovement)
+  if (!bAlternateMovement) {
+    bReceivingTriggerEvent = True;
     Untrigger(Other, EventInstigator);
+  }
 }
 
 
@@ -316,11 +338,13 @@ function PrimaryUntrigger(Actor Other, Pawn EventInstigator)
 
 function AlternateTrigger(Actor Other, Pawn EventInstigator)
 {
-  if (bClosed)
+  if (bClosed) {
     SetGroupMovement(True);
-  
-  if (bAlternateMovement)
+  }
+  if (bAlternateMovement) {
+    bReceivingTriggerEvent = True;
     Trigger(Other, EventInstigator);
+  }
 }
 
 // ============================================================================
@@ -331,8 +355,10 @@ function AlternateTrigger(Actor Other, Pawn EventInstigator)
 
 function AlternateUntrigger(Actor Other, Pawn EventInstigator)
 {
-  if (bAlternateMovement)
+  if (bAlternateMovement) {
+    bReceivingTriggerEvent = True;
     Untrigger(Other, EventInstigator);
+  }
 }
 
 
@@ -720,6 +746,10 @@ state() LeadInOutLooper
 {
   function Trigger(Actor Other, Pawn EventInstigator)
   {
+    if (!bReceivingTriggerEvent)
+      return;
+    bReceivingTriggerEvent = False;
+    
     if (bAlternateMovement) {
       // Sanity check
       if (NumKeys - NumKeysPrimary < 2) {
@@ -747,6 +777,14 @@ state() LeadInOutLooper
     GotoState('LeadInOutLooping');
   }
   
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
+  }
+  
   event KeyFrameReached()
   {
     if (KeyNum == 0)
@@ -765,6 +803,10 @@ state LeadInOutLooping
 {
   function Trigger(Actor Other, Pawn EventInstigator)
   {
+    if (!bReceivingTriggerEvent)
+      return;
+    bReceivingTriggerEvent = False;
+    
     if (bAlternateMovement) {
       InterpolateTo(0, AlternateMoveTime * TimeMultipliersClose[0]);
       PlaySound(AlternateClosingSound, SLOT_None, SoundVolume / 255.0, false, SoundRadius, SoundPitch / 64.0);
@@ -777,6 +819,14 @@ state LeadInOutLooping
     }
     bOpening = False;
     GotoState('LeadInOutLooper');
+  }
+  
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
   }
   
   event KeyFrameReached()
@@ -841,6 +891,22 @@ state LeadInOutLooping
 
 state() LoopMove
 {
+  function Trigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Trigger(Other, EventInstigator);
+    }
+  }
+  
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
+  }
+  
 Running:
   FinishInterpolation();
   InterpolateTo((KeyNum + 1) % NumKeysPrimary, MoveTime * TimeMultipliersOpen[(KeyNum + 1) % NumKeysPrimary]);
@@ -898,6 +964,22 @@ state() StandOpenTimed
 
 state() TriggerAdvance
 {
+  function Trigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Trigger(Other, EventInstigator);
+    }
+  }
+  
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
+  }
+  
 Open:
   if (Physics == PHYS_None) // Check if Mover has been UnTriggered since
     GotoState('TriggerAdvance', '');
@@ -942,6 +1024,22 @@ Close:
 
 state() TriggerControl
 {
+  function Trigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Trigger(Other, EventInstigator);
+    }
+  }
+  
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
+  }
+  
 Open:
   bClosed = false;
   
@@ -985,6 +1083,22 @@ Close:
 
 state TriggerOpenTimed
 {
+  function Trigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Trigger(Other, EventInstigator);
+    }
+  }
+  
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
+  }
+  
 Open:
   if (bTriggerOnceOnly)
     Disable('Trigger');
@@ -1026,7 +1140,7 @@ Close:
 
 
 // ============================================================================
-// state TriggerOpenTimed
+// state TriggerPound
 //
 // Start pounding when triggered.
 // Replaces state code to add support for alternate pre-move, stay-open and
@@ -1035,6 +1149,22 @@ Close:
 
 state() TriggerPound
 {
+  function Trigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Trigger(Other, EventInstigator);
+    }
+  }
+  
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
+  }
+  
 Open:
   if (bTriggerOnceOnly)
     Disable('Trigger');
@@ -1081,7 +1211,7 @@ Close:
 
 
 // ============================================================================
-// state TriggerOpenTimed
+// state TriggerToggle
 //
 // Toggle when triggered.
 // Replaces state code to add support for alternate delay time.
@@ -1089,6 +1219,22 @@ Close:
 
 state() TriggerToggle
 {
+  function Trigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Trigger(Other, EventInstigator);
+    }
+  }
+  
+  function Untrigger(Actor Other, Pawn EventInstigator)
+  {
+    if (bReceivingTriggerEvent) {
+      bReceivingTriggerEvent = False;
+      Super.Untrigger(Other, EventInstigator);
+    }
+  }
+  
 Open:
   bClosed = false;
   
