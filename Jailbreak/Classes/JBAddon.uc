@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddon
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddon.uc,v 1.11 2004/05/31 20:23:42 mychaeel Exp $
+// $Id: JBAddon.uc,v 1.12 2007-02-11 17:25:30 wormbo Exp $
 //
 // Base class for Jailbreak Add-On mutators. Introduced only for the sake of
 // distinguishing them from regular mutators in the user interface, but also
@@ -49,11 +49,11 @@ function bool MutatorIsAllowed()
 // spawned if any is spawned at all, then registers this actor as an overlay.
 // ============================================================================
 
-auto state Startup
+auto simulated state Startup
 {
 Begin:
   Sleep(0.0);
-  
+
   if (PlayerControllerLocal == None)
     PlayerControllerLocal = Level.GetLocalPlayerController();
   if (bIsOverlay && PlayerControllerLocal != None)
@@ -66,8 +66,7 @@ Begin:
 // InitAddon
 //
 // Called server- and client-side when the game type has finished its own
-// initialization. Sets the JBGameReplicationInfo reference and registers the
-// addon as an overlay actor if bIsOverlay is set.
+// initialization. Sets the JBGameReplicationInfo reference.
 // ============================================================================
 
 simulated function InitAddon()
