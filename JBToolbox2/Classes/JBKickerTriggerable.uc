@@ -1,7 +1,7 @@
 // ============================================================================
 // JBKickerTriggerable
 // Copyright 2007 by Wormbo <wormbo@online.de>
-// $Id: JBMoverDualDestination.uc,v 1.2 2007-04-27 15:50:59 wormbo Exp $
+// $Id: JBKickerTriggerable.uc,v 1.1 2007-05-01 13:22:26 wormbo Exp $
 //
 // A triggerable xKicker with several additional features:
 //
@@ -253,6 +253,7 @@ function CheckTouching()
 
 defaultproperties
 {
+  bDirectional      = True
   bInitiallyEnabled = True
   DrawScale         = 0.5
   Texture           = Texture'JBKickerTriggerable'

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpiritSpawner
-// Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// Copyright 2006 by Wormbo <wormbo@online.de>
+// $Id: JBSpiritSpawner.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
 //
 // Spawns the spirits.
 // ============================================================================
@@ -48,13 +48,13 @@ function PostBeginPlay()
     bHidden = False;
   }
   if (SpiritCount <= 0) {
-    log("!!!!" @ Self @ "Invalid SpiritCount specified");
+    log("!!!!" @ Self @ "SpiritCount must be greater than 0");
     SpiritCount = 1;
     bHidden = False;
   }
-  if (SpiritSpawnDelay <= 0) {
-    log("!!!!" @ Self @ "SpiritSpawnDelay must be greater than 0");
-    SpiritSpawnDelay = 0.001;
+  if (SpiritSpawnDelay < 0) {
+    log("!!!!" @ Self @ "SpiritSpawnDelay must be greater than or equal to 0");
+    SpiritSpawnDelay = 0.0;
     bHidden = False;
   }
   if (SpiritSpeed < 0) {
@@ -68,7 +68,7 @@ function PostBeginPlay()
 // ============================================================================
 // Trigger
 //
-// Start spawning the spirits.
+// Start spawning spirits.
 // ============================================================================
 
 function Trigger(Actor Other, Pawn EventInstigator)
@@ -79,13 +79,16 @@ function Trigger(Actor Other, Pawn EventInstigator)
 
 // ============================================================================
 // state Spawning
+//
+// Spawns the desired number of spirits, then returns to idle state.
 // ============================================================================
 
 state Spawning
 {
-
   // ============================================================================
   // SpawnSpirit
+  //
+  // Spawns a new spirit and sets its initial movement speed.
   // ============================================================================
 
   function SpawnSpirit()
@@ -108,16 +111,22 @@ Begin:
     SpawnSpirit();
   }
   GotoState('');
-} // Spawning
+}
+
+
+// ============================================================================
+// Default values
+// ============================================================================
 
 defaultproperties
 {
-  SpiritClass=class'JBToolbox2.JBFireSpirit'
-  SpiritCount=1
-  SpiritSpawnDelay=0.300000
-  SpiritSpeed=200.000000
-  SpiritDirRand=0.200000
-  bDirectional=True
-  bEdShouldSnap=True
-  Texture = Texture'JBToolbox2.icons.JBExecutionSpirit'
+  SpiritClass       = class'JBToolbox2.JBFireSpirit'
+  SpiritCount       =   1
+  SpiritSpawnDelay  =   0.3
+  SpiritSpeed       = 200.0
+  SpiritDirRand     =   0.2
+  bDirectional      = True
+  bEdShouldSnap     = True
+  bCollideActors    = False
+  Texture           = Texture'JBToolbox2.icons.JBExecutionSpirit'
 }

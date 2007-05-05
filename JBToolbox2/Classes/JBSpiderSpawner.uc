@@ -1,13 +1,13 @@
 // ============================================================================
 // JBSpiderSpawner
-// Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBSpiderSpawner.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
+// Copyright (c) 2004 by Wormbo <wormbo@online.de>
+// $Id: JBSpiderSpawner.uc,v 1.2 2007-02-10 19:13:25 wormbo Exp $
 //
 // Spawns JBSpiderMines.
 // ============================================================================
 
 
-class JBSpiderSpawner extends Actor
+class JBSpiderSpawner extends Triggers
     placeable;
 
 
@@ -159,24 +159,22 @@ function Reset()
 
 defaultproperties
 {
-  bInitiallyActive=True
-  bRespawnDeadSpiders=True
-  bTriggeredSpawnDelay=True
-  DetectionRange=1000.0
-  SpiderDamage=50
-  SpiderHealth=50
-  TargetLocFuzz=50
-  RespawnDelay=0.2
-  bDirectional=True
-  DrawType=DT_Mesh
-  Mesh=SpiderMineMesh
-  DrawScale=0.2
-  PrePivot=(Z=-2.9)
-  bUnlit=True
-  bHidden=True
-  bCollideActors=False
-  bCollideWhenPlacing=True
-  CollisionRadius=10.0
-  CollisionHeight=10.0
-  RemoteRole=ROLE_None
+  bInitiallyActive      = True
+  bRespawnDeadSpiders   = True
+  bTriggeredSpawnDelay  = True
+  SpiderDamage          =   50
+  SpiderHealth          =   50
+  TargetLocFuzz         =   50
+  DetectionRange        = 1000.0
+  RespawnDelay          =    0.2
+  DrawScale             =    0.2
+  CollisionRadius       =   10.0
+  CollisionHeight       =   10.0
+  bCollideActors        = False
+  bCollideWhenPlacing   = True
+  bDirectional          = True
+  DrawType              = DT_Mesh
+  Mesh                  = SpiderMineMesh
+  PrePivot              = (Z=-2.9)
+  bUnlit                = True
 }
