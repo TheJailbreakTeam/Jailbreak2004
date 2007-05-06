@@ -5,7 +5,7 @@
 #  make-distribution.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id: make-distribution.pl,v 1.10 2007-04-29 09:21:56 wormbo Exp $
+#  $Id: make-distribution.pl,v 1.11 2007-05-06 15:06:28 mychaeel Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -397,6 +397,7 @@ GetOptions(
   'zip=s'               => \$zipExt,
   'reference-file=s'    => \$fileReference,
   'reference-version=i' => \$versionReference,
+  'exclude-maps'        => sub { @maps = () },
 );
 
    if ($zipExt eq 'zip') { $zipCommand = 'zip -9 "%archive%" "%file%"' }
