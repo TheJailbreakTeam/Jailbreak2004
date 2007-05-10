@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.68 2007-04-07 11:42:04 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.69 2007-04-24 16:26:09 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -873,13 +873,20 @@ function UnsetJailInventory()
 
 private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferred)
 {
+  local Pawn P;
   local xPawn xPawn;
 
-  if (Controller.Pawn != None)
-    Controller.Pawn.PlayTeleportEffect(True, True);
+  P = Controller.Pawn;
 
-  while (Controller.Pawn != None) {
-    xPawn = xPawn(Controller.Pawn);
+  if (Vehicle(Controller.Pawn) != None &&
+      Vehicle(Controller.Pawn).Driver != None)
+    P = Vehicle(Controller.Pawn).Driver;
+
+  if (P != None)
+    P.PlayTeleportEffect(True, True);
+
+  while (P != None) {
+    xPawn = xPawn(P);
 
     if (xPawn != None) {
       if (xPawn.CurrentCombo != None)
@@ -891,7 +898,7 @@ private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferr
       }
     }
 
-    Controller.Pawn.Destroy();
+    P.Destroy();
   }
 
   Restart = RestartCurrent;
