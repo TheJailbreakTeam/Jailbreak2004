@@ -3,7 +3,7 @@
 //
 // Copyright 2004 by TheForgotten
 //
-// $Id$
+// $Id: JBAddonSpoils.uc,v 1.1 2007-01-03 20:19:03 jrubzjeknf Exp $
 //
 // This add-on give a weapon to arena winner.
 // ============================================================================
@@ -97,9 +97,9 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   WeaponOptions $= "XWeapons.ZoomSuperShockRifle;Zoom Super Shock Rifle";
 
   // now register any mutator settings
-  PlayInfo.AddSetting(PlayInfoGroup(), "WeaponClassName", default.WeaponComboText, 0, 0, "Select", WeaponOptions);
-  PlayInfo.AddSetting(PlayInfoGroup(), "MaxAmmo",         default.MaxAmmoText,     0, 1, "Check");
-  PlayInfo.AddSetting(PlayInfoGroup(), "CanThrow",        default.CanThrowText,    0, 2, "Check");
+  PlayInfo.AddSetting(PlayInfoGroup(), "SpoilsWeapon", default.WeaponComboText, 0, 0, "Select", WeaponOptions);
+  PlayInfo.AddSetting(PlayInfoGroup(), "bMaxAmmo",     default.MaxAmmoText,     0, 1, "Check");
+  PlayInfo.AddSetting(PlayInfoGroup(), "bCanThrow",    default.CanThrowText,    0, 2, "Check");
 
   // remove mutator class from class stack
   PlayInfo.PopClass();
@@ -115,9 +115,9 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 static event string GetDescriptionText(string PropName)
 {
   Switch (PropName) {
-    Case "WeaponClassName": return default.WeaponComboDesc;
-    Case "MaxAmmo":         return default.MaxAmmoCheckDesc;
-    Case "CanThrow":        return default.CanThrowCheckDesc;
+    Case "SpoilsWeapon": return default.WeaponComboDesc;
+    Case "bMaxAmmo":     return default.MaxAmmoCheckDesc;
+    Case "bCanThrow":    return default.CanThrowCheckDesc;
   }
 }
 
