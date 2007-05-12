@@ -1,13 +1,13 @@
 // ============================================================================
 // JBAddonTeleport
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonTeleport.uc,v 1.2 2004/04/23 08:59:01 mychaeel Exp $
+// $Id: JBAddonTeleport.uc,v 1.3 2004/04/25 21:32:38 mychaeel Exp $
 //
 // This addon teleport a player to his base when he release his team.
 // ============================================================================
 
 
-class JBAddonTeleport extends JBAddon;
+class JBAddonTeleport extends JBAddon cacheexempt;
 
 
 // ============================================================================
