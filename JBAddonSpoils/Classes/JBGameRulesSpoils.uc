@@ -3,13 +3,34 @@
 //
 // Copyright 2004 by TheForgotten
 //
-// $Id$
+// $Id: JBGameRulesSpoils.uc,v 1.1 2007-01-03 20:19:03 jrubzjeknf Exp $
 //
 // The rules for the Spoils add-on.
 // ============================================================================
 
 
 class JBGameRulesSpoils extends JBGameRules;
+
+
+// ============================================================================
+// Variables
+// ============================================================================
+
+var class<Weapon> WeaponClass;
+
+
+// ============================================================================
+// PostBeginPlay
+//
+// Register the additional rules.
+// ============================================================================
+
+function PostBeginPlay()
+{
+  Super.PostBeginPlay();
+
+  WeaponClass = class<Weapon>(DynamicLoadObject("ini:JBAddonSpoils.JBAddonSpoils.SpoilsWeapon", class'Class'));
+}
 
 
 // ============================================================================
@@ -21,7 +42,6 @@ class JBGameRulesSpoils extends JBGameRules;
 function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 {
   local xPawn Avenger;
-  local class<Weapon> WeaponClass;
   local Weapon Spoils;
   local Inventory Inv;
 
@@ -29,7 +49,6 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
       (TagPlayerWinner.GetController() != None) &&
       (TagPlayerWinner.GetController().Pawn != None) &&
       (TagPlayerWinner.GetController().Pawn.IsA('xPawn'))) {
-    WeaponClass = class'JBAddonSpoils'.default.SpoilsWeapon;
     Avenger = xPawn(TagPlayerWinner.GetController().Pawn);
 
     Spoils = Spawn( WeaponClass, Avenger );

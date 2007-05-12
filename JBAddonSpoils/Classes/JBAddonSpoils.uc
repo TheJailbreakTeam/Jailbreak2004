@@ -3,7 +3,7 @@
 //
 // Copyright 2004 by TheForgotten
 //
-// $Id: JBAddonSpoils.uc,v 1.1 2007-01-03 20:19:03 jrubzjeknf Exp $
+// $Id: JBAddonSpoils.uc,v 1.2 2007-05-10 10:28:04 jrubzjeknf Exp $
 //
 // This add-on give a weapon to arena winner.
 // ============================================================================
@@ -25,7 +25,7 @@ const DEFAULT_CAN_THROW = False;
 // ============================================================================
 
 var() const editconst string Build;
-var() config class<Weapon> SpoilsWeapon;     // type of weapon awarded
+var() config string SpoilsWeapon;     // type of weapon awarded
 var() config bool bMaxAmmo;
 var() config bool bCanThrow;
 
@@ -93,8 +93,8 @@ static function FillPlayInfo(PlayInfo PlayInfo)
     WeaponOptions $= Recs[i].ClassName $ ";" $ Recs[i].FriendlyName;
   }
 
-  WeaponOptions $= "XWeapons.SuperShockRifle;Super Shock Rifle";
-  WeaponOptions $= "XWeapons.ZoomSuperShockRifle;Zoom Super Shock Rifle";
+  WeaponOptions $= ";XWeapons.SuperShockRifle;Super Shock Rifle";
+  WeaponOptions $= ";XWeapons.ZoomSuperShockRifle;Zoom Super Shock Rifle";
 
   // now register any mutator settings
   PlayInfo.AddSetting(PlayInfoGroup(), "SpoilsWeapon", default.WeaponComboText, 0, 0, "Select", WeaponOptions);
@@ -130,7 +130,7 @@ static event string GetDescriptionText(string PropName)
 
 static function ResetConfiguration()
 {
-  default.SpoilsWeapon = class'XWeapons.AssaultRifle';
+  default.SpoilsWeapon = "XWeapons.AssaultRifle";
   default.bMaxAmmo     = DEFAULT_MAX_AMMO;
   default.bCanThrow    = DEFAULT_CAN_THROW;
 
@@ -146,7 +146,7 @@ defaultproperties
 {
   Build = "%%%%-%%-%% %%:%%"
 
-  SpoilsWeapon = class'XWeapons.AssaultRifle'
+  SpoilsWeapon = "XWeapons.AssaultRifle"
 
   WeaponComboText   = "Avenger weapon"
   WeaponComboDesc   = "The weapon which is awarded to the avenger."

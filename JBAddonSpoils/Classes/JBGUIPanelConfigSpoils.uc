@@ -3,7 +3,7 @@
 //
 // Copyright 2004 by TheForgotten
 //
-// $Id$
+// $Id: JBGUIPanelConfigSpoils.uc,v 1.1 2007-01-03 20:19:03 jrubzjeknf Exp $
 //
 // Options for the Spoils add-on.
 // ============================================================================
@@ -49,7 +49,7 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
 
   class'CacheManager'.static.GetWeaponList(Recs);
   for (i = 0; i < Recs.Length; i++)
-  ComboBoxWeaponType.AddItem(Recs[i].FriendlyName,,Recs[i].ClassName);
+    ComboBoxWeaponType.AddItem(Recs[i].FriendlyName,,Recs[i].ClassName);
 
   ComboBoxWeaponType.AddItem("Super Shock Rifle",,"XWeapons.SuperShockRifle");
   ComboBoxWeaponType.AddItem("Zoom Super Shock Rifle",,"XWeapons.ZoomSuperShockRifle");
@@ -74,7 +74,7 @@ function ChangeOptions(GUIComponent Sender)
   if ( !bInitialized )
     return;
 
-  class'JBAddonSpoils'.default.SpoilsWeapon = class<Weapon>(DynamicLoadObject(ComboBoxWeaponType.GetExtra(),class'Class'));
+  class'JBAddonSpoils'.default.SpoilsWeapon = ComboBoxWeaponType.GetExtra();
   class'JBAddonSpoils'.default.bMaxAmmo = MaxAmmo.IsChecked();
   class'JBAddonSpoils'.default.bCanThrow = CanThrow.IsChecked();
 
@@ -94,7 +94,7 @@ function SaveINISettings(GUIComponent Sender)
   if ( !bInitialized )
     return;
 
-  class'JBAddonSpoils'.default.SpoilsWeapon = class<Weapon>(DynamicLoadObject(ComboBoxWeaponType.GetExtra(),class'Class'));
+  class'JBAddonSpoils'.default.SpoilsWeapon = ComboBoxWeaponType.GetExtra();
   class'JBAddonSpoils'.default.bMaxAmmo = MaxAmmo.IsChecked();
   class'JBAddonSpoils'.default.bCanThrow = CanThrow.IsChecked();
 
@@ -112,7 +112,7 @@ function LoadINISettings()
 {
   bInitialized = False;
 
-  ComboBoxWeaponType.SetIndex(ComboBoxWeaponType.FindExtra(string(class'JBAddonSpoils'.default.SpoilsWeapon)));
+  ComboBoxWeaponType.SetIndex(ComboBoxWeaponType.FindExtra(class'JBAddonSpoils'.default.SpoilsWeapon));
   MaxAmmo.Checked(class'JBAddonSpoils'.default.bMaxAmmo);
   CanThrow.Checked(class'JBAddonSpoils'.default.bCanThrow);
 
