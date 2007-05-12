@@ -1,13 +1,13 @@
 // ============================================================================
 // JBAddonProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonProtection.uc,v 1.13 2004/05/23 09:00:49 tarquin Exp $
+// $Id: JBAddonProtection.uc,v 1.14 2004/05/28 16:09:55 mychaeel Exp $
 //
 // This add-on protects players released from jail.
 // ============================================================================
 
 
-class JBAddonProtection extends JBAddon config;
+class JBAddonProtection extends JBAddon config cacheexempt;
 
 
 //=============================================================================
