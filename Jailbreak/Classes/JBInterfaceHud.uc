@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.74 2007-04-24 16:32:23 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.75 2007-05-04 13:42:57 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -771,9 +771,9 @@ simulated function ShowCompass(Canvas Canvas)
     DefenderTeamIndex = Objective.DefenderTeamIndex;
 
     if (Class'Jailbreak'.Default.bReverseSwitchColors)
-      SpriteWidgetCompassDot.Tints[TeamIndex] = TeamSymbols[DefenderTeamIndex       ].Tints[TeamIndex];
-    else
       SpriteWidgetCompassDot.Tints[TeamIndex] = TeamSymbols[abs(DefenderTeamIndex-1)].Tints[TeamIndex];
+    else
+      SpriteWidgetCompassDot.Tints[TeamIndex] = TeamSymbols[DefenderTeamIndex       ].Tints[TeamIndex];
     SpriteWidgetCompassDot.PosY = LocationCompass.Y;
 
     switch (DefenderTeamIndex) {
