@@ -159,7 +159,7 @@ New Building Actors:
   - The mapper can define two different movement paths with individual
     trigger tags, sounds and events.
   - The mapper can specify separate open and close times.
-  - The mapper can specify indifid move times for every key.
+  - The mapper can specify individual move times for every key.
 - JBClientMoverDualDestination: A client version of the JBMoverDualDestination.
 - JBRandomDispatcher: Fires a random event from a list of events.
 - JBTriggerableUTJumppad
@@ -174,10 +174,14 @@ New Executions:
 - JBSpiritSpawner: Execute by spirits - includes Ice, Fire and Thunder.
 
 New Scripts:
-- JBAction_IfMorePrisoners.
-- JBAction_WaitForCondition - is required for JBMoverDualDestination.
-- JBAction_WaitForEvent     - is required for JBMoverDualDestination.
-- JBAction_WaitOnlyForTimer - is required for JBMoverDualDestination.
+- JBAction_IfMorePrisoners  - conditionally enters a script section if the jail
+                              contains more than the given number of players
+- JBAction_WaitForCondition - waits for a TriggeredCondition to reach a certain
+                              state; useful for proximity-triggered doors
+- JBAction_WaitForEvent     - bug fix for ACTION_WaitForEvent
+- JBAction_WaitOnlyForTimer - like ACTION_WaitForTimer but unlike that it won't
+                              short-circuit on trigger (e.g. if preceeded by a
+                              ACTION_WaitForEvent or JBAction_WaitForEvent)
 
 Expansions:
 - JBInfoArena:
