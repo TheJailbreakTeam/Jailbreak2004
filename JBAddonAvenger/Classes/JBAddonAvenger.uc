@@ -1,13 +1,13 @@
 // ============================================================================
 // JBAddonAvenger (formerly JBAddonBerserker)
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBAddonAvenger.uc,v 1.6 2004-05-23 12:43:57 tarquin Exp $
+// $Id: JBAddonAvenger.uc,v 1.7 2006-08-02 11:01:51 jrubzjeknf Exp $
 //
 // This add-on give berserk to arena winner.
 // ============================================================================
 
 
-class JBAddonAvenger extends JBAddon config;
+class JBAddonAvenger extends JBAddon config cacheexempt;
 
 
 //=============================================================================
