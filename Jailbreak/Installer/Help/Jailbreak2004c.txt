@@ -165,6 +165,10 @@ New Building Actors:
 - JBTriggerableUTJumppad
 - JBTriggerRandomPathUnblocker:
     Enables all associated BlockedPaths, expect for one randomly chosen one.
+- JBKickerTriggerable:
+    A triggerable xKicker that can also play kick sounds, apply damage to
+    players and do other funky stuff like mirroring the kick direction if the
+    kicked actor approaches the kicker from behind.
 
 New Executions:
 157175 - JBExecutionFreeze: Execute by frostbite.
