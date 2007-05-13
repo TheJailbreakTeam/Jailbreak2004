@@ -8,7 +8,7 @@ PowerTimeMaximumText="Maximale Rächer-Zeit"
 PowerTimeMaximumDesc="Maximal erlaubte Zeit für einen Rächer."
 PowerComboIndexText="Rächer-Superkraft"
 PowerComboIndexDesc="Superkraft, die dem Rächer verliehen wird."
-PowerComboIndexOptions="0;Tempo;1;Berserk;2;Booster;3;Unsichtbar"
+PowerComboIndexOptions="0;Tempo;1;Berserk;2;Booster;3;Unsichtbar;4;Zufällig"
 FriendlyName="Arena-Rächer"
 Description="Der Arena-Gewinner ist wütend... er ist auf dem Weg, sich an jenen zu rächen, die ihn ins Gefängnis geschickt haben!"
 

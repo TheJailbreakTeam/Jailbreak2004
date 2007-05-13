@@ -8,7 +8,7 @@ PowerTimeMaximumText="Temps Maximum Vengeur"
 PowerTimeMaximumDesc="Durée maximum permise en Vengeur."
 PowerComboIndexText="Pouvoir du Vengeur"
 PowerComboIndexDesc="Combo accordé au Vengeur."
-PowerComboIndexOptions="0;Vitesse;1;Berserk;2;Booster;3;Invisible"
+PowerComboIndexOptions="0;Vitesse;1;Berserk;2;Booster;3;Invisible;4;Au hasard"
 FriendlyName="Vengeur de l'Arène"
 Description="Le vainqueur dans l'arène est furax... Il revient se venger de ceux qui l'ont emprisonné avec l'aide d'un bonus !"
 
