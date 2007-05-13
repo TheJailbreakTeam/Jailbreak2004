@@ -122,6 +122,7 @@ TextNotReady="Not Ready"
 TextSpectators="Spectators:"
 TextNoSpectators="No Spectators"
 TextSpectatorsAnd="and"
+TextSpectatorsOther="other"
 TextSpectatorsOthers="others"
 
 [JBLocalMessage]

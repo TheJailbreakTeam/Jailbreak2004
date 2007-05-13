@@ -122,6 +122,7 @@ TextNotReady="No Preparado"
 TextSpectators="Espectadores:"
 TextNoSpectators="No hay espectadores"
 TextSpectatorsAnd="y"
+TextSpectatorsOther="más"
 TextSpectatorsOthers="más"
 
 [JBLocalMessage]

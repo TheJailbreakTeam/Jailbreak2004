@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.28 2007-04-26 19:01:09 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.29 2007-05-10 16:19:17 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -236,6 +236,7 @@ var localized string TextNotReady;           // player is not ready
 var localized string TextSpectators;         // there are spectators
 var localized string TextNoSpectators;       // there are no spectators
 var localized string TextSpectatorsAnd;      // to complete spectators sentence
+var localized string TextSpectatorsOther;    // to complete spectators sentence
 var localized string TextSpectatorsOthers;   // to complete spectators sentence
 
 
@@ -491,8 +492,12 @@ simulated function DrawSpectators(Canvas Canvas)
 
     SpectatorString = TextSpectators @ SpectatorString;
 
-    if (SpectatorArray.Length > 0) // add how many spectators couldn't be added to the list
-      SpectatorString @= TextSpectatorsAnd @ SpectatorArray.Length @ TextSpectatorsOthers;
+    if (SpectatorArray.Length > 0) { // add how many spectators couldn't be added to the list
+      if (SpectatorArray.Length == 1)
+        SpectatorString @= TextSpectatorsAnd @ SpectatorArray.Length @ TextSpectatorsOther;
+      else
+        SpectatorString @= TextSpectatorsAnd @ SpectatorArray.Length @ TextSpectatorsOthers;
+    }
   } else
     SpectatorString = TextNoSpectators;
 
@@ -1979,6 +1984,7 @@ defaultproperties
   TextSpectators               = "Spectators:";
   TextNoSpectators             = "No Spectators";
   TextSpectatorsAnd            = "and";
+  TextSpectatorsOther          = "other";
   TextSpectatorsOthers         = "others";
 
   Table[0]                     = (iTable=0,ColorMainLocal=(R=255,G=160,B=160,A=255),ColorInfo=(R=255,G=255,B=255,A=255),ColorInfoLocal=(R=255,G=255,B=255,A=255));

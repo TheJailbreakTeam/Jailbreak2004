@@ -122,7 +122,8 @@ TextNotReady="Nicht Bereit"
 TextSpectators="Zuschauer:"
 TextNoSpectators="Keine Zuschauer"
 TextSpectatorsAnd="und"
-TextSpectatorsOthers="andere"
+TextSpectatorsOther="weiterer"
+TextSpectatorsOthers="weitere"
 
 [JBLocalMessage]
 TextTeamCaptured[0]="Team Rot ist eingefangen."
