@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonArenaLockdown
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBAddonArenaLockdown.uc,v 1.2 2006-12-08 21:12:54 jrubzjeknf Exp $
+// $Id: JBAddonArenaLockdown.uc,v 1.3 2007-03-25 12:23:51 jrubzjeknf Exp $
 //
 // The only way to get out of jail is by winning the arena match!
 // ============================================================================
@@ -55,10 +55,8 @@ function PostBeginPlay()
     ArenaLockdownRules.bCrossBaseSpawning = bCrossBaseSpawning;
     ArenaLockdownRules.SelectionMethod    = SelectionMethod;
   }
-  else {
+  else
     LOG("!!!!!"@name$".PostBeginPlay() : Fail to register the JBGameRulesArenaLockdown !!!!!");
-    Destroy();
-  }
 }
 
 
