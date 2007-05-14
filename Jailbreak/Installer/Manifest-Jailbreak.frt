@@ -33,4 +33,4 @@ Description=Une série de bonnes maps Jailbreak pour votre plus grande joie ludiq
 
 [GroupKeys]
 Caption=Configuration des touches Jailbreak par défaut
-Description=Configure les touches pour Jailbreak: EtoileNum active la Vue depuis l'Arène; PlusNum/MoinsNum augmente/diminue l'agressivité de l'équipe; SlashNum remet les ordres de l'équipe sur auto; PointNum permet de voir vos équipiers libres.
+Description=Configure les touches GreyStar pour la Vue depuis l'Arène, GreyPlus/GreyMinus pour changer les tactiques d'équipe, GreySlash pour les mettre en automatique, NumPadPeriod pour voir vos équipiers libres.

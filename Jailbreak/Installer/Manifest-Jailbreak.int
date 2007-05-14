@@ -33,4 +33,4 @@ Description=A suite of fine Jailbreak maps for your playing enjoyment. (Recommen
 
 [GroupKeys]
 Caption=Jailbreak Default Key Bindings
-Description=Sets up key bindings for Jailbreak: GreyStar to activate the Arena Live Feed; GreyPlus/GreyMinus to increase/decrease team aggressivity; GreySlash to reset team orders to auto; NumPadPeriod to view your free teammates.
+Description=Sets up key bindings for Jailbreak: GreyStar for Arena Live Feed; GreyPlus/GreyMinus to change team tactics; GreySlash for automatic team tactics; NumPadPeriod to view your free teammates.

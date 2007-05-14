@@ -33,4 +33,4 @@ Description=Eine Zusammenstellung von Jailbreak-Levels. (Empfohlen.)
 
 [GroupKeys]
 Caption=Jailbreak-Tastenzuordnungen
-Description=Konfiguriert Tastenzuordnungen: GreyStar aktiviert die Arena-Live-Übertragung; GreyPlus/GreyMinus erhöht/vermindet die Aggressivität der Team-Taktik; GreySlash wählt automatisch eine passende Team-Taktik; NumPadPeriod zum Beobachten freier Teammitglieder.
+Description==Setzt Tastenzuordnungen: GreyStar für Arena-Live-Übertragung; GreyPlus/GreyMinus wechselt Team-Taktik; GreySlash wählt Team-Taktik automatisch; NumPadPeriod zum Beobachten freier Teammitglieder.
