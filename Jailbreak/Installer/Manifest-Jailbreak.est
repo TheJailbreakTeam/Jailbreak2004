@@ -33,4 +33,4 @@ Description=Un grupo de mapas Jailbreak para empezar a jugar. (Recomendado)
 
 [GroupKeys]
 Caption=Controles predeterminados
-Description=Establece los controles de teclado: GreyStar para ver la Arena; GreyPlus/GreyMinus para cambiar tácticas de equipo; GreySlash para táctica automática; NumPadPeriod para ver a los compañeros libres.
+Description=Establece los controles de teclado: GreyStar para ver la Arena; GreyPlus/GreyMinus para cambiar tácticas de equipo; GreySlash para auto-táctica; NumPadPeriod para ver a compañeros libres.
