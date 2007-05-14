@@ -9,7 +9,7 @@ NoEscapeInOvertimeDesc="Cualquier jugador que intente fugarse durante la muerte 
 LockdownDelayText="Duración de la Prórroga"
 LockdownDelayDesc="Duración de la prórroga antes de que comienze la muerte súbita y los candados sean bloqueados."
 FriendlyName="Muerte Súbita"
-Description="En caso de agotarse el tiempo de prórroga, se bloquearán los candados de liberación y nadie podrá ser liberado."
+Description="En caso de agotarse el tiempo de prórroga, se bloquearán los Candados y nadie podrá ser liberado."
 
 [JBGUIPanelConfigOvertimeLockdown]
 LockdownDelayTrackBar.Caption="Duración de la Prórroga"

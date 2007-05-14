@@ -2,6 +2,6 @@
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonTally.JBAddonTally)
 
 [JBAddonTally]
-FriendlyName="Tabla de Peleas en la Cárcel"
+FriendlyName="Tabla Peleas en la Cárcel"
 Description="Muestra una tabla de calificaciones para las peleas en la cárcel."
 

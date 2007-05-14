@@ -2,8 +2,8 @@
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonAvenger.JBAddonAvenger)
 
 [JBAddonAvenger]
-PowerTimeMultiplierText="Multiplicador de Tiempo de Vengador"
-PowerTimeMultiplierDesc="Porcentaje de multiplicación del tiempo restante en la Arena para el tiempo del Vengador."
+PowerTimeMultiplierText="Multiplicador de Tiempo"
+PowerTimeMultiplierDesc="Porcentaje del tiempo restante en la Arena que será tiempo de Vengador."
 PowerTimeMaximumText="Tiempo Máximo de Vengador"
 PowerTimeMaximumDesc="Duración máxima de Vengador permitida."
 PowerComboIndexText="Poder del Vengador"
@@ -21,8 +21,8 @@ ComboBoxText[3]="Invisible"
 ComboBoxText[4]="Aleatorio"
 BerserkTimeMaxEditSlider.Caption="Tiempo Máximo de Vengador"
 BerserkTimeMaxEditSlider.Hint="Tiempo máximo en segundos para el Vengador."
-BerserkTimeMultiplierEditSlider.Caption="Multiplicador de Tiempo de Vengador"
-BerserkTimeMultiplierEditSlider.Hint="Porcentaje de tiempo restante en la Arena."
+BerserkTimeMultiplierEditSlider.Caption="Multiplicador de Tiempo"
+BerserkTimeMultiplierEditSlider.Hint="Porcentaje del tiempo restante en la Arena que será tiempo de Vengador."
 PowerUpTypeComboBox.Caption="Poder del Vengador"
 PowerUpTypeComboBox.Hint="Poder otorgado al vencedor del duelo."
 
