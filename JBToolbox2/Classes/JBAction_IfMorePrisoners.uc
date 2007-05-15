@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAction_IfMorePrisoners
 // Copyright (c) 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAction_IfMorePrisoners.uc,v 1.1 2006-11-29 19:14:28 jrubzjeknf Exp $
+// $Id: JBAction_IfMorePrisoners.uc,v 1.2 2007-04-22 14:12:01 wormbo Exp $
 // ============================================================================
 
 
@@ -20,7 +20,7 @@ var(Action) int PrisonerCount;
 // Variables
 // ============================================================================
 
-var JBInfoJail Jail;
+var array<JBInfoJail> Jails;
 
 
 // ============================================================================
@@ -33,19 +33,23 @@ var JBInfoJail Jail;
 
 function ProceedToNextAction(ScriptedController C)
 {
-  if (Jail == None && JailTag != 'None') {
-    ForEach C.AllActors(class'JBInfoJail', Jail, JailTag)
-      break;
+  local JBInfoJail thisJail;
+  local int i, Count;
+  
+  if (Jails.Length == 0) {
+    foreach C.AllActors(class'JBInfoJail', thisJail) {
+      if (thisJail.Tag == JailTag || thisJail.Name == JailTag)
+        Jails[Jails.Length] = thisJail;
+    }
+    if (Jails.Length == 0)
+      log(Self $ " - No JBInfoJail with tag or name " $ JailTag $ " found!", 'Warning');
   }
   C.ActionNum++;
-
-  if (Jail == None) {
-    warn("No JBInfoJail with tag " $ JailTag $ " found, breaking " $ C.SequenceScript);
-    ProceedToSectionEnd(C);
-    return;
-  }
-
-  if (Jail.CountPlayersTotal() <= PrisonerCount)
+  
+  while (i < Jails.Length && Count <= PrisonerCount)
+    Count += Jails[i++].CountPlayersTotal();
+    
+  if (Count <= PrisonerCount)
     ProceedToSectionEnd(C);
 }
 
@@ -80,5 +84,5 @@ function string GetActionString()
 
 defaultproperties
 {
-  ActionString="If more prisoners than"
+  ActionString  = "If more prisoners than"
 }
