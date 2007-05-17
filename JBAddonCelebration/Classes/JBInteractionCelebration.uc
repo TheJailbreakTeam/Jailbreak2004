@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.15 2004/06/02 09:48:25 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.16 2007-02-11 09:37:57 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -28,9 +28,6 @@ var() Material MeshShadowMaterial;      // the material used to display the play
 var   JBTauntingMeshActor PlayerMesh;   // the displayed player mesh
 var   JBGameRulesCelebration.TPlayerInfo PlayerInfo;
 var   name TauntAnim;                   // used to convert a string to a name to the taunt animation
-
-// TODO: remove debugging code before release
-var() editconst int DebugCounter;
 
 
 //=============================================================================
@@ -237,6 +234,24 @@ function RandomTaunt()
 
 
 //=============================================================================
+// GetPawn
+//
+// Returns the player's real pawn.
+// If the player is driving a vehicle, the driver is returned.
+//=============================================================================
+
+function Pawn GetPawn(JBTagPlayer TagPlayer)
+{
+  local Pawn thisPawn;
+  
+  thisPawn = TagPlayer.GetPawn();
+  if (Vehicle(thisPawn) != None)
+    return Vehicle(thisPawn).Driver;
+  return thisPawn;
+}
+
+
+//=============================================================================
 // SetupPlayerMesh
 //
 // Sets up the player mesh.
@@ -250,14 +265,14 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
   
   PlayerInfo = NewPlayerInfo;
   
-  if ( PlayerMesh == None && PlayerInfo.Player != None && (PlayerInfo.Player.GetPawn() != None
+  if ( PlayerMesh == None && PlayerInfo.Player != None && (GetPawn(PlayerInfo.Player) != None
       || !PlayerInfo.bSuicide) )
-    PlayerMesh = ViewportOwner.Actor.Spawn(class'JBTauntingMeshActor', PlayerInfo.Player.GetPawn(),,
+    PlayerMesh = ViewportOwner.Actor.Spawn(class'JBTauntingMeshActor', GetPawn(PlayerInfo.Player),,
         MeshLoc, rot(0,26000,0));
   else if ( PlayerMesh == None )
     return;
   else if ( PlayerInfo.Player != None )
-    PlayerMesh.SetOwner(PlayerInfo.Player.GetPawn());
+    PlayerMesh.SetOwner(GetPawn(PlayerInfo.Player));
   
   if ( PlayerMesh.Owner != None ) {
     PlayerMesh.LinkMesh(PlayerMesh.Owner.Mesh);
@@ -314,20 +329,6 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
 
 
 //=============================================================================
-// Initialized
-//
-// Debug logging to help tracking down the arana cam display bug and the
-// problem with multiple player meshes and/or capture messages.
-//=============================================================================
-
-function Initialized()
-{
-  default.DebugCounter++;
-  log("Initialized"@Name@DebugCounter, 'JBDebug');
-}
-
-
-//=============================================================================
 // Remove
 //
 // Restores the execution camera's caption text, cleans up actor references and
@@ -336,8 +337,6 @@ function Initialized()
 
 function Remove()
 {
-  log("Removing"@Name@DebugCounter, 'JBDebug');
-  
   if ( ExecutionCamera != None && SavedCameraMessage != "" )
     ExecutionCamera.Caption.Text = SavedCameraMessage;
   
