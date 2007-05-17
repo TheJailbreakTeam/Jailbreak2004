@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.69 2007-04-24 16:26:09 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.70 2007-05-10 19:51:05 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -878,13 +878,15 @@ private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferr
 
   P = Controller.Pawn;
 
-  if (Vehicle(Controller.Pawn) != None &&
-      Vehicle(Controller.Pawn).Driver != None)
-    P = Vehicle(Controller.Pawn).Driver;
-
-  if (P != None)
+  if (Vehicle(P) != None && Vehicle(P).Driver != None)
+    P = Vehicle(P).Driver;
+  
+  if (P != None) {
+    if (P.DrivenVehicle != None)
+      P.DrivenVehicle.KDriverLeave(True);
     P.PlayTeleportEffect(True, True);
-
+  }
+  
   while (P != None) {
     xPawn = xPawn(P);
 
