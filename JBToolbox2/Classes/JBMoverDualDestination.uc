@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMoverDualDestination
 // Copyright 2007 by Wormbo <wormbo@online.de>
-// $Id: JBMoverDualDestination.uc,v 1.2 2007-04-27 15:50:59 wormbo Exp $
+// $Id: JBMoverDualDestination.uc,v 1.3 2007-05-01 13:22:26 wormbo Exp $
 //
 // A mover with a multitude of improvements over standard movers:
 //
@@ -292,6 +292,9 @@ event BeginPlay()
       }
   }
   bAlternateMovement = False;
+  
+  if (ReturnGroup == '')
+    ReturnGroup = Name; // set unique return group name, Tag might not work here!
   
   Super.BeginPlay();
 }
