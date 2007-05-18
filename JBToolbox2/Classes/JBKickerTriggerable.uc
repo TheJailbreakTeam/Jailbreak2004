@@ -1,7 +1,7 @@
 // ============================================================================
 // JBKickerTriggerable
 // Copyright 2007 by Wormbo <wormbo@online.de>
-// $Id: JBKickerTriggerable.uc,v 1.1 2007-05-01 13:22:26 wormbo Exp $
+// $Id: JBKickerTriggerable.uc,v 1.2 2007-05-05 10:52:32 wormbo Exp $
 //
 // A triggerable xKicker with several additional features:
 //
@@ -37,6 +37,8 @@ var(xKicker) bool bMirrorKickIfBehind;
 var(xKicker) Sound KickSound;
 var(xKicker) int KickDamage;
 var(xKicker) class<DamageType> KickDamageType;
+var(xKicker) class<Actor> KickEffectClass;
+var(xKicker) color KickScreenFlash;
 
 
 // ============================================================================
@@ -163,12 +165,12 @@ event Touch(Actor Other)
 event PostTouch(Actor Other)
 {
   local bool bWasFalling;
-  local vector Push, KickNormal, KickDir;
+  local vector Push, KickNormal, KickAreaWidth, KickAreaHeight, KickDir, Flash, EffectLocation;
   local float PMag;
   
   bWasFalling = Other.Physics == PHYS_Falling;
   
-  KickNormal = vector(Rotation);
+  GetAxes(Rotation, KickNormal, KickAreaWidth, KickAreaHeight);
   KickDir = KickVelocity;
   if (bMirrorKickIfBehind && KickNormal dot (Other.Location - Location) < 0) {
     KickDir -= 2 * KickNormal * (KickNormal dot KickDir);
@@ -209,8 +211,22 @@ event PostTouch(Actor Other)
   if (KickDamage > 0 && KickDamageType != None) {
     Other.TakeDamage(KickDamage, Other.Instigator, Other.Location - vector(Rotation) * Other.CollisionRadius, vect(0,0,0), KickDamageType);
   }
-  if (Other != None && KickSound != None) {
-    Other.PlaySound(KickSound,, TransientSoundVolume,, TransientSoundRadius);
+  if (Other != None) {
+    if (KickScreenFlash.A > 0 && Pawn(Other) != None && PlayerController(Pawn(Other).Controller) != None && !PlayerController(Pawn(Other).Controller).bBehindView) {
+      Flash.X = KickScreenFlash.R;
+      Flash.Y = KickScreenFlash.G;
+      Flash.Z = KickScreenFlash.B;
+      PlayerController(Pawn(Other).Controller).ClientFlash(float(KickScreenFlash.A) / 255.0, Flash * 3.9215686);    // Flash * 1000 / 255
+    }
+    if (KickEffectClass != None) {
+      KickDir = Other.Location - Location;
+      EffectLocation  = Location;
+      EffectLocation += KickAreaWidth  * FClamp(KickAreaWidth  dot KickDir, -CollisionRadius, CollisionRadius);
+      EffectLocation += KickAreaHeight * FClamp(KickAreaHeight dot KickDir, -CollisionHeight, CollisionHeight);
+      Spawn(KickEffectClass, Other,, EffectLocation, rotator(KickNormal));
+    }
+    if (KickSound != None)
+      Other.PlaySound(KickSound,, TransientSoundVolume,, TransientSoundRadius);
   }
 }
 
