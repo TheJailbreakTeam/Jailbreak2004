@@ -193,6 +193,10 @@ New Scripts
 - JBAction_IfMorePrisoners
     Conditionally enters a script section if the jail contains more than the
     given number of players.
+- JBAction_ResetActor
+    Selectively resets actors specified through tag and/or class.
+- JBAction_UntriggerEvent
+    Untriggers an event. (opposite of ACTION_TriggerEvent)
 - JBAction_WaitForCondition
     Waits for a TriggeredCondition to reach a certain state; useful for
     proximity-triggered doors.
