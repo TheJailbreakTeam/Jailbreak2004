@@ -9,7 +9,7 @@ MaxAmmoCheckDesc="Maximum de munitions pour l'arme du Vengeur."
 CanThrowText="L'arme peut être lâchée"
 CanThrowCheckDesc="Le Vengeur peut jeter l'arme ou la perdre s'il meurt."
 FriendlyName="Butin de l'Arène"
-Description="Récompense le vainqueur d'un Combat dans l'Arène par une arme à retourner contre ceux qui l'ont emprisonné!"
+Description="Récompense le vainqueur d'un Combat dans l'Arène par une arme à retourner contre ceux qui l'ont emprisonné !"
 
 [JBGUIPanelConfigSpoils]
 CheckBoxCanThrow.Caption="L'arme peut être lâchée"

@@ -17,11 +17,11 @@ Description="Les joueurs libérés de prison sont protégés du tir ennemi."
 [JBGUIPanelConfigProtection]
 LlamaizeCampersCheckBox.Caption="Campeurs de prison changés en lamas"
 LlamaizeCampersCheckBox.Hint="Infliger des dégâts fatals à un joueur protégé vous change en lama."
+OptionsProtectionType.OptionText=("Pas de dégâts","Désactivée après dégâts")
+OptionsProtectionType.OptionHint=("Vous ne pouvez infliger de dégâts.","Désactivée si vous infligez des dégâts.")
+OptionsProtectionType.GroupCaption="Type de protection :"
 ProtectArenaWinnerCheckBox.Caption="Protège le vainqueur de l'arène"
 ProtectArenaWinnerCheckBox.Hint="Les joueurs libérés par leur victoire dans l'arène sont protégés."
 TrackbarProtectionTime.Caption="Durée de la protection"
 TrackbarProtectionTime.Hint="Durée de la protection en secondes."
-OptionsProtectionType.GroupCaption="Type de protection:"
-OptionsProtectionType.OptionText=("Pas de dégâts","Désactivée après dégâts")
-OptionsProtectionType.OptionHint=("Vous ne pouvez infliger de dégâts","Désactivée si vous infligez des dégâts.")
 

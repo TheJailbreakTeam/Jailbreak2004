@@ -11,29 +11,29 @@ RewardShieldDesc="Les joueurs qui tuent un lama gagnent autant en bouclier."
 MaximumLlamaDurationText="Durée maximum d'une chasse au lama"
 MaximumLlamaDurationDesc="Durée de vie maximum d'un lama. Le lama meurt s'il n'est pas tué avant la fin de la chasse."
 LlamaizeOnJailDisconnectText="Rendre lama tout prisonnier se déconnectant"
-LlamaizeOnJailDisconnectDesc="Rendre lama les joueurs qui tentent de se déconnecter pour échapper à la prison."
+LlamaizeOnJailDisconnectDesc="Rendre lamas les joueurs qui tentent de se déconnecter pour échapper à la prison."
 FriendlyName="Chasse au Lama"
 Description="Transforme les tricheurs en lamas et permet aux autres joueurs de leur faire joyeusement la chasse."
 
 [JBDamageTypeLlamaDied]
 DeathString="%o ne voulait plus jouer au lama."
-FemaleSuicide="%o ne voulait plus jouer à la femelle lama."
+FemaleSuicide="%o ne voulait plus jouer au lama femelle."
 MaleSuicide="%o ne voulait plus jouer au lama."
 
 [JBDamageTypeLlamaLaser]
-DeathString="%o a été roti"
-FemaleSuicide="%o a été rotie"
-MaleSuicide="%o a été roti"
+DeathString="%o a été roti."
+FemaleSuicide="%o a été rotie."
+MaleSuicide="%o a été roti."
 
 [JBDamageTypeLlamaLightning]
-DeathString="%o a été frappé par la foudre"
-FemaleSuicide="%o été frappée par la foudre"
-MaleSuicide="%o a été frappé par la foudre"
+DeathString="%o a été frappé par la foudre."
+FemaleSuicide="%o été frappée par la foudre."
+MaleSuicide="%o a été frappé par la foudre."
 
 [JBGUIPanelConfigLlama]
 LlamaKillRewardLabel.Caption="Récompenses pour avoir tué un Lama :"
 chkLlamaizeOnJailDisconnect.Caption="Rendre lama tout prisonnier se déconnectant"
-chkLlamaizeOnJailDisconnect.Hint="Rendre lama les joueurs qui tentent de se déconnecter pour échapper à la prison."
+chkLlamaizeOnJailDisconnect.Hint="Rendre lamas les joueurs qui tentent de se déconnecter pour échapper à la prison."
 trkMaximumLlamaDuration.Caption="Durée de la Chasse au Lama"
 trkMaximumLlamaDuration.Hint="Durée maximum d'une chasse au lama."
 trkRewardAdrenaline.Caption="Adrénaline"
@@ -44,13 +44,13 @@ trkRewardShield.Caption="Bouclier"
 trkRewardShield.Hint="Bouclier obtenu pour avoir tué un lama."
 
 [JBLlamaHelpMessage]
-HelpMessageLines[0]="Syntaxe: 'mutate llama <parameter>' ou 'mutate unllama <playername>'"
-HelpMessageLines[1]=" <parameter> peut être le nom d'un joueur ou 'config' suivi d'un second paramètre."
+HelpMessageLines[0]="Syntaxe: 'mutate llama <paramètre>' ou 'mutate unllama <nom du joueur>'"
+HelpMessageLines[1]=" <paramètre> peut être le nom d'un joueur ou 'config' suivi d'un second paramètre."
 HelpMessageLines[2]=" Des paramètres additionnels pour 'config' peuvent être 'health', 'shield', 'adrenaline' et 'duration', chacun suivi de sa nouvelle valeur."
 
 [JBLlamaMessage]
-TextLlamaHuntStart="Tuez %llama% pour une petite récompense."
-TextLlamaCaught="%llama% s'est fait choper par %killer%!"
-TextLlamaDied="%llama% s'est fait sauter!"
-TextLlamaDisconnected="%llama% s'est sauvé!"
+TextLlamaHuntStart="Tuez %llama% et vous serez récompensés."
+TextLlamaCaught="%llama% s'est fait choper par %killer% !"
+TextLlamaDied="%llama% s'est fait sauter !"
+TextLlamaDisconnected="%llama% a décampé !"
 

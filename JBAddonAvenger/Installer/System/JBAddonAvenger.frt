@@ -4,7 +4,7 @@ Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonAvenger.JBAddonAveng
 [JBAddonAvenger]
 PowerTimeMultiplierText="Multiplicateur temps Vengeur"
 PowerTimeMultiplierDesc="Pourcentage de multiplication du temps restant dans l'arène pour la durée Vengeur."
-PowerTimeMaximumText="Temps Maximum Vengeur"
+PowerTimeMaximumText="Temps maximum Vengeur"
 PowerTimeMaximumDesc="Durée maximum permise en Vengeur."
 PowerComboIndexText="Pouvoir du Vengeur"
 PowerComboIndexDesc="Combo accordé au Vengeur."
@@ -28,5 +28,5 @@ PowerUpTypeComboBox.Hint="Le bonus obtenu par le vainqueur dans l'arène."
 
 [JBLocalMessageAvenger]
 PreAvengerMessage="Vous serez Vengeur pendant"
-PostAvengerMessage="secondes!"
+PostAvengerMessage="secondes !"
 
