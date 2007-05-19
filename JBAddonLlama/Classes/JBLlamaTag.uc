@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.17 2007-02-16 10:03:37 wormbo Exp $
+// $Id: JBLlamaTag.uc,v 1.18 2007-04-02 21:18:31 jrubzjeknf Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -285,15 +285,15 @@ simulated function Tick(float DeltaTime)
     MyController.SetRotation(MyController.Rotation + ViewRotationOffset);
     bShiftedView = True;
   }
-  else if ( bShiftedView ) {
-    if ( MyController != None )
+  else if (bShiftedView) {
+    if (MyController != None)
       Pawn(Owner).Controller.SetRotation(MyController.Rotation - ViewRotationOffset);
     bShiftedView = False;
   }
 
   Pawn(Owner).SetHeadScale(0.01);
 
-  if ( LocalHUD != None ) {
+  if (LocalHUD != None) {
     CurrentCrosshair = Clamp(LocalHUD.CrosshairStyle, 0, LocalHUD.Crosshairs.Length - 1);
     LocalHUD.Crosshairs[CurrentCrosshair].PosX
         = 0.5 + 0.05 * Sin(Level.TimeSeconds * 3.0);
@@ -301,12 +301,13 @@ simulated function Tick(float DeltaTime)
         = 0.5 + 0.05 * Cos(Level.TimeSeconds * 4.0);
   }
 
-  if ( MyController != None && MyController.Pawn != None
-      && Trail != None && Trail.Owner != MyController.Pawn )
+  if (MyController != None && MyController.Pawn != None && Trail != None && Trail.Owner != MyController.Pawn)
     Trail.SetOwner(MyController.Pawn);
 
-  if ( Role == ROLE_Authority
-      && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration ) {
+  if (Role == ROLE_Authority && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration) {
+    if (Pawn(Owner).DrivenVehicle != None)
+      Pawn(Owner).DrivenVehicle.KDriverLeave(true);
+    
     if (Pawn(Owner).Controller != None )
       Spawn(class'JBLlamaKillAutoSelect', Pawn(Owner).Controller);
     else
