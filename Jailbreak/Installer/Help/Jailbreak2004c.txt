@@ -38,6 +38,8 @@ Gameplay
 - JBAddonLlama doesn't work properly with Vehicles.
 - Staying in a vehicle after the round ends causes a death message on the
   Celebration screen.
+- Killing the last player on the enemy team in a vehicle or turret causes the
+  Cebebration screen to show the vehicle instead of the player.
 
 
 Bot Support
@@ -190,9 +192,11 @@ New Executions
 
 New Scripts
 -----------
+- JBAction_DisplayMessage
+    Sends a message to free, jailed and/or arena players of one or both teams.
 - JBAction_IfMorePrisoners
-    Conditionally enters a script section if the jail contains more than the
-    given number of players.
+    Conditionally enters a script section if one or more jails contains more
+    than the given number of players.
 - JBAction_ResetActor
     Selectively resets actors specified through tag and/or class.
 - JBAction_UntriggerEvent
