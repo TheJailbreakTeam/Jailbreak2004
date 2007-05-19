@@ -6,6 +6,19 @@
 //
 // Implements a "Get Out of Jail Free" card
 //
+// TODO:
+//
+// bot support
+// remove jailcard when freed by teammates
+// beacon
+// fix annoucement colors
+// fix HUD
+// fix pickup placement
+// audio announcement
+// model jailcard pickup + weapon
+// respawn option y/n
+// (re)spawn timer
+//
 // CHANGELOG:
 // 14 jan 2007 - Changed friendly name to "JailCard"
 // 15 jan 2007 - Seperated code for finding a proper JailCard spawnpoint and
@@ -209,7 +222,9 @@ function ClearCards()
     if(SpawnedCardPickups.Length > 0) {
         for (i = 0; i < SpawnedCardPickups.Length; i++)
         {
-            SpawnedCardPickups[i].DeleteDecoration(none, none);
+            if (Level.NetMode != NM_DedicatedServer)
+                SpawnedCardPickups[i].DeleteDecoration(none, none);
+
             SpawnedCardPickups[i].Destroy();
         }
 

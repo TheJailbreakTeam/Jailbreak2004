@@ -22,6 +22,8 @@
 //               JailCard (weapon) code
 //               Fixed a bug in PreventDeath that caused dropped pickups not to
 //               register with the SpawnedPickups list.
+// 19 may 2007 - Small change in NotifyPlayerJailed because of changes in
+//               JBWeaponJailCard
 // ============================================================================
 
 class JBGameRulesJailCard extends JBGameRules;
@@ -214,18 +216,47 @@ function bool PreventDeath (Pawn Killed, Controller Killer, class<DamageType> my
 function NotifyPlayerJailed(JBTagPlayer TagPlayer)
 {
     local JBWeaponJailCard myWeapon;
+    local Pawn myP;
 
     Super.NotifyPlayerJailed(TagPlayer);
 
     if(HasJailCard(TagPlayer.GetController().PlayerReplicationInfo) > -1)
     {
+        myP = TagPlayer.GetController().Pawn;
         myWeapon = Spawn(class'JBAddonJailCard.JBWeaponJailCard');
-        myWeapon.setGameRules(Self);
-        myWeapon.GiveTo(TagPlayer.GetController().Pawn);
+        myWeapon.setVars(Self, myP);
+        myWeapon.GiveTo(myP);
 
         if(PlayerController(TagPlayer.GetController()) != none)
            PlayerController(TagPlayer.GetController()).ReceiveLocalizedMessage(MessageClass, 300, TagPlayer.GetController().PlayerReplicationInfo);
     }
+}
+
+
+// ============================================================================
+// NotifyPlayerReleased
+//
+// We remove any jailcards the player may be holding
+// ============================================================================
+
+function NotifyPlayerReleased(JBTagPlayer TagPlayer, JBInfoJail Jail)
+{
+  local Inventory inv;
+  local Pawn myPawn;
+
+  Super.NotifyPlayerReleased(TagPlayer, Jail);
+  log ("oh noes!");
+  myPawn = TagPlayer.GetController().Pawn;
+
+  for( inv=myPawn.Inventory;inv!=none;inv=inv.Inventory )
+  {
+    if( inv.IsA('JBWeaponJailCard') )
+    {
+        myPawn.DeleteInventory(inv);
+        myPawn.NextWeapon();
+        break;
+    }
+  }
 }
 
 
