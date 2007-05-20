@@ -27,7 +27,7 @@ MaleSuicide="%o a été roti."
 
 [JBDamageTypeLlamaLightning]
 DeathString="%o a été frappé par la foudre."
-FemaleSuicide="%o été frappée par la foudre."
+FemaleSuicide="%o a été frappée par la foudre."
 MaleSuicide="%o a été frappé par la foudre."
 
 [JBGUIPanelConfigLlama]
@@ -44,7 +44,7 @@ trkRewardShield.Caption="Bouclier"
 trkRewardShield.Hint="Bouclier obtenu pour avoir tué un lama."
 
 [JBLlamaHelpMessage]
-HelpMessageLines[0]="Syntaxe: 'mutate llama <paramètre>' ou 'mutate unllama <nom du joueur>'"
+HelpMessageLines[0]="Syntaxe : 'mutate llama <paramètre>' ou 'mutate unllama <nom du joueur>'"
 HelpMessageLines[1]=" <paramètre> peut être le nom d'un joueur ou 'config' suivi d'un second paramètre."
 HelpMessageLines[2]=" Des paramètres additionnels pour 'config' peuvent être 'health', 'shield', 'adrenaline' et 'duration', chacun suivi de sa nouvelle valeur."
 
