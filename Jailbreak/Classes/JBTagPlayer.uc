@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.70 2007-05-10 19:51:05 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.71 2007-05-17 10:54:00 wormbo Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -112,6 +112,7 @@ var private int Spree;                    // used to carry sprees over rounds
 var private bool bReceivedPing;           // whether player completed loading
 var private bool bRecoverSpree;           // recover spree after a round
 var private bool bCanBeBaseForPawns;      // can be base for other players
+var private bool bCreatedJailFightGun;    // used to remove the gun again
 
 var private float TimeUpdateLocation;     // client-side location update time
 var private float VelocityPawn;           // replicated velocity of pawn
@@ -815,9 +816,16 @@ function SetJailInventory()
     if  (P.Weapon == None)
       Controller.ClientSwitchToBestWeapon();
 
+
+    log (class'JBBotSquadJail'.static.GetPrimaryWeaponFor(P));
+
     if (Jailbreak(Level.Game).bArenaMutatorActive &&
-        Jailbreak(Level.Game).bEnableJailFights)
+        Jailbreak(Level.Game).bEnableJailFights &&
+        (class'JBBotSquadJail'.static.CountWeaponsFor(P) == 1 ||
+         class'JBBotSquadJail'.static.GetPrimaryWeaponFor(P) == None)) {
+      bCreatedJailFightGun = True;
       P.CreateInventory("XWeapons.ShieldGun");
+    }
   }
 }
 
@@ -844,8 +852,7 @@ function UnsetJailInventory()
     if (DeathMatch(Level.Game).bAllowTrans)
       P.CreateInventory("XWeapons.TransLauncher");
 
-    if (Jailbreak(Level.Game).bArenaMutatorActive &&
-        Jailbreak(Level.Game).bEnableJailFights) {
+    if (bCreatedJailFightGun) {
       if (class'JBBotSquadJail'.static.CountWeaponsFor(P) > 1)
         for (thisInventory = P.Inventory; thisInventory != None; thisInventory = nextInventory) {
           nextInventory = thisInventory.Inventory;
@@ -880,13 +887,13 @@ private function RestartPlayer(ERestart RestartCurrent, optional name TagPreferr
 
   if (Vehicle(P) != None && Vehicle(P).Driver != None)
     P = Vehicle(P).Driver;
-  
+
   if (P != None) {
     if (P.DrivenVehicle != None)
       P.DrivenVehicle.KDriverLeave(True);
     P.PlayTeleportEffect(True, True);
   }
-  
+
   while (P != None) {
     xPawn = xPawn(P);
 
