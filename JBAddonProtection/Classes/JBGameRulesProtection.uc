@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.10 2004-05-22 22:00:49 tarquin Exp $
+// $Id: JBGameRulesProtection.uc,v 1.11 2006-11-04 09:55:09 jrubzjeknf Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -173,18 +173,27 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 // ============================================================================
 // GiveProtectionTo
 //
-// Protect a player, given his JBTagPlayer.
+// Protect a player, given his JBTagPlayer. Do not protect him if he's a llama.
 // ============================================================================
 
 function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
 {
     local JBInfoProtection MyProtection;
     local Pawn P;
+    local Inventory I;
 
     P = TagPlayer.GetController().Pawn; // for make sure no GetPawn() here
     if((P != None) && (P.Health > 0) && (!IsProtected(P)))
     {
+        if (Vehicle(P) != None && Vehicle(P).Driver != None)
+          P = Vehicle(P).Driver;
+
+        for (I = P.Inventory; I != None; I = I.Inventory)
+            if (I.IsA('JBLlamaTag'))
+                return;
+
         MyProtection = Spawn(class'JBInfoProtection', P);
+
         if((MyProtection != None) && (bProtectNow))
             MyProtection.StartProtectionLife();
     }
@@ -249,7 +258,8 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
     if( class'JBAddonProtection'.default.bLlamaizeCampers == True
         && InstigatedBy != None
         && InstigatedBy != Injured
-        && InstigatedBy.Controller != None ) {
+        && InstigatedBy.Controller != None
+        && Injured.GetTeamNum() != InstigatedBy.GetTeamNum() ) {
       if( MyProtection.KeepDamageScore(Damage, Injured) ) {
         Llamaize(InstigatedBy.Controller);
       }

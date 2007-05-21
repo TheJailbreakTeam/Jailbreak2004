@@ -1,7 +1,7 @@
 //=============================================================================
 // JBLlamaTag
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBLlamaTag.uc,v 1.18 2007-04-02 21:18:31 jrubzjeknf Exp $
+// $Id: JBLlamaTag.uc,v 1.19 2007-05-19 21:06:23 wormbo Exp $
 //
 // The JBLlamaTag is added to a llama's inventory to identify him or her as the
 // llama and to handle llama effects.
@@ -70,12 +70,15 @@ simulated event PostBeginPlay()
   Super.PostBeginPlay();
 
   LlamaStartTime = Level.TimeSeconds;
+
   if ( Role == ROLE_Authority )
     LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
+
   HUDOverlay = class'JBInterfaceLlamaHUDOverlay'.static.FindLlamaHUDOverlay(Self);
   LlamaArrow = Spawn(class'JBLlamaArrow', Self,,,rot(0,0,0));
 
   PlayerControllerLocal = Level.GetLocalPlayerController();
+
   if ( PlayerControllerLocal != None && PlayerControllerLocal.MyHud != None )
     LocalScoreboard = JBInterfaceScores(PlayerControllerLocal.MyHud.ScoreBoard);
 }
@@ -105,10 +108,18 @@ simulated event PostNetBeginPlay()
 
 function GiveTo(Pawn Other, optional Pickup Pickup)
 {
+  local Info I;
+
   if ( Vehicle(Other) != None && Vehicle(Other).Driver != None )
     Other = Vehicle(Other).Driver;
 
   Super.GiveTo(Other, Pickup);
+
+  foreach DynamicActors(class'Info', I)
+    if (I.IsA('JBInfoProtection') && I.Owner == Owner) {
+      I.Destroy();
+      break;
+    }
 
   Trail = Spawn(class'JBLlamaTrailer', Owner);
 
@@ -307,7 +318,7 @@ simulated function Tick(float DeltaTime)
   if (Role == ROLE_Authority && Level.TimeSeconds - LlamaStartTime > class'JBAddonLlama'.default.MaximumLlamaDuration) {
     if (Pawn(Owner).DrivenVehicle != None)
       Pawn(Owner).DrivenVehicle.KDriverLeave(true);
-    
+
     if (Pawn(Owner).Controller != None )
       Spawn(class'JBLlamaKillAutoSelect', Pawn(Owner).Controller);
     else
