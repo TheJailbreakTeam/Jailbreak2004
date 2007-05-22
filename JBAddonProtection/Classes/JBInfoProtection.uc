@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBInfoProtection.uc,v 1.9 2004/05/28 15:44:33 mychaeel Exp $
+// $Id: JBInfoProtection.uc,v 1.10 2004-08-09 20:51:42 mychaeel Exp $
 //
 // Protection of protection add-on.
 // ============================================================================
@@ -31,7 +31,7 @@ var private Pawn ProtectedPawn;
 var private int   ProtectionTime;    // protection time read from config
 var private float EndProtectionTime; // level time at which protection ends
 var private float ProtectionCharge;
-var private int   ProtectedPawnAbsorbedDamage; // keeps score of how much 
+var private int   ProtectedPawnAbsorbedDamage; // keeps score of how much
   // damage protection has absorbed, to decide whether to make attacker llama
 
 var private JBInterfaceHud LocalHUD;
@@ -42,13 +42,26 @@ var private HUDBase.NumericWidget ProtectionDigits;
 // ============================================================================
 // PostBeginPlay
 //
-// Initializes replicated variables and spawns the visual effect.
+// Initializes replicated variables and spawns the visual effect. Assigns
+// itself to a vehicle's driver if the pawn is a vehicle. Prevent creation if
+// the player is a llama.
 // ============================================================================
 
 event PostBeginPlay()
 {
+    local Inventory I;
+
     ProtectedPawn = Pawn(Owner);
     RelatedPRI = ProtectedPawn.PlayerReplicationInfo;
+
+    if (Vehicle(ProtectedPawn) != None && Vehicle(ProtectedPawn).Driver != None)
+        ProtectedPawn = Vehicle(ProtectedPawn).Driver;
+
+    for (I = ProtectedPawn.Inventory; I != None; I = I.Inventory)
+        if (I.IsA('JBLlamaTag')) {
+            Destroy();
+            return;
+        }
 
     if(RelatedPRI.Team.TeamIndex == 0)
              ProtectionEffect = Spawn(Class'JBxEmitterProtectionRed',  ProtectedPawn, , ProtectedPawn.Location, ProtectedPawn.Rotation);
@@ -68,7 +81,8 @@ simulated event PostNetBeginPlay()
 
     PlayerControllerLocal = Level.GetLocalPlayerController();
     if (PlayerControllerLocal != None &&
-        PlayerControllerLocal.Pawn == ProtectedPawn)
+        (PlayerControllerLocal.Pawn == ProtectedPawn ||
+        (Vehicle(PlayerControllerLocal.Pawn) != None && Vehicle(PlayerControllerLocal.Pawn).Driver == ProtectedPawn)))
     {
         LocalHUD = JBInterfaceHud(PlayerControllerLocal.myHUD);
         LocalHUD.RegisterOverlay(Self);
@@ -148,9 +162,9 @@ function bool KeepDamageScore(int Damage, Pawn myPawn)
     ProtectedPawnAbsorbedDamage = 0;
     return True;
   }
-  return False; 
+  return False;
 }
-    
+
 
 // ============================================================================
 // Destroyed

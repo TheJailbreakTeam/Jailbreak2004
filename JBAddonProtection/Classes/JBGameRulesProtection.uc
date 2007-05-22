@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.11 2006-11-04 09:55:09 jrubzjeknf Exp $
+// $Id: JBGameRulesProtection.uc,v 1.12 2007-05-21 21:09:29 jrubzjeknf Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -173,25 +173,18 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
 // ============================================================================
 // GiveProtectionTo
 //
-// Protect a player, given his JBTagPlayer. Do not protect him if he's a llama.
+// Protect a player, given his JBTagPlayer.
 // ============================================================================
 
 function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
 {
     local JBInfoProtection MyProtection;
     local Pawn P;
-    local Inventory I;
 
-    P = TagPlayer.GetController().Pawn; // for make sure no GetPawn() here
+    P = TagPlayer.GetPawn();
+
     if((P != None) && (P.Health > 0) && (!IsProtected(P)))
     {
-        if (Vehicle(P) != None && Vehicle(P).Driver != None)
-          P = Vehicle(P).Driver;
-
-        for (I = P.Inventory; I != None; I = I.Inventory)
-            if (I.IsA('JBLlamaTag'))
-                return;
-
         MyProtection = Spawn(class'JBInfoProtection', P);
 
         if((MyProtection != None) && (bProtectNow))
@@ -208,7 +201,10 @@ function GiveProtectionTo(JBTagPlayer TagPlayer, optional bool bProtectNow)
 
 function bool IsProtected(Pawn thisPawn)
 {
-  return GetMyProtection(thisPawn.PlayerReplicationInfo) != None;
+    if (thisPawn == None)
+        return False;
+
+    return GetMyProtection(thisPawn.PlayerReplicationInfo) != None;
 }
 
 
@@ -251,7 +247,7 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
 {
   local JBInfoProtection MyProtection;
 
-  if( IsProtected(Injured) )
+  if( Vehicle(Injured) == None && IsProtected(Injured) )
   {
     MyProtection = GetMyProtection(Injured.PlayerReplicationInfo);
 
@@ -287,6 +283,39 @@ function int NetDamage(int OriginalDamage, int Damage, Pawn Injured, Pawn Instig
   }
 
   return super.NetDamage(OriginalDamage, Damage, Injured, InstigatedBy, HitLocation, Momentum, DamageType);
+}
+
+
+//=============================================================================
+// PreventDeath
+//
+// Eject protected players from their destroyed vehicle.
+//=============================================================================
+
+function bool PreventDeath(Pawn Killed, Controller Killer, class<DamageType> damageType, vector HitLocation)
+{
+    local bool bSuper;
+    local Vehicle V;
+    local int i;
+    local ONSWeaponPawn ONSWP;
+
+    bSuper = Super.PreventDeath(Killed, Killer, damageType, HitLocation);
+
+    if (!bSuper && Vehicle(Killed) != None) {
+        V = Vehicle(Killed);
+
+        if (IsProtected(V))
+            V.EjectDriver();
+
+        if (ONSVehicle(V) != None)
+            for (i = 0; i < ONSVehicle(V).WeaponPawns.Length; i++) {
+                ONSWP = ONSVehicle(V).WeaponPawns[i];
+                if (ONSWP != None && ONSWP.Driver != None && IsProtected(ONSWP))
+                      ONSWP.EjectDriver();
+            }
+    }
+
+    return bSuper;
 }
 
 

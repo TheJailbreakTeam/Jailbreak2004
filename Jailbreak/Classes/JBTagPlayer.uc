@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.71 2007-05-17 10:54:00 wormbo Exp $
+// $Id: JBTagPlayer.uc,v 1.72 2007-05-21 15:20:25 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -748,9 +748,17 @@ function NotifyJailLeft(JBInfoJail JailPrev)
 
 function NotifyJailOpening()
 {
-  if (Controller.Pawn != None &&
-      Controller.Pawn.Health < Controller.Pawn.Default.Health)
-    Controller.Pawn.Health = Controller.Pawn.Default.Health;
+  local Pawn P;
+
+  P = Controller.Pawn;
+
+  if (P != None) {
+    if (Vehicle(P) != None && Vehicle(P).Driver != None)
+      P = Vehicle(P).Driver;
+
+    if (P.Health < P.Default.Health)
+      P.Health = P.Default.Health;
+  }
 
   if (PlayerController(Controller) != None)
     Jailbreak(Level.Game).ResetViewTarget(PlayerController(Controller));
@@ -815,9 +823,6 @@ function SetJailInventory()
 
     if  (P.Weapon == None)
       Controller.ClientSwitchToBestWeapon();
-
-
-    log (class'JBBotSquadJail'.static.GetPrimaryWeaponFor(P));
 
     if (Jailbreak(Level.Game).bArenaMutatorActive &&
         Jailbreak(Level.Game).bEnableJailFights &&
@@ -1408,7 +1413,7 @@ simulated function float RateViewOnPlayer(vector LocationViewpoint)
 simulated function PlayerReplicationInfo GetPlayerReplicationInfo() {
   return PlayerReplicationInfo(Keeper); }
 simulated function Pawn GetPawn() {
-  return Pawn; }
+  if (Pawn == None && Controller != None) Pawn = Controller.Pawn; return Pawn; }
 simulated function Controller GetController() {
   return Controller; }
 simulated function TeamInfo GetTeam() {
