@@ -36,6 +36,8 @@ Gameplay
 - Players keep multikilling in jail while jailfighting after they had a multi-
   kill in freedom.
 - JBAddonLlama doesn't work properly with Vehicles.
+- JBAddonProtection doesn't work properly with Vehicles.
+- JBAddonProtection works for llamas.
 - Staying in a vehicle after the round ends causes a death message on the
   Celebration screen.
 - Killing the last player on the enemy team in a vehicle or turret causes the
