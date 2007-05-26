@@ -3,7 +3,8 @@ html {
 body {
 	margin:0px;
 	padding:0px;
-  font-family: Verdana, Arial, sans-serif;
+	font-family: "Arial", "sans-serif";
+	font-size:95%;
 }
 #header {
 	text-align:right;
@@ -84,10 +85,13 @@ em.em2 {
 	font-style:normal;
 }
 dt {
-	font-family:monospace;
+	font-family:"Courier New", monospace;
 }
 dd {
 	margin-bottom:1ex;
+}
+li {
+	margin:8px;
 }
 
 /* ================= fancy effects */

@@ -9,7 +9,7 @@ a {
 	display:none;
 }
 h1, h2, h3, h4, h5 {
-  font-family: Arial, sans-serif;
+  font-family: "Arial", "sans-serif";
 	margin:0px;
 	font-weight:bold;
 	letter-spacing:0.02em;
@@ -19,7 +19,7 @@ em.em2 {
 	font-style:normal;
 }
 dt {
-	font-family:monospace;
+	font-family:"Courier New", monospace;
 }
 
 div.image {
