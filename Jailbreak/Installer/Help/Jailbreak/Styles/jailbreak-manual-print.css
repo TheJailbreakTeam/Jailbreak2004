@@ -11,6 +11,7 @@ a {
 h1, h2, h3, h4, h5 {
   font-family: "Arial", "sans-serif";
 	margin:0px;
+	padding-top:1em;
 	font-weight:bold;
 	letter-spacing:0.02em;
 }

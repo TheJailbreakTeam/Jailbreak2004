@@ -67,6 +67,7 @@ h1 + p:first-letter {
 }
 h1, h2, h3, h4 {
 	margin:0px;
+	padding-top:1em;
 	font-weight:bold;
 	letter-spacing:0.02em;
 }
