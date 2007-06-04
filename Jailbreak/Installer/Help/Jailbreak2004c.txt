@@ -119,6 +119,7 @@ Gameplay
 User Interface
 ==============
 
+- Spanish and Italian are now supported, next to German and French!
 175858 - "Arenamatch starts" message is more obvious for prisoners.
 155433 - Uncheck and disable "Only Official Maps" checkbox on map selection
          page.
