@@ -1,0 +1,36 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonAvenger.JBAddonAvenger)
+
+[JBAddonAvenger]
+#
+PowerTimeMultiplierText="Moltiplicatore tempo di avenger"
+#
+PowerTimeMultiplierDesc="Percentuale con cui moltiplicare il tempo rimanente dell'arena per impostare il tempo di avenger."
+#
+PowerTimeMaximumText="Massimo tempo di avenger"
+#
+PowerTimeMaximumDesc="Massimo tempo di avenger permesso."
+PowerComboIndexText="Potere dell'avenger"
+PowerComboIndexDesc="Combo permessa all' avenger."
+PowerComboIndexOptions="0;Velocità;1;Devastazione;2;Booster;3;Invisibilità;4;Casuale"
+FriendlyName="Arena avenger"
+Description="Il vincitore dell'arena è arrabbiato... è ritornato per prendersi la rivincita su chi lo ha imprigionato con l'aiuto di un power-up!"
+
+[JBGUIPanelConfigAvenger]
+SecondsText="secondi"
+ComboBoxText[0]="Velocità"
+ComboBoxText[1]="Devastazione"
+ComboBoxText[2]="Booster"
+ComboBoxText[3]="Invisibilità"
+ComboBoxText[4]="Casuale"
+BerserkTimeMaxEditSlider.Caption="Massimo tempo di avenger"
+BerserkTimeMaxEditSlider.Hint="Limite in secondi di avenger."
+BerserkTimeMultiplierEditSlider.Caption="Moltiplicatore tempo di avenger"
+BerserkTimeMultiplierEditSlider.Hint="Percentuale del tempo di arena match rimanente."
+PowerUpTypeComboBox.Caption="Potere dell'avenger"
+PowerUpTypeComboBox.Hint="Il power-up che l'avenger riceve."
+
+[JBLocalMessageAvenger]
+PreAvengerMessage="Sei un Avenger per"
+PostAvengerMessage="secondi!"
+

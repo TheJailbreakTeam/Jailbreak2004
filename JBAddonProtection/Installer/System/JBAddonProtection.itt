@@ -1,0 +1,27 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonProtection.JBAddonProtection)
+
+[JBAddonProtection]
+caption_ProtectionType="Tipo di Protezione"
+caption_ProtectionTime="Tempo di Protezione"
+caption_ProtectArenaWinner="Proteggi il vincitore dell'Arena"
+caption_LlamaizeCampers="Trasforma i camper di prigioni in Llama"
+desc_ProtectionType="Se le tue armi non danneggiano mentre sei protetto o se la protezione viene rimossa quando colpisci un giocatore."
+desc_ProtectionTime="Durata della protezione in secondi."
+desc_ProtectArenaWinner="Quando attivato, il vincitore dell'arena guadagna la protezione."
+desc_LlamaizeCampers="Quando attivato, i giocatori causanti danno letale ai giocatori protetti sono fatti Llama."
+options_ProtectionType="0;Non puoi infliggere danno;1;Termina quando infliggi danno"
+FriendlyName="Protezione del Rilascio"
+Description="I giocatori rilasciati dalla prigione sono protetti dal fuoco nemico."
+
+[JBGUIPanelConfigProtection]
+LlamaizeCampersCheckBox.Caption="Trasforma i camper della prigione in Llama"
+LlamaizeCampersCheckBox.Hint="Causare danno letale as un protetto ti trasforma in Llama."
+OptionsProtectionType.OptionText=("Non puoi infliggere danno","Termina quando infliggi danno")
+OptionsProtectionType.OptionHint=("Le tue armi non danneggiano mentre sei protetto.","La Protezione viene rimossa quando colpisci un giocatore.")
+OptionsProtectionType.GroupCaption="Tipo di Protezione:"
+ProtectArenaWinnerCheckBox.Caption="Proteggi il vincitore dell'Arena"
+ProtectArenaWinnerCheckBox.Hint="I giocatori rilasciati dalla prigione sono protetti dal fuoco nemico."
+TrackbarProtectionTime.Caption="Tempo di Protezione"
+TrackbarProtectionTime.Hint="Durata della protezione in secondi."
+

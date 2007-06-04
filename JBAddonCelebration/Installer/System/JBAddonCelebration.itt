@@ -1,0 +1,42 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonCelebration.JBAddonCelebration)
+
+[JBAddonCelebration]
+CapturedOtherMessage[0]="%p ha catturato l'ultimo perdente nel team %t."
+CapturedOtherMessage[1]="%p ha appena tirato la leva per il team %t."
+CapturedOtherMessage[2]="%p ha appena spedito il team %t alla prigione."
+CapturedOtherMessage[3]="%p ha appena rinchiuso il team %t."
+CapturedOtherMessage[4]="%p ha chiuso il cancello del team %t."
+CapturedOtherMessage[5]="%p ha buttato il team %t nel fiume."
+CapturedOtherMessage[6]="%p ha appena adattato il team %t per le strisce."
+CapturedOtherMessage[7]="%p ha spedito il team %t all'esecuzione."
+CapturedOtherMessage[8]="%p ha regalato al team %t la sedia!"
+CapturedOtherMessage[9]="%p ha passato la sentenza sul team %t."
+CapturedOtherMessage[10]="%p ha spedito il team %t team al ruscello senza la pala."
+CapturedOtherMessage[11]="%p ha appena revocato la parola d'onore del team %t!"
+CapturedOtherMessage[12]="%p ha concesso al team %t un viaggio gratuito al penitenziario!"
+CapturedOtherMessage[13]="%p ha chiuso la porta sul team %t e buttato via la chiave."
+CapturedOtherMessage[14]="%p dice Nessun rilascio su cauzione! per il team %t."
+CapturedOtherMessage[15]="%p pone il sigillo sul team %t!"
+CapturedOtherMessage[16]="%p ha sbattuto la porta sulla faccia del team %t!"
+CapturedOtherMessage[17]="%p ha sentenziato il team %t alla morte!"
+CapturedOtherMessage[18]="%p rinchiude il team %t e getta via la chiave!"
+CapturedOtherMessage[19]="%p dice non commettere crimini se non vuoi finire in prigione..."
+CapturedOtherMessage[20]="%p ha preso il team %t con le mani nella marmellata."
+CapturedOtherMessage[21]="%p ha ristretto la sicurezza nella casa con successo."
+CapturedOtherMessage[22]="%T è il colore preferito di %p per decorare prigioni."
+#
+CapturedOtherMessage[23]="%p ha guadagnato %o. Il team %t non lo apprezzerà, però."
+NumCapturedOtherMessages=24
+CapturedSelfMessage[0]="%p non poteva più sopportare di essere il solo fuori dalla prigione."
+CapturedSelfMessage[1]="Un inveterato avrebbe chiesto il significato di quel pulsante, %p."
+CapturedSelfMessage[2]="%p lo ha mancato per il team %t."
+CapturedSelfMessage[3]="%p non aveva letto l'etichetta 'mira lontano dalla faccia'."
+CapturedSelfMessage[4]="Ehi %p, sei nel team %t in caso non te ne fossi accorto."
+CapturedSelfMessage[5]="Ehm %p, dovresti colpire i ragazzi di colore %o, non quelli di colore %t..."
+NumCapturedSelfMessages=6
+TeamString[0]="rosso"
+TeamString[1]="blu"
+FriendlyName="Schermo di celebrazione"
+Description="Abilita lo schermo di celebrazione widescreen durante le esecuzioni."
+

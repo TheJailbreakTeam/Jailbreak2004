@@ -1,0 +1,20 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonArenaLockdown.JBAddonArenaLockdown)
+
+[JBAddonArenaLockdown]
+CrossBaseSpawningText="Base di rientro casuale"
+CrossBaseSpawningDesc="I giocatori possono rientrare nella base nemica, così l'accampamento della base è scoraggiato."
+SelectionMethodText="Metodo di selezione"
+SelectionMethodDesc="Seleziona come i giocatori verranno presi dalle loro prigioni."
+SelectionMethodOptions="0;Accoda;1;Casuale"
+FriendlyName="Arena LockDown"
+Description="L'unico modo per uscire di prigione è di vincere l'arena match!"
+
+[JBGUIPanelConfigArenaLockdown]
+str_FIFO="Accoda"
+str_Random="Casuale"
+CrossBaseSpawningCheckBox.Caption="Base di rientro casuale"
+CrossBaseSpawningCheckBox.Hint="I giocatori possono rientrare nella base nemica, così l'accampamento della base è scoraggiato."
+SelectionMethodComboBox.Caption="Metodo di selezione"
+SelectionMethodComboBox.Hint="Seleziona come i giocatori verranno presi dalle loro prigioni."
+

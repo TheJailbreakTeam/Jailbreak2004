@@ -1,0 +1,36 @@
+[Setup]
+LocalProduct=Jailbreak 2004c
+ReadMe=Help\Jailbreak.txt
+SetupWindowTitle=Installazione Jailbreak
+AutoplayWindowTitle=Opzioni Jailbreak
+ProductURL=http://www.planetjailbreak.com
+VersionURL=http://www.planetjailbreak.com
+Developer=Jailbreak Team
+DeveloperURL=http://www.planetjailbreak.com
+Logo=Help\Jailbreak.bmp
+
+[RequirementUT2004]
+LocalProduct=UT2004
+ProductURL=http://www.unrealtournament.com
+VersionURL=http://unreal.epicgames.com
+Developer=Epic Games, Inc.
+DeveloperURL=http://www.epicgames.com
+
+[RequirementJailbreak]
+LocalProduct=Jailbreak 2004
+ProductURL=http://www.planetjailbreak.com
+VersionURL=http://www.planetjailbreak.com
+Developer=Jailbreak Team
+DeveloperURL=http://www.planetjailbreak.com
+
+[GroupMain]
+Caption=Jailbreak
+Description=Componenti base di Jailbreak. (Necessari.)
+
+[GroupMaps]
+Caption=Mappe per Jailbreak
+Description=Una suite di buone mappe per Jailbreak. (Raccomandato.)
+
+[GroupKeys]
+Caption=Mappatura tasti predefinita di Jailbreak
+Description=Tasti di JailBreak: GreyStar per Arena Live Feed, GreyPlus/GreyMinus per cambiare tattiche di squadra, GreySlash per tattiche automatiche, NumPadPeriod per osservare i compagni liberi.
