@@ -1,7 +1,7 @@
 // ============================================================================
 // JBCountingPhysicsVolume
 // Copyright 2007 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBCountingPhysicsVolume.uc,v 1.1 2007-05-14 15:37:42 jrubzjeknf Exp $
 //
 // Only get triggered when the first Pawn enters the Volume, and untriggers
 // when the last Pawn leaves the Volume.
@@ -9,6 +9,13 @@
 
 
 class JBCountingPhysicsVolume extends PhysicsVolume;
+
+
+// ============================================================================
+// Properties
+// ============================================================================
+
+var(PhysicsVolume) byte TeamIndex;
 
 
 // ============================================================================
@@ -49,7 +56,7 @@ simulated event PawnEnteredVolume(Pawn Other)
     SpawnedEntryActor = Spawn(PawnEntryActor,Other,,HitLocation,rot(16384,0,0));
 
   // Trigger only the first time a Pawn enters.
-  if (Role == ROLE_Authority && !bPawnsInVolume && Other.IsPlayerPawn()) {
+  if (Role == ROLE_Authority && !bPawnsInVolume && Other.IsPlayerPawn() && Other.GetTeamNum() == TeamIndex) {
     TriggerEvent(Event, self, Other);
     bPawnsInVolume = True;
   }
@@ -64,7 +71,7 @@ simulated event PawnEnteredVolume(Pawn Other)
 
 event PawnLeavingVolume(Pawn Other)
 {
-  if (!PawnsInVolume() && Other.IsPlayerPawn())
+  if (!PawnsInVolume() && Other.IsPlayerPawn() && Other.GetTeamNum() == TeamIndex)
     UntriggerEvent(Event, self, Other);
 }
 
@@ -77,7 +84,7 @@ event PawnLeavingVolume(Pawn Other)
 
 function PlayerPawnDiedInVolume(Pawn Other)
 {
-  if (!PawnsInVolume())
+  if (!PawnsInVolume() && Other.GetTeamNum() == TeamIndex)
     UntriggerEvent(Event,self, Other);
 }
 
@@ -94,11 +101,21 @@ function bool PawnsInVolume()
 
   // Check if there are any Pawns in the Volume present.
   foreach TouchingActors(class'Pawn', P)
-    if (Encompasses(P) && P.IsPlayerPawn() && P.Health > 0) {
+    if (Encompasses(P) && P.GetTeamNum() == TeamIndex && P.IsPlayerPawn() && P.Health > 0) {
       bPawnsInVolume = True;
       return True;
     }
 
   bPawnsInVolume = False;
   return False;
+}
+
+
+// ============================================================================
+// Default properties
+// ============================================================================
+
+defaultproperties
+{
+  TeamIndex = 255
 }

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMoverDualDestination
 // Copyright 2007 by Wormbo <wormbo@online.de>
-// $Id: JBMoverDualDestination.uc,v 1.3 2007-05-01 13:22:26 wormbo Exp $
+// $Id: JBMoverDualDestination.uc,v 1.4 2007-05-18 20:42:42 wormbo Exp $
 //
 // A mover with a multitude of improvements over standard movers:
 //
@@ -237,18 +237,23 @@ event BeginPlay()
     case 'ConstantLoop':      // doesn't use triggering
     case 'RotatingMover':     // doesn't use triggering
     case 'StandOpenTimed':    // doesn't use triggering
-      if (PrimaryTag != '')
+      if (PrimaryTag != '') {
         log(Name $ " - PrimaryTag is ignored in state " $ InitialState, 'Warning');
-      // fall through to next case
-    
-    case 'LoopMove':          // wouldn't make sense
-      if (AlternateTag != '')
+			}
+      if (AlternateTag != '') {
         log(Name $ " - AlternateTag is ignored in state " $ InitialState, 'Warning');
+			}
       // fall through to next case
     
     case 'ServerIdle':
       break;
       
+    case 'LoopMove':
+      if (AlternateTag != '') {// wouldn't make sense
+        log(Name $ " - AlternateTag is ignored in state " $ InitialState, 'Warning');
+			}
+      // fall through to next case
+    
     default:
       if (AlternateTag != '') {
         if (NumKeysPrimary < NumKeys) {
