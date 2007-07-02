@@ -1,7 +1,7 @@
 // ============================================================================
 // JBDamagerBurning
 // Copyright (c) 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBDamagerBurning.uc,v 1.2 2006-07-17 14:18:27 jrubzjeknf Exp $
+// $Id: JBDamagerBurning.uc,v 1.3 2006-07-17 15:07:13 wormbo Exp $
 //
 // Damager for burning execution.
 // ============================================================================
@@ -80,8 +80,8 @@ function SpawnEffects()
     FlameEmitter.TornOff();
     FlameEmitter = None;
   }
-  
-  DeathExplosion = Spawn(class'JBEmitterKillLaserFlame', Victim,, Victim.Location);
+
+  DeathExplosion = Spawn(class'JBEmitterKillLaserFlame',,, Victim.Location + vect(0, 0, 10), Victim.Rotation);
   DeathExplosion.RemoteRole = ROLE_SimulatedProxy;
   Victim.PlaySound(Sound'WeaponSounds.BExplosion5', SLOT_None, 1.5 * Victim.TransientSoundVolume);
 }
