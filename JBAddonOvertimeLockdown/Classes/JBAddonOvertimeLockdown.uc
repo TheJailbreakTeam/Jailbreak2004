@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonOvertimeLockdown - original by _Lynx
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $id$
+// $Id$
 //
 // When in overtime starts, the releases will be jammed. Once you're jailed,
 // there's no getting out any more. Last chance to score a point!
