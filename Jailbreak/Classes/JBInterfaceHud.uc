@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.75 2007-05-04 13:42:57 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.76 2007-05-12 23:36:04 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1578,6 +1578,17 @@ simulated exec function ViewTeamAny()    { GetTagClientOwner().ExecViewTeam('Any
 // ============================================================================
 
 simulated exec function ViewSelf() { GetTagClientOwner().ExecViewSelf(); }
+
+
+// ============================================================================
+// exec Help
+//
+// Pops up our JBMidGamePanelHelp;
+// ============================================================================
+
+simulated exec function Help() {
+  PlayerOwner.Player.GUIController.OpenMenu("Jailbreak.JBLoginMenu", "JBTutorial");
+}
 
 
 // ============================================================================

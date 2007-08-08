@@ -155,6 +155,13 @@ TextLastMan="Nur Sie sind noch frei. Befreien Sie Ihr Team!"
 TextLastManCantRelease="Nur Sie sind noch frei. Bleiben Sie am Leben!"
 TextDisallowedEscape="Es ist verboten aus dem Gefängnis zu flüchten!"
 
+[JBLoginMenu]
+JBHelpPanel.Caption="Jailbreak Tutorial"
+JBHelpPanel.Hint="How to play Jailbreak"
+
+[JBMidGamePanelHelp]
+Tutorials=((Title="Imprison",Description="Kill a player to jail him."),(Title="Release",Description="Walk over the enemy's release switch to free your teammates."),(Title="Capture",Description="Jail everybody on the enemy team to execute them and gain a point."))
+
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"
 Description="Stellt Hilfsfunktionen zur Verfügung, um Jailbreak-Level und -Code zu debuggen."

@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.149 2007-04-05 18:32:19 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.150 2007-04-06 13:38:57 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -466,6 +466,7 @@ function SetupWebScoreboard()
 // ============================================================================
 // PostBeginPlay
 //
+// Sets our own version of LoginMenuClass if the original is still used.
 // Spawns JBTagTeam actors for both teams. Reads the add-on list for the web
 // admin interface. Sets up the Jailbreak Web Scoreboard. Spawns JBMapFixes.
 // Calls InitAddon for all already registered add-ons.
@@ -476,6 +477,9 @@ event PostBeginPlay()
   local Mutator thisMutator;
 
   Super.PostBeginPlay();
+
+//  if (LoginMenuClass == class'TeamGame'.default.LoginMenuClass)
+    ResetConfig("LoginMenuClass");
 
   Class'JBTagTeam'.Static.SpawnFor(Teams[0]);
   Class'JBTagTeam'.Static.SpawnFor(Teams[1]);
@@ -2323,6 +2327,8 @@ defaultproperties
   ScoreBoardType           = "Jailbreak.JBInterfaceScores"
   MapListType              = "Jailbreak.JBMapList"
   HUDSettingsMenu          = "Jailbreak.JBGUICustomHUDMenu"
+
+  LoginMenuClass           = "Jailbreak.JBLoginMenu"
 
   MessageClass             = Class'JBLocalMessage'
   GameReplicationInfoClass = Class'JBGameReplicationInfo'
