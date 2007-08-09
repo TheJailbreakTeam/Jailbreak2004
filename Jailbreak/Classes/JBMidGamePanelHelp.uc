@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMidGamePanelHelp
 // Copyright 2007 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBMidGamePanelHelp.uc,v 1.1 2007-08-08 23:49:52 jrubzjeknf Exp $
 //
 // Jailbreak's help tab for the mini tutorial. Created from a combination of
 // UT2K4SPTab_Tutorials and UT2K4OnslaughtPowerLinkDesigner.
@@ -50,7 +50,7 @@ var bool bResolutionChanged;
 // ============================================================================
 // InitComponent
 //
-// Create
+// Create the GUI.
 // ============================================================================
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
@@ -89,8 +89,7 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
     img.bAcceptsInput = True;
     img.Hint          = Tutorials[i].Description;
     tip = new class'GUIToolTip';
-    AppendComponent(tip, True);
-    img.SetToolTip(tip);
+    img.ToolTip = tip;
     AppendComponent(img, True);
     TutorialGUIs[i].Image = img;
   }
@@ -98,6 +97,12 @@ function InitComponent(GUIController MyController, GUIComponent MyOwner)
   SetGUIPosition();
 }
 
+
+// ============================================================================
+// SetGUIPosition
+//
+// Set the position of the GUI objects created in InitComponent().
+// ============================================================================
 
 function SetGUIPosition()
 {
@@ -217,5 +222,5 @@ defaultproperties
 {
   Tutorials[0] = (Texture="Jailbreak.MiniTutorial",X1=0,Y1=0,X2=1199,Y2=199,Title="Imprison",Description="Kill a player to jail him.")
   Tutorials[1] = (Texture="Jailbreak.MiniTutorial",X1=0,Y1=400,X2=1199,Y2=599,Title="Release",Description="Walk over the enemy's release switch to free your teammates.")
-  Tutorials[2] = (Texture="Jailbreak.MiniTutorial",X1=0,Y1=200,X2=1199,Y2=399,Title="Capture",Description="Jail everybody on the enemy team to execute them and gain a point.")
+  Tutorials[2] = (Texture="Jailbreak.MiniTutorial",X1=0,Y1=200,X2=1199,Y2=399,Title="Score",Description="Jail everybody on the enemy team to execute them and gain a point.")
 }
