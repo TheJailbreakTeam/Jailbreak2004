@@ -1,7 +1,7 @@
 // ============================================================================
 // JBAddonTally
 // Copyright 2006 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBAddonTally.uc,v 1.11 2006-12-10 18:08:14 jrubzjeknf Exp $
+// $Id: JBAddonTally.uc,v 1.12 2007-02-11 17:27:09 wormbo Exp $
 //
 // When players are in jail, displays a jail fight score tally.
 // ============================================================================
@@ -215,10 +215,13 @@ simulated function RenderOverlays(Canvas Canvas)
   local Vector SizeScoreEfficiency;
   local TEntry EntryCurrent;
   local TPlayer PlayerCurrent;
+  local PlayerController PlayerControllerLocal;
   local PlayerReplicationInfo PlayerReplicationInfo;
 
+  PlayerControllerLocal = Level.GetLocalPlayerController();
+
   if (TagPlayerLocal == None)
-    TagPlayerLocal = Class'JBTagPlayer'.Static.FindFor(PlayerControllerLocal.PlayerReplicationInfo);
+    TagPlayerLocal = Class'JBTagPlayer'.Static.FindFor(Level.GetLocalPlayerController().PlayerReplicationInfo);
 
   if (TagPlayerLocal != None && TagPlayerLocal.IsInJail() || bGameEnded)
        nEntriesFade = FMin(nEntries, nEntriesFade + (Level.TimeSeconds - TimeFade) * 4.0);
