@@ -144,7 +144,7 @@ Addons
 
 143952 - JBAddonArenaLockdown
            Jailbreak without switches: get out of jail by winning the arena match.
-157405 - JBAddonOvertimeLastChance
+157405 - JBAddonOvertimeLockdown
            Escaping jail is impossible in overtime.
 140078 - JBAddonSpoils
            Awards the arena winner with a weapon.
