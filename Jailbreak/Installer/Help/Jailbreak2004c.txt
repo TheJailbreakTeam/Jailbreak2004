@@ -157,7 +157,7 @@ Mapper Tools
 
 New Building Actors
 -------------------
-- JBCountingVolume
+- JBCountingPhysicsVolume
     Triggers when the first player enters, untriggers when the last one leaves.
 - JBMovableVolume.
 - JBMovableBlockingVolume
