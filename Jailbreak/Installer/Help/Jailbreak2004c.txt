@@ -112,8 +112,6 @@ Gameplay
 - Prisoners respawn instantly when they are killed.
 - Llamas cannot suicide or hurt anyone, and teammates can't hurt the llama,
   regardless of the Friendly Fire setting.
-- If an arenamatch's timer hits zero, then the two combatants are gibbed,
-  than being teleported back to jail.
 
 
 User Interface
