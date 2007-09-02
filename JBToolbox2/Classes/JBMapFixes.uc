@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBMapFixes.uc,v 1.5 2007-04-28 11:04:11 jrubzjeknf Exp $
+// $Id: JBMapFixes.uc,v 1.6 2007-04-30 11:19:48 jrubzjeknf Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -83,36 +83,32 @@ simulated function IndusRage()
 
 simulated function Arlon()
 {
-  local NavigationPoint NP;
   local Mover M;
   local HealthPack HP;
-
-  Super.PostBeginPlay();
+	local JBArlonMedbox MB;
 
   if (Role == ROLE_Authority) {
     // Fix players other than the winner of the arenamatch grabbing the super shock rifle.
     SpawnGameRules();
 
     // Fix elevators.
-    for (NP = Level.NavigationPointList; NP != None; NP = NP.nextNavigationPoint)
-      if (LiftCenter(NP) != None)
-        foreach DynamicActors(class'Mover', M, LiftCenter(NP).LiftTag)
-          if (M.Name != 'Mover2' && M.Name != 'Mover4') {
-            M.EncroachDamage    = 0;
-            M.MoverEncroachType = ME_ReturnWhenEncroach;
-          }
+    foreach DynamicActors(class'Mover', M)
+      if (M.Name != 'Mover2' && M.Name != 'Mover4') {
+        M.EncroachDamage    = 0;
+        M.MoverEncroachType = ME_ReturnWhenEncroach;
+      }
 
     // Fix the appearance of the custom healthpacks in netplay.
-    if (Level.NetMode != NM_Standalone)
-      foreach DynamicActors(class'HealthPack', HP) {
-        HP.RemoteRole = ROLE_SimulatedProxy;
-        HP.bOnlyDirtyReplication = False;
-        HP.bOnlyReplicateHidden = False;
+    foreach DynamicActors(class'HealthPack', HP) {
+      if (HP.Class == class'HealthPack') {
+        MB = Spawn(class'JBArlonMedbox', None, HP.Tag, HP.Location, HP.Rotation);
+        if (MB != None) {
+          MB.SetStaticMesh(HP.StaticMesh);
+          HP.Destroy();
+        }
       }
+    }
   }
-
-  // Fix the pickup message of the custom healthpacks.
-  class'HealthPack'.default.HealingAmount = 50;
 }
 
 
@@ -280,7 +276,7 @@ function ReplaceGiantSpider(Actor OldSpider, class<JBGiantSpiderMine> NewClass)
   local JBGiantSpiderMine NewSpider;
 
   // spawn a new spawner
-  NewSpider = Spawn(NewClass,, OldSpider.Tag, OldSpider.Location, OldSpider.Rotation);
+  NewSpider = Spawn(NewClass, None, OldSpider.Tag, OldSpider.Location, OldSpider.Rotation);
   NewSpider.SetPropertyText("AssociatedJails", OldSpider.GetPropertyText("AssociatedJails"));
   NewSpider.SetPropertyText("SpawnEvent", OldSpider.GetPropertyText("SpawnEvent"));
   NewSpider.SetPropertyText("PreExplosionEvent", OldSpider.GetPropertyText("PreExplosionEvent"));
@@ -312,7 +308,7 @@ function ReplaceSpiderSpawner(Actor OldSpawner)
   local JBSpiderSpawner newSpawner;
 
   // spawn a new spawner
-  newSpawner = Spawn(class'JBSpiderSpawner',, OldSpawner.Tag, OldSpawner.Location, OldSpawner.Rotation);
+  newSpawner = Spawn(class'JBSpiderSpawner', None, OldSpawner.Tag, OldSpawner.Location, OldSpawner.Rotation);
   newSpawner.SetPropertyText("TagSpider", OldSpawner.GetPropertyText("TagSpider"));
   newSpawner.SetPropertyText("EventSpiderDestroyed", OldSpawner.GetPropertyText("EventSpiderDestroyed"));
   newSpawner.bInitiallyActive     = bool(OldSpawner.GetPropertyText("bInitiallyActive"));
