@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.76 2007-05-12 23:36:04 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.77 2007-08-08 23:49:52 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1124,7 +1124,9 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
   if (JBCameraArena(PlayerOwner.ViewTarget) != None) {
     ViewingArena = JBCameraArena(PlayerOwner.ViewTarget).Arena;
   }
-  else if (TagPlayerOwner != None) {
+  else if ((PlayerOwner.PlayerReplicationInfo == None
+			|| !PlayerOwner.PlayerReplicationInfo.bOnlySpectator)
+			&& TagPlayerOwner != None) {
     ViewingArena = TagPlayerOwner.GetArena();
   }
 
