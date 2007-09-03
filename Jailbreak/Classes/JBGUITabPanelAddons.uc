@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.12 2004/04/04 01:22:48 mychaeel Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.13 2004-08-17 12:44:53 mychaeel Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -75,8 +75,8 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
   GUIScrollButtonDown = GUIVertScrollButton(Controls[2]);
 
   GUIScrollTextBoxAddon = GUIScrollTextBox(GUIComponentTabsAddons.Controls[0]);
-  GUILabelConfigNone    = GUILabel        (GUIComponentTabsAddons.Controls[1]); 
-  GUIButtonReset        = GUIButton       (GUIComponentTabsAddons.Controls[2]); 
+  GUILabelConfigNone    = GUILabel        (GUIComponentTabsAddons.Controls[1]);
+  GUIButtonReset        = GUIButton       (GUIComponentTabsAddons.Controls[2]);
 
   for (iInfoAddon = 0; iInfoAddon < ListInfoAddon.Length; iInfoAddon++) {
     ListInfoAddon[iInfoAddon].moCheckBoxSelected =
@@ -175,7 +175,7 @@ function SortListInfoAddon(int iInfoAddonStart, int iInfoAddonEnd)
 // ============================================================================
 // GUIComponentTabsAddons_TabOpened
 //
-// Called when a tab is opened. Shows the corresponding add-on description. 
+// Called when a tab is opened. Shows the corresponding add-on description.
 // Loads and displays its configuration panel if one is available, or
 // shows a label informing the user no options exist. Shows a reset button if
 // the panel class is a child of JBGUIPanelConfig.
@@ -190,7 +190,7 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
   iInfoAddon = GUIComponentTabsAddons.GetTabIndex(GUIMenuOptionTab);
 
   GUIScrollTextBoxAddon.SetContent(ListInfoAddon[iInfoAddon].TextDescription);
-  
+
   if (ListInfoAddon[iInfoAddon].ClassGUIPanelConfig == None) {
     GUILabelConfigNone.SetVisibility(True);
     GUIButtonReset    .SetVisibility(False);
@@ -208,16 +208,16 @@ function GUIComponentTabsAddons_TabOpened(GUIComponent GUIComponentSender, GUIMe
       GUIPanelConfig.WinLeft   = GUIPanelConfigTemplate.WinLeft;
       GUIPanelConfig.WinWidth  = GUIPanelConfigTemplate.WinWidth;
       GUIPanelConfig.WinHeight = GUIPanelConfigTemplate.WinHeight;
-      
+
       GUIComponentTabsAddons.AddComponentObject(GUIPanelConfig);
     }
-    
+
     TextHintResetReplaced = TextHintReset;
     ReplaceText(TextHintResetReplaced, "%addon%", ListInfoAddon[iInfoAddon].TextName);
 
     GUIButtonReset.SetVisibility(JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig) != None);
     GUIButtonReset.SetHint(TextHintResetReplaced);
-    
+
     GUILabelConfigNone.SetVisibility(False);
     ListInfoAddon[iInfoAddon].GUIPanelConfig.SetVisibility(True);
     ListInfoAddon[iInfoAddon].GUIPanelConfig.EnableMe();
@@ -277,11 +277,11 @@ function bool GUIScrollButtonUp_Click(GUIComponent GUIComponentSender)
     return False;
 
   GUIComponentTabsAddons.iTabFirst -= 1;
-  
+
   iTabLast = GUIComponentTabsAddons.iTabFirst + GUIComponentTabsAddons.nTabsVisibleMax - 1;
   if (GUIComponentTabsAddons.GetCurrentTabIndex() > iTabLast)
     GUIComponentTabsAddons.GetTabComponent(iTabLast).SetFocus(None);
-  
+
   return True;
 }
 
@@ -296,7 +296,7 @@ function bool GUIScrollButtonDown_Click(GUIComponent GUIComponentSender)
 {
   if (GUIComponentTabsAddons.iTabFirst + GUIComponentTabsAddons.nTabsVisibleMax >= GUIComponentTabsAddons.CountTabs())
     return False;
-    
+
   GUIComponentTabsAddons.iTabFirst += 1;
   if (GUIComponentTabsAddons.GetCurrentTabIndex() < GUIComponentTabsAddons.iTabFirst)
     GUIComponentTabsAddons.GetTabComponent(GUIComponentTabsAddons.iTabFirst).SetFocus(None);
@@ -365,7 +365,7 @@ function moCheckBoxSelected_Change(GUIComponent GUIComponentSender)
 function bool GUIButtonDownloadAddons_Click(GUIComponent GUIComponentClicked)
 {
   PlayerOwner().ConsoleCommand("start http://www.planetjailbreak.com/download/addons/");
-  
+
   return True;
 }
 
@@ -373,16 +373,16 @@ function bool GUIButtonDownloadAddons_Click(GUIComponent GUIComponentClicked)
 // ============================================================================
 // GUIButtonConfigReset_Click
 //
-// Called when a user clicks the Reset button. Calls ResetConfiguration of the 
+// Called when a user clicks the Reset button. Calls ResetConfiguration of the
 // current config panel object if it is a subclass of JBGUIPanelConfig.
 // ============================================================================
 
 function bool GUIButtonConfigReset_Click(GUIComponent GUIComponentClicked)
 {
   local int iInfoAddon;
-  
-  iInfoAddon = GUIComponentTabsAddons.GetCurrentTabIndex();  
-  
+
+  iInfoAddon = GUIComponentTabsAddons.GetCurrentTabIndex();
+
   if(JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig) != None)
     JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig).ResetConfiguration();
 
@@ -397,7 +397,7 @@ function bool GUIButtonConfigReset_Click(GUIComponent GUIComponentClicked)
 defaultproperties
 {
   TextHintReset = "Reset options for %addon%."
-  
+
   WinLeft   = 0.000;
   WinWidth  = 1.000;
   WinHeight = 0.770;
@@ -429,8 +429,8 @@ defaultproperties
     Hint         = "Reset this add-on's options.";
     OnClick      = GUIButtonConfigReset_Click;
     WinTop       = 0.843;
-    WinLeft      = 0.765;
-    WinWidth     = 0.184;
+    WinLeft      = 0.740;
+    WinWidth     = 0.234;
     WinHeight    = 0.058;
   End Object
 

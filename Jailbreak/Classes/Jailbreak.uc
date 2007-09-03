@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.150 2007-04-06 13:38:57 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.151 2007-08-08 23:49:52 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -478,7 +478,7 @@ event PostBeginPlay()
 
   Super.PostBeginPlay();
 
-//  if (LoginMenuClass == class'TeamGame'.default.LoginMenuClass)
+  if (LoginMenuClass == class'TeamGame'.default.LoginMenuClass)
     ResetConfig("LoginMenuClass");
 
   Class'JBTagTeam'.Static.SpawnFor(Teams[0]);
