@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUITabPanelAddons
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUITabPanelAddons.uc,v 1.13 2004-08-17 12:44:53 mychaeel Exp $
+// $Id: JBGUITabPanelAddons.uc,v 1.14 2007-09-03 14:06:27 jrubzjeknf Exp $
 //
 // User interface panel for Jailbreak mutators.
 // ============================================================================
@@ -88,6 +88,8 @@ function InitComponent(GUIController GUIController, GUIComponent GUIComponentOwn
 
     ListInfoAddon[iInfoAddon].moCheckBoxSelected.OnChange = moCheckBoxSelected_Change;
   }
+	
+  OnPreDraw = PreDraw;
 }
 
 
@@ -387,6 +389,31 @@ function bool GUIButtonConfigReset_Click(GUIComponent GUIComponentClicked)
     JBGUIPanelConfig(ListInfoAddon[iInfoAddon].GUIPanelConfig).ResetConfiguration();
 
   return True;
+}
+
+
+// ============================================================================
+// PreDraw
+//
+// Adjusts the placement of scroll buttons to match the tab positions.
+// ============================================================================
+
+function bool PreDraw(Canvas Canvas)
+{
+  local vector LocationTab;
+  local vector SizeTab;
+	
+	// scroll-up button
+	GUIComponentTabsAddons.CalcTabMetrics(GUIComponentTabsAddons.iTabFirst, LocationTab, SizeTab);
+	GUIScrollButtonUp.WinLeft = int(LocationTab.X + 0.5 * (SizeTab.X - GUIScrollButtonUp.ActualWidth()) - ActualLeft());
+	GUIScrollButtonUp.WinTop = int(LocationTab.Y - 1.2 * GUIScrollButtonUp.ActualHeight() - ActualTop());
+	
+	// use tab positioning code to calculate scroll-down button position
+	GUIComponentTabsAddons.CalcTabMetrics(GUIComponentTabsAddons.iTabFirst + GUIComponentTabsAddons.nTabsVisibleMax - 1, LocationTab, SizeTab);
+	GUIScrollButtonDown.WinLeft = int(LocationTab.X + 0.5 * (SizeTab.X - GUIScrollButtonDown.ActualWidth()) - ActualLeft());
+	GUIScrollButtonDown.WinTop = int(LocationTab.Y + SizeTab.Y + 0.2 * GUIScrollButtonDown.ActualHeight() - ActualTop());
+	
+  return False;  // execute standard code
 }
 
 

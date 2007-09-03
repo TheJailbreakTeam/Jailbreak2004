@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGUIComponentTabs
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBGUIComponentTabs.uc,v 1.5 2004/04/04 00:41:42 mychaeel Exp $
+// $Id: JBGUIComponentTabs.uc,v 1.6 2004/08/17 12:44:52 mychaeel Exp $
 //
 // User interface component: Has a column of tabs on the left side, each
 // containing an instance of a specified component class such as a checkbox.
