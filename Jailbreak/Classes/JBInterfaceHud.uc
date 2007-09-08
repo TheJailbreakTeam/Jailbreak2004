@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.77 2007-08-08 23:49:52 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.78 2007-09-02 12:07:37 wormbo Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1171,8 +1171,8 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
 
 simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCountdown,
                                       optional bool bAnnouncerUsesModifiedTimer,
-                                      optional bool bFlash, optional float FlashSpeed, optional int PreFlashForSeconds,
-                                                                                       optional int PostFlashForSeconds,
+                                      optional bool bFlash, optional float FlashRate, optional float FlashPhase,
+                                      optional int PreFlashForSeconds, optional int PostFlashForSeconds,
                                       optional bool bReset, optional int ResetAfterSeconds)
 {
   bTimerModified = True;
@@ -1194,9 +1194,14 @@ simulated function ModifyTimerDisplay(color C, SpriteWidget Icon, int SecondsCou
   TimerIconTexScale = Icon.TextureScale;
   TimerCountdown = PlayerOwner.GameReplicationInfo.ElapsedTime + SecondsCountdown;
 
-  if (FlashSpeed > 0.0) {
-    TexOscTimerHighlight.UOscillationRate = FlashSpeed;
-    TexOscTimerHighlight.VOscillationRate = FlashSpeed;
+  if (FlashRate > 0.0) {
+    TexOscTimerHighlight.UOscillationRate = FlashRate;
+    TexOscTimerHighlight.VOscillationRate = FlashRate;
+  }
+
+  if (FlashPhase > 0.0) {
+    TexOscTimerHighlight.UOscillationPhase = FlashPhase;
+    TexOscTimerHighlight.VOscillationPhase = FlashPhase;
   }
 
   if (bFlash) {
@@ -1802,10 +1807,10 @@ defaultproperties
   // Copy from GlowCirclePulse and fb_Pulse001 from HudContent. Was necessary
   // to support slowing down the flashing.
   Begin Object Class=TexOscillator Name=TimerGlowCirclePulse
-    UOscillationRate=3.0
-    VOscillationRate=3.0
-    UOscillationPhase=0.01
-    VOscillationPhase=0.01
+    UOscillationRate=0.91
+    VOscillationRate=0.91
+    UOscillationPhase=0.5
+    VOscillationPhase=0.5
     UOscillationAmplitude=0.5
     VOscillationAmplitude=0.5
     UOscillationType=OT_Stretch
