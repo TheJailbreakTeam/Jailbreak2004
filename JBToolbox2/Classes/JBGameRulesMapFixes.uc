@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGameRulesMapFixes.uc,v 1.1 2007-01-07 18:15:05 jrubzjeknf Exp $
+// $Id: JBGameRulesMapFixes.uc,v 1.2 2007-01-12 15:24:57 jrubzjeknf Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -117,25 +117,47 @@ state BabylonTemple
         case 'JBInfoJail1': BlueJail = thisJail; break;
       }
 
-    // Remember the original settings, so the original execution can be played again.
-    RememberInitialSetup();
-
-    // Pick an initial execution.
-    SetRandomExecution();
+    // Discard the old execution, use the spirit one instead.
+    SetSpiritExecution();
   }
 
 
   // ============================================================================
-  // NotifyExecutionEnd
+  // NotifyExecutionCommit
   //
-  // After each round, randomly pick the next execution.
+  // Start the Timer.
   // ============================================================================
 
-  function NotifyExecutionEnd()
+function NotifyExecutionCommit(TeamInfo Team)
   {
-    Super.NotifyExecutionEnd();
+    Super.NotifyExecutionCommit(Team);
 
-    SetRandomExecution();
+    SetTimer(2.5, False);
+  }
+
+
+  // ============================================================================
+  // Timer
+  //
+  // Plays the demon's laughing sound, 1 seconds after the execution starts.
+  // This is 0.4 seconds after the second spirit was launched.
+  // ============================================================================
+
+  function Timer()
+  {
+    local Controller C;
+    local Sound DemonLaughter;
+
+    DemonLaughter = Sound(DynamicLoadObject("JB-BabylonTemple-Gold.elaugh12", class'Sound'));
+
+    if (DemonLaughter == None) {
+      log("DemonLaughter == None!");
+      return;
+    }
+
+    for (C = Level.ControllerList; C != None; C = C.nextController)
+      if (PlayerController(C) != None)
+        PlayerController(C).ClientPlaySound(DemonLaughter);
   }
 } // state BabylonTemple
 
@@ -224,35 +246,51 @@ function SetRandomExecution()
   // This will try to make both executions be played an equal number of times, but maintain the randomness.
   randInt = Rand(OriginalCount + SpiritCount);
 
-  if (randInt < SpiritCount) {
-    RedJail.EventExecutionInit      = RedInit;
-    RedJail.EventExecutionCommit    = RedCommit;
-    RedJail.EventExecutionEnd       = RedEnd;
-    RedJail.ExecutionDelayCommit    = RedDelayCommit;
-    RedJail.ExecutionDelayFallback  = RedDelayFallback;
-
-    BlueJail.EventExecutionInit     = BlueInit;
-    BlueJail.EventExecutionCommit   = BlueCommit;
-    BlueJail.EventExecutionEnd      = BlueEnd;
-    BlueJail.ExecutionDelayCommit   = BlueDelayCommit;
-    BlueJail.ExecutionDelayFallback = BlueDelayFallback;
-
+  if (randInt < 0) {
+    SetOriginalExecution();
     OriginalCount++;
   } else {
-    RedJail.EventExecutionInit      = '';
-    RedJail.EventExecutionCommit    = 'redspirit';
-    RedJail.EventExecutionEnd       = '';
-    RedJail.ExecutionDelayCommit    = 1;
-    RedJail.ExecutionDelayFallback  = 10;
-
-    BlueJail.EventExecutionInit     = '';
-    BlueJail.EventExecutionCommit   = 'bluespirit';
-    BlueJail.EventExecutionEnd      = '';
-    BlueJail.ExecutionDelayCommit   = 1;
-    BlueJail.ExecutionDelayFallback = 10;
-
+    SetSpiritExecution();
     SpiritCount++;
   }
+}
+
+
+// ============================================================================
+// SetOriginalExecution / SetSpiritExecution
+//
+// Sets the original or spirit execution.
+// ============================================================================
+
+function SetOriginalExecution()
+{
+  RedJail.EventExecutionInit      = RedInit;
+  RedJail.EventExecutionCommit    = RedCommit;
+  RedJail.EventExecutionEnd       = RedEnd;
+  RedJail.ExecutionDelayCommit    = RedDelayCommit;
+  RedJail.ExecutionDelayFallback  = RedDelayFallback;
+
+  BlueJail.EventExecutionInit     = BlueInit;
+  BlueJail.EventExecutionCommit   = BlueCommit;
+  BlueJail.EventExecutionEnd      = BlueEnd;
+  BlueJail.ExecutionDelayCommit   = BlueDelayCommit;
+  BlueJail.ExecutionDelayFallback = BlueDelayFallback;
+}
+
+
+function SetSpiritExecution()
+{
+  RedJail.EventExecutionInit      = '';
+  RedJail.EventExecutionCommit    = 'redspirit';
+  RedJail.EventExecutionEnd       = '';
+  RedJail.ExecutionDelayCommit    = 1;
+  RedJail.ExecutionDelayFallback  = 10;
+
+  BlueJail.EventExecutionInit     = '';
+  BlueJail.EventExecutionCommit   = 'bluespirit';
+  BlueJail.EventExecutionEnd      = '';
+  BlueJail.ExecutionDelayCommit   = 1;
+  BlueJail.ExecutionDelayFallback = 10;
 }
 
 
