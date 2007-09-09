@@ -1,7 +1,7 @@
 // ============================================================================
 // JBEmitterBurningPlayer
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBEmitterBurningPlayer.uc,v 1.2 2006-07-17 15:07:13 wormbo Exp $
+// $Id: JBEmitterBurningPlayer.uc,v 1.3 2006-07-18 12:29:53 wormbo Exp $
 //
 // An emitter that sets a player on fire.
 // ============================================================================
@@ -23,6 +23,8 @@ class JBEmitterBurningPlayer extends Emitter;
 
 /** The victim these flames are attached to. (Owner doesn't replicate to all clients!) */
 var Pawn Victim;
+var float FlashTransparency;
+var JBEmitter1stPersonFlames EmitterFP;
 
 
 // ============================================================================
@@ -53,7 +55,7 @@ function PostBeginPlay()
 // PostNetBeginPlay
 //
 // Set the mesh actor and proper scale. Make sure the emitter moves with the
-// player.
+// player. Spawn the first person version of the emitter.
 // ============================================================================
 
 simulated function PostNetBeginPlay()
@@ -63,6 +65,12 @@ simulated function PostNetBeginPlay()
     Emitters[0].SkeletalMeshActor = Victim;
     SetLocation(Victim.Location);
     SetBase(Victim);
+
+    if (Level.GetLocalPlayerController() != None &&
+        Level.GetLocalPlayerController().Pawn == Victim) {
+      EmitterFP = Spawn(class'JBEmitter1stPersonFlames', Victim,, Victim.Location, Victim.Rotation);
+      EmitterFP.SetBase(Victim);
+    }
   }
 }
 
@@ -79,6 +87,9 @@ simulated function TornOff()
   LifeSpan = 0.6;
   AmbientSound = None;
   Disable('Tick');
+
+  if (EmitterFP != None)
+    EmitterFP.TornOff();
 }
 
 
@@ -86,12 +97,22 @@ simulated function TornOff()
 // Tick
 //
 // Update the emitter rotation offset (neccessary for actors that are not
-// ragdolls).
+// ragdolls). Display screen flashes that simulate heat.
 // ============================================================================
 
 simulated function Tick(float DeltaTime)
 {
-  if (Victim != None) Emitters[0].RotationOffset = Victim.Rotation - rot(0,16384,0);
+  if (Victim != None) {
+    Emitters[0].RotationOffset = Victim.Rotation - rot(0,16384,0);
+
+    if (PlayerController(Pawn(Owner).Controller) != None) {
+      // Gradually increase the opacity.
+      if (FlashTransparency > 0.5)
+        FlashTransparency = FMax(0.5, FlashTransparency - DeltaTime/2);
+
+      PlayerController(Pawn(Owner).Controller).ClientFlash(FlashTransparency, vect(1000,500,0));
+    }
+  }
 }
 
 
@@ -101,6 +122,8 @@ simulated function Tick(float DeltaTime)
 
 defaultproperties
 {
+  FlashTransparency = 1.0
+
   Begin Object Class=SpriteEmitter Name=PlayerFlames
     FadeOut=True
     FadeIn=True
@@ -137,9 +160,10 @@ defaultproperties
   End Object
   Emitters(0)=SpriteEmitter'PlayerFlames'
 
+  bOwnerNoSee = True
   bNoDelete   = False
   bHardAttach = True
   RemoteRole  = ROLE_SimulatedProxy
   bReplicateMovement = False
-  AmbientSound  = Sound'GeneralAmbience.firefx9'
+  AmbientSound = Sound'GeneralAmbience.firefx9'
 }
