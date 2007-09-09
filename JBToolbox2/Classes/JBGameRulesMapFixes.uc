@@ -246,7 +246,7 @@ function SetRandomExecution()
   // This will try to make both executions be played an equal number of times, but maintain the randomness.
   randInt = Rand(OriginalCount + SpiritCount);
 
-  if (randInt < 0) {
+  if (randInt < 0.5) {
     SetOriginalExecution();
     OriginalCount++;
   } else {
