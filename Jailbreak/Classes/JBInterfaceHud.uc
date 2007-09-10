@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.78 2007-09-02 12:07:37 wormbo Exp $
+// $Id: JBInterfaceHud.uc,v 1.79 2007-09-08 18:01:03 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -299,10 +299,12 @@ simulated event PostRender(Canvas Canvas)
   else {
     Super.PostRender(Canvas);
 
-    if (bShowScoreBoard)
-      DisplayMessages(Canvas);
-    else
-      DrawOverlays(Canvas);
+    if (!PlayerOwner.myHUD.bHideHUD) {
+      if (bShowScoreBoard)
+        DisplayMessages(Canvas);
+      else
+        DrawOverlays(Canvas);
+    }
   }
 
   if (Level.LevelAction == LEVACT_None)  // skip precaching
