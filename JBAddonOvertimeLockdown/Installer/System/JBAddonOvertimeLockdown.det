@@ -9,7 +9,7 @@ NoEscapeInOvertimeDesc="Spieler, die während der Inhaftierung aus dem Gefängnis 
 LockdownDelayText="Zeitspanne vor Inhaftierung"
 LockdownDelayDesc="Dauer der Verlängerung, bevor die Inhaftierung beginnt."
 FriendlyName="Verlängerung vor Inhaftierung"
-Description="Wenn das Spiel in Verlängerung geht, können die Schlösser deaktiviert werden und niemand kann mehr frei gelassen werden. Letzte Chance für den Sieg!"
+Description="Wenn das Spiel in Verlängerung geht, werden die Schalter deaktiviert und niemand kann mehr frei gelassen werden. Letzte Chance für den Sieg!"
 
 [JBGUIPanelConfigOvertimeLockdown]
 LockdownDelayTrackBar.Caption="Zeitspanne vor Inhaftierung"

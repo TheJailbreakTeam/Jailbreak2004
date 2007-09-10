@@ -3,21 +3,21 @@ Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonOvertimeLockdown.JBA
 
 [JBAddonOvertimeLockdown]
 NoArenaInOvertimeText="Nessun Arena match nell'Overtime"
-NoArenaInOvertimeDesc="Nessun Arena match inizier√† quando la partita andr√† in Overtime. I match programmati verranno cancellati."
+NoArenaInOvertimeDesc="Nessun Arena match inizier‡† quando la partita andr‡† in Overtime. I match programmati verranno cancellati."
 NoEscapeInOvertimeText="Nessuna fuga nell'Overtime"
 NoEscapeInOvertimeDesc="I giocatori che proveranno ad uscire di prigione durante il Lockdown verranno uccisi."
 LockdownDelayText="Ritardo Lockdown"
 LockdownDelayDesc="Per quanto tempo l'Overtime normale dovrebbe durare prima del LockDown."
 FriendlyName="Overtime Lockdown"
-Description="Se la partita va in Overtime, gli Switch possono essere bloccati e nussuno essere pi√π rilasciato. Ultima possibilit√† di vincere la partita!"
+Description="Se il match va in Overtime, gli switch vengono bloccati e nessuno puÚ pi˘ essere rilasciato. Ultima possibilit‡† di vincere la partita!"
 
 [JBGUIPanelConfigOvertimeLockdown]
 LockdownDelayTrackBar.Caption="Ritardo Lockdown"
 LockdownDelayTrackBar.Hint="Per quanto tempo l'Overtime normale dovrebbe durare prima del LockDown."
 NoArenaInOvertimeCheckBox.Caption="Nessun Arena match nell'Overtime"
-NoArenaInOvertimeCheckBox.Hint="Nessun Arena match inizier√† quando la partita andr√† in Overtime. I match programmati verranno cancellati."
+NoArenaInOvertimeCheckBox.Hint="Nessun Arena match inizier‡† quando la partita andr‡† in Overtime. I match programmati verranno cancellati."
 NoEscapeInOvertimeCheckBox.Caption="Nessuna fuga nell'Overtime"
 NoEscapeInOvertimeCheckBox.Hint="I giocatori che proveranno ad uscire di prigione durante il Lockdown verranno uccisi."
 
 [JBLocalMessageOvertimeLockdown]
-TextOvertimeLockdown="Lucchetti bloccati - ultima possibilit√† di vincere!"
+TextOvertimeLockdown="Lucchetti bloccati - ultima possibilit‡† di vincere!"

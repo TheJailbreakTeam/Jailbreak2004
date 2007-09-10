@@ -159,7 +159,7 @@ JBHelpPanel.Caption="Jailbreak Tutorial"
 JBHelpPanel.Hint="How to play Jailbreak"
 
 [JBMidGamePanelHelp]
-Tutorials=((Title="Imprison",Description="Kill a player to jail him."),(Title="Release",Description="Walk over the enemy's release switch to free your teammates."),(Title="Score",Description="Jail everybody on the enemy team to execute them and score a point."))
+Tutorials=((Title="Encarcelar",Description="Mata a un jugador para encarcelarlo."),(Title="Liberar",Description="Camina sobre el candado enemigo para liberar a tu equipo."),(Title="Puntuar",Description="Captura a todos los jugadores del equipo contrario para ejecutarles y conseguir un punto."))
 
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"

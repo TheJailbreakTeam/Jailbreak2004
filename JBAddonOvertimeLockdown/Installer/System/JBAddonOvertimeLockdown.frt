@@ -9,7 +9,7 @@ NoEscapeInOvertimeDesc="Tout joueur essayant de s'enfuir de prison pendant le Su
 LockdownDelayText="Délai avant incarcération"
 LockdownDelayDesc="La durée d'une prolongation normale avant incarcération."
 FriendlyName="Sursis avant Incarcération"
-Description="En cas de prolongations, les dispositifs de déverrouillage peuvent être bloqués afin que personne ne puisse plus être libéré. Dernière chance de remporter le jeu !"
+Description="En cas de prolongations, les dispositifs de déverrouillage sont bloqués afin que personne ne puisse plus être libéré. Dernière chance de remporter le jeu !"
 
 [JBGUIPanelConfigOvertimeLockdown]
 LockdownDelayTrackBar.Caption="Délai avant incarcération"

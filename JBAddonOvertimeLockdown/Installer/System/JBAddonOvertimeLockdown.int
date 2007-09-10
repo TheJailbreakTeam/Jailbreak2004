@@ -9,7 +9,7 @@ NoEscapeInOvertimeDesc="Players who try to get out of jail during the Lockdown, 
 LockdownDelayText="Lockdown delay"
 LockdownDelayDesc="How long normal overtime should last before before the lockdown kicks in."
 FriendlyName="Overtime Lockdown"
-Description="If the match goes into overtime, the release switches can become jammed and nobody can be released any more. Last chance to win the game!"
+Description="If the match goes into overtime, the release switches are jammed and nobody can be released any more. Last chance to win the game!"
 
 [JBGUIPanelConfigOvertimeLockdown]
 LockdownDelayTrackBar.Caption="Lockdown delay"
