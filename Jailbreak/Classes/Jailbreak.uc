@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.151 2007-08-08 23:49:52 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.152 2007-09-03 14:06:28 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -159,6 +159,10 @@ event InitGame(string Options, out string Error)
   bForceRespawn    = True;
   bTeamScoreRounds = False;
   MaxLives         = 0;
+
+  // Spawn our map fixing info object.
+  if (bEnableJBMapFixes)
+    Spawn(class<Actor>(DynamicLoadObject("JBToolbox2.JBGameRulesMapFixes", class'Class')));
 }
 
 
@@ -486,10 +490,6 @@ event PostBeginPlay()
 
   ReadAddonsForWebAdmin();
   SetupWebScoreboard();
-
-  // Spawn our map fixing info object.
-  if (bEnableJBMapFixes)
-    Spawn(class<Actor>(DynamicLoadObject("JBToolbox2.JBMapFixes", class'Class')));
 
   for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
     if (JBAddon(thisMutator) != None)
