@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGiantSpiderMine
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGiantSpiderMine.uc,v 1.1 2006-11-29 19:14:28 jrubzjeknf Exp $
+// $Id: JBGiantSpiderMine.uc,v 1.2 2007-02-10 19:13:25 wormbo Exp $
 //
 // A standalone version of the parasite mine.
 // ============================================================================
@@ -40,6 +40,7 @@ var(Sounds) array<Sound> BulletSounds;
 // ============================================================================
 
 var name IdleAnims[4];
+var int IdleCounts[4];
 var float ExplosionCountdown;
 var bool bPreExplosion;
 var name ExplosionEvent;
@@ -187,8 +188,7 @@ Play a spawn effect.
 
 simulated state Spawning
 {
-  function ClientTrigger();
-  function Trigger(Actor Other, Pawn EventInstigator);
+  ignores ClientTrigger, Trigger;
   
 Begin:
   if ( PrespawnDelay > 0 )
@@ -213,8 +213,7 @@ Spider idles a bit before detonating.
 
 simulated state Waiting
 {
-  function ClientTrigger();
-  function Trigger(Actor Other, Pawn EventInstigator);
+  ignores ClientTrigger, Trigger;
   
   simulated function Timer()
   {
@@ -257,6 +256,25 @@ simulated state Waiting
       GotoState('Sleeping');
     }
   }
+  
+  simulated function name SelectIdleAnim()
+  {
+    local int Rnd, i;
+    
+    Rnd = Rand(IdleCounts[0] + IdleCounts[1] + IdleCounts[2] + IdleCounts[3]);
+    for (i = 0; i < ArrayCount(IdleCounts); ++i) {
+      Rnd -= IdleCounts[i];
+      if (Rnd < 0) {
+        break;
+      }
+    }
+    if (i >= ArrayCount(IdleCounts)) {
+      warn("This should never happen!");
+      i = Rand(ArrayCount(IdleAnims));
+    }
+    IdleCounts[i]++;
+    return IdleAnims[i];
+  }
 
 Begin:
   ExplosionCountdown = ExplosionDelay;
@@ -265,7 +283,7 @@ Begin:
   while (True) {
     PlayAnim('Idle', 1.0, 0.3);
     FinishAnim();
-    PlayAnim(IdleAnims[Rand(ArrayCount(IdleAnims))], 1.0, 0.3);
+    PlayAnim(SelectIdleAnim(), 1.0, 0.3);
     FinishAnim();
   }
 }
@@ -304,6 +322,10 @@ defaultproperties
   IdleAnims(1)=look
   IdleAnims(2)=Bob
   IdleAnims(3)=footTap
+  IdleCounts(0)=1
+  IdleCounts(1)=1
+  IdleCounts(2)=1
+  IdleCounts(3)=1
   DrawType=DT_Mesh
   bUseDynamicLights=True
   bDramaticLighting=True
