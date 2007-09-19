@@ -1,7 +1,7 @@
 // ============================================================================
 // JBMidGamePanelHelp
 // Copyright 2007 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBMidGamePanelHelp.uc,v 1.1 2007-08-08 23:49:52 jrubzjeknf Exp $
+// $Id: JBMidGamePanelHelp.uc,v 1.2 2007-08-09 11:45:47 jrubzjeknf Exp $
 //
 // Jailbreak's help tab for the mini tutorial. Created from a combination of
 // UT2K4SPTab_Tutorials and UT2K4OnslaughtPowerLinkDesigner.
@@ -220,7 +220,7 @@ function bool DrawImages(Canvas Canvas)
 
 defaultproperties
 {
-  Tutorials[0] = (Texture="Jailbreak.MiniTutorial",X1=0,Y1=0,X2=1199,Y2=199,Title="Imprison",Description="Kill a player to jail him.")
-  Tutorials[1] = (Texture="Jailbreak.MiniTutorial",X1=0,Y1=400,X2=1199,Y2=599,Title="Release",Description="Walk over the enemy's release switch to free your teammates.")
-  Tutorials[2] = (Texture="Jailbreak.MiniTutorial",X1=0,Y1=200,X2=1199,Y2=399,Title="Score",Description="Jail everybody on the enemy team to execute them and gain a point.")
+  Tutorials[0] = (Texture="JBToolbox2.MiniTutorial",X1=0,Y1=0,X2=1199,Y2=199,Title="Imprison",Description="Kill a player to jail him.")
+  Tutorials[1] = (Texture="JBToolbox2.MiniTutorial",X1=0,Y1=400,X2=1199,Y2=599,Title="Release",Description="Walk over the enemy's release switch to free your teammates.")
+  Tutorials[2] = (Texture="JBToolbox2.MiniTutorial",X1=0,Y1=200,X2=1199,Y2=399,Title="Score",Description="Jail everybody on the enemy team to execute them and gain a point.")
 }

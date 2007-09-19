@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLoginMenu
 // Copyright 2007 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBLoginMenu.uc,v 1.1 2007-08-08 23:49:52 jrubzjeknf Exp $
 //
 // Jailbreak's login menu - the menu you see when you hit escape ingame.
 // ============================================================================
@@ -56,5 +56,5 @@ function HandleParameters(string Param1, string Param2)
 
 defaultproperties
 {
-  JBHelpPanel = (ClassName="Jailbreak.JBMidGamePanelHelp",Caption="Jailbreak Tutorial",Hint="How to play Jailbreak")
+  JBHelpPanel = (ClassName="JBToolbox2.JBMidGamePanelHelp",Caption="Jailbreak Tutorial",Hint="How to play Jailbreak")
 }

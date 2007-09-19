@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.152 2007-09-03 14:06:28 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.153 2007-09-11 12:09:24 wormbo Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -99,7 +99,8 @@ var bool bArenaMutatorActive; // add a shieldgun to a prisoner's inventory
 // ============================================================================
 // InitGame
 //
-// Initializes the game and interprets Jailbreak-specific parameters.
+// Initializes the game and interprets Jailbreak-specific parameters. Load
+// JBToolbox2 and apply the MapFixes if wanted.
 // ============================================================================
 
 event InitGame(string Options, out string Error)
@@ -159,6 +160,8 @@ event InitGame(string Options, out string Error)
   bForceRespawn    = True;
   bTeamScoreRounds = False;
   MaxLives         = 0;
+
+  AddToPackageMap("JBToolbox2");
 
   // Spawn our map fixing info object.
   if (bEnableJBMapFixes)
@@ -2328,7 +2331,7 @@ defaultproperties
   MapListType              = "Jailbreak.JBMapList"
   HUDSettingsMenu          = "Jailbreak.JBGUICustomHUDMenu"
 
-  LoginMenuClass           = "Jailbreak.JBLoginMenu"
+  LoginMenuClass           = "JBToolbox2.JBLoginMenu"
 
   MessageClass             = Class'JBLocalMessage'
   GameReplicationInfoClass = Class'JBGameReplicationInfo'
