@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.52 2006-12-08 11:49:15 jrubzjeknf Exp $
+// $Id: JBInfoArena.uc,v 1.53 2007-04-07 11:14:47 jrubzjeknf Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -1230,21 +1230,12 @@ state MatchCountdown {
 
   private function BroadcastCountdown(int nSeconds)
   {
-    local JBTagPlayer firstTagPlayer;
-    local JBTagPlayer thisTagPlayer;
-
-    firstTagPlayer = JBGameReplicationInfo(Level.Game.GameReplicationInfo).firstTagPlayer;
-    for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
-      if (thisTagPlayer.GetArenaPending() == Self &&
-          PlayerController(thisTagPlayer.GetController()) != None)
-        Level.Game.BroadcastHandler.BroadcastLocalized(
-          Self,
-          PlayerController(thisTagPlayer.GetController()),
-          MessageClass,
-          Clamp(nSeconds, 1, 3) + 400,
-          PlayerReplicationInfoRed,
-          PlayerReplicationInfoBlue,
-          Self);
+    Jailbreak(Level.Game).BroadcastLocalizedMessage(
+      MessageClass,
+      Clamp(nSeconds, 1, 3) + 400,
+      PlayerReplicationInfoRed,
+      PlayerReplicationInfoBlue,
+      Self);
   }
 
 

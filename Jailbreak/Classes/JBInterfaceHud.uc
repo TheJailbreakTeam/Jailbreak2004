@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.81 2007-09-14 09:58:13 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.82 2007-09-19 14:59:26 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -1667,12 +1667,14 @@ exec function BotThoughts(optional string Param1, optional string Param2)
   PlayerOwner.ClientMessage("BotThoughts written to log:" @ bExplainToLog $ ", to screen:" @ bExplainToScreen);
 }
 
+
 // ============================================================================
 // Get and Set functions for bShowLocation
 // ============================================================================
 
 function SetDebugShowLoc(bool bShow)  {  bShowLocation = bShow;  }
 function bool GetDebugShowLoc()       {  return bShowLocation;   }
+
 
 // ============================================================================
 // ShowLocation
@@ -1689,6 +1691,7 @@ function ShowLocation(Canvas Canvas)
   Canvas.SetPos(0.0, 75.0);
   Canvas.DrawText(strLocName);
 }
+
 
 // ============================================================================
 // Defaults

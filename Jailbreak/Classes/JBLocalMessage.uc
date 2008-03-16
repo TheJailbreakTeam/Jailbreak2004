@@ -1,7 +1,7 @@
 // ============================================================================
 // JBLocalMessage
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBLocalMessage.uc,v 1.23 2007-02-11 08:00:27 wormbo Exp $
+// $Id: JBLocalMessage.uc,v 1.24 2007-04-01 10:25:24 jrubzjeknf Exp $
 //
 // Abstract base class for localized Jailbreak messages. Contains all
 // functionality common to console and on-screen messages.
@@ -15,9 +15,9 @@
 //   210       Release, jail empty  Releaser                          TeamInfo
 //   220       Release, jail jammed Releaser                          TeamInfo
 //   300 (B)   Stalemate
-//   403       Arena countdown 3                                      Arena
-//   402       Arena countdown 2                                      Arena
-//   401       Arena countdown 1                                      Arena
+//   403 (B)   Arena countdown 3                                      Arena
+//   402 (B)   Arena countdown 2                                      Arena
+//   401 (B)   Arena countdown 1                                      Arena
 //   400 (B)   Arena start          Red Combatant    Blue Combatant   Arena
 //   410 (B)   Arena cancelled      Red Combatant    Blue Combatant   Arena
 //   420 (B)   Arena tie            Red Combatant    Blue Combatant   Arena
@@ -96,6 +96,7 @@ var localized string TextDisallowedEscape;
 
 var Class<JBLocalMessage> ClassLocalMessageScreen;   // on-screen messages
 var Class<JBLocalMessage> ClassLocalMessageConsole;  // console messages
+var Class<JBLocalMessage> ClassLocalMessageConsoleOneSecond; // console messages of 1 second
 
 
 // ============================================================================
@@ -155,8 +156,12 @@ static function ClientReceive(PlayerController PlayerController,
     if (Switch >= 400 && Switch <= 499 &&
        !IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2) &&
         class'JBTagPlayer'.static.FindFor(PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo) != None &&
-        class'JBTagPlayer'.static.FindFor(PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo).IsFree())
-      ClassLocalMessageReplacement = Default.ClassLocalMessageConsole;
+        class'JBTagPlayer'.static.FindFor(PlayerReplicationInfo1.Level.GetLocalPlayerController().PlayerReplicationInfo).IsFree()) {
+      if (Switch <= 403 && Switch >= 401)
+        ClassLocalMessageReplacement = Default.ClassLocalMessageConsoleOneSecond;
+      else
+        ClassLocalMessageReplacement = Default.ClassLocalMessageConsole;
+    }
 
     PlayerController.ReceiveLocalizedMessage(
       ClassLocalMessageReplacement,
@@ -174,9 +179,13 @@ static function ClientReceive(PlayerController PlayerController,
     case 220:  PlayerController.PlayBeepSound();                     break;
     case 300:  PlaySpeech(PlayerController, "$TeamCapturedBoth");    break;
 
-    case 403:  PlayerController.PlayBeepSound();  PlaySpeech(PlayerController, "$ArenaWarning");  break;
-    case 402:  PlayerController.PlayBeepSound();  break;
-    case 401:  PlayerController.PlayBeepSound();  break;
+    case 403:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) {
+                 PlayerController.PlayBeepSound();
+                 PlaySpeech(PlayerController, "$ArenaWarning");
+                 break;
+               }
+    case 402:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlayerController.PlayBeepSound();  break;
+    case 401:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlayerController.PlayBeepSound();  break;
 
     case 400:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaStart");       break;
     case 410:  if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2)) PlaySpeech(PlayerController, "$ArenaCancelled");   break;
@@ -371,20 +380,14 @@ static function string GetString(optional int Switch,
     case 401:  return ReplaceTextArena(Default.TextArenaCountdown[0], PlayerReplicationInfo1, PlayerReplicationInfo2);
 
     case 400:
-      if (IsLocalPlayer(PlayerReplicationInfo1) ||
-          IsLocalPlayer(PlayerReplicationInfo2))
+      if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2))
         return ReplaceTextArena(Default.TextArenaStartCombatant, PlayerReplicationInfo1, PlayerReplicationInfo2);
       return ReplaceTextArena(Default.TextArenaStartOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
 
-    case 410:
-      if (IsLocalPlayer(PlayerReplicationInfo1) ||
-          IsLocalPlayer(PlayerReplicationInfo2))
-        return ReplaceTextArena(Default.TextArenaCancelCombatant, PlayerReplicationInfo1, PlayerReplicationInfo2);
-      return ReplaceTextArena(Default.TextArenaCancelOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
+    case 410:  return ReplaceTextArena(Default.TextArenaCancelCombatant, PlayerReplicationInfo1, PlayerReplicationInfo2);
 
     case 420:
-      if (IsLocalPlayer(PlayerReplicationInfo1) ||
-          IsLocalPlayer(PlayerReplicationInfo2))
+      if (IsLocalPlayer(PlayerReplicationInfo1, PlayerReplicationInfo2))
         return ReplaceTextArena(Default.TextArenaTieCombatant, PlayerReplicationInfo1, PlayerReplicationInfo2);
       return ReplaceTextArena(Default.TextArenaTieOther, PlayerReplicationInfo1, PlayerReplicationInfo2);
 
@@ -449,8 +452,9 @@ defaultproperties
 
   TextDisallowedEscape      = "You're not allowed to escape from jail!";
 
-  ClassLocalMessageScreen   = Class'JBLocalMessageScreen';
-  ClassLocalMessageConsole  = Class'JBLocalMessageConsole';
+  ClassLocalMessageScreen           = Class'JBLocalMessageScreen';
+  ClassLocalMessageConsole          = Class'JBLocalMessageConsole';
+  ClassLocalMessageConsoleOneSecond = Class'JBLocalMessageConsoleOneSecond';
 
   Role = ROLE_None // Fixes Accessed None error on client
 }
