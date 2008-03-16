@@ -1,0 +1,7 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonJailFightTally.JBAddonJailFightTally)
+
+[JBAddonJailFightTally]
+FriendlyName="Gefängniskampf Tally"
+Description="Zeigt einen Punktezähler für Gefängnis-Kämpfe an."
+

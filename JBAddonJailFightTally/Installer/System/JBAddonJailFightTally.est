@@ -1,0 +1,7 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonJailFightTally.JBAddonJailFightTally)
+
+[JBAddonJailFightTally]
+FriendlyName="Tabla Peleas en la Cárcel"
+Description="Muestra una tabla de calificaciones para las peleas en la cárcel."
+
