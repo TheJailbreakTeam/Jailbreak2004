@@ -148,7 +148,7 @@ Addons
            Escaping jail is impossible in overtime.
 140078 - JBAddonSpoils
            Awards the arena winner with a weapon.
-172638 - JBAddonTally
+172638 - JBAddonJailFightTally
            Shows a jail fight score tally to prisoners.
 
 
