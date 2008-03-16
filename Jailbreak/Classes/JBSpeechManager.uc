@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.10 2007-02-11 17:00:40 wormbo Exp $
+// $Id: JBSpeechManager.uc,v 1.11 2007-03-31 12:30:06 mychaeel Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -35,10 +35,10 @@ struct TInfoVoicePack                         // info on loaded voice pack
 {
   var string Package;                         // sound package
   var string Group;                           // group within sound package
-  
+
   var float Volume;                           // volume modifier for samples
   var float Pause;                            // default pause between segments
-  
+
   var array<TCacheSegment> ListCacheSegment;  // cached sound segments
   var array<TCacheSetting> ListCacheSetting;  // cached settings
 };
@@ -65,6 +65,9 @@ var bool            bUseFallbackVoicePack;
 var JBDefaultVoice  FallbackVoicePack;
 
 var transient name Announcement;              // used to cast string to name
+
+var array<String> PrecacheCommonMacros;
+var int iPrecacheCommonMacros;
 
 
 // ============================================================================
@@ -141,7 +144,7 @@ simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFall
 {
   local int iCharSeparator;
   local int iInfoVoicePack;
-  
+
   if (InfoVoicePack.Package ~= VoicePackNew && (bUseFallbackVoicePack || VoicePackNew != ""))
     return True;
 
@@ -155,13 +158,15 @@ simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFall
   else {
     if (IsVoicePackInstalled(VoicePackNew)) {
       iCharSeparator = InStr(VoicePackNew $ ".", ".");
-  
+
       InfoVoicePack.Package = Left(VoicePackNew, iCharSeparator);
       InfoVoicePack.Group   = Mid (VoicePackNew, iCharSeparator + 1);
       InfoVoicePack.Volume  = float(GetSetting("Settings", "Volume", 1.0));
       InfoVoicePack.Pause   = float(GetSetting("Settings", "Pause"));
       InfoVoicePack.ListCacheSegment.Length = 0;
-  
+
+      //PrecacheSegments(InfoVoicePack);
+
       ListInfoVoicePack[iInfoVoicePack] = InfoVoicePack;
       bUseFallbackVoicePack = False;
     }
@@ -175,7 +180,7 @@ simulated function bool LoadVoicePack(string VoicePackNew, optional bool bNoFall
         if (!bUseFallbackVoicePack) {
           Log("Using fallback voice pack.", 'JBSpeech');
           iCharSeparator = InStr(FallbackVoicePack.VoicePackage $ ".", ".");
-          
+
           InfoVoicePack.Package = Left(FallbackVoicePack.VoicePackage, iCharSeparator);
           InfoVoicePack.Group   = Mid (FallbackVoicePack.VoicePackage, iCharSeparator + 1);
           InfoVoicePack.Volume  = FallbackVoicePack.Volume;
@@ -210,7 +215,7 @@ simulated function bool IsVoicePackInstalled(string VoicePackTest)
   for (iEntry = 0; True; iEntry++) {
     Entry = GetNextInt("Jailbreak.JBVoice", iEntry);
     if (Entry ~= "")            return False;
-    if (Entry ~= VoicePackTest) return True; 
+    if (Entry ~= VoicePackTest) return True;
   }
 }
 
@@ -225,7 +230,7 @@ simulated function bool IsVoicePackInstalled(string VoicePackTest)
 static function bool PlayFor(LevelInfo Level, string Definition, optional string Tags)
 {
   local JBSpeechManager SpeechManager;
-  
+
   SpeechManager = Static.SpawnFor(Level);
   return SpeechManager.Play(Definition, Tags);
 }
@@ -242,9 +247,9 @@ static function bool PlayFor(LevelInfo Level, string Definition, optional string
 simulated function bool Play(string Definition, optional string Tags)
 {
   local JBSpeechClient SpeechClient;
-  
+
   SpeechClient = Spawn(Class'JBSpeechClient', Self);
-  
+
   if (SpeechClient.Parse(Definition, Tags)) {
     if (bQueueAnnouncements) {
       ListQueueSpeechClient[ListQueueSpeechClient.Length] = SpeechClient;
@@ -256,7 +261,7 @@ simulated function bool Play(string Definition, optional string Tags)
         return True;
     }
   }
-  
+
   SpeechClient.Destroy();
   return False;
 }
@@ -274,7 +279,7 @@ simulated function NotifyFinishedPlaying(JBSpeechClient SpeechClient)
   if (ListQueueSpeechClient.Length == 0 ||
       ListQueueSpeechClient[0] != SpeechClient)
     return;
-  
+
   ListQueueSpeechClient.Remove(0, 1);
   if (ListQueueSpeechClient.Length > 0)
     ListQueueSpeechClient[0].Play();
@@ -293,7 +298,7 @@ simulated function string GetSetting(string Section, string Setting, optional co
 {
   local int iCacheSetting;
   local string Value;
-  
+
   for (iCacheSetting = 0; iCacheSetting < InfoVoicePack.ListCacheSetting.Length; iCacheSetting++)
     if (InfoVoicePack.ListCacheSetting[iCacheSetting].Section ~= Section &&
         InfoVoicePack.ListCacheSetting[iCacheSetting].Setting ~= Setting)
@@ -313,7 +318,7 @@ simulated function string GetSetting(string Section, string Setting, optional co
   InfoVoicePack.ListCacheSetting[iCacheSetting].Section = Section;
   InfoVoicePack.ListCacheSetting[iCacheSetting].Setting = Setting;
   InfoVoicePack.ListCacheSetting[iCacheSetting].Value   = Value;
-    
+
   return Value;
 }
 
@@ -339,7 +344,7 @@ simulated function TSegment GetSegment(string Identifier)
   local TCacheSegment CacheSegment;
   local TSegment SegmentAnnouncement;
   local TSegment SegmentNone;
-  
+
   iCharSeparatorAnnouncer = InStr(Identifier, "/");
 
   if (iCharSeparatorAnnouncer >= 0) {
@@ -359,21 +364,21 @@ simulated function TSegment GetSegment(string Identifier)
     for (iCacheSegment = 0; iCacheSegment < InfoVoicePack.ListCacheSegment.Length; iCacheSegment++)
       if (InfoVoicePack.ListCacheSegment[iCacheSegment].Identifier ~= Identifier)
         break;
-  
+
     if (iCacheSegment < InfoVoicePack.ListCacheSegment.Length) {
       CacheSegment = InfoVoicePack.ListCacheSegment[iCacheSegment];
     }
     else {
       CacheSegment.Identifier = Identifier;
-  
+
       Package = InfoVoicePack.Package;
       Group   = InfoVoicePack.Group;
-  
+
       for (iSegmentLoaded = 0; True; iSegmentLoaded++) {
         if (iSegmentLoaded == 0)
                Suffix = "";
           else Suffix = "_" $ iSegmentLoaded;
-  
+
         SoundLoaded = None;
         if (InStr(Identifier, ".") >= 0)
                                    SoundLoaded = DynamicLoadSound(                              Identifier $ Suffix);
@@ -381,20 +386,20 @@ simulated function TSegment GetSegment(string Identifier)
           if (Group != "")         SoundLoaded = DynamicLoadSound(Package $ "." $ Group $ "_" $ Identifier $ Suffix);
           if (SoundLoaded == None) SoundLoaded = DynamicLoadSound(Package $ "."               $ Identifier $ Suffix);
         }
-  
+
         if (SoundLoaded == None)
           if (iSegmentLoaded == 0) continue;
                               else break;
-    
+
         iSegment = CacheSegment.ListSegment.Length;
         CacheSegment.ListSegment.Insert(iSegment, 1);
         CacheSegment.ListSegment[iSegment].Sound    =                  SoundLoaded;
         CacheSegment.ListSegment[iSegment].Duration = GetSoundDuration(SoundLoaded);
       }
-  
+
       InfoVoicePack.ListCacheSegment[iCacheSegment] = CacheSegment;
     }
-    
+
     if (CacheSegment.ListSegment.Length > 0) {
       iSegment = Rand(CacheSegment.ListSegment.Length);
       return CacheSegment.ListSegment[iSegment];
@@ -415,6 +420,28 @@ simulated function TSegment GetSegment(string Identifier)
 final static function Sound DynamicLoadSound(string Name)
 {
   return Sound(DynamicLoadObject(Name, Class'Sound', True));
+}
+
+
+// ============================================================================
+// Tick
+//
+// Precaches all segments, to prevent hitches during play.
+// ============================================================================
+
+simulated function Tick(float dt)
+{
+  local JBSpeechClient SpeechClient;
+
+  if (iPrecacheCommonMacros == 0)
+    log("Precaching the announcer - the localization log entries are normal", 'JBSpeech');
+
+  SpeechClient = Spawn(Class'JBSpeechClient', Self);
+
+  SpeechClient.Parse(PrecacheCommonMacros[iPrecacheCommonMacros]);
+
+  if (iPrecacheCommonMacros++ == PrecacheCommonMacros.Length)
+    Disable('Tick');
 }
 
 
@@ -441,8 +468,32 @@ defaultproperties
 {
   VoicePack = "JBVoiceGrrrl.Classic";
   bQueueAnnouncements = True;
-  
+
   Begin Object Class=JBDefaultVoice Name=FallbackVoice
   End Object
   FallbackVoicePack = JBDefaultVoice'FallbackVoice';
+
+  PrecacheCommonMacros(0)  = "$LastMan"
+  PrecacheCommonMacros(1)  = "$LastSecondSave"
+  PrecacheCommonMacros(2)  = "$TeamRed"
+  PrecacheCommonMacros(3)  = "$TeamBlue"
+  PrecacheCommonMacros(4)  = "$TeamCapturedRed"
+  PrecacheCommonMacros(5)  = "$TeamCapturedBlue"
+  PrecacheCommonMacros(6)  = "$TeamCapturedBoth"
+  PrecacheCommonMacros(7)  = "$TeamReleasedRed"
+  PrecacheCommonMacros(8)  = "$TeamReleasedBlue"
+  PrecacheCommonMacros(9)  = "$ArenaWarning"
+  PrecacheCommonMacros(10) = "$ArenaStart"
+  PrecacheCommonMacros(11) = "$ArenaCancelled"
+  PrecacheCommonMacros(12) = "$ArenaEndTimeout"
+  PrecacheCommonMacros(13) = "$ArenaEndWinner"
+  PrecacheCommonMacros(14) = "$ArenaEndLoser"
+  PrecacheCommonMacros(15) = "$GameStart"
+  PrecacheCommonMacros(16) = "$GameOvertime"
+  PrecacheCommonMacros(17) = "$GameOverWinnerRed"
+  PrecacheCommonMacros(18) = "$GameOverWinnerBlue"
+  PrecacheCommonMacros(19) = "$AddonLlamaStart"
+  PrecacheCommonMacros(20) = "$AddonLlamaDisconnect"
+  PrecacheCommonMacros(21) = "$AddonLlamaFragged"
+  PrecacheCommonMacros(22) = "$AddonVengeanceStart"
 }

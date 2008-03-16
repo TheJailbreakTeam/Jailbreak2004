@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.72 2007-05-21 15:20:25 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.73 2007-05-22 15:38:25 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -228,11 +228,14 @@ function Register()
 // Fixes the location displayed in player talk messages during the execution
 // sequence. This goes at the expense of displaying them as dead in the brief
 // period between a frag and the subsequent respawn.
+// Spawns the JBSpeechManager for precaching purposes.
 // ============================================================================
 
 protected simulated function RegisterLocal()
 {
   PlayerReplicationInfo(Keeper).StringDead = PlayerReplicationInfo(Keeper).StringSpectating;
+
+  class'JBSpeechManager'.static.SpawnFor(Level);
 }
 
 
