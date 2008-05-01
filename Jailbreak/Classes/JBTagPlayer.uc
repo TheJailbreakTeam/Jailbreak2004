@@ -1,7 +1,7 @@
 // ============================================================================
 // JBTagPlayer
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBTagPlayer.uc,v 1.73 2007-05-22 15:38:25 jrubzjeknf Exp $
+// $Id: JBTagPlayer.uc,v 1.74 2008-03-16 19:21:41 jrubzjeknf Exp $
 //
 // Replicated information for a single player.
 // ============================================================================
@@ -235,7 +235,8 @@ protected simulated function RegisterLocal()
 {
   PlayerReplicationInfo(Keeper).StringDead = PlayerReplicationInfo(Keeper).StringSpectating;
 
-  class'JBSpeechManager'.static.SpawnFor(Level);
+  if (Level.NetMode != NM_DedicatedServer)
+    class'JBSpeechManager'.static.SpawnFor(Level);
 }
 
 

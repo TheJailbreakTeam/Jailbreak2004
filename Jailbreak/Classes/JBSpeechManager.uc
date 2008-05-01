@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpeechManager
 // Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBSpeechManager.uc,v 1.11 2007-03-31 12:30:06 mychaeel Exp $
+// $Id: JBSpeechManager.uc,v 1.12 2008-03-16 19:21:40 jrubzjeknf Exp $
 //
 // Provides certain management functions for segmented speech output.
 // ============================================================================
@@ -433,15 +433,17 @@ simulated function Tick(float dt)
 {
   local JBSpeechClient SpeechClient;
 
-  if (iPrecacheCommonMacros == 0)
-    log("Precaching the announcer - the localization log entries are normal", 'JBSpeech');
-
-  SpeechClient = Spawn(Class'JBSpeechClient', Self);
-
-  SpeechClient.Parse(PrecacheCommonMacros[iPrecacheCommonMacros]);
-
-  if (iPrecacheCommonMacros++ == PrecacheCommonMacros.Length)
+  if (Level.NetMode != NM_DedicatedServer && iPrecacheCommonMacros < PrecacheCommonMacros.Length) {
+    if (iPrecacheCommonMacros == 0)
+      log("Precaching the announcer - the localization log entries are normal", 'JBSpeech');
+    
+    SpeechClient = Spawn(Class'JBSpeechClient', Self);
+    
+    SpeechClient.Parse(PrecacheCommonMacros[iPrecacheCommonMacros++]);
+  }
+  else {
     Disable('Tick');
+  }
 }
 
 
