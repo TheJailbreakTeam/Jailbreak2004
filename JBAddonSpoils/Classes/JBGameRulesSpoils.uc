@@ -3,7 +3,7 @@
 //
 // Copyright 2004 by TheForgotten
 //
-// $Id: JBGameRulesSpoils.uc,v 1.1 2007-01-03 20:19:03 jrubzjeknf Exp $
+// $Id: JBGameRulesSpoils.uc,v 1.2 2007-05-12 23:11:54 wormbo Exp $
 //
 // The rules for the Spoils add-on.
 // ============================================================================
@@ -29,7 +29,7 @@ function PostBeginPlay()
 {
   Super.PostBeginPlay();
 
-  WeaponClass = class<Weapon>(DynamicLoadObject("ini:JBAddonSpoils.JBAddonSpoils.SpoilsWeapon", class'Class'));
+  WeaponClass = class<Weapon>(DynamicLoadObject(class'JBAddonSpoils'.default.SpoilsWeapon, class'Class'));
 }
 
 
