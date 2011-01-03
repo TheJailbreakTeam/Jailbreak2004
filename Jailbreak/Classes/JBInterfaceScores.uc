@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.29 2007-05-10 16:19:17 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.30 2007-05-13 13:07:59 jrubzjeknf Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -16,6 +16,7 @@ class JBInterfaceScores extends ScoreBoardTeamDeathMatch
 // ============================================================================
 
 #exec texture import file=Textures\SpriteWidgetScores.dds mips=on alpha=on lodset=LODSET_Interface
+#exec texture import file=Textures\PadlockMapIcon.tga dxt=5 mips=on alpha=on lodset=LODSET_Interface
 
 
 // ============================================================================
@@ -267,6 +268,7 @@ var SpriteWidget SpriteWidgetPlayer;    // icon for player on minimap
 var SpriteWidget SpriteWidgetDamage;    // damage fadeout for player on minimap
 var SpriteWidget SpriteWidgetGradient;  // background gradient for scoreboard
 var RotatedWidget RotatedWidgetDirection;        // player direction indicator
+var SpriteWidget SpriteWidgetObjective; // minimap icon for release switches
 
 var Color ColorMarkerTie;               // color for marker on tie
 var Color ColorMarkerCaptured[2];       // color for marker when team captured
@@ -333,6 +335,8 @@ simulated event UpdateScoreBoard(Canvas Canvas)
   local int HeightTables;
   local float TimeDelta;
   local HudCTeamDeathMatch HudCTeamDeathMatch;
+  local JBTagObjective firstTagObjective;
+  local JBTagObjective thisTagObjective;
 
   UpdateGRI();
   HudCTeamDeathMatch = HudCTeamDeathMatch(PlayerController(Owner).myHUD);
@@ -342,7 +346,7 @@ simulated event UpdateScoreBoard(Canvas Canvas)
   TimeUpdateDisplay = Level.TimeSeconds;
 
   FontObjectMain = GetSmallerFontFor(Canvas, 2);
-  FontObjectInfo = GetSmallFontFor(Canvas.ClipX, 1);
+  FontObjectInfo = GetSmallFontFor(FMin(Canvas.ClipX, Canvas.ClipY * 1.25), 1);
 
   UpdateListEntry();
 
@@ -364,6 +368,11 @@ simulated event UpdateScoreBoard(Canvas Canvas)
 
   if (bIsMatchRunning || !GRI.bMatchHasBegun)
     DrawPanorama(Canvas);
+
+  firstTagObjective = JBGameReplicationInfo(GRI).firstTagObjective;
+  for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
+    DrawObjective(Canvas, thisTagObjective.GetObjective());
+  }
 
   for (iTable = 0; iTable < ArrayCount(Table); iTable++)
     DrawTable(Canvas, Table[iTable]);
@@ -423,7 +432,7 @@ simulated function DrawHeader(Canvas Canvas)
   if (TextSubtitle == "")
     TextSubtitle = GetGameDescription(Level) @ GetGameLimits(Level);
 
-  Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
+  Canvas.Font = GetSmallFontFor(FMin(Canvas.ClipX, Canvas.ClipY * 1.25), 0);
   Canvas.SetDrawColor(255, 255, 255);
 
   // remember current clipping area
@@ -682,7 +691,7 @@ simulated function DrawClock(Canvas Canvas)
   ColorMarkerCaptured[1] = HudCTeamDeathMatch.TeamSymbols[0].Tints[HudCTeamDeathMatch.TeamIndex];
 
   Canvas.SetDrawColor(255, 255, 255);
-  Canvas.Font = GetSmallFontFor(Canvas.ClipX, 0);
+  Canvas.Font = GetSmallFontFor(FMin(Canvas.ClipX, Canvas.ClipY * 1.25), 0);
   Canvas.DrawScreenText(TextTime,     0.930, 0.100, DP_LowerMiddle);
   Canvas.DrawScreenText(TextRelation, 0.930, 0.100, DP_UpperMiddle);
 
@@ -1634,6 +1643,32 @@ simulated function DrawEntry(Canvas Canvas, TEntry Entry)
 
 
 // ============================================================================
+// DrawObjective
+//
+// Draws the given GameObjective onto the panorama minimap.
+// ============================================================================
+
+simulated function DrawObjective(Canvas Canvas, GameObjective Objective)
+{
+  local HudCTeamDeathMatch HudCTeamDeathMatch;
+  local vector LocationObjective;
+
+  HudCTeamDeathMatch = HudCTeamDeathMatch(PlayerController(Owner).MyHud);
+  if (HudCTeamDeathMatch != None) {
+    if (Panorama == None || Objective == None || Objective.DefenderTeamIndex >= ArrayCount(HudCTeamDeathMatch.TeamSymbols))
+      return; // neutral or no objective or panorama setup, don't draw
+
+    LocationObjective = Panorama.CalcLocation(Canvas, Objective.Location);
+    SpriteWidgetObjective.PosX    = LocationObjective.X / Canvas.ClipX;
+    SpriteWidgetObjective.PosY    = LocationObjective.Y / Canvas.ClipY;
+    SpriteWidgetObjective.Color   = HudCTeamDeathMatch.TeamSymbols[Abs(int(Class'Jailbreak'.Default.bReverseSwitchColors) - Objective.DefenderTeamIndex)].Tints[HudCTeamDeathMatch.TeamIndex];
+    SpriteWidgetObjective.Color.A = 255;
+    DrawSpriteWidget(Canvas, SpriteWidgetObjective);
+  }
+}
+
+
+// ============================================================================
 // DrawSpriteWidget
 //
 // Draws a SpriteWidget sprite on the given canvas. The sprite's pivot point
@@ -1937,6 +1972,24 @@ simulated function DrawLine(Canvas Canvas, vector LocationStart, vector Location
 
 
 // ============================================================================
+// GetSmallerFontFor
+//
+// Widescreen fix for font size selection.
+// ============================================================================
+
+function Font GetSmallerFontFor(Canvas Canvas, int offset)
+{
+  local int i;
+  
+  for (i = 0; i < 8 - offset; i++) {
+    if (HUDClass.default.FontScreenWidthMedium[i] <= FMin(Canvas.ClipX, Canvas.ClipY * 1.25))
+      return HUDClass.static.LoadFontStatic(i + offset);
+  }
+  return HUDClass.static.LoadFontStatic(8);
+}
+
+
+// ============================================================================
 // Defaults
 // ============================================================================
 
@@ -2009,6 +2062,7 @@ defaultproperties
   SpriteWidgetDamage           = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=304,X2=176,Y2=368),TextureScale=0.09,OffsetX=-32,OffsetY=-32);
   SpriteWidgetGradient         = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=144,Y1=399,X2=145,Y2=401),Color=(R=0,G=0,B=0,A=128));
   RotatedWidgetDirection       = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=112,Y1=384,X2=176,Y2=448),TextureScale=0.08,OffsetCenterX=32,OffsetCenterY=32,OffsetRotatedX=0,OffsetRotatedY=48);
+  SpriteWidgetObjective        = (WidgetTexture=Material'PadlockMapIcon',TextureCoords=(X1=5,Y1=1,X2=26,Y2=29),TextureScale=0.45,OffsetX=-10,OffsetY=-15);
 
   SpriteWidgetClockAnchor      = (WidgetTexture=Texture'HUDContent.Generic.HUD',TextureCoords=(X1=168,Y1=211,X2=210,Y2=255),TextureScale=1.40,PosX=1.0,PosY=0,OffsetX=-042,OffsetY=012,Color=(R=000,G=000,B=000,A=150));
   SpriteWidgetClockCircle      = (WidgetTexture=Material'SpriteWidgetScores',TextureCoords=(X1=016,Y1=016,X2=272,Y2=272),TextureScale=0.3,PosX=0.99,PosY=0.02,OffsetX=-256,OffsetY=000,Color=(R=255,G=255,B=255,A=255));

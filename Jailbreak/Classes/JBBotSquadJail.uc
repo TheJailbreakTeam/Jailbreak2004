@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquadJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquadJail.uc,v 1.16 2004-06-02 01:27:07 mychaeel Exp $
+// $Id: JBBotSquadJail.uc,v 1.17 2006-10-28 11:01:48 jrubzjeknf Exp $
 //
 // Controls the bots in jail.
 // ============================================================================
@@ -34,7 +34,7 @@ var float TimeStartFighting;  // delay bot engaging in jail fight
 function AddBot(Bot Bot)
 {
   Super.AddBot(Bot);
-
+  
   Bot.FreeScript();
   TeamPlayerReplicationInfo(Bot.PlayerReplicationInfo).bHolding = False;
 }
@@ -64,7 +64,7 @@ function NotifyKilled(Controller ControllerKiller, Controller ControllerVictim, 
 {
   if (IsOnSquad(ControllerVictim))
     StopFighting(Bot(ControllerVictim));
-
+  
   Super.NotifyKilled(ControllerKiller, ControllerVictim, PawnVictim);
 }
 
@@ -82,48 +82,48 @@ function bool SetEnemy(Bot Bot, Pawn PawnEnemy)
   local Controller ControllerEnemy;
   local JBTagPlayer TagPlayerBot;
   local JBTagPlayer TagPlayerEnemy;
-
+  
   if (PawnEnemy.IsA('Monster') &&
-     !PawnEnemy.bStasis)
-   return Super.SetEnemy(Bot, PawnEnemy);
-
+      !PawnEnemy.bStasis)
+    return Super.SetEnemy(Bot, PawnEnemy);
+  
   if (!Jailbreak(Level.Game).bEnableJailFights)
     return False;
-
+  
   ControllerEnemy = PawnEnemy.Controller;
   if (ControllerEnemy == None)
     return False;
-
+  
   TagPlayerBot   = Class'JBTagPlayer'.Static.FindFor(Bot      .PlayerReplicationInfo);
   TagPlayerEnemy = Class'JBTagPlayer'.Static.FindFor(PawnEnemy.PlayerReplicationInfo);
-
+  
   if (TagPlayerEnemy == None ||
       TagPlayerEnemy.GetJail() != TagPlayerBot.GetJail())
     return False;
-
+  
   if (IsPlayerFighting(ControllerEnemy)) {
     if (IsPlayerFighting(Bot))
       return Super.SetEnemy(Bot, PawnEnemy);
-
+    
     if (Bot(ControllerEnemy) == None &&
         CanPlayerFight(Bot)          &&
-        CountPlayersFighting(TagPlayerBot.GetJail()) < 2) {
-
+      CountPlayersFighting(TagPlayerBot.GetJail()) < 2) {
+      
       if (TimeStartFighting == 0.0)
         TimeStartFighting = Level.TimeSeconds + RandRange(1.0, 3.0);
-
+      
       if (TimeStartFighting > Level.TimeSeconds)
         return False;
       StartFighting(Bot);
       return Super.SetEnemy(Bot, PawnEnemy);
     }
-
+    
     TimeStartFighting = 0.0;
   }
-
+  
   if (Bot.Enemy == None && IsPlayerFighting(Bot))
     StopFighting(Bot, True);
-
+  
   return False;
 }
 
@@ -151,13 +151,13 @@ static function int CountPlayersFighting(JBInfoJail Jail)
   local int nPlayersFighting;
   local JBTagPlayer firstTagPlayer;
   local JBTagPlayer thisTagPlayer;
-
+  
   firstTagPlayer = JBGameReplicationInfo(Jail.Level.Game.GameReplicationInfo).firstTagPlayer;
   for (thisTagPlayer = firstTagPlayer; thisTagPlayer != None; thisTagPlayer = thisTagPlayer.nextTag)
     if (thisTagPlayer.GetJail() == Jail &&
         IsPlayerFighting(thisTagPlayer.GetController()))
       nPlayersFighting += 1;
-
+  
   return nPlayersFighting;
 }
 
@@ -174,15 +174,15 @@ static function Weapon GetPrimaryWeaponFor(Pawn Pawn)
   local byte InventoryGroupSelected;
   local Inventory thisInventory;
   local Weapon WeaponSelected;
-
+  
   for (thisInventory = Pawn.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
     if (Weapon(thisInventory) != None &&
-       !Weapon(thisInventory).bCanThrow &&
-       (WeaponSelected == None || InventoryGroupSelected > thisInventory.InventoryGroup)) {
-     WeaponSelected = Weapon(thisInventory);
-     InventoryGroupSelected = thisInventory.InventoryGroup;
-   }
-
+        !Weapon(thisInventory).bCanThrow &&
+        (WeaponSelected == None || InventoryGroupSelected > thisInventory.InventoryGroup)) {
+      WeaponSelected = Weapon(thisInventory);
+      InventoryGroupSelected = thisInventory.InventoryGroup;
+    }
+  
   return WeaponSelected;
 }
 
@@ -197,11 +197,11 @@ static function int CountWeaponsFor(Pawn Pawn)
 {
   local int nWeapons;
   local Inventory thisInventory;
-
+  
   for (thisInventory = Pawn.Inventory; thisInventory != None; thisInventory = thisInventory.Inventory)
     if (Weapon(thisInventory) != None)
       nWeapons += 1;
-
+  
   return nWeapons;
 }
 
@@ -217,7 +217,7 @@ static function bool CanPlayerFight(Controller Controller, optional bool bIgnore
   if (Controller      == None ||
       Controller.Pawn == None)
     return False;
-
+  
   return (Bot(Controller) != None || IsPlayerFighting(Controller, bIgnorePendingWeapon));
 }
 
@@ -233,18 +233,18 @@ static function bool CanPlayerFight(Controller Controller, optional bool bIgnore
 static function bool IsPlayerFighting(Controller Controller, optional bool bIgnorePendingWeapon)
 {
   local Weapon WeaponPrimary;
-
+  
   if (Controller      == None ||
       Controller.Pawn == None)
     return False;
-
+  
   if (CountWeaponsFor(Controller.Pawn) <= 1)
     return False;
-
+  
   WeaponPrimary = GetPrimaryWeaponFor(Controller.Pawn);
-
+  
   return (WeaponPrimary == Controller.Pawn.Weapon ||
-         (WeaponPrimary == Controller.Pawn.PendingWeapon && !bIgnorePendingWeapon));
+    (WeaponPrimary == Controller.Pawn.PendingWeapon && !bIgnorePendingWeapon));
 }
 
 
@@ -257,20 +257,20 @@ static function bool IsPlayerFighting(Controller Controller, optional bool bIgno
 static function StartFighting(Bot Bot)
 {
   local JBInventoryJail InventoryJail;
-
+  
   if (Bot      == None ||
       Bot.Pawn == None)
     return;
-
+  
   InventoryJail = JBInventoryJail(Bot.Pawn.FindInventoryType(Class'JBInventoryJail'));
-
+  
   if (InventoryJail == None) {
     InventoryJail = Bot.Pawn.Spawn(Class'JBInventoryJail');
     InventoryJail.GiveTo(Bot.Pawn);
   }
-
+  
   InventoryJail.WeaponRecommended = GetPrimaryWeaponFor(Bot.Pawn);
-
+  
   Bot.Aggressiveness = 10.0;
   Bot.SwitchToBestWeapon();
 }
@@ -286,20 +286,20 @@ static function StartFighting(Bot Bot)
 static function StopFighting(Bot Bot, optional bool bSwitchWeapon)
 {
   local JBInventoryJail InventoryJail;
-
+  
   if (JBBotSquadJail(Bot.Squad) != None)
     JBBotSquadJail(Bot.Squad).TimeStartFighting = 0.0;
-
+  
   Bot.LoseEnemy();
   Bot.Aggressiveness = Bot.BaseAggressiveness;
-
+  
   if (Bot.Pawn == None)
     return;
-
+  
   InventoryJail = JBInventoryJail(Bot.Pawn.FindInventoryType(Class'JBInventoryJail'));
   if (InventoryJail != None)
     InventoryJail.Destroy();
-
+  
   if (bSwitchWeapon)
     Bot.Pawn.SwitchToLastWeapon();
 }
@@ -318,8 +318,9 @@ function bool AssignSquadResponsibility(Bot Bot)
       return Super.AssignSquadResponsibility(Bot);
     StopFighting(Bot);
   }
-
-  Bot.WanderOrCamp(False);
+  
+  if (Bot.GoalScript == None || FRand() < 0.1)
+    Bot.WanderOrCamp(False);
   return True;
 }
 

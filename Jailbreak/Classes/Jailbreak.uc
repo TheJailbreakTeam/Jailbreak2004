@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.153 2007-09-11 12:09:24 wormbo Exp $
+// $Id: Jailbreak.uc,v 1.154 2007-09-19 14:59:26 jrubzjeknf Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -33,6 +33,7 @@ var config bool bDisallowEscaping;
 var config bool bReverseSwitchColors;
 var config bool bEnableJBMapFixes;
 var config bool bNoJailKill;
+var config bool bUseLevelRecommendedMinPlayers;
 
 var config bool bEnableWebScoreboard;
 var config bool bEnableWebAdminExtension;
@@ -53,6 +54,7 @@ var localized string TextDescriptionJailNewcomers;
 var localized string TextDescriptionDisallowEscaping;
 var localized string TextDescriptionEnableJBMapFixes;
 var localized string TextDescriptionNoJailKill;
+var localized string TextDescriptionUseLevelRecommendedMinPlayers;
 
 var localized string TextWebAdminEnableJailFights;
 var localized string TextWebAdminFavorHumansForArena;
@@ -60,6 +62,7 @@ var localized string TextWebAdminJailNewcomers;
 var localized string TextWebAdminDisallowEscaping;
 var localized string TextWebAdminEnableJBMapFixes;
 var localized string TextWebAdminNoJailKill;
+var localized string TextWebAdminUseLevelRecommendedMinPlayers;
 
 var localized string TextWebAdminPrefixAddon;
 
@@ -117,8 +120,15 @@ event InitGame(string Options, out string Error)
 
   Super.InitGame(Options, Error);
 
+  if (bUseLevelRecommendedMinPlayers && (Level.NetMode == NM_DedicatedServer || Level.NetMode == NM_ListenServer) && (BotMode & 12) == 4) {
+    // force at least the minimum recommended player count, but without exceeding the maximum player count
+    MinPlayers = Min(Max(MinPlayers, Level.IdealPlayerCountMin), MaxPlayers);
+  }
+
+  // Due to mapvote replacing ',' with '?' in the options,
+  // the ?addon=... parameter also accepts '!' as separator.
   if (HasOption(Options, "Addon"))
-         OptionAddon = ParseOption(Options, "Addon");
+         OptionAddon = Repl(ParseOption(Options, "Addon"), "!", ",");
     else OptionAddon = Addons;
 
   while (OptionAddon != "") {
@@ -128,6 +138,11 @@ event InitGame(string Options, out string Error)
 
     NameAddon = Left(OptionAddon, iCharSeparator);
     OptionAddon = Mid(OptionAddon, iCharSeparator + 1);
+  
+  // To save space in the URL, add-on names don't need to be
+  // fully qualified, if their class and package name are identical.
+    if (InStr(NameAddon, ".") == -1)
+      NameAddon $= "." $ NameAddon;
 
     Log("Add Jailbreak add-on" @ NameAddon);
     AddMutator(NameAddon, True);
@@ -150,17 +165,19 @@ event InitGame(string Options, out string Error)
     bDisallowEscaping = bool(OptionDisallowEscaping);
 
   OptionEnableJBMapFixes = ParseOption(Options, "EnableJBMapFixes");
-  if (OptionDisallowEscaping != "")
+  if (OptionEnableJBMapFixes != "")
     bDisallowEscaping = bool(OptionEnableJBMapFixes);
 
   OptionNoJailKill = ParseOption(Options, "NoJailKill");
-  if (OptionDisallowEscaping != "")
+  if (OptionNoJailKill != "")
     bNoJailKill = bool(OptionNoJailKill);
 
   bForceRespawn    = True;
   bTeamScoreRounds = False;
   MaxLives         = 0;
 
+  // Make sure this is available all the time,
+  // because it's required for the login menu and map fixes.
   AddToPackageMap("JBToolbox2");
 
   // Spawn our map fixing info object.
@@ -293,6 +310,7 @@ static function FillPlayInfo(PlayInfo PlayInfo)
   PlayInfo.AddSetting(default.GameName, "bDisallowEscaping",    default.TextWebAdminDisallowEscaping,    0, 60, "Check");
   PlayInfo.AddSetting(default.GameName, "bEnableJBMapFixes",    default.TextWebAdminEnableJBMapFixes,    0, 60, "Check");
   PlayInfo.AddSetting(default.GameName, "bNoJailKill",          default.TextWebAdminNoJailKill,          0, 60, "Check");
+  PlayInfo.AddSetting(default.GameName, "bUseLevelRecommendedMinPlayers", default.TextWebAdminUseLevelRecommendedMinPlayers, 0, 60, "Check",,, True); // multiplayer only!
 }
 
 
@@ -313,6 +331,7 @@ static event string GetDescriptionText(string Property)
   if (Property ~= "bDisallowEscaping")    return default.TextDescriptionDisallowEscaping;
   if (Property ~= "bEnableJBMapFixes")    return default.TextDescriptionEnableJBMapFixes;
   if (Property ~= "bNoJailKill")          return default.TextDescriptionNoJailKill;
+  if (Property ~= "bUseLevelRecommendedMinPlayers") return default.TextDescriptionUseLevelRecommendedMinPlayers;
 
   return Super.GetDescriptionText(Property);
 }
@@ -420,10 +439,12 @@ function ReadAddonsForWebAdmin()
     for (thisMutator = BaseMutator; thisMutator != None; thisMutator = thisMutator.NextMutator)
       if (thisMutator.bUserAdded &&
           thisMutator.Class == ClassAddon)
-        UTServerAdmin.AIncMutators.Add(string(iInfoAddon), NameClassAddon);
+        UTServerAdmin.AIncMutators.Add(string(iInfoAddon), MutatorRecord.FriendlyName);
 
-    UTServerAdmin.AExcMutators.Add(string(iInfoAddon), NameClassAddon);
+    UTServerAdmin.AExcMutators.Add(string(iInfoAddon), MutatorRecord.ClassName);
   }
+  // reinitialize webadmin PlayInfo for default options query handler
+  UTServerAdmin.SetGamePI("");
 }
 
 
@@ -765,6 +786,20 @@ function ReAssessTeam(TeamInfo Team)
 
 
 // ============================================================================
+// SpawnWait
+//
+// Don't wait too long to respawn bots in jail if there are many bots.
+// ============================================================================
+
+function float SpawnWait(AIController B)
+{
+  if (B.PlayerReplicationInfo.bOutOfLives)
+    return 999;
+  return FRand() * Sqrt(NumBots);
+}
+
+
+// ============================================================================
 // Logout
 //
 // Unregisters the exiting player from active gameplay and removes their
@@ -845,12 +880,12 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
 
   bContainedInJail = ContainsActorJail(NavigationPoint, Jail);
 
-  if (TagPlayerRestart == None)
+  if (TagPlayerRestart == None) {
     if (bContainedInJail || ContainsActorArena(NavigationPoint))
       return -20000000;  // prefer spawn-fragging over jail or arena
-  else
-    return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
-
+    else
+      return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+  }
   if (TagPlayerRestart.IsStartValid(NavigationPoint)) {
     if (TagPlayerRestart.IsStartPreferred(NavigationPoint))
       return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + 10000000;
@@ -914,7 +949,7 @@ function AddGameSpecificInventory(Pawn PawnPlayer)
 
 function bool AllowTransloc()
 {
-	return bGiveTrans && Super.AllowTransloc();
+  return bGiveTrans && Super.AllowTransloc();
 }
 
 
@@ -2061,7 +2096,7 @@ state MatchInProgress {
     // do not spawn players until they have control over their pawn
     if (PlayerController(Controller)     != None &&
         Controller.PlayerReplicationInfo != None &&
-        Level.NetMode == NM_DedicatedServer      &&
+        Viewport(PlayerController(Controller).Player) == None &&
        !Controller.PlayerReplicationInfo.bReceivedPing)
       return;
 
@@ -2070,6 +2105,8 @@ state MatchInProgress {
       return;
 
     global.RestartPlayer(Controller);
+    if (Controller.Pawn == None)
+      return; // restart failed
 
     if (TagPlayer != None)
       TagPlayer.NotifyRestarted();
@@ -2291,12 +2328,14 @@ defaultproperties
   TextDescriptionDisallowEscaping    = "Disallow players from leaving jail without being released or entering the arena."
   TextDescriptionEnableJBMapFixes    = "Fixes a couple of small bugs in a few maps. Also adds a new execution to some."
   TextDescriptionNoJailKill          = "Jailed players can no longer hurt enemies."
+  TextDescriptionUseLevelRecommendedMinPlayers = "Bots are added automatically to reach the minimum recommended player count."
   TextWebAdminEnableJailFights       = "Allow Jail Fights"
   TextWebAdminFavorHumansForArena    = "Favor Humans For Arena"
   TextWebAdminJailNewcomers          = "Jail Newcomers"
   TextWebAdminDisallowEscaping       = "Disallow Escaping"
   TextWebAdminEnableJBMapFixes       = "Enable Map Fixes"
   TextWebAdminNoJailKill             = "No Jail Kills"
+  TextWebAdminUseLevelRecommendedMinPlayers = "Use Level Recommended Min. Players"
 
   TextWebAdminPrefixAddon            = "Jailbreak:"
 
@@ -2305,7 +2344,7 @@ defaultproperties
   WebScoreboardClass = "Jailbreak.JBWebApplicationScoreboard"
   WebScoreboardPath  = "/scoreboard"
 
-  Addons = "JBAddonAvenger.JBAddonAvenger,JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection"
+  Addons = "JBAddonAvenger.JBAddonAvenger,JBAddonCelebration.JBAddonCelebration,JBAddonLlama.JBAddonLlama,JBAddonProtection.JBAddonProtection,JBAddonJailFightTally.JBAddonJailFightTally"
 
   bEnableJailFights        = True
   bEnableScreens           = True
@@ -2315,6 +2354,7 @@ defaultproperties
   bDisallowEscaping        = False
   bEnableJBMapFixes        = True
   bNoJailKill              = False
+  bUseLevelRecommendedMinPlayers     = True
 
   bEnableWebScoreboard     = True
   bEnableWebAdminExtension = True
