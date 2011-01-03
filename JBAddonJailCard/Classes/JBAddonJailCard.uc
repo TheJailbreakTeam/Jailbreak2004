@@ -2,7 +2,7 @@
 // JBAddonJailCard
 // Copyright 2007 by [GSF]JohnDoe <gsfjohndoe@hotmail.com>
 // Created by tarquin <tarquin@planetjailbreak.com>
-// $Id$
+// $Id: JBAddonJailCard.uc,v 1.6 2007-05-19 15:06:55 johndoe Exp $
 //
 // Implements a "Get Out of Jail Free" card
 //
@@ -34,7 +34,7 @@
 // ============================================================================
 
 
-class JBAddonJailCard extends JBAddon config;
+class JBAddonJailCard extends JBAddon config cacheexempt;
 
 
 //=============================================================================
