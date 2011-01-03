@@ -3,7 +3,7 @@
 //
 // Copyright 2004 by TheForgotten
 //
-// $Id: JBGameRulesSpoils.uc,v 1.2 2007-05-12 23:11:54 wormbo Exp $
+// $Id: JBGameRulesSpoils.uc,v 1.3 2008-05-01 12:17:46 wormbo Exp $
 //
 // The rules for the Spoils add-on.
 // ============================================================================
@@ -17,6 +17,7 @@ class JBGameRulesSpoils extends JBGameRules;
 // ============================================================================
 
 var class<Weapon> WeaponClass;
+var bool bMaxAmmo, bCanThrow;
 
 
 // ============================================================================
@@ -30,6 +31,11 @@ function PostBeginPlay()
   Super.PostBeginPlay();
 
   WeaponClass = class<Weapon>(DynamicLoadObject(class'JBAddonSpoils'.default.SpoilsWeapon, class'Class'));
+  if (WeaponClass != None)
+    AddToPackageMap(string(WeaponClass.Outer));
+  
+  bMaxAmmo = class'JBAddonSpoils'.default.bMaxAmmo;
+  bCanThrow = class'JBAddonSpoils'.default.bCanThrow;
 }
 
 
@@ -45,28 +51,28 @@ function NotifyArenaEnd(JBInfoArena Arena, JBTagPlayer TagPlayerWinner)
   local Weapon Spoils;
   local Inventory Inv;
 
-  if (TagPlayerWinner != None &&
-      (TagPlayerWinner.GetController() != None) &&
-      (TagPlayerWinner.GetController().Pawn != None) &&
-      (TagPlayerWinner.GetController().Pawn.IsA('xPawn'))) {
+  if (WeaponClass != None && TagPlayerWinner != None &&
+      TagPlayerWinner.GetController() != None &&
+      xPawn(TagPlayerWinner.GetController().Pawn) != None)
+  {
     Avenger = xPawn(TagPlayerWinner.GetController().Pawn);
 
-    Spoils = Spawn( WeaponClass, Avenger );
+    Spoils = Spawn(WeaponClass, Avenger);
     Spoils.GiveTo(Avenger);
 
     for (Inv = Avenger.Inventory; Inv != None; Inv = Inv.Inventory)
-      if (Inv.name == WeaponClass.name) {
+      if (Inv.name == WeaponClass.Name) {
         Weapon(Inv).Loaded();
 
-        if (class'JBAddonSpoils'.default.bMaxAmmo)
+        if (bMaxAmmo)
           Weapon(Inv).MaxOutAmmo();
 
-        Weapon(Inv).bCanThrow = class'JBAddonSpoils'.default.bCanThrow;
+        Weapon(Inv).bCanThrow = bCanThrow;
         Avenger.ReceiveLocalizedMessage(class'JBLocalMessageSpoils',,,,Weapon(Inv));
       }
 
-      TagPlayerWinner.GetController().ClientSetWeapon(WeaponClass);
-    }
+    TagPlayerWinner.GetController().ClientSetWeapon(WeaponClass);
+  }
 
   Super.NotifyArenaEnd(Arena, TagPlayerWinner);
 }
