@@ -3,5 +3,5 @@ Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonTeleport.JBAddonTele
 
 [JBAddonTeleport]
 FriendlyName="Teletrasporta il rilasciatore"
-Description="Quando un giocatore rilascia il proprio team, egli viene teletrasportato nella sua base."
+Description="Quando un giocatore rilascia il proprio team, egli viene teletrasportato al sicuro nella sua base."
 

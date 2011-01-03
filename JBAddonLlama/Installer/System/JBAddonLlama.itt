@@ -2,57 +2,55 @@
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonLlama.JBAddonLlama)
 
 [JBAddonLlama]
-RewardAdrenalineText="Adrenalina guadagnata per uccisione del Llama"
-RewardAdrenalineDesc="I giocatori che uccidono il Llama sono ricompensati con questa quantità di Adrenalina."
-RewardHealthText="Salute guadagnata per uccisione del Llama"
-RewardHealthDesc="I giocatori che uccidono il Llama vengono ricompensati con questa quantità di salute."
-RewardShieldText="Schermo guadagnato per uccisione del Llama"
-RewardShieldDesc="I giocatori che uccidono il Llama vengono ricompensati con questa quantità di schermo."
+RewardAdrenalineText="Adrenalina guadagnata per l'uccisione del Llama"
+RewardAdrenalineDesc="I giocatori che uccidono un Llama sono ricompensati con questa quantita' di Adrenalina."
+RewardHealthText="Salute guadagnata per l'uccisione del Llama"
+RewardHealthDesc="I giocatori che uccidono un Llama vengono ricompensati con questa quantita' di salute."
+RewardShieldText="Armatura guadagnata per l'uccisione del Llama"
+RewardShieldDesc="I giocatori che uccidono un Llama vengono ricompensati con questa quantita' di armatura."
 MaximumLlamaDurationText="Durata massima della caccia al Llama"
-MaximumLlamaDurationDesc="Tempo massimo di vita di un Llama. Il Llama verrà ucciso se non è morto durante la caccia al Llama."
+MaximumLlamaDurationDesc="Tempo massimo di vita di un Llama. Il Llama viene ucciso se e' ancora in vita alla fine della caccia al Llama."
 LlamaizeOnJailDisconnectText="Llamaizza su disconnessione dalla prigione"
-#
-LlamaizeOnJailDisconnectDesc="Llmamaizza i giocatori che si disconnettono e riconnettono mentre sono imprigionati per guadagnare la libertà."
+LlamaizeOnJailDisconnectDesc="I giocatori che, mentre sono imprigionati, si disconnettono e riconnettono per guadagnare la liberta' diventeranno dei Llama."
 FriendlyName="Caccia al Llama"
-#
 Description="Trasforma i giocatori che barano in Llama e permette agli altri giocatori di cacciarli."
 
 [JBDamageTypeLlamaDied]
-DeathString="%o non voleva più essere un Llama."
-FemaleSuicide="%o non voleva più essere un Llama."
-MaleSuicide="%o non voleva più essere un Llama."
+DeathString="%o non voleva piu' essere un Llama."
+FemaleSuicide="%o non voleva piu' essere una Llama."
+MaleSuicide="%o non voleva piu' essere un Llama."
 
 [JBDamageTypeLlamaLaser]
-DeathString="%o è stato tostato"
-FemaleSuicide="%o è stato tostato"
-MaleSuicide="%o è stato tostato"
+DeathString="%o e' stato tostato"
+FemaleSuicide="%o e' stata tostata"
+MaleSuicide="%o e' stato tostato"
 
 [JBDamageTypeLlamaLightning]
-DeathString="%o è stato colpito da un fulmine"
-FemaleSuicide="%o è stato colpito da un fulmine"
-MaleSuicide="%o è stato colpito da un fulmine"
+DeathString="%o e' stato colpito da un fulmine"
+FemaleSuicide="%o e' stata colpita da un fulmine"
+MaleSuicide="%o e' stato colpito da un fulmine"
 
 [JBGUIPanelConfigLlama]
-LlamaKillRewardLabel.Caption="Premi per uccisione del Llama:"
-chkLlamaizeOnJailDisconnect.Caption="Llamaizza giocatori che si disconnettono in prigione"
-chkLlamaizeOnJailDisconnect.Hint="Llmamaizza i giocatori che si disconnettono e riconnettono mentre sono imprigionati per guadagnare la libertà."
+LlamaKillRewardLabel.Caption="Premi per l'uccisione del Llama:"
+chkLlamaizeOnJailDisconnect.Caption="Llamaizza su disconnessione dalla prigione"
+chkLlamaizeOnJailDisconnect.Hint="I giocatori che, mentre sono imprigionati, si disconnettono e riconnettono per guadagnare la liberta' diventeranno dei Llama."
 trkMaximumLlamaDuration.Caption="Durata caccia al Llama"
 trkMaximumLlamaDuration.Hint="Durata massima della caccia al Llama."
 trkRewardAdrenaline.Caption="Adrenalina"
-trkRewardAdrenaline.Hint="Adrenalina guadagnata per uccisione del Llama."
+trkRewardAdrenaline.Hint="Adrenalina guadagnata per l'uccisione del Llama."
 trkRewardHealth.Caption="Salute"
-trkRewardHealth.Hint="Salute guadagnata per uccisione del Llama."
-trkRewardShield.Caption="Schermo"
-trkRewardShield.Hint="Schermo guadagnato per uccisione del Llama."
+trkRewardHealth.Hint="Salute guadagnata per l'uccisione del Llama."
+trkRewardShield.Caption="Armatura"
+trkRewardShield.Hint="Armatura guadagnata per l'uccisione del Llama."
 
 [JBLlamaHelpMessage]
 HelpMessageLines[0]="Sintassi: 'mutate llama <parametro>' o 'mutate unllama <nomegiocatore>'"
-HelpMessageLines[1]=" <parametro> può essere il nome di un giocatore o 'config' seguito da un secondo parametro."
-HelpMessageLines[2]=" Parametri aggiuntivi per 'config' possono essere 'health', 'shield', 'adrenaline' e 'duration', ciascuno seguito dal nuovo valore."
+HelpMessageLines[1]=" <parametro> puo' essere il nome di un giocatore o 'config' seguito da un secondo parametro."
+HelpMessageLines[2]=" Parametri aggiuntivi per 'config' possono essere 'health', 'shield', 'adrenaline' e 'duration', ciascuno seguito dal loro nuovo valore."
 
 [JBLlamaMessage]
 TextLlamaHuntStart="Uccidi %llama% per un piccolo premio."
-TextLlamaCaught="%llama% è stato preso da %killer%!"
-TextLlamaDied="%llama% è stato catturato!"
-TextLlamaDisconnected="%llama% è fuggito!"
+TextLlamaCaught="%llama% e' stato preso da %killer%!"
+TextLlamaDied="%llama% e' stato catturato!"
+TextLlamaDisconnected="%llama% e' fuggito!"
 

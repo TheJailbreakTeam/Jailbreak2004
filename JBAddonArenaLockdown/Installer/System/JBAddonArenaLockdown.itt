@@ -2,19 +2,19 @@
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonArenaLockdown.JBAddonArenaLockdown)
 
 [JBAddonArenaLockdown]
-CrossBaseSpawningText="Base di rientro casuale"
-CrossBaseSpawningDesc="I giocatori possono rientrare nella base nemica, così l'accampamento della base è scoraggiato."
+CrossBaseSpawningText="Base di rinascita casuale"
+CrossBaseSpawningDesc="I giocatori possono rinascere nella base nemica, cosi' viene scoraggiato il camping della base."
 SelectionMethodText="Metodo di selezione"
-SelectionMethodDesc="Seleziona come i giocatori verranno presi dalle loro prigioni."
-SelectionMethodOptions="0;Accoda;1;Casuale"
-FriendlyName="Arena LockDown"
-Description="L'unico modo per uscire di prigione è di vincere l'arena match!"
+SelectionMethodDesc="Scegli come i giocatori verranno prelevati dalle loro prigioni."
+SelectionMethodOptions="0;Lista;1;Casuale"
+FriendlyName="Arena Lockdown"
+Description="L'unico modo per uscire dalla prigione e' vincere l'arena match!"
 
 [JBGUIPanelConfigArenaLockdown]
-str_FIFO="Accoda"
+str_FIFO="Lista"
 str_Random="Casuale"
-CrossBaseSpawningCheckBox.Caption="Base di rientro casuale"
-CrossBaseSpawningCheckBox.Hint="I giocatori possono rientrare nella base nemica, così l'accampamento della base è scoraggiato."
+CrossBaseSpawningCheckBox.Caption="Base di rinascita casuale"
+CrossBaseSpawningCheckBox.Hint="I giocatori possono rinascere nella base nemica, cosi' viene scoraggiato il camping della base."
 SelectionMethodComboBox.Caption="Metodo di selezione"
-SelectionMethodComboBox.Hint="Seleziona come i giocatori verranno presi dalle loro prigioni."
+SelectionMethodComboBox.Hint="Scegli come i giocatori verranno prelevati dalle loro prigioni."
 

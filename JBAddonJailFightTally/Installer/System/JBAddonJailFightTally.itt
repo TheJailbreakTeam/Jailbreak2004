@@ -2,6 +2,6 @@
 Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonJailFightTally.JBAddonJailFightTally)
 
 [JBAddonJailFightTally]
-FriendlyName="Tabella Jail Fight"
-Description="Mantiene e visualizza una tabella di punteggi per le Jail Fight."
+FriendlyName="Conteggio Jail Fight"
+Description="Mantiene e visualizza il punteggio dei combattimenti nelle prigioni."
 
