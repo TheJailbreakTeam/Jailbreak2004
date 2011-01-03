@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecution
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecution.uc,v 1.6 2005-10-17 12:53:02 tarquin Exp $
+// $Id: JBExecution.uc,v 1.7 2006-07-18 21:49:57 jrubzjeknf Exp $
 //
 // Base of all triggered execution.
 // ============================================================================
@@ -220,6 +220,6 @@ final function bool PlayerIsInAttachedJail(JBTagPlayer Player)
 defaultproperties
 {
     Texture=Texture'S_SpecialEvent'
-    DispatchExecution=(MaxExecutionInterval=0.750000,MinExecutionInterval=0.250000)
+    DispatchExecution=(MaxExecutionInterval=0.750000,MinExecutionInterval=0.250000,InstantKillType=class'DamageType')
     TagAttachJail=Auto
 }

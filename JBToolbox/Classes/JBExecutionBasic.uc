@@ -1,7 +1,7 @@
 // ============================================================================
 // JBExecutionBasic
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBExecutionBasic.uc,v 1.4 2003/07/26 05:56:45 crokx Exp $
+// $Id: JBExecutionBasic.uc,v 1.5 2004/03/19 19:18:53 tarquin Exp $
 //
 // A basic execution.
 // ============================================================================
@@ -32,6 +32,8 @@ var() class<DamageType> DeathType;
 
 function PostBeginPlay()
 {
+  if (DeathType == None)
+    DeathType = class'DamageType';
   Super.PostBeginPlay();
 
   if(DispatchExecution.bUseDispatch)
@@ -62,5 +64,5 @@ function Trigger(Actor A, Pawn P)
 defaultproperties
 {
   DeathType=class'Gibbed'
-  Texture = Texture'JBToolbox.icons.JBExecutionBasic';  
+  Texture = Texture'JBToolbox.icons.JBExecutionBasic';
 }
