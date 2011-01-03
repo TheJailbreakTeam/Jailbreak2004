@@ -5,7 +5,7 @@
 #  make-manualbot.pl
 #
 #  Copyright 2004 by tarquin <tarquin@planetjailbreak.com>
-#  $Id: make-manualbot.pl,v 1.4 2004/05/30 12:22:55 tarquin Exp $
+#  $Id: make-manualbot.pl,v 1.5 2011-01-03 13:34:18 wormbo Exp $
 #
 #  Jailbreak manual maker bot
 #  Automatically creates the manual HTML files, reading the text from the JDN.
@@ -141,6 +141,10 @@ foreach $wikiname ( $soloPage or @pageNames ) {
 
     ### platform filters
     
+    # inline bits
+    s[\{\{$unwantedplatform{$platform}::.*?}}][]img;
+    s[\{\{$platform\::(.*?)}}][$1]img;
+    
     # remove this platform's labels
     s[$platform\::][]img; 
     
@@ -149,10 +153,6 @@ foreach $wikiname ( $soloPage or @pageNames ) {
     
     # sections with a marked heading
     s[<h(\d)>(?:<a name="[^"]*"></a>)?\s*$unwantedplatform{$platform}::.*?</h\1>.*?(?=<h\d>|\Z)][]imsg; #"
-    
-    # inline bits
-    s[\{\{$unwantedplatform{$platform}::.*?}}][]img;
-    s[\{\{$platform\::(.*?)}}][$1]img;
     
     # insert platform name
     (my $platformdate = $platform) =~ s/\D*//; # just the 2003 or 2004 part
