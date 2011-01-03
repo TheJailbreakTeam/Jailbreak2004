@@ -155,13 +155,6 @@ TextLastMan="Vous êtes le dernier. Libérez votre équipe !"
 TextLastManCantRelease="Vous êtes le dernier. Restez en vie !"
 TextDisallowedEscape="Vous ne pouvez vous échapper de prison !"
 
-[JBLoginMenu]
-JBHelpPanel.Caption="Didactitiel Jailbreak"
-JBHelpPanel.Hint="Comment jouer à Jailbreak"
-
-[JBMidGamePanelHelp]
-Tutorials=((Title="Emprisonner",Description="Tuez un joueur pour l'emprisonner."),(Title="Libérer",Description="Passez sur le dispositif de déverrouillage ennemi pour libérer vos équipiers."),(Title="Scorer",Description="Emprisonnez toute l'équipe ennemie afin de l'exécuter et de marquer un point."))
-
 [JBMutatorDebug]
 FriendlyName="Jailbreak Debug"
 Description="Fournit des fonctions d'aide pour la mise au point de maps et de code pour Jailbreak."
