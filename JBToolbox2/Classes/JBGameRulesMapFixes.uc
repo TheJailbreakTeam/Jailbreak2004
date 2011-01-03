@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGameRulesMapFixes.uc,v 1.5 2007-09-11 12:25:47 wormbo Exp $
+// $Id: JBGameRulesMapFixes.uc,v 1.6 2011-01-03 12:13:39 wormbo Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -206,6 +206,8 @@ state Aswan
     local bool bTemp;
     local ZoneInfo thisZone;
     local AssaultPath thisPath;
+    local NavigationPoint thisNP;
+    local int i;
 
     if (Level.NetMode != NM_Client) {
       // giant spiders
@@ -229,24 +231,6 @@ state Aswan
 
       // reenable default initial spawning
       class'JBSpiderSpawner'.default.bInitiallyActive = bTemp;
-
-
-      // tweak assault path priorities (bots use the lift too much)
-      foreach AllActors(class'AssaultPath', thisPath) {
-        if (thisPath.Position == 1) {
-          switch (thisPath.PathTag[0]) {
-            case 'Left':
-              thisPath.Priority = 0.1;
-              break;
-            case 'Right':
-              thisPath.Priority = 0.15;
-              break;
-            case 'LeftLift':
-              thisPath.Priority = 0.55;
-              break;
-          }
-        }
-      }
 
 
       // set up giant spider execution as final execution
@@ -298,6 +282,60 @@ state Aswan
 
       // add as game modifier to get NotifyExecutionEnd() calls
       Level.Game.AddGameModifier(Self);
+
+
+      // tweak assault path priorities (bots use the lift too much)
+      foreach AllActors(class'AssaultPath', thisPath) {
+        if (thisPath.Position == 1) {
+          switch (thisPath.PathTag[0]) {
+            case 'Left':
+              thisPath.Priority = 0.1;
+              break;
+            case 'Right':
+              thisPath.Priority = 0.15;
+              break;
+            case 'LeftLift':
+              thisPath.Priority = 0.55;
+              break;
+          }
+        }
+      }
+
+      // turn off problematic path reachspecs where bots are likely to fail
+      thisNP = NavigationPoint(FindActor('PathNode30', class'PathNode'));
+      for (i = 0; i < thisNP.PathList.Length; i++) {
+        if (thisNP.PathList[i].End.Name == 'InventorySpot287') {
+          thisNP.PathList[i].reachFlags = 128; // R_PROSCRIBED
+          break;
+        }
+      }
+      thisNP = NavigationPoint(FindActor('PathNode31', class'PathNode'));
+      for (i = 0; i < thisNP.PathList.Length; i++) {
+        if (thisNP.PathList[i].End.Name == 'InventorySpot282') {
+          thisNP.PathList[i].reachFlags = 128; // R_PROSCRIBED
+          break;
+        }
+      }
+      thisNP = NavigationPoint(FindActor('PathNode111', class'PathNode'));
+      for (i = 0; i < thisNP.PathList.Length; i++) {
+        if (thisNP.PathList[i].End.Name == 'InventorySpot272') {
+          thisNP.PathList[i].reachFlags = 128; // R_PROSCRIBED
+          break;
+        }
+      }
+      thisNP = NavigationPoint(FindActor('PathNode117', class'PathNode'));
+      for (i = 0; i < thisNP.PathList.Length; i++) {
+        if (thisNP.PathList[i].End.Name == 'InventorySpot277') {
+          thisNP.PathList[i].reachFlags = 128; // R_PROSCRIBED
+          break;
+        }
+      }
+
+      // bots might get stuck here, so scare them away
+      CreateFearSpot(vect(-672,-3696,-1014),40,10);
+      CreateFearSpot(vect( 672,-3696,-1014),40,10);
+      CreateFearSpot(vect(-672, 3696,-1014),40,10);
+      CreateFearSpot(vect( 672, 3696,-1014),40,10);
     }
 
     // some performance improvements:
@@ -894,6 +932,21 @@ final function CreateBlockPlayer(vector BlockLocation, float BlockRadius, float 
   Blocker.bBlockZeroExtentTraces    = False;
   Blocker.bBlockNonZeroExtentTraces = True;
   Blocker.SurfaceType               = BlockSurface;
+}
+
+
+// ============================================================================
+// CreateFearSpot
+//
+// Creates a a fear spot for bots to avoid.
+// ============================================================================
+
+final function CreateFearSpot(vector FearLocation, float FearRadius, float FearHeight)
+{
+  local AvoidMarker FearSpot;
+
+  FearSpot = Spawn(class'AvoidMarker',, '',  FearLocation);
+  FearSpot.SetCollisionSize(FearRadius, FearHeight);
 }
 
 
