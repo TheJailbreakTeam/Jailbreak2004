@@ -1,3 +1,10 @@
+[JBLoginMenu]
+JBHelpPanel.Caption="Jailbreak Tutorial"
+JBHelpPanel.Hint="How to play Jailbreak"
+
+[JBMidGamePanelHelp]
+Tutorials=((Title="Einsperren",Description="Töte einen Spieler, um ihn gefangen zu nehmen."),(Title="Befreien",Description="Berühre den gegnerischen Schalter, um deine Teammitglieder zu befreien."),(Title="Punkten",Description="Nimm das gesamte gegnerische Team gefangen, um sie zu exekutieren und einen Punkt zu bekommen."))
+
 [JBAction_IfMorePrisoners]
 ActionString="Wenn mehr Gefangene"
 

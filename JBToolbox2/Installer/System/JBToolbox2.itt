@@ -1,3 +1,10 @@
+[JBLoginMenu]
+JBHelpPanel.Caption="Jailbreak Tutorial"
+JBHelpPanel.Hint="Come giocare a Jailbreak"
+
+[JBMidGamePanelHelp]
+Tutorials=((Title="Imprigionare",Description="Uccidi un giocatore per imprigionarlo."),(Title="Rilasciare",Description="Cammina sullo Switch nemico per liberare i tuoi compagni."),(Title="Punteggio",Description="Imprigiona l'intero team nemico per eseguirlo e guadagnare un punto."))
+
 [JBAction_IfMorePrisoners]
 ActionString="Se piu' prigionieri"
 
