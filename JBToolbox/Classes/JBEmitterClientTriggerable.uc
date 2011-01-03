@@ -1,7 +1,7 @@
 //=============================================================================
 // JBEmitterClientTriggerable
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id$
+// $Id: JBEmitterClientTriggerable.uc,v 1.2 2004/05/24 20:58:59 wormbo Exp $
 //
 // An emitter that replicates its Trigger() events to all clients.
 //=============================================================================
@@ -16,6 +16,9 @@ class JBEmitterClientTriggerable extends Emitter;
 
 var int ClientTriggerCount;
 var int OldClientTriggerCount;
+
+var(Global) bool bIgnoreTriggerDuringInitialization;
+var bool bPostNetBegun;
 
 
 //=============================================================================
@@ -37,9 +40,23 @@ replication
 
 simulated event Trigger(Actor Other, Pawn EventInstigator)
 {
-  if ( Role == ROLE_Authority )
+  if ( Role == ROLE_Authority ) {
     ClientTriggerCount++;
+    NetUpdateTime = Level.TimeSeconds - 1;
+  }
   Super.Trigger(Other, EventInstigator);
+}
+
+
+//=============================================================================
+// PostNetBeginPlay
+//
+// If configured, no triggering happens before this point.
+//=============================================================================
+
+simulated function PostNetBeginPlay()
+{
+  bPostNetBegun = True;
 }
 
 
@@ -53,6 +70,8 @@ simulated event PostNetReceive()
 {
   local int i;
   
+  if (bIgnoreTriggerDuringInitialization && !bPostNetBegun)
+    OldClientTriggerCount = ClientTriggerCount;
   while ( ClientTriggerCount > OldClientTriggerCount ) {
     OldClientTriggerCount++;
     
