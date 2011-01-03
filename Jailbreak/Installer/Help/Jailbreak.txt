@@ -1,18 +1,18 @@
 ===============================================================================
 Jailbreak 2004c (SP3)
-Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
+Copyright 2002-2011 by Team Jailbreak <team@planetjailbreak.com>
 ===============================================================================
 
 For feedback, suggestions and bug reports, visit
 
   PlanetJailbreak               http://www.planetjailbreak.com
-  PlanetJailbreak Forums        http://www.planetjailbreak.com/forums/
+  PlanetJailbreak Forums        http://forums.beyondunreal.com/forumdisplay.php?forumid=379
 
 
 For technical information on mapping or creating code for Jailbreak, visit
 
-  Unreal Wiki                   http://www.unrealwiki.com
-  Jailbreak Developer Network   http://www.planetjailbreak.com/jdn/
+  Unreal Wiki                   http://wiki.beyondunreal.com
+  Jailbreak Developer Network   http://mychaeel.no-ip.com/jailbreak/
 
 
 ===============================================================================
@@ -90,8 +90,9 @@ Copyright
 Jailbreak for Unreal Tournament 2004
 Jailbreak Service Pack 1
 Jailbreak Service Pack 2
+Jailbreak Service Pack 3
 
-Copyright (c) 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
+Copyright (c) 2002-2011 by Team Jailbreak <team@planetjailbreak.com>
 Contact <feedback@planetjailbreak.com> for feedback.
 
 This mod is freely available for noncommercial use. For commercial use and

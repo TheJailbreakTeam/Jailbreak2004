@@ -156,8 +156,8 @@ TextLastManCantRelease="Vous êtes le dernier. Restez en vie !"
 TextDisallowedEscape="Vous ne pouvez vous échapper de prison !"
 
 [JBLoginMenu]
-JBHelpPanel.Caption="Jailbreak Tutorial"
-JBHelpPanel.Hint="How to play Jailbreak"
+JBHelpPanel.Caption="Didactitiel Jailbreak"
+JBHelpPanel.Hint="Comment jouer à Jailbreak"
 
 [JBMidGamePanelHelp]
 Tutorials=((Title="Emprisonner",Description="Tuez un joueur pour l'emprisonner."),(Title="Libérer",Description="Passez sur le dispositif de déverrouillage ennemi pour libérer vos équipiers."),(Title="Scorer",Description="Emprisonnez toute l'équipe ennemie afin de l'exécuter et de marquer un point."))
@@ -178,12 +178,14 @@ TextDescriptionJailNewcomers="Les joueurs rejoignant la partie en cours seront e
 TextDescriptionDisallowEscaping="Empêche les joueurs de sortir de prison sans avoir été libérés ou sans être envoyés dans l'arène."
 TextDescriptionEnableJBMapFixes="Corrige des bugs mineurs dans certaines maps. Ajoute également une nouvelle exécution pour certaines."
 TextDescriptionNoJailKill="Les prisonniers ne peuvent plus blesser les ennemis."
+TextDescriptionUseLevelRecommendedMinPlayers="Des bots sont ajoutés automatiquement pour atteindre le nombre minimum de joueurs recommandé."
 TextWebAdminEnableJailFights="Autoriser les bagarres en prison"
 TextWebAdminFavorHumansForArena="L'arène préfère les humains"
 TextWebAdminJailNewcomers="Nouveaux détenus"
 TextWebAdminDisallowEscaping="Empêcher les évasions"
 TextWebAdminEnableJBMapFixes="Correction des maps"
 TextWebAdminNoJailKill="Pas de carton en prison"
+TextWebAdminUseLevelRecommendedMinPlayers="Minimum de joueurs recommandé"
 TextWebAdminPrefixAddon="Jailbreak :"
 GameName="Jailbreak"
 Description="Deux équipes s'affrontent pour fragger les joueurs adverses et ainsi les envoyer dans une prison. Lorsque tous les membres d'une équipe sont emprisonnés, l'équipe adverse marque un point. Frayez-vous un passage à travers la base ennemie pour libérer vos équipiers !"

@@ -1,12 +1,12 @@
 ===============================================================================
 Jailbreak 2004c (SP3)
-Copyright 2002-2004 by Team Jailbreak <team@planetjailbreak.com>
+Copyright 2002-2011 by Team Jailbreak <team@planetjailbreak.com>
 ===============================================================================
 
 For feedback, suggestions and bug reports, visit
 
   PlanetJailbreak               http://www.planetjailbreak.com
-  PlanetJailbreak Forums        http://www.planetjailbreak.com/forums/
+  PlanetJailbreak Forums        http://forums.beyondunreal.com/forumdisplay.php?forumid=379
 
 
 ===============================================================================
@@ -86,6 +86,15 @@ Miscellaneous
 
 The following features have been added since the last release:
 
+Maps
+====
+
+These maps are now included in the Jailbreak installer:
+- JB-Aswan-v2
+- JB-Fragtion2-v2
+- JB-TheDecks
+
+
 Game Settings
 =============
 
@@ -94,7 +103,8 @@ Can be enabled or disabled:
 - Disallow Escaping: Escaping the jail (without being released or going to the
                      arena) is not allowed. Players who try to do so anyway
                      will be teleported back to jail.
-- Enable JBMapFixes: Fixes small in maps or adds a nice execution in some maps.
+- Enable JBMapFixes: Fixes small problems or adds a different execution to some
+                     of the maps.
 - No Jail Kill:      Jailed players cannot hurt free players.
 - Allow Jail Fights: If an arena mutator, like instagib, is loaded, then all
                      prisoners are granted a ShieldGun to JailFight with.
@@ -137,6 +147,7 @@ User Interface
 - The player in the minimap is given a tiny nose, so he can see in which
   direction he's looking.
 - The Timer now shows up for spectators too.
+- Show release switch locations on the minimap.
 
 
 Addons
@@ -150,6 +161,8 @@ Addons
            Awards the arena winner with a weapon.
 172638 - JBAddonJailFightTally
            Shows a jail fight score tally to prisoners.
+172638 - JBAddonRadar2k4
+           Also shows the minimap on the HUD, similar to Onslaught.
 
 
 Mapper Tools
@@ -195,6 +208,9 @@ New Scripts
 -----------
 - JBAction_DisplayMessage
     Sends a message to free, jailed and/or arena players of one or both teams.
+- JBAction_GiveInventory
+    Gives the triggering player an item or weapon. You can kill an individual
+    player via the freezing execution by giving the JBFreezer.
 - JBAction_IfMorePrisoners
     Conditionally enters a script section if one or more jails contains more
     than the given number of players.
