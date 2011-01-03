@@ -1,6 +1,6 @@
 [JBAction_IfMorePrisoners]
-ActionString="Se più prigionieri"
+ActionString="Se piu' prigionieri"
 
 [JBSentinelWeapon]
-ItemName="Arma della Sentinella"
+ItemName="Arma sentinella"
 

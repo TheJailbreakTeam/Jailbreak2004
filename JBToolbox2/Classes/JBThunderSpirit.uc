@@ -1,7 +1,7 @@
 // ============================================================================
 // JBThunderSpirit
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id$
+// $Id: JBThunderSpirit.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
 //
 // An electrical spirit.
 // ============================================================================
@@ -33,8 +33,8 @@ function ExecutePlayer(Pawn Victim)
 
 defaultproperties
 {
-  SpawnSound=Sound'WeaponSounds.LightningGun.LightningGunExplosion'
-  TouchSound=Sound'WeaponSounds.LightningGun.LightningGunImpact'
+  SpawnSound=Sound'WeaponSounds.BaseImpactAndExplosions.BLightningGunExplosion'
+  TouchSound=Sound'WeaponSounds.BaseImpactAndExplosions.BLightningGunImpact'
 
   Begin Object Class=BeamEmitter Name=ThunderTrail
     BeamDistanceRange=(Min=30.000000,Max=40.000000)

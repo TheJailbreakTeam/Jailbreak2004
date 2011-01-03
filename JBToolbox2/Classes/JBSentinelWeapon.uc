@@ -1,14 +1,14 @@
 // ============================================================================
 // JBSentinelWeapon
 // Copyright 2004 by Blitz
-// $Id$
+// $Id: JBSentinelWeapon.uc,v 1.1 2006-12-16 19:39:37 jrubzjeknf Exp $
 //
 // The weapon that the sentinel uses.
 // ============================================================================
 
 
 class JBSentinelWeapon extends Weapon_Sentinel
-  notplaceable;
+  notplaceable cacheexempt;
 
 
 // ============================================================================
