@@ -1,0 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonRadar2k4.JBAddonRadar2k4)
+
+[JBAddonRadar2k4]
+FriendlyName=Radar
+Description=Aggiunge la minimappa nel tabellone dei punteggi all'HUD come mappa radar nello stile di Energia.

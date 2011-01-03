@@ -1,0 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonRadar2k4.JBAddonRadar2k4)
+
+[JBAddonRadar2k4]
+FriendlyName=Radar
+Description=Adds the minimap from the scoreboard to the HUD as Onslaught-style radar map.

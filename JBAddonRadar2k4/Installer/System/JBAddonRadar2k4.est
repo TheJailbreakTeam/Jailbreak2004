@@ -1,0 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonRadar2k4.JBAddonRadar2k4)
+
+[JBAddonRadar2k4]
+FriendlyName=Mapa de Rádar
+Description=Muestra el minimapa de la tabla de puntuaciones en el HUD, en un rádar similar al de las partidas de Acometida.

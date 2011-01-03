@@ -1,0 +1,6 @@
+[Public]
+Object=(Class=Class,MetaClass=Jailbreak.JBAddon,Name=JBAddonRadar2k4.JBAddonRadar2k4)
+
+[JBAddonRadar2k4]
+FriendlyName=Radar
+Description=Übernimmt die Scoreboard-Übersichtskarte als Radarkarte ins HUD, ähnlich wie im Onslaught-Modus.
