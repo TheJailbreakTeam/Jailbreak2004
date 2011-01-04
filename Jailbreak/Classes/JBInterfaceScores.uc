@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceScores
 // Copyright 2003 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceScores.uc,v 1.30 2007-05-13 13:07:59 jrubzjeknf Exp $
+// $Id: JBInterfaceScores.uc,v 1.31 2011-01-03 11:34:26 wormbo Exp $
 //
 // Scoreboard for Jailbreak.
 // ============================================================================
@@ -366,12 +366,13 @@ simulated event UpdateScoreBoard(Canvas Canvas)
                     !UnrealPlayer(Owner).bDisplayLoser  &&
                     !JBGameReplicationInfo(GRI).bIsExecuting;
 
-  if (bIsMatchRunning || !GRI.bMatchHasBegun)
+  if (bIsMatchRunning || !GRI.bMatchHasBegun) {
     DrawPanorama(Canvas);
 
-  firstTagObjective = JBGameReplicationInfo(GRI).firstTagObjective;
-  for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
-    DrawObjective(Canvas, thisTagObjective.GetObjective());
+    firstTagObjective = JBGameReplicationInfo(GRI).firstTagObjective;
+    for (thisTagObjective = firstTagObjective; thisTagObjective != None; thisTagObjective = thisTagObjective.nextTag) {
+      DrawObjective(Canvas, thisTagObjective.GetObjective());
+    }
   }
 
   for (iTable = 0; iTable < ArrayCount(Table); iTable++)
@@ -1980,7 +1981,7 @@ simulated function DrawLine(Canvas Canvas, vector LocationStart, vector Location
 function Font GetSmallerFontFor(Canvas Canvas, int offset)
 {
   local int i;
-  
+
   for (i = 0; i < 8 - offset; i++) {
     if (HUDClass.default.FontScreenWidthMedium[i] <= FMin(Canvas.ClipX, Canvas.ClipY * 1.25))
       return HUDClass.static.LoadFontStatic(i + offset);
