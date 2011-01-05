@@ -1,7 +1,7 @@
 // ============================================================================
 // JBBotSquad
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBBotSquad.uc,v 1.20 2006-07-13 20:55:02 jrubzjeknf Exp $
+// $Id: JBBotSquad.uc,v 1.21 2007-04-24 16:26:09 jrubzjeknf Exp $
 //
 // Controls the bots of an attacking, freelancing or defending squad.
 // ============================================================================
@@ -306,12 +306,13 @@ function float ModifyThreat(float Threat, Pawn PawnThreat, bool bThreatVisible, 
       if (Enemies[iEnemy] == PawnThreat)
         break;
 
-    if (ListInfoEnemy[iEnemy].bIsApproaching &&
+    if (iEnemy < ArrayCount(ListInfoEnemy) &&
+        ListInfoEnemy[iEnemy].bIsApproaching &&
        !ListInfoEnemy[iEnemy].bIsVisible)
       Threat += 0.3;
 
     DistanceObjectiveBot = Class'JBBotTeam'.Static.CalcDistance(Bot, SquadObjective);
-    if (DistanceObjectiveBot > ListInfoEnemy[iEnemy].DistanceObjective)
+    if (iEnemy < ArrayCount(ListInfoEnemy) && DistanceObjectiveBot > ListInfoEnemy[iEnemy].DistanceObjective)
       Threat += 0.1;
   }
 

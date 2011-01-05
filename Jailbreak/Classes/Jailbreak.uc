@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.154 2007-09-19 14:59:26 jrubzjeknf Exp $
+// $Id: Jailbreak.uc,v 1.155 2011-01-03 11:34:26 wormbo Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -138,7 +138,7 @@ event InitGame(string Options, out string Error)
 
     NameAddon = Left(OptionAddon, iCharSeparator);
     OptionAddon = Mid(OptionAddon, iCharSeparator + 1);
-  
+
   // To save space in the URL, add-on names don't need to be
   // fully qualified, if their class and package name are identical.
     if (InStr(NameAddon, ".") == -1)
@@ -888,17 +888,112 @@ function float RatePlayerStart(NavigationPoint NavigationPoint, byte iTeam, Cont
   }
   if (TagPlayerRestart.IsStartValid(NavigationPoint)) {
     if (TagPlayerRestart.IsStartPreferred(NavigationPoint))
-      return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + 10000000;
+      return InternalRatePlayerStart(NavigationPoint, iTeam, Controller) + 10000000;
 
     // Prefer jails with a lower priority above those with a higher one.
     if (Jail != None)
-      return Super.RatePlayerStart(NavigationPoint, iTeam, Controller) + Jail.RateJail();
+      return InternalRatePlayerStart(NavigationPoint, iTeam, Controller) + Jail.RateJail();
 
-    return Super.RatePlayerStart(NavigationPoint, iTeam, Controller);
+    return InternalRatePlayerStart(NavigationPoint, iTeam, Controller);
   }
 
   return -20000000;  // prefer spawn-fragging over inappropriate start spots
 }
+
+
+// ============================================================================
+// InternalRatePlayerStart
+//
+// Reimplementation of TeamGame's and DeathMatch's RatePlayerStart, that only
+// reduces the rating of a spawn spot if nearby players are opponents.
+// Additionally it also allows other navigation points as alternative spawn
+// locations, if there's a PlayerStart of the corresponding team nearby.
+// Assumes TagPlayerRestart being valid.
+// ============================================================================
+
+function float InternalRatePlayerStart(NavigationPoint N, byte Team, Controller Player)
+{
+  local PlayerStart P, O;
+  local float Score, NextDist, BestDist;
+  local Controller OtherPlayer;
+  local GameObjective thisObjective;
+
+  if (Player != None)
+    Team = Player.GetTeamNum();
+
+  Score = 3000 * FRand(); //randomize
+  P = PlayerStart(N);
+  if (P == None) {
+    // find nearby PlayerStart only for selected types of navigation points
+    if (N.IsA('PathNode') && !N.IsA('HoverPathNode') && !N.IsA('FlyingPathNode') || N.IsA('JumpDest') && !N.IsA('GameObjective') || N.IsA('AssaultPath') || N.IsA('LiftExit') || N.IsA('AIMarker') || N.IsA('InventoryMarker')) {
+      foreach RadiusActors(class'PlayerStart', O, 1000, N.Location) {
+        NextDist = VSize(O.Location - N.Location);
+        if (O.TeamNumber == Team)
+          Score -= 100 * Sqrt(VSize(N.Location - O.Location));
+        else
+          Score += 100 * Sqrt(VSize(N.Location - O.Location));
+        if ((P == None || BestDist > NextDist) && TagPlayerRestart.IsStartValid(O)) {
+          P = O;
+          BestDist = NextDist;
+        }
+      }
+      if (P != None && !ContainsActorJail(N)) {
+        for (thisObjective = Teams[0].AI.Objectives; thisObjective != None; thisObjective = thisObjective.nextObjective) {
+          if (thisObjective.DefenderTeamIndex == Team)
+            Score -= 1000 * Sqrt(VSize(N.Location - thisObjective.Location));
+          else
+            Score += 1000 * Sqrt(VSize(N.Location - thisObjective.Location));
+        }
+      }
+      if (N.IsA('InventoryMarker'))
+        Score -= 1000000;
+    }
+  }
+  if (P == None || !P.bEnabled || N.PhysicsVolume.bWaterVolume)
+    return Score-10000000;
+
+  if (bSpawnInTeamArea && Team != P.TeamNumber)
+    return Score-9000000;
+
+  //assess candidate
+  if (P.bPrimaryStart)
+    Score += 10000000;
+  else
+    Score += 5000000;
+
+  if (N != P && Score > 0)
+    Score /= 3;
+
+  if (N == LastStartSpot || N == LastPlayerStartSpot)
+    Score -= 10000.0;
+
+  for (OtherPlayer = Level.ControllerList; OtherPlayer != None; OtherPlayer = OtherPlayer.NextController) {
+    if (OtherPlayer.bIsPlayer && OtherPlayer.Pawn != None) {
+      if (OtherPlayer.Pawn.Region.Zone == N.Region.Zone) {
+        if (SameTeam(Player, OtherPlayer))
+          Score += 500;
+        else
+          Score -= 1500;
+      }
+      NextDist = VSize(OtherPlayer.Pawn.Location - N.Location);
+      if (NextDist < OtherPlayer.Pawn.CollisionRadius + OtherPlayer.Pawn.CollisionHeight)
+        return -10000.0;
+      else if (NextDist < 3000 && FastTrace(N.Location, OtherPlayer.Pawn.Location)) {
+        if (SameTeam(Player, OtherPlayer))
+          Score += (5000.0 - NextDist);
+        else
+          Score -= (10000.0 - NextDist);
+      }
+      else if (NumPlayers + NumBots == 2 && !SameTeam(Player, OtherPlayer)) {
+        Score += 2 * VSize(OtherPlayer.Pawn.Location - N.Location);
+        if (FastTrace(N.Location, OtherPlayer.Pawn.Location))
+          Score -= 10000;
+      }
+    }
+  }
+  return FMax(Score, 5);
+}
+
 
 
 // ============================================================================
