@@ -1,7 +1,7 @@
 // ============================================================================
 // JBFreezer
 // Copyright 2005 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id$
+// $Id: JBFreezer.uc,v 1.1 2006-11-29 19:14:28 jrubzjeknf Exp $
 //
 // Spawned with a Pawn as its owner, freezes this pawn in place and kills it
 // by shattering it after a few seconds.
@@ -193,9 +193,6 @@ simulated event Tick(float TimeDelta)
 
 event Timer()
 {
-  if (Bot(ControllerOwner) != None)
-    ControllerOwner.bStasis = False;
-
   Owner.Destroy();
   Destroy();
 }
@@ -210,6 +207,9 @@ event Timer()
 
 event Destroyed()
 {
+  if (Bot(ControllerOwner) != None)
+    ControllerOwner.bStasis = False;
+
   Inventory = InventorySaved;
   Super.Destroyed();
 }
