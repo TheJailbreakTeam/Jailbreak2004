@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGameRulesMapFixes.uc,v 1.6 2011-01-03 12:13:39 wormbo Exp $
+// $Id: JBGameRulesMapFixes.uc,v 1.7 2011-01-03 18:20:27 wormbo Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -74,10 +74,11 @@ state Arlon
     local Mover M;
     local HealthPack HP;
     local JBArlonMedbox MB;
+    local ZoneInfo ZI;
 
     // Fix elevators.
     foreach DynamicActors(class'Mover', M) {
-      if (M.Name != 'Mover2' && M.Name != 'Mover4') {
+      if (M.Name != 'Mover0' && M.Name != 'Mover6') {
         M.EncroachDamage    = 0;
         M.MoverEncroachType = ME_ReturnWhenEncroach;
       }
@@ -92,6 +93,11 @@ state Arlon
           HP.Destroy();
         }
       }
+    }
+
+    // Fix underwater fog
+    foreach AllActors(class'ZoneInfo', ZI) {
+      ZI.bClearToFogColor = True;
     }
 
     // add as game modifier to get OverridePickupQuery() and NotifyArenaEnd() calls
