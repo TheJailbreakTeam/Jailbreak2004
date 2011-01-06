@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.156 2011-01-05 02:12:22 wormbo Exp $
+// $Id: Jailbreak.uc,v 1.157 2011-01-06 16:43:55 wormbo Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -2188,7 +2188,7 @@ state MatchInProgress {
     local JBTagPlayer TagPlayer;
 
     // do not spawn players until they have control over their pawn
-    if (PlayerController(Controller)     != None &&
+    if (Controller == None || PlayerController(Controller)     != None &&
         Controller.PlayerReplicationInfo != None &&
         Viewport(PlayerController(Controller).Player) == None &&
        !Controller.PlayerReplicationInfo.bReceivedPing)
@@ -2199,16 +2199,14 @@ state MatchInProgress {
       return;
 
     global.RestartPlayer(Controller);
-    if (Controller.Pawn == None)
+    if (Controller == None || Controller.Pawn == None)
       return; // restart failed
 
     if (TagPlayer != None)
       TagPlayer.NotifyRestarted();
 
-    if (Controller != None) {
-      JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
-      JBBotTeam(Teams[1].AI).NotifySpawn(Controller);
-    }
+    JBBotTeam(Teams[0].AI).NotifySpawn(Controller);
+    JBBotTeam(Teams[1].AI).NotifySpawn(Controller);
   }
 
 
