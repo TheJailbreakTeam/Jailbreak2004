@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesProtection
 // Copyright 2003 by Christophe "Crokx" Cros <crokx@beyondunreal.com>
-// $Id: JBGameRulesProtection.uc,v 1.12 2007-05-21 21:09:29 jrubzjeknf Exp $
+// $Id: JBGameRulesProtection.uc,v 1.13 2007-05-22 15:38:25 jrubzjeknf Exp $
 //
 // The rules for the protection add-on.
 // ============================================================================
@@ -346,7 +346,7 @@ function Llamaize(Controller ControllerPlayer)
 
 function bool CanBotAttackEnemy(Bot Bot, Pawn PawnEnemy)
 {
-  if( PawnEnemy != None && IsProtected(PawnEnemy) )
+  if( PawnEnemy == None || PawnEnemy.Health <= 0 || Bot.Pawn == None || Bot.Pawn.Weapon == None || IsProtected(PawnEnemy) )
     return False;
 
   if( IsProtected(Bot.Pawn) && class'JBAddonProtection'.default.ProtectionType == 0 )
@@ -354,6 +354,7 @@ function bool CanBotAttackEnemy(Bot Bot, Pawn PawnEnemy)
 
   if( IsProtected(Bot.Pawn)
     && class'JBAddonProtection'.default.ProtectionType == 1
+    && PawnEnemy.Weapon != None
     && Bot.RateWeapon(Bot.Pawn.Weapon) <= Bot.RateWeapon(PawnEnemy.Weapon) )
     return False;
 
