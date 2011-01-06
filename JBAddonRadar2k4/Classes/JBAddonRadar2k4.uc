@@ -2,7 +2,7 @@
 JBAddonRadar2k4
 
 Creation date: 2010-12-26 18:47
-Last change: $Id$
+Last change: $Id: JBAddonRadar2k4.uc,v 1.1 2011-01-03 12:17:30 wormbo Exp $
 Copyright © 2010, Wormbo
 
 Draws an Onslaught-style radar map on the HUD.
@@ -19,6 +19,7 @@ class JBAddonRadar2k4 extends JBAddon config cacheexempt;
 
 // imported again for compatibility with JB2004b and earlier
 #exec texture import file=..\Jailbreak\Textures\PadlockMapIcon.tga dxt=5 mips=on alpha=on lodset=LODSET_Interface
+#exec texture import file=..\Jailbreak\Textures\DeathIcon.tga dxt=5 mips=on alpha=on lodset=LODSET_Interface
 
 
 
@@ -34,6 +35,8 @@ var float ColorPercent;
 var JBGameReplicationInfo JBGRI;
 var FinalBlend PlayerIcon;
 var JBInteractionRadar RadarInteraction;
+var PlayerController LocalPlayer;
+var JBTagPlayer LocalTagPlayer;
 
 
 /**
@@ -42,8 +45,6 @@ ToggleRadarMap command are registered. Update the color pulse percentage.
 */
 simulated function Tick(float deltaTime)
 {
-	local PlayerController LocalPlayer;
-
 	if (Panorama == None) {
 		foreach DynamicActors(class'JBPanorama', Panorama) {
 			break;
@@ -73,7 +74,10 @@ simulated function RenderOverlays(Canvas C)
 {
 	local float RadarWidth, CenterRadarPosX, CenterRadarPosY;
 
-	if (JBGRI != None && Panorama != None && !bMapDisabled) {
+	if (LocalTagPlayer == None)
+		LocalTagPlayer = class'JBTagPlayer'.static.FindFor(LocalPlayer.PlayerReplicationInfo);
+
+	if (JBGRI != None && Panorama != None && !bMapDisabled && !JBGRI.bIsExecuting && (LocalTagPlayer == None || !LocalTagPlayer.IsInArena() && !LocaLTagPlayer.IsInJail())) {
 		RadarWidth = 0.5 * class'ONSHUDOnslaught'.default.RadarScale * C.Viewport.Actor.MyHud.HUDScale * C.ClipX;
 		CenterRadarPosX = (class'ONSHUDOnslaught'.default.RadarPosX * C.ClipX) - RadarWidth;
 		CenterRadarPosY = (class'ONSHUDOnslaught'.default.RadarPosY * C.ClipY) + RadarWidth;
@@ -159,7 +163,7 @@ simulated function DrawObjective(Canvas C, JBTagObjective ObjectiveTag, float Ic
 		if (Objective == None || Objective.DefenderTeamIndex >= ArrayCount(HudCTeamDeathMatch.TeamSymbols))
 			return; // neutral or no objective, don't draw
 
-		LockIconSize = IconScaling * 24 * C.ClipX * HudCTeamDeathMatch.HUDScale / 1600;
+		LockIconSize = IconScaling * C.ClipX * HudCTeamDeathMatch.HUDScale * 0.015;
 
 		LocationObjective = CalcLocation(C, Objective.Location, CenterPosX, CenterPosY, RadarWidth);
 
@@ -175,6 +179,68 @@ simulated function DrawObjective(Canvas C, JBTagObjective ObjectiveTag, float Ic
 
 
 /**
+Draws a dot icon for the specified player.
+*/
+simulated function DrawPlayer(Canvas C, JBTagPlayer PlayerTag, float IconScaling, float CenterPosX, float CenterPosY, float RadarWidth)
+{
+	local HudCTeamDeathMatch HudCTeamDeathMatch;
+	local vector LocationPlayer;
+	local float DotSize;
+	local bool bIsLlama;
+
+	if (Panorama == None || PlayerTag == None || !PlayerTag.IsFree())
+		return;
+
+	HudCTeamDeathMatch = HudCTeamDeathMatch(C.Viewport.Actor.MyHud);
+	if (HudCTeamDeathMatch != None) {
+		bIsLlama = class'JBAddonLlama'.static.IsLlama(PlayerTag);
+		if (!LocalPlayer.PlayerReplicationInfo.bOnlySpectator && LocalPlayer.PlayerReplicationInfo.Team != PlayerTag.GetTeam() && !bIsLlama)
+			return; // non-llama opponent
+
+		DotSize = IconScaling * C.ClipX * HudCTeamDeathMatch.HUDScale * 0.005;
+
+		LocationPlayer = CalcLocation(C, PlayerTag.GetLocationPawn(), CenterPosX, CenterPosY, RadarWidth);
+
+		if (bIsLlama && PlayerTag.GetHealth(true) > 0)
+			DotSize *= 2;
+		C.SetPos(LocationPlayer.X - DotSize * 0.5, LocationPlayer.Y - DotSize * 0.5);
+		if (PlayerTag.GetHealth(true) > 0) {
+			C.DrawColor = HudCTeamDeathMatch.TeamSymbols[PlayerTag.GetTeam().TeamIndex].Tints[HudCTeamDeathMatch.TeamIndex];
+			C.DrawColor.A = 255;
+			C.DrawTile(
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.WidgetTexture,
+				DotSize,
+				DotSize,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.X1,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.Y1,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.X2 - class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.X1,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.Y2 - class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.Y1);
+			if (bIsLlama) {
+				C.SetDrawColor(0,0,0);
+				C.SetPos(LocationPlayer.X - DotSize * 0.5, LocationPlayer.Y - DotSize * 0.5);
+				C.DrawTile(Texture'LLama', DotSize, DotSize, 0, 0, Texture'LLama'.USize, Texture'LLama'.VSize);
+			}
+		}
+		else { // death icon
+			C.SetDrawColor(0,0,0);
+			C.DrawTile(
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.WidgetTexture,
+				DotSize,
+				DotSize,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.X1,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.Y1,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.X2 - class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.X1,
+				class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.Y2 - class'JBInterfaceScores'.default.SpriteWidgetPlayer.TextureCoords.Y1);
+			C.DrawColor = HudCTeamDeathMatch.TeamSymbols[PlayerTag.GetTeam().TeamIndex].Tints[HudCTeamDeathMatch.TeamIndex];
+			C.DrawColor.A = 255;
+			C.SetPos(LocationPlayer.X - DotSize * 0.5, LocationPlayer.Y - DotSize * 0.5);
+			C.DrawTile(Texture'DeathIcon', DotSize, DotSize, 0, 0, 32, 32);
+		}
+	}
+}
+
+
+/**
 Draws the radar map, consisting of a black background, the panorama image,
 switch and local player locationa and a border.
 */
@@ -185,6 +251,7 @@ simulated function DrawRadarMap(Canvas C, float CenterPosX, float CenterPosY, fl
 	local Actor A;
 	local plane SavedModulation;
 	local JBTagObjective ObjectiveTag;
+	local JBTagPlayer PlayerTag;
 
 	SavedModulation = C.ColorModulate;
 
@@ -213,6 +280,10 @@ simulated function DrawRadarMap(Canvas C, float CenterPosX, float CenterPosY, fl
 		DrawObjective(C, ObjectiveTag, class'ONSHUDOnslaught'.default.IconScale, CenterPosX, CenterPosY, RadarWidth);
 	}
 
+	for (PlayerTag = JBGRI.firstTagPlayer; PlayerTag != None; PlayerTag = PlayerTag.nextTag) {
+		DrawPlayer(C, PlayerTag, class'ONSHUDOnslaught'.default.IconScale, CenterPosX, CenterPosY, RadarWidth);
+	}
+
 	// Draw PlayerIcon
 	if (C.Viewport.Actor.MyHud.PawnOwner != None)
 		A = C.Viewport.Actor.MyHud.PawnOwner;
@@ -222,7 +293,7 @@ simulated function DrawRadarMap(Canvas C, float CenterPosX, float CenterPosY, fl
 		A = C.Viewport.Actor.MyHud.PlayerOwner.Pawn;
 
 	if (A != None) {
-		PlayerIconSize = class'ONSHUDOnslaught'.default.IconScale * 24 * C.ClipX * C.Viewport.Actor.MyHud.HUDScale/1600;
+		PlayerIconSize = class'ONSHUDOnslaught'.default.IconScale * C.ClipX * C.Viewport.Actor.MyHud.HUDScale * 0.0125;
 		HUDLocation = CalcLocation(C, A.Location, CenterPosX, CenterPosY, RadarWidth);
 		DirectionLocation = CalcLocation(C, A.Location + 100.0 * vector(A.Rotation), CenterPosX, CenterPosY, RadarWidth);
 		DirectionLocation -= HUDLocation;
