@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.155 2011-01-03 11:34:26 wormbo Exp $
+// $Id: Jailbreak.uc,v 1.156 2011-01-05 02:12:22 wormbo Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -924,6 +924,8 @@ function float InternalRatePlayerStart(NavigationPoint N, byte Team, Controller 
   Score = 3000 * FRand(); //randomize
   P = PlayerStart(N);
   if (P == None) {
+    Score -= 2000000;
+
     // find nearby PlayerStart only for selected types of navigation points
     if (N.IsA('PathNode') && !N.IsA('HoverPathNode') && !N.IsA('FlyingPathNode') || N.IsA('JumpDest') && !N.IsA('GameObjective') || N.IsA('AssaultPath') || N.IsA('LiftExit') || N.IsA('AIMarker') || N.IsA('InventoryMarker')) {
       foreach RadiusActors(class'PlayerStart', O, 1000, N.Location) {
@@ -960,9 +962,6 @@ function float InternalRatePlayerStart(NavigationPoint N, byte Team, Controller 
     Score += 10000000;
   else
     Score += 5000000;
-
-  if (N != P && Score > 0)
-    Score /= 3;
 
   if (N == LastStartSpot || N == LastPlayerStartSpot)
     Score -= 10000.0;
