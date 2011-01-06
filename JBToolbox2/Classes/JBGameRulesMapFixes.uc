@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGameRulesMapFixes
 // Copyright 2006 by Jrubzjeknf <rrvanolst@hotmail.com>
-// $Id: JBGameRulesMapFixes.uc,v 1.7 2011-01-03 18:20:27 wormbo Exp $
+// $Id: JBGameRulesMapFixes.uc,v 1.8 2011-01-05 23:05:20 wormbo Exp $
 //
 // Fixes small bugs in maps that are not worth another release and adds a
 // Spirit execution in some cases.
@@ -33,7 +33,7 @@ simulated event PreBeginPlay()
 
   // weapon base skin fix
   foreach AllActors(class'xWeaponBase', thisBase) {
-    if (thisBase.StaticMesh == class'xWeaponBase'.default.StaticMesh && thisBase.Skins.Length > 0 && thisBase.Skins[0] == class'xWeaponBase'.default.Skins[0]) {
+    if (thisBase.StaticMesh == class'NewWeaponBase'.default.StaticMesh && thisBase.Skins.Length > 0 && thisBase.Skins[0] == class'xWeaponBase'.default.Skins[0]) {
       thisBase.Skins.Length = 0;
       thisBase.ResetStaticFilterState();
     }
@@ -50,6 +50,7 @@ simulated event PreBeginPlay()
     case "jb-heights-gold-v2":    InitialState = 'Heights';       break;
     case "jb-indusrage2-gold":    InitialState = 'IndusRage';     break;
     case "jb-poseidon-gold":      InitialState = 'Poseidon';      break;
+    case "jb-thedecks":           InitialState = 'TheDecks';       break;
   }
 }
 
@@ -828,6 +829,28 @@ state Poseidon
     if (T != None) {
       T.UClampMode = TC_Wrap;
       T.VClampMode = TC_Wrap;
+    }
+  }
+}
+
+
+// ============================================================================
+// state TheDecks (JB-TheDecks.ut2)
+//
+// Fix network lag of cage movers.
+// ============================================================================
+
+state TheDecks
+{
+  function BeginState()
+  {
+    local Mover M;
+
+    foreach AllActors(class'Mover', M) {
+      if (Left(M.Tag, 4) ~= "Cage" && !(Right(M.Tag, 8) ~= "SupportX")) {
+        M.NetPriority = 3.1;
+        M.NetUpdateFrequency = 10;
+      }
     }
   }
 }
