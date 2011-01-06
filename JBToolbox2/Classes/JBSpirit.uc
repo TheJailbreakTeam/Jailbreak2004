@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpirit
 // Copyright 2006 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBSpirit.uc,v 1.3 2007-01-08 13:03:31 jrubzjeknf Exp $
+// $Id: JBSpirit.uc,v 1.4 2007-01-27 20:04:38 jrubzjeknf Exp $
 //
 // Base class of all spirits.
 // ============================================================================
@@ -35,6 +35,7 @@ var Pawn CurrentTarget;
 var vector previousLocation;
 var JBInfoJail ExecutionJail;
 var bool bNoTargetsLeft;
+var AvoidMarker MyFear;
 
 
 // ============================================================================
@@ -52,6 +53,9 @@ simulated function PostBeginPlay()
     Velocity = vector(Rotation);
     previousLocation = Location;
     Jailbreak(Level.Game).ContainsActorJail(self, ExecutionJail);
+    MyFear = Spawn(class'AvoidMarker');
+    MyFear.SetBase(Self);
+    MyFear.SetCollisionSize(0.5 * MaxSpeed, 0.5 * MaxSpeed);
   }
 }
 
@@ -76,11 +80,13 @@ function Timer()
   if (CurrentTarget == None && bNoTargetsLeft) {
     SetTimer(0, False);
     bTearOff = True;
+    MyFear.Destroy();
     TornOff();
   }
-  else
+  else {
+    MyFear.StartleBots();
     SetTimer(0.1, False);
-
+  }
   previousLocation = Location;
 
   // Increase turning rate, so the spirit will be harder to dodge over time.

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBSpiderMine
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBSpiderMine.uc,v 1.1 2006-11-29 19:14:29 jrubzjeknf Exp $
+// $Id: JBSpiderMine.uc,v 1.2 2007-02-10 19:13:25 wormbo Exp $
 //
 // A standalone version of the parasite mine.
 // ============================================================================
@@ -33,6 +33,7 @@ var() name IdleAnims[5];
 
 var JBSpiderSpawner Spawner;
 var vector LastLocation;
+var AvoidMarker MyFear;
 
 
 // ============================================================================
@@ -45,6 +46,12 @@ simulated event PostBeginPlay()
 
   TweenAnim('Startup', 0.01);
   bClosedDown = True;
+
+  if (Role == ROLE_Authority) {
+    MyFear = Spawn(class'AvoidMarker');
+    MyFear.SetBase(Self);
+    MyFear.SetCollisionSize(ScurrySpeed, CollisionHeight * 2);
+  }
 }
 
 
@@ -67,6 +74,9 @@ simulated event PostNetBeginPlay()
 simulated event Destroyed()
 {
   local ONSGrenadeExplosionEffect Explosion;
+
+  if (MyFear != None)
+    MyFear.Destroy();
 
   if ( !bNoFX && (Level.NetMode == NM_ListenServer || EffectIsRelevant(Location, true)) ) {
     Explosion = Spawn(class'ONSGrenadeExplosionEffect');
@@ -256,6 +266,9 @@ simulated state OnGround
       return;
     }
 
+    if (MyFear != None)
+      MyFear.StartleBots();
+
     AcquireTarget();
 
     if ( TargetPawn != None )
@@ -414,7 +427,7 @@ defaultproperties
   IdleAnims(3)="footTap"
   IdleAnims(4)="Idle"
   DetectionTimer=0.200000
-  ScurrySpeed=384.000000
+  ScurrySpeed=450.000000
   ScurryAnimRate=3.000000
   TargetLocFuzz=50
   bNoFX=True

@@ -1,7 +1,7 @@
 // ============================================================================
 // JBGiantSpiderMine
 // Copyright (c) 2004 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGiantSpiderMine.uc,v 1.2 2007-02-10 19:13:25 wormbo Exp $
+// $Id: JBGiantSpiderMine.uc,v 1.3 2007-09-11 12:25:47 wormbo Exp $
 //
 // A standalone version of the parasite mine.
 // ============================================================================
@@ -44,6 +44,7 @@ var int IdleCounts[4];
 var float ExplosionCountdown;
 var bool bPreExplosion;
 var name ExplosionEvent;
+var AvoidMarker MyFear;
 
 
 // ============================================================================
@@ -109,7 +110,7 @@ function Trigger(Actor Other, Pawn EventInstigator)
   local PlayerReplicationInfo PRI;
   local JBTagPlayer TagPlayer;
   local Pawn thisPawn;
-  
+
   if ( AssociatedJails.Length == 0 ) {
     foreach AllActors(class'JBInfoJail', thisJail) {
       if ( thisJail.ContainsActor(Self) ) {
@@ -125,7 +126,7 @@ function Trigger(Actor Other, Pawn EventInstigator)
       }
     }
   }
-  
+
   // check if we actually have someone in this jail
   foreach DynamicActors(class'PlayerReplicationInfo', PRI) {
     TagPlayer = class'JBTagPlayer'.static.FindFor(PRI);
@@ -162,6 +163,8 @@ Wait hidden and non-colliding until triggered.
 auto simulated state Sleeping
 {
 Begin:
+  if (MyFear != None)
+    MyFear.Destroy();
   bHidden = True;
   SetCollision(False, False, False);
 }
@@ -189,10 +192,15 @@ Play a spawn effect.
 simulated state Spawning
 {
   ignores ClientTrigger, Trigger;
-  
+
 Begin:
-  if ( PrespawnDelay > 0 )
+  if ( PrespawnDelay > 0 ) {
+    MyFear = Spawn(class'AvoidMarker');
+    MyFear.SetCollisionSize(CollisionRadius, CollisionHeight);
+    MyFear.StartleBots();
     Sleep(PrespawnDelay); // wait until external spawn effect is over
+    MyFear.Destroy();
+  }
   bHidden = False;
   TriggerEvent(SpawnEvent, Self, None);
   SetCollision(True, True);
@@ -214,7 +222,7 @@ Spider idles a bit before detonating.
 simulated state Waiting
 {
   ignores ClientTrigger, Trigger;
-  
+
   simulated function Timer()
   {
     local JBInfoJail thisJail;
@@ -256,11 +264,11 @@ simulated state Waiting
       GotoState('Sleeping');
     }
   }
-  
+
   simulated function name SelectIdleAnim()
   {
     local int Rnd, i;
-    
+
     Rnd = Rand(IdleCounts[0] + IdleCounts[1] + IdleCounts[2] + IdleCounts[3]);
     for (i = 0; i < ArrayCount(IdleCounts); ++i) {
       Rnd -= IdleCounts[i];
