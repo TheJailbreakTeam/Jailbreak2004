@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonLlama
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonLlama.uc,v 1.14 2007-02-14 09:56:42 wormbo Exp $
+// $Id: JBAddonLlama.uc,v 1.15 2007-02-16 10:03:37 wormbo Exp $
 //
 // The Llama Hunt add-on for Jailbreak.
 //=============================================================================
@@ -50,7 +50,7 @@ var() const editconst string Build;
 simulated event PostBeginPlay()
 {
   Super.PostBeginPlay();
-  
+
   if ( Jailbreak(Level.Game) != None ) {
     // spawn the JBGameRules subclass for Jailbreak event notifications
     LlamaHuntRules = class'JBGameRulesLlamaHunt'.static.FindLlamaHuntRules(Self);
@@ -74,15 +74,15 @@ function Mutate(string MutateString, PlayerController Sender)
   local array<string> SplittedString;
   local Controller theLlama;
   local int i;
-  
+
   Super.Mutate(MutateString, Sender);
-  
+
   if ( !Sender.PlayerReplicationInfo.bAdmin && Level.NetMode != NM_Standalone )
     return;
-  
+
   // store the words in the MutateString in a string array word by word
   Split(MutateString, " ", SplittedString);
-  
+
   // handle multiple space chars
   while (i < SplittedString.Length) {
     if ( SplittedString[i] == "" )
@@ -90,7 +90,7 @@ function Mutate(string MutateString, PlayerController Sender)
     else
       i++;
   }
-  
+
   // only do something if the first word after "mutate" was "llama" or "unllama"
   if ( SplittedString.Length > 0 && (SplittedString[0] ~= "llama" || SplittedString[0] ~= "unllama") ) {
     if ( SplittedString.Length == 1 ) {
@@ -165,7 +165,7 @@ function Mutate(string MutateString, PlayerController Sender)
 function bool IsInt(coerce string Param)
 {
   local int p;
-  
+
   p = 0;
   while (Mid(Param, p, 1) == " ") p++;
   while (Mid(Param, p, 1) >= "0" && Mid(Param, p, 1) <= "9") p++;
@@ -184,12 +184,12 @@ function bool IsInt(coerce string Param)
 function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
 {
   local int i;
-  
+
   //log(JBGameReplicationInfo, Name);
-  
+
   if ( JBGameReplicationInfo == None )
     return None; // can't work without GRI
-  
+
   // search for exact name
   for (i = 0; i < JBGameReplicationInfo.PRIArray.Length; i++) {
     /*log("Searching for exact match:"
@@ -203,7 +203,7 @@ function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
         && (bOnlyLlamas == IsLlama(Controller(JBGameReplicationInfo.PRIArray[i].Owner))) )
       return Controller(JBGameReplicationInfo.PRIArray[i].Owner);
   }
-  
+
   // search for the first name containing the string
   for (i = 0; i < JBGameReplicationInfo.PRIArray.Length; i++) {
     /*log("Searching for partial match:"
@@ -213,11 +213,11 @@ function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
     */
     if ( JBGameReplicationInfo.PRIArray[i] != None
         && InStr(Caps(JBGameReplicationInfo.PRIArray[i].PlayerName), Caps(PlayerName)) != -1
-        && Controller(JBGameReplicationInfo.PRIArray[i].Owner) != None 
+        && Controller(JBGameReplicationInfo.PRIArray[i].Owner) != None
         && (bOnlyLlamas == IsLlama(Controller(JBGameReplicationInfo.PRIArray[i].Owner))) )
       return Controller(JBGameReplicationInfo.PRIArray[i].Owner);
   }
-  
+
   return None; // no player found
 }
 
@@ -232,12 +232,12 @@ function Controller FindPlayerByName(string PlayerName, bool bOnlyLlamas)
 static function bool IsLlama(Actor Player)
 {
   local Inventory thisTag;
-  
+
   if (Player != None ) {
-    if (Controller(Player) != None && IsLlama(Controller(Player).Pawn)) {
-      return true;
+    if (JBTagPlayer(Player) != None) {
+      return IsLlama(JBTagPlayer(Player).GetPawn()) || IsLlama(JBTagPlayer(Player).GetController());
     }
-    else if (Vehicle(Player) != None && IsLlama(Vehicle(Player).Driver)) {
+    if (Vehicle(Player) != None && IsLlama(Vehicle(Player).Driver)) {
       return true;
     }
     else if (Pawn(Player) == None && IsLlama(Player.Owner)) {
@@ -247,8 +247,11 @@ static function bool IsLlama(Actor Player)
       if (JBLlamaPendingTag(thisTag) != None || JBLlamaTag(thisTag) != None)
         return true;
     }
+    if (Controller(Player) != None && IsLlama(Controller(Player).Pawn)) {
+      return true;
+    }
   }
-  
+
   return false;
 }
 
@@ -277,7 +280,7 @@ static function Llamaize(Controller ControllerPlayer)
 static function UnLlamaize(Actor Player)
 {
   local Inventory thisTag, nextTag;
-  
+
   if (Player != None ) {
     if (Controller(Player) != None) {
       UnLlamaize(Controller(Player).Pawn);
@@ -307,14 +310,14 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 {
   // add current class to stack
   PlayInfo.AddClass(default.Class);
-  
+
   // now register any mutator settings
   PlayInfo.AddSetting(PlayInfoGroup(), "MaximumLlamaDuration",      default.MaximumLlamaDurationText, 0, 1, "Text", "3;0:120");
   PlayInfo.AddSetting(PlayInfoGroup(), "RewardAdrenaline",          default.RewardAdrenalineText,     0, 2, "Text", "3;0:100");
   PlayInfo.AddSetting(PlayInfoGroup(), "RewardHealth",              default.RewardHealthText,         0, 3, "Text", "3;0:199");
   PlayInfo.AddSetting(PlayInfoGroup(), "RewardShield",              default.RewardShieldText,         0, 4, "Text", "3;0:150");
   PlayInfo.AddSetting(PlayInfoGroup(), "bLlamaizeOnJailDisconnect", default.LlamaizeOnJailDisconnectText, 0, 5, "Check");
-  
+
   // remove mutator class from class stack
   PlayInfo.PopClass();
 }
@@ -347,7 +350,7 @@ static event string GetDescriptionText(string PropName)
 simulated function NotifyLevelChange()
 {
   local JBInterfaceLlamaHUDOverlay thisLlamaHUDOverlay;
-  
+
   foreach DynamicActors(class'JBInterfaceLlamaHUDOverlay', thisLlamaHUDOverlay)
     thisLlamaHUDOverlay.Destroy();
 }
@@ -388,13 +391,13 @@ defaultproperties
   bLlamaizeOnJailDisconnect=True
   bAlwaysRelevant=True
   RemoteRole=ROLE_SimulatedProxy
-  
+
   RewardAdrenalineText         = "Adrenaline gained for killing a Llama"
   RewardHealthText             = "Health gained for killing a Llama"
   RewardShieldText             = "Shield gained for killing a Llama"
   MaximumLlamaDurationText     = "Maximum duration of the llama hunt"
   LlamaizeOnJailDisconnectText = "Llamaize when disconnecting from jail"
-  
+
   RewardAdrenalineDesc         = "Players who kill a llama are awarded this ammount of adrenaline."
   RewardHealthDesc             = "Players who kill a llama are awarded this ammount of health."
   RewardShieldDesc             = "Players who kill a llama are awarded this ammount of shield."
