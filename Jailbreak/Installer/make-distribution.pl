@@ -5,7 +5,7 @@
 #  make-distribution.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id: make-distribution.pl,v 1.11 2007-05-06 15:06:28 mychaeel Exp $
+#  $Id: make-distribution.pl,v 1.12 2007-05-06 15:21:08 mychaeel Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -112,15 +112,15 @@ our $zipCommand;
 sub findDirGame ()
 {
   my $dirGame = '.';
-  
+
   while (not -e "$dirGame/System/ucc.exe") {
     if ($dirGame eq '.')
            { $dirGame = '..' }
       else { $dirGame = "../$dirGame" }
-    
+
     return undef if length($dirGame) > 3 * 64;
   }
-  
+
   return $dirGame;
 }
 
@@ -140,7 +140,7 @@ sub findFileIni ()
     return $fileIni
       if -e $fileIni;
   }
-  
+
   return undef;
 }
 
@@ -161,16 +161,16 @@ sub findFilePackage ($)
     my $fileIni = findFileIni();
     die "Unable to find game configutation file.\n"
       unless defined $fileIni;
-  
+
     open INI, '<', $fileIni
       or die "Unable to read game configuration file.\n";
-    
+
     while (my $setting = <INI>) {
       chomp $setting;
       push @paths, $setting
         if $setting =~ s/^Paths=//i;
     }
-    
+
     close INI;
   }
 
@@ -180,7 +180,7 @@ sub findFilePackage ($)
     return $filePackage
       if -e $filePackage;
   }
-  
+
   return undef;
 }
 
@@ -212,7 +212,7 @@ sub getTimeFile ($)
       or die "Unable to open directory $fileOrDir.\n";
     my @files = grep !/^(?:\.|\.\.|CVS|Installer)$/i, readdir(DIR);
     closedir DIR;
-  
+
     foreach my $file (@files) {
       my $timeFile = getTimeFile("$fileOrDir/$file");
       $timeFileLast = $timeFile
@@ -238,12 +238,12 @@ sub isFileIncluded ($)
 {
   my $file = shift;
   $file =~ s[[\\/]+] [/]g;
-  
+
   return $main::cacheIsFileIncluded{$file}
     if exists $main::cacheIsFileIncluded{$file};
-  
+
   $main::cacheIsFileIncluded{$file} = TRUE;
-  
+
   return TRUE
     unless exists $reference{$file};
 
@@ -283,7 +283,7 @@ sub isFileIncluded ($)
 sub timestamp ($)
 {
   my $file = shift;
-  
+
   local $/;
   undef $/;
 
@@ -302,7 +302,7 @@ sub timestamp ($)
   );
 
   $content =~ s[%%%%-%%-%% %%:%%] [$timestamp]g;
-  
+
   open FILE, '>', $file
     or die "Unable to write to file $file.\n";
   binmode FILE;
@@ -321,13 +321,13 @@ sub timestamp ($)
 sub canonPath ($)
 {
   my $path = shift;
-  
+
   return undef
     unless defined $path;
-  
+
   $path =~ s[([/\\])[/\\]+] [$1]g;
   1 while $path =~ s[(^|[:/\\])(?!\.\.[/\\])[^/\\]+[/\\]\.\.(?:[/\\]|$)] [$1];
-  
+
   return $path;
 }
 
@@ -345,7 +345,7 @@ sub addFileToArchive ($$;$)
   my $fileAdded   = shift;
   my $fileArchive = shift;
   my $bNoSubDir   = shift;
-  
+
   my $dirCurrent = cwd();
 
   if ($bNoSubDir) {
@@ -354,14 +354,14 @@ sub addFileToArchive ($$;$)
     $fileAdded =~ s[(.*)[/\\]] [];
     chdir $1 if defined $1;
   }
-  
+
   $fileArchive =~ tr[/] [\\];
   $fileAdded   =~ tr[/] [\\];
-  
+
   my $command = $zipCommand;
   $command =~ s[%archive%] [$fileArchive]g;
   $command =~ s[%file%]    [$fileAdded]g;
-  
+
   my $result = `$command 2>&1`;
 
   chdir $dirCurrent
@@ -386,12 +386,14 @@ die "Unable to find game base directory.\n"
 #  Parameters
 #
 
+my $skipCVS      = FALSE;
 my $skipRebuild  = FALSE;
 my $skipKeypress = FALSE;
 my $fileReference;
 
 GetOptions(
   'version=s'           => \$versionSuffix,
+  'skip-cvs'            => \$skipCVS,
   'skip-rebuild'        => \$skipRebuild,
   'skip-keypress'       => \$skipKeypress,
   'zip=s'               => \$zipExt,
@@ -400,8 +402,8 @@ GetOptions(
   'exclude-maps'        => sub { @maps = () },
 );
 
-   if ($zipExt eq 'zip') { $zipCommand = 'zip -9 "%archive%" "%file%"' }
-elsif ($zipExt eq '7z' ) { $zipCommand = '7z a   "%archive%" "%file%"' }
+   if ($zipExt eq 'zip') { $zipCommand = '7z a -mx9 "%archive%" "%file%"' }
+elsif ($zipExt eq '7z' ) { $zipCommand = '7z a -mx9 "%archive%" "%file%"' }
 else { die "Unsupported argument for --zip parameter. Use 'zip' or '7z'.\n" }
 
 
@@ -421,11 +423,11 @@ if (defined $fileReference) {
     next if /^#|^\s*$/;
     die "Invalid line in reference file: $_"
       unless /^([0-9a-f]{32})\s+([0-9a-f]{32})\s+(.*)$/;
-    
+
     my $md5short = $1;
     my $md5full  = $2;
     my $file     = $3;
-    
+
     $reference{$file}{md5short} = $md5short;
     $reference{$file}{md5full}  = $md5full;
   }
@@ -462,20 +464,21 @@ print "Updating modules:\n";
 foreach my $module (@modules) {
   next if $module =~ /[\\\/]/;
   print "...$module\n";
-  
+
   die "Module $module has not been checked out yet.\n"
-    unless -d "$dirGame/$module/CVS";
+    unless $skipCVS || -d "$dirGame/$module/CVS";
 
   my $dirCurrent = cwd();
   chdir "$dirGame/$module"
     or die "Unable to change into module directory for $module.\n";
 
-  my $output = `cvs update -d -P 2>nul`;
-  die "Unable to update module $module from CVS. $!\n"
-    if ($? >> 8) != 0;
-  die "Module $module has uncommitted local changes or conflicts.\n"
-    if $output =~ m[^[ARMC]\s(?!Installer/(?:make-distribution\.(?:pl|conf)|Manifest-\Q$product\E\.\w+t)$)]m; 
-
+  unless ($skipCVS) {
+    my $output = `cvs update -d -P 2>nul`;
+    die "Unable to update module $module from CVS. $!\n"
+      if ($? >> 8) != 0;
+    die "Module $module has uncommitted local changes or conflicts.\n"
+      if $output =~ m[^[ARMC]\s(?!Installer/(?:make-distribution\.(?:pl|conf)|Manifest-\Q$product\E\.\w+t)$)]m;
+  }
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
 }
@@ -502,7 +505,7 @@ foreach my $module (@modules) {
   }
   else {
     my $filePackage = canonPath(findFilePackage($module));
-  
+
     my $timeFilePackage = getTimeFile($filePackage);
     my $timeFileModule  = getTimeFile("$dirGame/$module");
 
@@ -520,10 +523,10 @@ foreach my $module (@modules) {
     if ($method eq 'ucc') {
       my $filePackage = canonPath(findFilePackage($module));
       my $filePackageBackup;
-      
+
       if (defined $filePackage) {
         $filePackageBackup = "$filePackage.backup";
-  
+
         unlink $filePackageBackup
           or die "Unable to remove file $filePackageBackup."
           if -e $filePackageBackup;
@@ -538,7 +541,7 @@ foreach my $module (@modules) {
       my $fileIni = canonPath("../$module/make.ini");
       die "No make.ini file found for module $module.\n"
         unless -e $fileIni;
-      
+
       my $output = `ucc make ini=$fileIni`;
 
       chdir $dirCurrent
@@ -569,11 +572,11 @@ foreach my $module (@modules) {
       my $dirCurrent = cwd();
       chdir "$dirGame/$module"
         or die "Unable to change into module directory for $module.\n";
-      
+
       my $output = `$method 2>&1`;
       die "Unable to rebuild module $module using $method.\n", $output, "\n"
         if ($? >> 8) != 0;
-      
+
       chdir $dirCurrent
         or die "Unable to change to directory $dirCurrent.\n";
     }
@@ -614,18 +617,18 @@ print "...adding modules\n";
 foreach my $module (@modules) {
   next if $module =~ /[\\\/]/;
   print ".....$module\n";
-  
+
   my $filePackage = findFilePackage($module);
   die "No package file found for module $module.\n"
     unless defined $filePackage;
-  
+
   my $dirCurrent = cwd();
   chdir $dirGame
     or die "Unable to change to game base directory.\n";
-  
+
   $filePackage =~ s[^\Q$dirGame\E[/\\]] [];
   $filePackage = canonPath($filePackage);
-  
+
   if (isFileIncluded($filePackage)) {
     my $output = addFileToArchive($filePackage, $fileZip);
     die "Unable to add $filePackage to archive.\n", $output, "\n"
@@ -641,7 +644,7 @@ foreach my $module (@modules) {
 
     opendir DIR, '.'
       or die "Unable to open Installer directory.\n";
-    
+
     foreach my $fileOrDir (readdir(DIR)) {
       next
         if $fileOrDir eq '.'
@@ -651,19 +654,19 @@ foreach my $module (@modules) {
       push @dirSub, $fileOrDir
         if -d "$dirGame/$module/Installer/$fileOrDir";
     }
-    
+
     closedir DIR;
-    
+
     while (my $dirSub = shift @dirSub) {
       opendir DIR, $dirSub
         or die "Unable to open Installer/$dirSub directory.\n";
-      
+
       foreach my $fileOrDir (readdir(DIR)) {
         next
           if $fileOrDir eq '.'
           or $fileOrDir eq '..'
           or $fileOrDir eq 'CVS';
-        
+
         if (-d "$dirSub/$fileOrDir") {
           push @dirSub, "$dirSub/$fileOrDir";
         }
@@ -681,7 +684,7 @@ foreach my $module (@modules) {
       closedir DIR;
     }
   }
-  
+
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
 }
@@ -704,7 +707,7 @@ if (@maps) {
   foreach my $file (@maps) {
     if (isFileIncluded($file)) {
       print ".....$file\n";
-      
+
       my $output = addFileToArchive($file, $fileZip);
       die "Unable to add file $file to archive.\n", $output, "\n"
         if ($? >> 8) != 0;
@@ -802,11 +805,11 @@ print MANIFEST "Visible=True\n";
 foreach my $module (@modules) {
   next if $module =~ /[\\\/]/;
   print ".....$module\n";
-  
+
   my $filePackage = findFilePackage($module);
   die "No package file found for module $module.\n"
     unless defined $filePackage;
-  
+
   my $sizeFilePackage = -s $filePackage;
 
   $filePackage =~ s[^\Q$dirGame\E[/\\]] [];
@@ -824,7 +827,7 @@ foreach my $module (@modules) {
 
     opendir DIR, "$dirGame/$module/Installer"
       or die "Unable to open Installer directory.\n";
-    
+
     foreach my $fileOrDir (readdir(DIR)) {
       next
         if $fileOrDir eq '.'
@@ -838,19 +841,19 @@ foreach my $module (@modules) {
           unless -d "$dirGame/$fileOrDir";
       }
     }
-    
+
     closedir DIR;
-    
+
     while (my $dirSub = shift @dirSub) {
       opendir DIR, "$dirGame/$module/Installer/$dirSub"
         or die "Unable to open Installer/$dirSub directory.\n";
-      
+
       foreach my $fileOrDir (readdir(DIR)) {
         next
           if $fileOrDir eq '.'
           or $fileOrDir eq '..'
           or $fileOrDir eq 'CVS';
-        
+
         if (-d "$dirGame/$module/Installer/$dirSub/$fileOrDir") {
           push @dirSub, "$dirSub/$fileOrDir";
           mkdir "$dirGame/$dirSub/$fileOrDir"
@@ -861,14 +864,14 @@ foreach my $module (@modules) {
           my $fileOriginal = "$module/Installer/$dirSub/$fileOrDir";
           my $fileTarget   =                   "$dirSub/$fileOrDir";
           $fileTarget =~ tr[/] [\\];
-          
+
           if (isFileIncluded($fileTarget)) {
             my $sizeFile = -s "$dirGame/$fileOriginal";
             print MANIFEST "File=(Src=\"$fileTarget\",Size=$sizeFile)\n";
-          
+
             my $timeFileOriginal = getTimeFile("$dirGame/$fileOriginal");
             my $timeFileTarget   = getTimeFile("$dirGame/$fileTarget");
-            
+
             copy "$dirGame/$fileOriginal", "$dirGame/$fileTarget"
               or die "Unable to copy $fileTarget from Installer directory to game directory.\n"
               if not defined $timeFileTarget or $timeFileOriginal > $timeFileTarget;
@@ -892,7 +895,7 @@ foreach my $module (@modules) {
 
 if (@maps) {
   print "...maps and related files\n";
-  
+
   print MANIFEST "[GroupMaps]\n";
   print MANIFEST "Optional=True\n";
   print MANIFEST "Visible=True\n";
@@ -923,7 +926,7 @@ if (%keys) {
   print MANIFEST "Optional=True\n";
   print MANIFEST "Visible=True\n";
   print MANIFEST "Selected=False\n";
-  
+
   foreach my $key (sort keys %keys) {
     print MANIFEST "Ini=System\\User.ini,Engine.Input.$key=$keys{$key}\n";
   }
@@ -954,7 +957,7 @@ foreach my $file (<Manifest-$product.*t>) {
 
   unlink "$product$UT200xSuffix$versionSuffix.$UT200xExt";
   my $output = `ucc master Manifest-$product.ini`;
-  
+
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
 
