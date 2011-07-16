@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoJail
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoJail.uc,v 1.52 2006-11-18 16:15:58 jrubzjeknf Exp $
+// $Id: JBInfoJail.uc,v 1.53 2007-04-24 16:32:22 jrubzjeknf Exp $
 //
 // Holds information about a generic jail.
 // ============================================================================
@@ -98,6 +98,7 @@ replication
 event PostBeginPlay()
 {
   local Volume thisVolume;
+  local PlayerStart thisStart;
 
   if (TagAttachVolumes != '' &&
       TagAttachVolumes != 'None')
@@ -106,6 +107,13 @@ event PostBeginPlay()
 
   FindReleases(EventReleaseRed,  InfoReleaseByTeam[0].ListMover);
   FindReleases(EventReleaseBlue, InfoReleaseByTeam[1].ListMover);
+
+  if (Jailbreak(Level.Game) == None) {
+    foreach AllActors(class'PlayerStart', thisStart) {
+      if (ContainsActor(thisStart))
+        thisStart.bEnabled = False;
+    }
+  }
 }
 
 
@@ -1027,6 +1035,9 @@ auto state Waiting {
   {
     local int iTeam;
     local TeamInfo Team;
+
+    if (TeamGame(Level.Game) == None)
+      return;
 
     for (iTeam = 0; iTeam < ArrayCount(InfoReleaseByTeam); iTeam++) {
       Team = TeamGame(Level.Game).Teams[iTeam];

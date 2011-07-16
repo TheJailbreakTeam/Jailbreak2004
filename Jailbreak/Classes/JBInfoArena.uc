@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInfoArena
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInfoArena.uc,v 1.53 2007-04-07 11:14:47 jrubzjeknf Exp $
+// $Id: JBInfoArena.uc,v 1.54 2008-03-16 11:37:35 jrubzjeknf Exp $
 //
 // Holds information about an arena. Some design inconsistencies in here: Part
 // of the code could do well enough with any number of teams, other parts need
@@ -128,6 +128,7 @@ var private Font FontObjectNames;                  // loaded font object
 event PostBeginPlay()
 {
   local JBCamera thisCamera;
+  local PlayerStart thisStart;
 
   if (TagCamera != '' &&
       TagCamera != 'None') {
@@ -153,6 +154,13 @@ event PostBeginPlay()
   foreach DynamicActors(Class'JBCamera', thisCamera)
     if (ContainsActor(thisCamera))
       thisCamera.Overlay.Actor = Self;
+
+  if (Jailbreak(Level.Game) == None) {
+    foreach AllActors(class'PlayerStart', thisStart) {
+      if (ContainsActor(thisStart))
+        thisStart.bEnabled = False;
+    }
+  }
 }
 
 
