@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.157 2011-01-06 16:43:55 wormbo Exp $
+// $Id: Jailbreak.uc,v 1.158 2011-01-06 18:26:03 wormbo Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -927,7 +927,7 @@ function float InternalRatePlayerStart(NavigationPoint N, byte Team, Controller 
     Score -= 2000000;
 
     // find nearby PlayerStart only for selected types of navigation points
-    if (N.IsA('PathNode') && !N.IsA('HoverPathNode') && !N.IsA('FlyingPathNode') || N.IsA('JumpDest') && !N.IsA('GameObjective') || N.IsA('AssaultPath') || N.IsA('LiftExit') || N.IsA('AIMarker') || N.IsA('InventoryMarker')) {
+    if (N.IsA('PathNode') && !N.IsA('HoverPathNode') && !N.IsA('FlyingPathNode') || N.IsA('JumpDest') && !N.IsA('GameObjective') || N.IsA('AssaultPath') || N.IsA('LiftExit') || N.IsA('AIMarker') || N.IsA('InventorySpot')) {
       foreach RadiusActors(class'PlayerStart', O, 1000, N.Location) {
         NextDist = VSize(O.Location - N.Location);
         if (O.TeamNumber == Team)
@@ -947,7 +947,7 @@ function float InternalRatePlayerStart(NavigationPoint N, byte Team, Controller 
             Score += 1000 * Sqrt(VSize(N.Location - thisObjective.Location));
         }
       }
-      if (N.IsA('InventoryMarker'))
+      if (InventorySpot(N) != None && InventorySpot(N).markedItem != None && !InventorySpot(N).markedItem.IsInState('Disabled'))
         Score -= 1000000;
     }
   }
