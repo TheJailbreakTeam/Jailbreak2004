@@ -1,7 +1,7 @@
 // ============================================================================
 // JBInterfaceHud
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: JBInterfaceHud.uc,v 1.82 2007-09-19 14:59:26 jrubzjeknf Exp $
+// $Id: JBInterfaceHud.uc,v 1.83 2008-03-16 11:37:35 jrubzjeknf Exp $
 //
 // Heads-up display for Jailbreak, showing team states and switch locations.
 // ============================================================================
@@ -272,7 +272,7 @@ simulated event PostRender(Canvas Canvas)
   ShowWidescreen(Canvas);
   ShowBlackout  (Canvas);
 
-  MoveChat(bShowScoreBoard || bChatMovedToTop);
+  MoveChat(bShowScoreBoard && !bShowLocalStats || bChatMovedToTop);
 
   if (JBCamera(PlayerOwner.ViewTarget) != None) {
     LinkActors();
@@ -300,7 +300,7 @@ simulated event PostRender(Canvas Canvas)
     Super.PostRender(Canvas);
 
     if (!bHideHUD) {
-      if (bShowScoreBoard)
+      if (bShowScoreBoard || bShowLocalStats)
         DisplayMessages(Canvas);
       else
         DrawOverlays(Canvas);
@@ -1127,8 +1127,8 @@ function DrawCustomBeacon(Canvas C, Pawn thisPawn, float ScreenLocX, float Scree
     ViewingArena = JBCameraArena(PlayerOwner.ViewTarget).Arena;
   }
   else if ((PlayerOwner.PlayerReplicationInfo == None
-			|| !PlayerOwner.PlayerReplicationInfo.bOnlySpectator)
-			&& TagPlayerOwner != None) {
+            || !PlayerOwner.PlayerReplicationInfo.bOnlySpectator)
+            && TagPlayerOwner != None) {
     ViewingArena = TagPlayerOwner.GetArena();
   }
 
