@@ -5,7 +5,7 @@
 #  make-distribution.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id$
+#  $Id: make-distribution.pl,v 1.1.2.9 2004-09-24 16:30:12 mychaeel Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -98,7 +98,7 @@ our $dirGame;
 our @paths;
 our %reference;
 
-our $zipExt;
+our $zipExt = 'zip';
 our $zipCommand;
 
 
@@ -386,21 +386,24 @@ die "Unable to find game base directory.\n"
 #  Parameters
 #
 
+my $skipCVS      = FALSE;
 my $skipRebuild  = FALSE;
 my $skipKeypress = FALSE;
 my $fileReference;
 
 GetOptions(
   'version=s'           => \$versionSuffix,
+  'skip-cvs'            => \$skipCVS,
   'skip-rebuild'        => \$skipRebuild,
   'skip-keypress'       => \$skipKeypress,
   'zip=s'               => \$zipExt,
   'reference-file=s'    => \$fileReference,
   'reference-version=i' => \$versionReference,
+  'exclude-maps'        => sub { @maps = () },
 );
 
-   if ($zipExt eq 'zip') { $zipCommand = 'zip -9 "%archive%" "%file%"' }
-elsif ($zipExt eq '7z' ) { $zipCommand = '7z a   "%archive%" "%file%"' }
+   if ($zipExt eq 'zip') { $zipCommand = '7z a -mx9 "%archive%" "%file%"' }
+elsif ($zipExt eq '7z' ) { $zipCommand = '7z a -mx9 "%archive%" "%file%"' }
 else { die "Unsupported argument for --zip parameter. Use 'zip' or '7z'.\n" }
 
 
@@ -463,18 +466,19 @@ foreach my $module (@modules) {
   print "...$module\n";
   
   die "Module $module has not been checked out yet.\n"
-    unless -d "$dirGame/$module/CVS";
+    unless $skipCVS || -d "$dirGame/$module/CVS";
 
   my $dirCurrent = cwd();
   chdir "$dirGame/$module"
     or die "Unable to change into module directory for $module.\n";
 
+  unless ($skipCVS) {
   my $output = `cvs update -d -P 2>nul`;
   die "Unable to update module $module from CVS. $!\n"
     if ($? >> 8) != 0;
   die "Module $module has uncommitted local changes or conflicts.\n"
     if $output =~ m[^[ARMC]\s(?!Installer/(?:make-distribution\.(?:pl|conf)|Manifest-\Q$product\E\.\w+t)$)]m; 
-
+  }
   chdir $dirCurrent
     or die "Unable to change to directory $dirCurrent.\n";
 }
