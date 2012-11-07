@@ -31,7 +31,6 @@ fc3ce2ab09b9dfe8075d6438b807c0c6  312bc191cceafe761ec5a1b5e25423fe  Maps/JB-Cast
 c023f6ecffce9f9734ddec017348067c  c74b2939bee5d5f5335e6fe9e7e2bcbc  Maps/JB-Cavern.ut2
 ebddab269c42540de6d02eb83330562f  663412366dff0c66eec1ed0db47e1025  Maps/JB-Conduit-Gold.ut2
 d1b6b439cf56b63633be56991291ca55  90cb4173d092c10614a91194c84b024a  Maps/JB-Cosmos.ut2
-5d8b4b4c2f712c95014768768a582821  93c997d4f9de046fe2e77a5da2e249cc  Maps/JB-Heights-Gold-v2.ut2
 d21e3fc59373b461461ff121e08cf31c  1f7b939d3296443909ac3ad44fc9b9ce  Maps/JB-IndusRage2-Gold.ut2
 544b02613d273c642df113b4632ba487  df086740754e7af9be629ac1c142b915  Maps/JB-MoonCraters-Gold.ut2
 0f8705d224e9e6a3ff67b66fe87ab01a  5674be2a6db6ab6530408dd1d72a8bdc  Maps/JB-NoSense-Gold.ut2
