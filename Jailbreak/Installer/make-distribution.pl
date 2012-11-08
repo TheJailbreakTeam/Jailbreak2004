@@ -5,7 +5,7 @@
 #  make-distribution.pl
 #
 #  Copyright 2004 by Mychaeel <mychaeel@planetjailbreak.com>
-#  $Id: make-distribution.pl,v 1.12 2007-05-06 15:21:08 mychaeel Exp $
+#  $Id: make-distribution.pl,v 1.13 2011-01-08 17:07:38 wormbo Exp $
 #
 #  Automatically updates and creates distribution packages for Jailbreak.
 #
@@ -780,7 +780,7 @@ if (%reference) {
 print MANIFEST "[GroupSetup]\n";
 print MANIFEST "Copy=(Src=System\\Manifest.ini,Flags=3)\n";
 
-foreach my $ext qw(int det est frt itt kot smt tmt) {
+foreach my $ext (qw(int det est frt itt kot smt tmt)) {
   if (-e "Manifest-$product.$ext") {
     print MANIFEST "Copy=(Src=System\\Manifest.$ext,Flags=3)\n";
   } else {
