@@ -1,6 +1,6 @@
 ===============================================================================
 Jailbreak 2004c (SP3)
-Copyright 2002-2011 by Team Jailbreak <team@planetjailbreak.com>
+Copyright 2002-2012 by Team Jailbreak <team@planetjailbreak.com>
 ===============================================================================
 
 For feedback, suggestions and bug reports, visit
@@ -92,7 +92,23 @@ Maps
 These maps are now included in the Jailbreak installer:
 - JB-Aswan-v2
 - JB-Fragtion2-v2
+- JB-RimeValley
 - JB-TheDecks
+
+These maps are affected by the "map fixes" feature:
+- JB-Arlon-Gold:         Lifts, health packs, underwater fog, Super Shock Rifle
+- JB-Aswan-v2:           Bot path tweaks, performance tweaks, network fixes for
+                         spider and giant spider executions
+- JB-Atlantis-Gold:      Better bot support/defense
+- JB-BabylonTemple-Gold: Replaced built-in execution with fire spirits
+- JB-Collateral:         Fixed a location name on the blue side that said "red"
+- JB-Cosmos:             Fixed the breaking glass emitter for network clients
+- JB-Frostbite:          Ice spirits as random alternative and final execution
+- JB-Heights-Gold-v2:    Fixed lift crane movers and replaced built-in
+                         execution with lightning spirits
+- JB-IndusRage2-Gold:    Fixed HOM effect and cull distance of door frames
+- JB-Poseidon-Gold:      Fixed skybox, an unlit shark and lift collision
+- JB-TheDecks:           Network priority tweaks for cage movers
 
 
 Game Settings
@@ -103,7 +119,7 @@ Can be enabled or disabled:
 - Disallow Escaping: Escaping the jail (without being released or going to the
                      arena) is not allowed. Players who try to do so anyway
                      will be teleported back to jail.
-- Enable JBMapFixes: Fixes small problems or adds a different execution to some
+- Enable Map Fixes:  Fixes small problems or adds a different execution to some
                      of the maps.
 - No Jail Kill:      Jailed players cannot hurt free players.
 - Allow Jail Fights: If an arena mutator, like instagib, is loaded, then all
@@ -243,14 +259,5 @@ Expansions
 - JBMutatorDebug
   - Mutate ToggleShowLocation: Shows the location of the player on-screen.
   - Mutate CanBeJailed: Now has team support - mutate canbejailed off team red.
-
-
-
-Miscellaneous
-=============
-
-- JBMapFixes
-    Fixes small issues or adds a second execution in a few maps.
-
 
 ===============================================================================
