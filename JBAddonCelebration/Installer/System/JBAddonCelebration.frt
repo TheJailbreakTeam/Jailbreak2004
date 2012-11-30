@@ -39,3 +39,6 @@ TeamString[1]="bleue"
 FriendlyName="Ecran de Célébration"
 Description="Active l'écran de célébration pendant les exécutions."
 
+[JBLocalMessageCelebration]
+TextKeyboardCelebration="Utilisez Les touches de déplacement et de provocation pour célébrer la capture"
+

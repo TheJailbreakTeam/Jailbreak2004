@@ -39,3 +39,6 @@ TeamString[1]="Blau"
 FriendlyName="Exekutionsparty"
 Description="Aktiviert die Breitwand-Exekutionsparty."
 
+[JBLocalMessageCelebration]
+TextKeyboardCelebration="Drücken Sie die Bewegungs- und Spott-Tasten, um die Gefangennahme zu feiern"
+

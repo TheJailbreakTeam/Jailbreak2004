@@ -39,3 +39,6 @@ TeamString[1]="blu"
 FriendlyName="Schermata di celebrazione"
 Description="Abilita la schermata di celebrazione widescreen durante le esecuzioni."
 
+[JBLocalMessageCelebration]
+TextKeyboardCelebration="Press your movement and taunt keys to celebrate the capture"
+

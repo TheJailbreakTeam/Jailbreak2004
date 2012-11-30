@@ -39,3 +39,6 @@ TeamString[1]="azul"
 FriendlyName="Pantalla de Celebración"
 Description="Activa la Pantalla de Celebración durante las Ejecuciones."
 
+[JBLocalMessageCelebration]
+TextKeyboardCelebration="Pulsa tus teclas de movimiento y burla para celebrar la captura"
+

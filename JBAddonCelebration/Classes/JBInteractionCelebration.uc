@@ -1,7 +1,7 @@
 //=============================================================================
 // JBInteractionCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBInteractionCelebration.uc,v 1.16 2007-02-11 09:37:57 wormbo Exp $
+// $Id: JBInteractionCelebration.uc,v 1.17 2007-05-17 10:56:15 wormbo Exp $
 //
 // Handles drawing the celebration screen.
 //=============================================================================
@@ -40,7 +40,7 @@ function PostRender(Canvas C)
 {
   local int MessageSize;
   local float XL, YL;
-  
+
   if ( !ViewportOwner.Actor.ViewTarget.IsA('JBCamera') || ViewportOwner.Actor.MyHud != None
       && ViewportOwner.Actor.MyHud.bShowScoreBoard ) {
     if ( !ViewportOwner.Actor.ViewTarget.IsA('JBCamera') )
@@ -53,7 +53,7 @@ function PostRender(Canvas C)
     SavedCameraMessage = ExecutionCamera.Caption.Text;
     ExecutionCamera.Caption.Text = "";
   }
-  
+
   if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None ) {
     if ( ExecutionCamera == None || ExecutionCamera.Overlay.Material == None || ExecutionCamera.bWidescreen )
       JBInterfaceHud(ViewportOwner.Actor.myHUD).bWidescreen = True;
@@ -61,7 +61,7 @@ function PostRender(Canvas C)
       JBInterfaceHud(ViewportOwner.Actor.myHUD).bWidescreen = False;
     JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = True;
   }
-  
+
   if ( PlayerMesh == None ) {
     if ( PlayerInfo.Player != None )
       SetupPlayerMesh(PlayerInfo);
@@ -72,11 +72,11 @@ function PostRender(Canvas C)
       PlayerMesh.GotoState('Taunting', 'BeginTaunting');
     }
     PlayerMesh.PrePivot += PlayerMesh.LastLocationOffset;
-    
+
     PlayerMesh.OverlayMaterial = MeshShadowMaterial;
     PlayerMesh.SetLocation(ShadowLoc);
     C.DrawScreenActor(PlayerMesh, 30, False, True);
-    
+
     PlayerMesh.OverlayMaterial = None;
     PlayerMesh.SetLocation(MeshLoc);
     C.DrawScreenActor(PlayerMesh, 30, False, True);
@@ -109,11 +109,11 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
   local array<string> Binds;
   local string TauntName;
   local int i;
-  
+
   if ( Action == IST_Press ) {
     KeyBind = ViewportOwner.Actor.ConsoleCommand("KEYNAME" @ Key);
     KeyBind = ViewportOwner.Actor.ConsoleCommand("KEYBINDING" @ KeyBind);
-    
+
     if ( KeyBind != "" && Split(KeyBind, "|", Binds) > 0 ) {
       for (i = 0; i < Binds.Length; i++) {
         if ( Divide(Trim(Binds[i]), " ", KeyBind, TauntName) && Keybind ~= "Taunt" && TauntName != "" ) {
@@ -181,7 +181,7 @@ function Taunt(string AnimName)
 {
   if ( CelebrationGameRules == None || PlayerMesh == None )
     return;
-  
+
   SetPropertyText("TauntAnim", AnimName); // hacky string to name "typecasting"
   if ( PlayerInfo.Player != None && PlayerInfo.Player.GetController() == ViewportOwner.Actor ) {
     if ( PlayerMesh.HasAnim(TauntAnim) )
@@ -226,7 +226,7 @@ function RandomTaunt()
 {
   if ( CelebrationGameRules == None || PlayerMesh == None )
     return;
-  
+
   TauntAnim = PlayerMesh.GetRandomTauntAnim();
   if ( PlayerInfo.Player != None && PlayerInfo.Player.GetController() == ViewportOwner.Actor && TauntAnim != '' )
     CelebrationGameRules.ServerSetTauntAnim(string(TauntAnim));
@@ -243,7 +243,7 @@ function RandomTaunt()
 function Pawn GetPawn(JBTagPlayer TagPlayer)
 {
   local Pawn thisPawn;
-  
+
   thisPawn = TagPlayer.GetPawn();
   if (Vehicle(thisPawn) != None)
     return Vehicle(thisPawn).Driver;
@@ -262,9 +262,9 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
   local Material ActorSkin;
   local Mesh ActorMesh;
   local xUtil.PlayerRecord rec;
-  
+
   PlayerInfo = NewPlayerInfo;
-  
+
   if ( PlayerMesh == None && PlayerInfo.Player != None && (GetPawn(PlayerInfo.Player) != None
       || !PlayerInfo.bSuicide) )
     PlayerMesh = ViewportOwner.Actor.Spawn(class'JBTauntingMeshActor', GetPawn(PlayerInfo.Player),,
@@ -273,7 +273,7 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
     return;
   else if ( PlayerInfo.Player != None )
     PlayerMesh.SetOwner(GetPawn(PlayerInfo.Player));
-  
+
   if ( PlayerMesh.Owner != None ) {
     PlayerMesh.LinkMesh(PlayerMesh.Owner.Mesh);
     PlayerMesh.Skins = PlayerMesh.Owner.Skins;
@@ -292,7 +292,7 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
     ActorMesh = Mesh(DynamicLoadObject(rec.MeshName, class'Mesh'));
     if ( ActorMesh != None ) {
       PlayerMesh.LinkMesh(ActorMesh);
-      
+
       // load body skin
       if (class'DMMutator'.Default.bBrightSkins && Left(rec.BodySkinName,12) ~= "PlayerSkins.")
         ActorSkin = Material(DynamicLoadObject("Bright"$rec.BodySkinName$"_"$PlayerInfo.PRI.Team.TeamIndex$"B", class'Material', True));
@@ -302,7 +302,7 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
         ActorSkin = Material(DynamicLoadObject(rec.BodySkinName, class'Material'));
       if (ActorSkin != None)
         PlayerMesh.Skins[0] = ActorSkin;
-      
+
       // load face skin
       if (rec.TeamFace)
         ActorSkin = Material(DynamicLoadObject(rec.FaceSkinName$"_"$PlayerInfo.PRI.Team.TeamIndex, class'Material', True));
@@ -310,13 +310,13 @@ function SetupPlayerMesh(JBGameRulesCelebration.TPlayerInfo NewPlayerInfo)
         ActorSkin = Material(DynamicLoadObject(rec.FaceSkinName, class'Material'));
       if (ActorSkin != None)
         PlayerMesh.Skins[1] = ActorSkin;
-      
+
       // Xan hack
       if (rec.BodySkinName ~= "UT2004PlayerSkins.XanMk3V2_Body")
         PlayerMesh.Skins[2] = Material(DynamicLoadObject("UT2004PlayerSkins.XanMk3V2_abdomen", class'Material'));
     }
   }
-  
+
   if ( !PlayerMesh.bAnimByOwner ) {
     if ( PlayerInfo.bBot )
       PlayerMesh.GotoState('Taunting', 'BeginTaunting');
@@ -339,22 +339,24 @@ function Remove()
 {
   if ( ExecutionCamera != None && SavedCameraMessage != "" )
     ExecutionCamera.Caption.Text = SavedCameraMessage;
-  
+
   ExecutionCamera = None;
   SavedCameraMessage = "";
-  
+
   if ( PlayerMesh != None )
     PlayerMesh.Destroy();
-  
+
   PlayerMesh = None;
   if ( CelebrationGameRules != None && CelebrationGameRules.CelebrationInteraction == Self )
     CelebrationGameRules.CelebrationInteraction = None;
   else if ( CelebrationGameRules != None )
     warn(CelebrationGameRules@"has another CelebrationInteraction!");
   CelebrationGameRules = None;
-  
-  if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None )
+
+  if ( JBInterfaceHud(ViewportOwner.Actor.myHUD) != None ) {
     JBInterfaceHud(ViewportOwner.Actor.myHUD).bChatMovedToTop = False;
+    JBInterfaceHud(ViewportOwner.Actor.myHUD).ClearMessageByClass(class'JBLocalMessageCelebration');
+  }
   Master.RemoveInteraction(Self);
 }
 
@@ -383,11 +385,11 @@ defaultproperties
   MeshLoc=(X=450,Y=-75,Z=-41)
   ShadowLoc=(X=450,Y=-78,Z=-43)
   MessageColor=(R=255,G=255,B=255,A=255)
-  
+
   Begin Object Class=ConstantColor Name=MeshShadowColor
     Color=(R=0,G=0,B=0,A=64)
   End Object
-  
+
   Begin Object Class=FinalBlend Name=MeshShadowFinal
     Material=MeshShadowColor
     FrameBufferBlending=FB_AlphaBlend

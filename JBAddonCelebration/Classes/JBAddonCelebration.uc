@@ -1,7 +1,7 @@
 //=============================================================================
 // JBAddonCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBAddonCelebration.uc,v 1.4 2004/05/26 12:00:31 wormbo Exp $
+// $Id: JBAddonCelebration.uc,v 1.5 2004/06/01 21:30:32 wormbo Exp $
 //
 // The Celebration Screen add-on for Jailbreak.
 //=============================================================================
@@ -32,7 +32,7 @@ var() localized string TeamString[2];
 simulated function InitAddon()
 {
   Super.InitAddon();
-  
+
   if ( Level.Game != None )
     Spawn(class'JBGameRulesCelebration');
 }
@@ -48,22 +48,22 @@ static function string GetCapturedMessage(PlayerReplicationInfo PRI, TeamInfo Te
 {
   local string CapturedMessage;
   local string TeamName;
-  
+
   if ( PRI.Team == Team )
     CapturedMessage = default.CapturedSelfMessage[DesiredMessageIndex % default.NumCapturedSelfMessages];
   else
     CapturedMessage = default.CapturedOtherMessage[DesiredMessageIndex % default.NumCapturedOtherMessages];
-  
-  StaticReplaceText(CapturedMessage, "%p", PRI.PlayerName);
-  
+
   TeamName = default.TeamString[Team.TeamIndex];
   StaticReplaceText(CapturedMessage, "%t", TeamName);
   StaticReplaceText(CapturedMessage, "%T", Caps(Left(TeamName, 1)) $ Mid(TeamName, 1));
-  
+
   TeamName = default.TeamString[(Team.TeamIndex + 1) % 2];
   StaticReplaceText(CapturedMessage, "%o", TeamName);
   StaticReplaceText(CapturedMessage, "%O", Caps(Left(TeamName, 1)) $ Mid(TeamName, 1));
-  
+
+  StaticReplaceText(CapturedMessage, "%p", PRI.PlayerName);
+
   return CapturedMessage;
 }
 
@@ -78,13 +78,13 @@ static final function StaticReplaceText(out string Text, string Replace, string 
 {
   local int i;
   local string Input;
-    
+
   Input = Text;
   Text = "";
   i = InStr(Input, Replace);
-  while(i != -1) {  
+  while(i != -1) {
     Text = Text $ Left(Input, i) $ With;
-    Input = Mid(Input, i + Len(Replace));  
+    Input = Mid(Input, i + Len(Replace));
     i = InStr(Input, Replace);
   }
   Text = Text $ Input;
@@ -102,7 +102,7 @@ defaultproperties
   Description="Enables the widescreen celebration screen during executions."
   Build="%%%%-%%-%% %%:%%"
   bAddToServerPackages=True
-  
+
   CapturedOtherMessage(0)="%p captured the last loser on the %t team."
   CapturedOtherMessage(1)="%p just threw the switch on the %t team."
   CapturedOtherMessage(2)="%p just sent the %t team to the joint."

@@ -1,7 +1,7 @@
 //=============================================================================
 // JBGameRulesCelebration
 // Copyright 2003 by Wormbo <wormbo@onlinehome.de>
-// $Id: JBGameRulesCelebration.uc,v 1.8 2004/06/02 09:48:25 wormbo Exp $
+// $Id: JBGameRulesCelebration.uc,v 1.9 2004/06/02 21:45:13 wormbo Exp $
 //
 // The JBGameRules class for the Celebration Screen used to get Jailbreak
 // notifications.
@@ -60,7 +60,7 @@ replication
 {
   reliable if ( Role == ROLE_Authority )
     bInExecutionSequence, LastKillerInfo, CapturedTeam, ReplicatedTaunt, NextCaptureMessage;
-  
+
   unreliable if ( Role < ROLE_Authority )
     ServerSetTauntAnim;
 }
@@ -75,14 +75,14 @@ replication
 function BeginPlay()
 {
   local JBGameRules thisJBGameRules;
-  
+
   if ( JailBreak(Level.Game) == None ) {
     // doesn't work without Jailbreak
     log("Not a Jailbreak game.", Name);
     Destroy();
     return;
   }
-  
+
   for (thisJBGameRules = JailBreak(Level.Game).GetFirstJBGameRules();
        thisJBGameRules != None;
        thisJBGameRules = thisJBGameRules.GetNextJBGameRules())
@@ -92,13 +92,13 @@ function BeginPlay()
         Destroy();
       return;
     }
-  
+
   // no JBGameRulesCelebration found, register this one
   if ( Level.Game.GameRulesModifiers == None )
     Level.Game.GameRulesModifiers = self;
   else
     Level.Game.GameRulesModifiers.AddGameRules(self);
-  
+
   NextCaptureMessage = Rand(ArrayCount(class'JBAddonCelebration'.default.CapturedOtherMessage));
 }
 
@@ -113,14 +113,14 @@ function ScoreKill(Controller Killer, Controller Killed)
 {
   local int TeamNum;
   local JBTagPlayer TagKilled;
-  
+
   if ( Killed != None && Killed.PlayerReplicationInfo != None && !Killed.PlayerReplicationInfo.bOnlySpectator ) {
     TagKilled = class'JBTagPlayer'.static.FindFor(Killed.PlayerReplicationInfo);
-    
+
     if ( TagKilled.IsFree() || TagKilled.IsInArena() ) {
       if ( Killed.PlayerReplicationInfo != None && Killed.PlayerReplicationInfo.Team != None )
         TeamNum = Killed.PlayerReplicationInfo.Team.TeamIndex;
-      
+
       LastKilled[TeamNum] = TagKilled;
       if ( Killer != None )
         LastKiller[TeamNum] = class'JBTagPlayer'.static.FindFor(Killer.PlayerReplicationInfo);
@@ -157,7 +157,7 @@ function ServerSetTauntAnim(string TauntAnim)
 simulated event PostNetReceive()
 {
   local PlayerController LocalPlayer;
-    
+
   if ( !bInExecutionSequence && CelebrationInteraction != None ) {
     CelebrationInteraction.Remove();
     CelebrationInteraction = None;
@@ -184,7 +184,7 @@ simulated event PostNetReceive()
       && LastKillerInfo.PRI != None && CapturedTeam != None )
     CelebrationInteraction.CaptureMessage = class'JBAddonCelebration'.static.GetCapturedMessage(
         LastKillerInfo.PRI, CapturedTeam, NextCaptureMessage);
-  
+
   if ( ReplicatedTaunt.Counter > ClientTauntNum ) {
     ClientTauntNum = ReplicatedTaunt.Counter;
     SetPropertyText("ClientTauntAnim", ReplicatedTaunt.TauntAnim);
@@ -205,12 +205,13 @@ simulated event PostNetReceive()
 function NotifyExecutionCommit(TeamInfo Team)
 {
   local int TeamNum;
-  
+  local PlayerController CelebrationController;
+
   bInExecutionSequence = True;
   CapturedTeam = Team;
   if ( CapturedTeam != None )
     TeamNum = CapturedTeam.TeamIndex;
-  
+
   // fill LastKillerInfo
   LastKillerInfo.Player = LastKiller[TeamNum];
   LastKillerInfo.bSuicide = LastKiller[TeamNum] == LastKilled[TeamNum];
@@ -221,10 +222,15 @@ function NotifyExecutionCommit(TeamInfo Team)
     }
     if ( LastKiller[TeamNum].GetPawn() != None )
       LastKiller[TeamNum].GetPawn().bAlwaysRelevant = True;
-    if ( !LastKillerInfo.bBot && LastKillerInfo.PRI.Team != Team )
-      SetOwner(LastKiller[TeamNum].GetController());
+    if ( !LastKillerInfo.bBot && LastKillerInfo.PRI.Team != Team ) {
+      CelebrationController = PlayerController(LastKiller[TeamNum].GetController());
+      SetOwner(CelebrationController);
+      Jailbreak(Level.Game).IncrementGoalsScored(LastKillerInfo.PRI); // for ServerExt/ServQuery and "Hat Trick" announcement
+      if ( CelebrationController != None )
+        CelebrationController.ReceiveLocalizedMessage(class'JBLocalMessageCelebration', 520);
+    }
   }
-  
+
   Super.NotifyExecutionCommit(Team);
   if ( Level.NetMode != NM_DedicatedServer )
     PostNetReceive();
@@ -242,7 +248,7 @@ function NotifyExecutionEnd()
 {
   local TPlayerInfo EmptyPlayerInfo;
   local int i;
-  
+
   bInExecutionSequence = False;
   CapturedTeam = None;
   for (i = 0; i < ArrayCount(LastKiller); i++) {
@@ -252,12 +258,12 @@ function NotifyExecutionEnd()
     LastKilled[i] = None;
   }
   SetOwner(None);
-  
+
   LastKillerInfo = EmptyPlayerInfo;
   Super.NotifyExecutionEnd();
   if ( Level.NetMode != NM_DedicatedServer )
     PostNetReceive();
-  
+
   NextCaptureMessage = Rand(ArrayCount(class'JBAddonCelebration'.default.CapturedOtherMessage));
 }
 
