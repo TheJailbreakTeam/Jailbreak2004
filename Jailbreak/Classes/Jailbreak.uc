@@ -1,7 +1,7 @@
 // ============================================================================
 // Jailbreak
 // Copyright 2002 by Mychaeel <mychaeel@planetjailbreak.com>
-// $Id: Jailbreak.uc,v 1.158 2011-01-06 18:26:03 wormbo Exp $
+// $Id: Jailbreak.uc,v 1.159 2012-10-28 15:58:45 wormbo Exp $
 //
 // Jailbreak game type.
 // ============================================================================
@@ -968,22 +968,15 @@ function float InternalRatePlayerStart(NavigationPoint N, byte Team, Controller 
 
   for (OtherPlayer = Level.ControllerList; OtherPlayer != None; OtherPlayer = OtherPlayer.NextController) {
     if (OtherPlayer.bIsPlayer && OtherPlayer.Pawn != None) {
-      if (OtherPlayer.Pawn.Region.Zone == N.Region.Zone) {
-        if (SameTeam(Player, OtherPlayer))
-          Score += 500;
-        else
-          Score -= 1500;
-      }
+      if (OtherPlayer.Pawn.Region.Zone == N.Region.Zone)
+        Score -= 1500;
+
       NextDist = VSize(OtherPlayer.Pawn.Location - N.Location);
       if (NextDist < OtherPlayer.Pawn.CollisionRadius + OtherPlayer.Pawn.CollisionHeight)
         return -10000.0;
-      else if (NextDist < 3000 && FastTrace(N.Location, OtherPlayer.Pawn.Location)) {
-        if (SameTeam(Player, OtherPlayer))
-          Score += (5000.0 - NextDist);
-        else
+      else if (NextDist < 3000 && FastTrace(N.Location, OtherPlayer.Pawn.Location))
           Score -= (10000.0 - NextDist);
-      }
-      else if (NumPlayers + NumBots == 2 && !SameTeam(Player, OtherPlayer)) {
+      else if (NumPlayers + NumBots == 2) {
         Score += 2 * VSize(OtherPlayer.Pawn.Location - N.Location);
         if (FastTrace(N.Location, OtherPlayer.Pawn.Location))
           Score -= 10000;
